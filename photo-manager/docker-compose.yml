@@ -1,0 +1,9 @@
+services:
+  photos:
+    build: .
+    container_name: breakfast-club-photos
+    ports:
+      - "127.0.0.1:8787:8787"   # the manager, only reachable from this PC
+    volumes:
+      - ./library:/data          # your photos live in the "library" folder next to this file
+    restart: unless-stopped

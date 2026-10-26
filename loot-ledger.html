@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#191d33">
+    <title>Loot & Ledger | RPG Budget Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@500;700;800&family=Pixelify+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #191d33; --slate: #2a3052; --slate2: #232945; --well: #151a30; --edge: #0b0e1d; --hi: #48528c;
+            --text: #eef0ff; --mut: #a8b0da; --dim: #6f78a8;
+            --gold: #f5c542; --gold-d: #9c6c08; --silver: #d3dbea; --ruby: #ef5b52; --ruby-d: #9e2d27;
+            --emerald: #4cc26a; --emerald-d: #2a7d43; --sky: #5aa9ff; --sky-d: #2a66b5; --violet: #a27cff; --violet-d: #5d3fb8; --amber: #ffbe3b;
+            --parch: #f2e2bb; --parch2: #ddc18a; --ink: #4a3118;
+            /* names the original markup and scripts still use */
+            --hp-green: var(--emerald); --hp-red: var(--ruby); --mp-blue: var(--sky); --neon-cyan: #6fe3ff; --epic-purple: var(--violet);
+            --px-font: 'Pixelify Sans', 'Trebuchet MS', system-ui, sans-serif;
+            --body-font: 'Alegreya Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            font: 500 17px/1.4 var(--body-font); color: var(--text); min-height: 100vh;
+            background: radial-gradient(120% 70% at 50% 0%, #262d52 0%, transparent 60%), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='32' shape-rendering='crispEdges'%3E%3Cg fill='%23ffffff' fill-opacity='.035'%3E%3Crect width='48' height='2'/%3E%3Crect y='16' width='48' height='2'/%3E%3Crect x='0' y='2' width='2' height='14'/%3E%3Crect x='24' y='18' width='2' height='14'/%3E%3C/g%3E%3C/svg%3E"), var(--bg);
+            display: flex; justify-content: center; padding: max(10px, env(safe-area-inset-top)) 10px calc(30px + env(safe-area-inset-bottom));
+        }
+        h1, h2, h3, .px-t, button, .tab-btn, .currency, .rank, .bar-title, .stat-box b { font-family: var(--px-font); font-weight: 600; letter-spacing: .01em; }
+        b, strong { font-weight: 800; }
+        .hidden { display: none !important; }
+        .sr-only { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .pix { display: block; image-rendering: pixelated; }
+        [data-sprite] { display: inline-block; line-height: 0; vertical-align: middle; }
+        .torch { display: flex; flex-direction: column; align-items: center; }
+        #txAmount { padding-right: 44px; }
+
+        /* ---------- pixel frames: a 4px outline with notched corners ---------- */
+        .px, .panel, .stat-box, .shop-item, .bill, .goal, .ledger-log, .battle-log, .timing-meter, .settings-section, .hero, .hero-card, .stage, .log-wrap, .chips .chip, .custom-boss-list, .dlg-box, .toast, .lvl-banner, .ach, .slot, .act {
+            --e: var(--edge);
+            box-shadow: 0 -4px 0 var(--e), 0 4px 0 var(--e), -4px 0 0 var(--e), 4px 0 0 var(--e), inset 0 4px 0 var(--lt, #ffffff12), inset 0 -4px 0 var(--dk, #00000040);
+        }
+        .app { width: 100%; max-width: 520px; position: relative; }
+
+        /* ---------- top bar ---------- */
+        .topbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 6px 4px 14px; }
+        .logo { font: 700 clamp(26px, 8vw, 36px)/1 var(--px-font); color: var(--gold); text-align: center; flex: 1;
+            text-shadow: 0 3px 0 var(--gold-d), 3px 3px 0 var(--gold-d), 0 6px 0 var(--edge), 3px 6px 0 var(--edge), 6px 6px 0 var(--edge); }
+        .home-btn, .settings-btn { width: 46px; height: 46px; flex: none; display: grid; place-items: center; font-size: 20px; text-decoration: none; }
+
+        /* ---------- buttons ---------- */
+        button { font-size: 16px; color: var(--text); cursor: pointer; border: 0; background: none; touch-action: manipulation; }
+        .btn, .home-btn, .settings-btn {
+            --c: #4a5490; position: relative; display: block; width: 100%; margin: 4px 4px 12px; width: calc(100% - 8px); padding: 11px 12px 13px;
+            background: var(--c); color: #fff; font-family: var(--px-font); font-weight: 600; font-size: 16px; line-height: 1.15; text-align: center; text-shadow: 0 2px 0 #0006;
+            box-shadow: 0 -4px 0 var(--edge), 0 4px 0 var(--edge), -4px 0 0 var(--edge), 4px 0 0 var(--edge), inset 0 -5px 0 #0000004d, inset 0 4px 0 #ffffff2e;
+            transition: transform .06s, filter .15s;
+        }
+        .btn:hover, .home-btn:hover, .settings-btn:hover { filter: brightness(1.12); }
+        .btn:active, .home-btn:active, .settings-btn:active { transform: translateY(3px); box-shadow: 0 -4px 0 var(--edge), 0 4px 0 var(--edge), -4px 0 0 var(--edge), 4px 0 0 var(--edge), inset 0 5px 0 #00000040; }
+        .btn small { display: block; font: 600 13px var(--body-font); opacity: .85; margin-top: 3px; text-shadow: none; }
+        .btn[aria-disabled="true"] { filter: saturate(.35) brightness(.85); }
+        .b-gold { --c: #d69a1c; color: #2b1900; text-shadow: 0 1px 0 #ffffff70; }
+        .b-green { --c: #2f8a4f; } .b-red { --c: #b8392f; } .b-blue { --c: #2f6fc4; } .b-violet { --c: #6b45c9; } .b-dark { --c: #3a3f62; } .b-night { --c: #283a8c; }
+        .mini-btn, .btn.mini { width: auto !important; display: inline-block; margin: 4px !important; padding: 6px 10px 8px !important; font-size: 14px !important; }
+        .home-btn, .settings-btn { margin: 4px; width: 46px; height: 46px; padding: 0; display: grid; place-items: center; }
+        .del-x { width: 32px; height: 32px; flex: none; display: inline-grid; place-items: center; color: var(--dim); font-size: 14px; cursor: pointer; border-radius: 2px; margin-left: 4px; }
+        .del-x:hover { color: var(--ruby); background: #ffffff10; }
+        :focus-visible { outline: 3px solid var(--gold); outline-offset: 5px; }
+
+        /* ---------- inputs ---------- */
+        input[type=text], input[type=number], select {
+            width: calc(100% - 8px); margin: 4px 4px 12px; display: block; padding: 11px 12px; font: 700 17px var(--body-font); color: var(--text); background: var(--well); border: 0; outline: none; border-radius: 0;
+            box-shadow: 0 -4px 0 var(--edge), 0 4px 0 var(--edge), -4px 0 0 var(--edge), 4px 0 0 var(--edge), inset 0 4px 0 #00000059; -webkit-appearance: none; appearance: none;
+        }
+        input::placeholder { color: var(--dim); font-weight: 500; }
+        input:focus, select:focus { box-shadow: 0 -4px 0 var(--gold), 0 4px 0 var(--gold), -4px 0 0 var(--gold), 4px 0 0 var(--gold), inset 0 4px 0 #00000059; }
+        input[type=file] { width: 100%; font: 600 14px var(--body-font); color: var(--mut); margin: 4px 0 12px; }
+        input[type=file]::file-selector-button { font: 600 14px var(--px-font); color: #fff; background: #4a5490; border: 0; padding: 8px 12px; margin-right: 10px; cursor: pointer; box-shadow: inset 0 -4px 0 #0000004d, 0 0 0 3px var(--edge); }
+        input[type=range] { width: 58%; accent-color: var(--gold); }
+        label { font-size: 15px; color: var(--mut); display: block; margin: 0 4px 2px; }
+        .amount-wrap { position: relative; }
+        .amount-wrap::after { content: 'G'; position: absolute; right: 18px; top: 50%; translate: 0 -60%; font: 600 17px var(--px-font); color: var(--gold); pointer-events: none; }
+
+        /* ---------- hero banner ---------- */
+        .hero { --e: #0b0e1d; display: grid; grid-template-columns: 112px 1fr; gap: 12px 14px; align-items: stretch; margin: 4px 4px 18px; padding: 12px; background: linear-gradient(#2c3460, #232a4f); }
+        .hero.level-up { animation: flash .9s; }
+        .hero-stage { min-height: 104px; position: relative; background: linear-gradient(#1a1f3d, #262c52 70%); box-shadow: inset 0 0 0 3px var(--edge); overflow: hidden; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; }
+        .hero-stage::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 18% 30%, #ffb3474d, transparent 70%); animation: glow 2.4s steps(3) infinite; }
+        .hero-stage::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 16px; background: repeating-linear-gradient(90deg, #3a3f62 0 14px, #2e3352 14px 16px); box-shadow: inset 0 3px 0 #4d5482; }
+        .hero-stage .knight { position: relative; z-index: 1; animation: idle 1.6s steps(2) infinite; }
+        .hero-stage .torch { position: absolute; left: 8px; top: 16px; z-index: 1; }
+        .torch .flame { margin: 0 auto -2px; animation: flick .5s steps(2) infinite; transform-origin: 50% 100%; }
+        .hero-info { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+        .rank { color: var(--neon-cyan); font-size: 19px; }
+        .currency-row { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .currency { display: flex; align-items: center; gap: 7px; font-size: 21px; background: var(--well); padding: 5px 10px 5px 7px; box-shadow: inset 0 0 0 3px var(--edge); flex: 1; min-width: 0; white-space: nowrap; }
+        .currency > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; flex: 1; }
+        .currency small { font: 700 13px var(--body-font); color: var(--dim); }
+        .c-gold { color: var(--gold); } .c-silver { color: var(--silver); }
+        @keyframes idle { 50% { translate: 0 -2px; } }
+        @keyframes glow { 50% { opacity: .7; } }
+        @keyframes flick { 50% { transform: scaleY(.82) scaleX(1.08); } }
+        @keyframes flash { 30% { box-shadow: 0 -4px 0 var(--gold), 0 4px 0 var(--gold), -4px 0 0 var(--gold), 4px 0 0 var(--gold), 0 0 34px 8px #f5c54299; } }
+
+        /* ---------- bars ---------- */
+        .bar-container { width: 100%; text-align: left; }
+        .bar-title { font-size: 15px; margin: 0 2px 5px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+        .bar-bg { width: calc(100% - 6px); margin: 0 3px; height: 16px; background: var(--well); position: relative; overflow: hidden; box-shadow: 0 -3px 0 var(--edge), 0 3px 0 var(--edge), -3px 0 0 var(--edge), 3px 0 0 var(--edge); overflow: visible; }
+        .bar-bg > .bar-fill { position: relative; }
+        .bar-fill { height: 100%; transition: width .35s steps(8), background-color .3s; box-shadow: inset 0 4px 0 #ffffff40, inset 0 -4px 0 #00000033; max-width: 100%; }
+        .bar-bg.seg::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 calc(10% - 2px), #0b0e1d99 calc(10% - 2px) 10%); pointer-events: none; }
+        .fill-xp { background: var(--neon-cyan); }
+        .fill-hp { background: var(--hp-green); }
+        .fill-shield { background: var(--sky); position: absolute !important; top: 0; left: 0; opacity: .85; background-image: repeating-linear-gradient(45deg, #ffffff40 0 4px, transparent 4px 8px); }
+
+        /* ---------- tabs ---------- */
+        .tabs { display: flex; gap: 12px; margin: 0 4px 18px; position: sticky; top: 0; z-index: 20; padding: 8px 0 6px; background: linear-gradient(var(--bg) 80%, transparent); }
+        .tab-btn { --c: #2a3052; flex: 1; margin: 0; width: auto; padding: 11px 4px 13px; font-size: 16px; color: var(--mut); }
+        .tab-btn.active { --c: #d69a1c; color: #2b1900; text-shadow: 0 1px 0 #ffffff70; }
+
+        /* ---------- shared layout ---------- */
+        .sec { margin: 0 0 26px; }
+        .sec-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 4px 12px; }
+        h3, .sec-h h3 { font-size: 19px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+        h3 .pix { flex: none; }
+        .panel { --e: var(--edge); background: var(--slate); padding: 14px 12px 4px; margin: 4px 4px 14px; }
+        .hint, .empty { color: var(--mut); font-size: 15px; margin: 0 4px 12px; }
+        .empty { text-align: center; padding: 14px 6px; }
+
+        /* ---------- ledger tab ---------- */
+        .daily-quest { --c: #b9860f; display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 14px 12px; color: #2b1900; text-shadow: 0 1px 0 #ffffff70; animation: pulse 2s steps(4) infinite; margin-bottom: 18px; }
+        .daily-quest .pix { flex: none; }
+        .daily-quest b { font-size: 18px; display: block; }
+        .daily-quest small { font: 700 14px var(--body-font); opacity: .9; }
+        @keyframes pulse { 50% { box-shadow: 0 -4px 0 var(--edge), 0 4px 0 var(--edge), -4px 0 0 var(--edge), 4px 0 0 var(--edge), inset 0 -5px 0 #0000004d, inset 0 4px 0 #ffffff2e, 0 0 22px 2px #f5c54280; } }
+        .wraith { --e: var(--ruby-d); --lt: #ff7a7a1f; background: linear-gradient(90deg, #3a1324, #2a1430); padding: 12px; margin: 4px 4px 18px; display: flex; gap: 12px; align-items: center; box-shadow: 0 -4px 0 var(--e), 0 4px 0 var(--e), -4px 0 0 var(--e), 4px 0 0 var(--e), inset 0 4px 0 #ff7a7a1f; }
+        .wraith .ghost { font-size: 40px; animation: float 2s ease-in-out infinite; flex: none; }
+        .wraith p { font-size: 16px; }
+        .wraith .btn { margin: 8px 4px 4px; }
+        @keyframes float { 50% { translate: 0 -6px; } }
+        .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 4px 22px; }
+        .stat-box { background: var(--slate); padding: 9px 4px 11px; text-align: center; font-size: 14px; color: var(--mut); }
+        .stat-box b { display: block; font-size: 22px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; }
+        .budget { margin: 0 0 16px; }
+        .budget .bar-title span:last-child { color: var(--mut); font-family: var(--body-font); font-weight: 800; }
+        .budget.over .bar-title span:last-child { color: var(--ruby); }
+        .budget.over .bar-bg { animation: hurt 1.2s steps(2) infinite; }
+        @keyframes hurt { 50% { box-shadow: 0 -3px 0 var(--ruby), 0 3px 0 var(--ruby), -3px 0 0 var(--ruby), 3px 0 0 var(--ruby); } }
+        .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 4px 16px; }
+        .chips .chip { --c: var(--well); background: var(--c); padding: 9px 10px 10px; text-align: left; font: 700 16px var(--body-font); color: var(--text); display: flex; align-items: center; gap: 8px; line-height: 1.15; }
+        .chips .chip span { font-size: 22px; }
+        .chips .chip small { display: block; font-weight: 500; font-size: 13px; color: var(--mut); }
+        .chips .chip[aria-checked="true"] { --e: var(--gold); background: #3c3a2a; }
+        .chips .chip[data-cat="income"][aria-checked="true"] { background: #3d3618; }
+        .ledger-log { background: var(--slate2); max-height: 330px; overflow-y: auto; padding: 4px 8px; margin: 4px 4px 22px; overscroll-behavior: contain; }
+        .log-entry { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 2px solid #ffffff0d; }
+        .log-entry:last-child { border-bottom: 0; }
+        .cat-badge { width: 36px; height: 36px; flex: none; display: grid; place-items: center; font-size: 19px; background: var(--well); box-shadow: inset 0 0 0 3px var(--edge); }
+        .cat-badge.c-income { background: #4a3d10; } .cat-badge.c-provisions { background: #3d2430; } .cat-badge.c-upkeep { background: #252f52; } .cat-badge.c-gear { background: #3a2752; }
+        .le-main { flex: 1; min-width: 0; }
+        .le-main strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+        .le-main small { color: var(--dim); font-size: 13px; }
+        .le-amt { font: 600 17px var(--px-font); white-space: nowrap; }
+        .income-text { color: var(--gold); } .expense-text { color: var(--ruby); }
+        .chart-row { display: flex; align-items: center; gap: 10px; font-size: 15px; margin-bottom: 12px; }
+        .chart-row .bar-bg { flex: 1; margin: 0 3px; height: 12px; }
+        .chart-row span:first-child { width: 104px; text-transform: capitalize; }
+        .chart-row span:last-child { width: 42px; text-align: right; font-family: var(--px-font); }
+        .week-chart { display: flex; align-items: flex-end; gap: 8px; height: 110px; margin: 10px 0 8px; }
+        .week-col { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%; font: 600 12px var(--px-font); color: var(--mut); gap: 3px; }
+        .week-col div { width: 100%; background: var(--ruby); min-height: 3px; box-shadow: inset 0 4px 0 #ffffff40, 0 0 0 2px var(--edge); }
+        .week-col.today { color: var(--gold); }
+
+        /* ---------- bounties tab ---------- */
+        .posters { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 16px; margin: 4px 4px 16px; }
+        .bill { --e: #6b4a22; --lt: #ffffff55; --dk: #00000018; position: relative; background: var(--parch); color: var(--ink); padding: 18px 12px 10px; display: flex; flex-direction: column; gap: 4px; min-height: 150px; }
+        .bill::before { content: ''; position: absolute; top: 6px; left: 50%; width: 10px; height: 10px; margin-left: -5px; background: var(--ruby); box-shadow: 0 0 0 2px var(--edge), inset -2px -2px 0 var(--ruby-d); }
+        .bill .bn { font: 700 18px/1.15 var(--px-font); text-align: center; word-break: break-word; margin-top: 4px; }
+        .bill .ba { font: 700 22px var(--px-font); text-align: center; color: #7a4d07; }
+        .bill small { display: block; text-align: center; font-size: 14px; font-weight: 800; color: #7b6340; }
+        .bill .stamp { align-self: center; font: 700 13px var(--px-font); padding: 2px 8px 3px; margin: 2px 0; rotate: -4deg; box-shadow: 0 0 0 2px currentColor; }
+        .bill.overdue .stamp { color: #b3261e; } .bill.soon .stamp { color: #a35d00; } .bill.paid .stamp { color: #2a7d43; } .bill.ok .stamp { color: #7b6340; }
+        .bill.overdue { --e: #a5302a; }
+        .bill.paid { opacity: .72; }
+        .bill .acts-row { display: flex; align-items: center; justify-content: center; margin-top: auto; padding-top: 6px; }
+        .bill .del-x { color: #9b815b; }
+        .bill .del-x:hover { color: #b3261e; background: #00000010; }
+        .bill.pay { background: #e9e0c5; --e: #5d6a2a; }
+        .bill.pay::before { background: var(--emerald); box-shadow: 0 0 0 2px var(--edge), inset -2px -2px 0 var(--emerald-d); }
+        .bill.pay .ba { color: #2a6b2f; }
+        .goal { --e: var(--violet-d); background: var(--slate); padding: 12px; margin: 4px 4px 16px; display: flex; gap: 12px; align-items: center; }
+        .goal.done { --e: var(--gold); background: #3a3523; }
+        .goal .gbody { flex: 1; min-width: 0; }
+        .goal .bar-title span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .goal .grow { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+        .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 14px; margin: 4px; }
+        .ach { background: var(--slate2); padding: 10px 4px 9px; text-align: center; font-size: 13px; font-weight: 800; color: var(--dim); line-height: 1.2; }
+        .ach i { display: block; font-style: normal; font-size: 30px; margin-bottom: 4px; filter: grayscale(1) brightness(.5); }
+        .ach.got { --e: var(--gold-d); background: #3a3523; color: var(--gold); }
+        .ach.got i { filter: none; }
+        .form-panel .btn { margin-bottom: 14px; }
+
+        /* ---------- quest tab ---------- */
+        .hero-card { --e: var(--edge); background: var(--slate); margin: 4px 4px 20px; padding: 12px; position: relative; }
+        .hero-card.hurt { animation: shake .35s steps(4); }
+        .hc-top { display: flex; gap: 12px; align-items: center; }
+        .hc-sprite { width: 76px; height: 84px; flex: none; display: grid; place-items: end center; background: linear-gradient(#1d2344, #2a3157); box-shadow: inset 0 0 0 3px var(--edge); padding-bottom: 6px; }
+        .hc-bars { flex: 1; min-width: 0; }
+        .hp-lbl { color: var(--hp-green); }
+        #shieldText { color: var(--sky); font-size: 13px; }
+        .weapon-line { margin-top: 10px; display: flex; justify-content: space-between; gap: 8px; font-size: 16px; }
+        .weapon-line strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .weapon-line .dmg { font-family: var(--px-font); color: var(--gold); white-space: nowrap; }
+        .enchant-list { display: flex; flex-wrap: wrap; gap: 4px; font-size: 13px; color: var(--violet); margin-top: 6px; font-weight: 800; }
+        .enchant-list span { background: #3a2a66; color: #d9c8ff; padding: 1px 7px 2px; box-shadow: inset 0 0 0 2px var(--edge); }
+        .inv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 4px 4px; }
+        .slot { --e: var(--edge); background: var(--well); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 7px 4px; font-size: 13px; color: var(--mut); }
+        .slot b { font: 700 20px var(--px-font); color: var(--text); }
+        .slot div { line-height: 1.05; }
+        .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-bottom: 8px; }
+        .acts .btn { margin: 4px 4px 12px; width: calc(100% - 8px); min-height: 86px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .acts .ai { font-size: 28px; margin-bottom: 4px; text-shadow: none; }
+        .potions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 0 4px; }
+        .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 0 8px; }
+        .shop-item { --e: var(--edge); background: var(--slate); padding: 12px 8px 0; margin: 4px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        .shop-item .pix { margin: 2px auto 4px; }
+        .shop-item .btn { margin: auto 4px 12px; width: calc(100% - 8px); padding: 8px 6px 10px; font-size: 15px; }
+        .shop-item small { color: var(--mut); font-size: 14px; }
+        .shop-item .w-ico { font-size: 34px; line-height: 1.1; }
+        .shop-item .w-name { font: 600 16px var(--px-font); }
+        .shop-item .rar { font: 600 12px var(--px-font); padding: 1px 8px 2px; box-shadow: inset 0 0 0 2px currentColor; }
+        .shop-item .enchant-list { justify-content: center; min-height: 22px; color: var(--dim); }
+        .shop-item .w-stats { font: 600 15px var(--px-font); color: var(--silver); display: flex; gap: 6px; margin-bottom: 10px; }
+        .shop-item .w-stats .up { color: var(--emerald); } .shop-item .w-stats .down { color: var(--dim); }
+        .r-common { --e: #4b527c; } .r-common .rar { color: #b7bede; }
+        .r-rare { --e: #2a66b5; } .r-rare .rar { color: #7cc0ff; }
+        .r-epic { --e: #6a47c9; } .r-epic .rar { color: #c4a8ff; }
+        .r-legendary { --e: #c99410; background: #3a3420; } .r-legendary .rar { color: var(--gold); }
+
+        /* ---------- arenas & stages ---------- */
+        .battle-arena, .minigame-arena, .crypt-arena { display: none; text-align: center; }
+        .stage { --e: var(--edge); position: relative; overflow: hidden; margin: 4px 4px 18px; min-height: 210px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 14px 10px 26px; }
+        .stage.dungeon { background: linear-gradient(#0000 60%, #00000066), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='24' shape-rendering='crispEdges'%3E%3Crect width='40' height='24' fill='%23303656'/%3E%3Cg fill='%23262b47'%3E%3Crect width='40' height='3'/%3E%3Crect y='12' width='40' height='3'/%3E%3Crect width='3' height='12'/%3E%3Crect x='20' y='12' width='3' height='12'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='.05'%3E%3Crect x='3' y='3' width='17' height='2'/%3E%3Crect x='23' y='15' width='17' height='2'/%3E%3C/g%3E%3C/svg%3E"); }
+        .stage.dungeon::before { content: ''; position: absolute; inset: 0; background: radial-gradient(30% 45% at 12% 30%, #ffa53d40, transparent 70%), radial-gradient(30% 45% at 88% 30%, #ffa53d40, transparent 70%); animation: glow 2.4s steps(3) infinite; pointer-events: none; }
+        .stage::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 22px; background: repeating-linear-gradient(90deg, #3a3f62 0 22px, #2c3150 22px 24px); box-shadow: inset 0 4px 0 #4d5482; }
+        .stage.grass { background: linear-gradient(#24496b, #2f6a6b 55%, #2c5a3e); }
+        .stage.grass::after { background: repeating-linear-gradient(90deg, #3d8a3f 0 10px, #357a37 10px 12px); box-shadow: inset 0 4px 0 #58b154; }
+        .stage.crypt { background: radial-gradient(60% 70% at 50% 60%, #4a2c7a, #1b1030 75%); }
+        .stage.crypt::after { background: repeating-linear-gradient(90deg, #2e2048 0 22px, #241838 22px 24px); box-shadow: inset 0 4px 0 #4a3570; }
+        .stage .torch { position: absolute; top: 34px; z-index: 1; }
+        .stage .torch.l { left: 18px; } .stage .torch.r { right: 18px; }
+        .fog { position: absolute; inset: 0; background: radial-gradient(40% 25% at 20% 80%, #c9a8ff33, transparent), radial-gradient(40% 25% at 80% 70%, #c9a8ff2b, transparent); animation: fogm 6s ease-in-out infinite alternate; }
+        @keyframes fogm { to { transform: translateX(14px); } }
+        #bossName, .arena-h { font-size: 22px; color: var(--ruby); position: relative; z-index: 2; text-shadow: 0 3px 0 var(--edge); }
+        .arena-h { margin: 0 0 auto; }
+        .arena-h.green { color: #8ef59a; } .arena-h.violet { color: #d3bfff; }
+        #dungeonCounter { position: relative; z-index: 2; color: var(--gold); font: 600 15px var(--px-font); background: #0b0e1dcc; padding: 2px 10px 3px; margin-top: 6px; }
+        .boss-visual-container { margin: 18px auto 0; width: 110px; height: 110px; display: flex; justify-content: center; align-items: center; position: relative; z-index: 2; }
+        .boss-visual-container::after { content: ''; position: absolute; left: 50%; bottom: -12px; width: 86px; height: 14px; margin-left: -43px; background: #0006; border-radius: 50%; z-index: -1; }
+        .boss-visual-container > * { animation: bob 1.4s steps(2) infinite; }
+        .boss-sprite-emoji, .crypt-sprite-emoji { font-size: 4.6rem; line-height: 1; filter: drop-shadow(0 0 10px #ef5b5299); }
+        .crypt-sprite-emoji { filter: drop-shadow(0 0 12px var(--violet)); }
+        .boss-sprite-img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 0 10px var(--hp-red)); image-rendering: pixelated; transform-origin: center; transition: transform .2s ease; }
+        .crypt-sprite-img { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 0 10px var(--epic-purple)); image-rendering: pixelated; transform-origin: center; transition: transform .2s ease; }
+        .boss-visual-container.hit > * { animation: hit .32s steps(3); }
+        .boss-visual-container.dead > * { animation: die .7s steps(5) forwards; }
+        .goblin { width: 92px; height: 92px; display: grid; place-items: center; font-size: 3.4rem; background: #4cc26a; border-radius: 50%; box-shadow: 0 0 0 4px var(--edge), inset 0 -8px 0 #2a7d43; filter: none; }
+        @keyframes bob { 50% { translate: 0 -5px; } }
+        @keyframes hit { 0% { translate: 6px 0; filter: brightness(0) invert(1); } 33% { translate: -6px 0; filter: brightness(0) invert(1); } 66% { translate: 4px 0; filter: none; } }
+        @keyframes die { to { translate: 0 18px; opacity: 0; scale: .6; filter: brightness(0) invert(1); } }
+        @keyframes shake { 25% { translate: -5px 0; } 50% { translate: 5px 0; } 75% { translate: -3px 0; } }
+        .float { position: absolute; z-index: 5; font: 700 26px var(--px-font); color: #fff; text-shadow: 0 3px 0 var(--edge), 3px 0 0 var(--edge), -3px 0 0 var(--edge), 0 -3px 0 var(--edge); pointer-events: none; animation: rise .9s steps(6) forwards; white-space: nowrap; }
+        .float.crit { color: var(--gold); font-size: 34px; } .float.bad { color: var(--ruby); } .float.good { color: var(--emerald); } .float.info { color: #d3bfff; font-size: 20px; }
+        @keyframes rise { to { translate: 0 -46px; opacity: 0; } }
+        .boss-hp { margin: 4px 0 16px; }
+        .boss-hp .bar-title span:first-child { color: var(--ruby); }
+        .battle-log { --e: var(--edge); background: var(--well); color: var(--text); padding: 8px 12px; height: 140px; overflow-y: auto; font-size: 15px; margin: 4px 4px 18px; text-align: left; overscroll-behavior: contain; }
+        .battle-log div { padding: 2px 0; }
+        .battle-log .lg-me { color: var(--gold); } .battle-log .lg-foe { color: #ff9a92; } .battle-log .lg-heal { color: #8fe3a5; } .battle-log .lg-win { color: var(--gold); font: 600 17px var(--px-font); } .battle-log .lg-sys { color: var(--mut); }
+        .battle-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
+        .battle-actions .btn { margin: 4px 4px 12px; width: calc(100% - 8px); }
+        #combatControls.wait .battle-actions { opacity: .55; pointer-events: none; }
+        .timing-meter { --e: #fff; width: calc(100% - 8px); height: 40px; background: #1c2a24; position: relative; margin: 10px 4px 22px; overflow: hidden; }
+        .timing-target { position: absolute; height: 100%; width: 25%; background: repeating-linear-gradient(90deg, #4cc26a99 0 6px, #4cc26a66 6px 12px); left: 37.5%; box-shadow: inset 3px 0 0 var(--emerald), inset -3px 0 0 var(--emerald); }
+        .timing-cursor { position: absolute; height: 100%; width: 6px; margin-left: -1px; background: #fff; left: 0; top: 0; box-shadow: 0 0 0 2px var(--edge), 0 0 12px #fff; }
+        #goblinResult { font: 600 18px var(--px-font); min-height: 26px; margin: 4px 4px 8px; }
+        .quote { color: #d3bfff; font-style: italic; font-size: 16px; margin: 0 8px 14px; }
+        .pacts { display: flex; flex-direction: column; gap: 6px; margin-bottom: 6px; }
+        .pacts .btn { text-align: left; padding: 12px 14px 14px; font: 600 15px/1.35 var(--body-font); }
+        .pacts .btn strong { font: 600 17px var(--px-font); color: var(--gold); display: block; margin-bottom: 3px; }
+
+        /* ---------- settings ---------- */
+        .settings-modal { position: fixed; inset: 0; background: #0b0e1dee; z-index: 100; padding: max(16px, env(safe-area-inset-top)) 12px 30px; overflow-y: auto; overscroll-behavior: contain; display: flex; justify-content: center; }
+        .settings-inner { width: 100%; max-width: 520px; display: flex; flex-direction: column; }
+        .settings-modal h2 { color: var(--neon-cyan); font-size: 24px; margin: 6px 4px 18px; }
+        .settings-section { --e: var(--edge); background: var(--slate); padding: 14px 12px 4px; margin: 4px 4px 22px; }
+        .settings-section h3 { font-size: 18px; color: var(--gold); margin-bottom: 8px; }
+        .settings-section p { font-size: 15px; color: var(--mut); margin: 0 4px 12px; }
+        .scale-control { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 4px 14px; font-size: 15px; color: var(--mut); }
+        .scale-control label { margin: 0; }
+        .scale-control span { font-family: var(--px-font); color: var(--gold); width: 44px; text-align: right; }
+        .custom-boss-list { --e: var(--edge); max-height: 150px; overflow-y: auto; padding: 6px 10px; font-size: 15px; margin: 4px 4px 16px; background: var(--well); }
+        .custom-boss-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 2px solid #ffffff0d; }
+        .custom-boss-item:last-child { border-bottom: 0; }
+        .custom-boss-item span { color: var(--mut); }
+        .custom-boss-item .del-x { color: var(--ruby); }
+
+        /* ---------- toasts, dialog, level-up ---------- */
+        #toast-wrap { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 0; right: 0; z-index: 999; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; padding: 0 16px; }
+        .toast { --e: var(--gold-d); background: #232945; color: var(--text); padding: 9px 14px 10px; max-width: 460px; font-size: 16px; font-weight: 700; white-space: pre-line; text-align: center; animation: toastIn .25s steps(3), toastOut .4s ease 3.2s forwards; }
+        @keyframes toastIn { from { translate: 0 -16px; opacity: 0; } }
+        @keyframes toastOut { to { opacity: 0; translate: 0 -10px; } }
+        .dlg { position: fixed; inset: 0; z-index: 1000; background: #0b0e1dcc; display: grid; place-items: center; padding: 20px; }
+        .dlg-box { --e: var(--gold-d); background: var(--slate); width: 100%; max-width: 380px; padding: 18px 14px 6px; animation: toastIn .2s steps(3); }
+        .dlg-box p { font-size: 17px; margin: 0 4px 16px; white-space: pre-line; }
+        .dlg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dlg-row .btn { margin: 4px 4px 12px; width: calc(100% - 8px); }
+        .lvl-banner { --e: var(--gold); position: fixed; left: 50%; top: 34%; translate: -50% 0; z-index: 998; background: #2b2410; color: var(--gold); padding: 16px 26px 18px; text-align: center; pointer-events: none; animation: lvlIn .5s steps(4), toastOut .5s ease 2.4s forwards; }
+        .lvl-banner b { display: block; font: 700 32px var(--px-font); text-shadow: 0 3px 0 var(--gold-d), 0 6px 0 var(--edge); }
+        .lvl-banner span { font-size: 17px; color: var(--text); font-weight: 800; }
+        @keyframes lvlIn { from { scale: .4; opacity: 0; } }
+
+        @media (max-width: 380px) {
+            body { font-size: 16px; }
+            .hero { gap: 10px; padding: 10px; grid-template-columns: 96px 1fr; }
+            .currency { font-size: 18px; }
+            .tabs { gap: 10px; } .tab-btn { font-size: 14px; }
+            .stat-box b { font-size: 18px; }
+        }
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; animation-iteration-count: 1 !important; transition: none !important; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast-wrap" aria-live="polite"></div>
+    <div id="lvlBanner" class="lvl-banner hidden" aria-live="polite"></div>
+    <div id="dlg" class="dlg hidden" role="dialog" aria-modal="true" aria-labelledby="dlgMsg">
+        <div class="dlg-box">
+            <p id="dlgMsg"></p>
+            <input type="number" id="dlgInput" class="hidden" inputmode="decimal" min="0" step="any" aria-label="Amount">
+            <div class="dlg-row"><button class="btn b-dark" id="dlgNo">Cancel</button><button class="btn b-green" id="dlgYes">OK</button></div>
+        </div>
+    </div>
+
+    <main class="app">
+        <div class="topbar">
+            <a href="index.html" class="home-btn" aria-label="Back to home" title="Back to home">🏠</a>
+            <h1 class="logo">Loot &amp; Ledger</h1>
+            <button class="settings-btn" onclick="toggleSettings()" aria-label="Settings" title="Settings">⚙️</button>
+        </div>
+
+        <!-- SETTINGS MODAL -->
+        <div id="settings-modal" class="settings-modal hidden" role="dialog" aria-modal="true" aria-label="Settings">
+            <div class="settings-inner">
+                <h2>⚙️ Settings</h2>
+
+                <div class="settings-section">
+                    <h3>💾 Back up or move your save</h3>
+                    <p>Export your save file (including custom bosses, weapons and keeper images) to back it up or move devices.</p>
+                    <button class="btn b-blue" onclick="exportSaveData()">⬇️ Export save data</button>
+                    <label for="importSaveInput">⬆️ Import save data</label>
+                    <input type="file" id="importSaveInput" accept=".json,application/json" onchange="importSaveData(event)">
+                    <button class="btn b-red" style="margin-top:10px" onclick="clearAllData()">⚠️ Hard reset progress</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🔊 Sound</h3>
+                    <button class="btn" id="soundBtn" onclick="state.sound = state.sound === false; saveState(); sfx('coin');">🔊 Sound: On</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>💰 Monthly budget limits</h3>
+                    <p>Set the max HP (real money) for each category.</p>
+                    <label for="limProvisions">🍎 Provisions</label><input type="number" id="limProvisions" min="1" inputmode="decimal">
+                    <label for="limUpkeep">🏰 Upkeep</label><input type="number" id="limUpkeep" min="1" inputmode="decimal">
+                    <label for="limGear">🛍️ Equipment</label><input type="number" id="limGear" min="1" inputmode="decimal">
+                    <button class="btn b-green" onclick="saveLimits()">Save limits</button>
+                </div>
+
+                <div class="settings-section">
+                    <h3>👾 Import a custom boss</h3>
+                    <p>Upload a .gif or .png. Adjust the scale so it matches the size of the emoji bosses.</p>
+                    <input type="file" id="bossImgInput" accept="image/*" aria-label="Boss image">
+                    <div class="scale-control">
+                        <label for="bossScaleInput">Image size scale</label>
+                        <input type="range" id="bossScaleInput" min="0.5" max="4.0" step="0.1" value="1.5" oninput="document.getElementById('bossScaleVal').innerText = this.value + 'x'">
+                        <span id="bossScaleVal">1.5x</span>
+                    </div>
+                    <input type="text" id="bossNameInput" placeholder="Boss name" autocomplete="off" aria-label="Boss name">
+                    <button class="btn b-violet" onclick="addCustomBoss()">Add to roster</button>
+                    <div class="custom-boss-list" id="customBossList"></div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>🦹 Import a Crypt Keeper</h3>
+                    <p>Set a custom image for the mysterious Crypt Keeper.</p>
+                    <input type="file" id="cryptImgInput" accept="image/*" aria-label="Crypt Keeper image">
+                    <div class="scale-control">
+                        <label for="cryptScaleInput">Keeper scale</label>
+                        <input type="range" id="cryptScaleInput" min="0.5" max="4.0" step="0.1" value="1.5" oninput="document.getElementById('cryptScaleVal').innerText = this.value + 'x'">
+                        <span id="cryptScaleVal">1.5x</span>
+                    </div>
+                    <button class="btn b-violet" onclick="updateCryptKeeperImg()">Update keeper</button>
+                    <button class="btn b-dark" onclick="resetCryptKeeperImg()">Reset to default</button>
+                </div>
+
+                <button class="btn b-gold" onclick="toggleSettings()">Return to game</button>
+            </div>
+        </div>
+
+        <header class="hero" id="heroBanner">
+            <div class="hero-stage" aria-hidden="true">
+                <div class="torch"><span data-sprite="flame" data-scale="3" class="flame-wrap"></span><span data-sprite="torch" data-scale="3"></span></div>
+                <span data-sprite="knight" data-scale="4" class="knight"></span>
+            </div>
+            <div class="hero-info">
+                <p id="playerTitle" class="rank">Level 1 Novice</p>
+                <div class="bar-container">
+                    <div class="bar-title"><span style="color:var(--neon-cyan)">XP</span> <span id="xpText">0/100</span></div>
+                    <div class="bar-bg seg"><div class="bar-fill fill-xp" id="xpFill"></div></div>
+                </div>
+            </div>
+            <div class="currency-row">
+                <div class="currency c-gold" title="Gold: your real money"><span data-sprite="coinG" data-scale="3"></span><span><span id="vaultGold">0</span> G</span></div>
+                <div class="currency c-silver" title="Silver: earned by playing"><span data-sprite="coinS" data-scale="3"></span><span><span id="vaultSilver">0</span> S</span></div>
+            </div>
+        </header>
+
+        <nav class="tabs" role="tablist" aria-label="Sections">
+            <button class="tab-btn btn active" id="btn-ledger" role="tab" aria-selected="true" onclick="switchTab('ledger')">📜 Ledger</button>
+            <button class="tab-btn btn" id="btn-bounties" role="tab" aria-selected="false" onclick="switchTab('bounties')">🪧 Bounties</button>
+            <button class="tab-btn btn" id="btn-adventure" role="tab" aria-selected="false" onclick="switchTab('adventure')">⚔️ Quest</button>
+        </nav>
+
+        <!-- ============ LEDGER TAB (REAL MONEY) ============ -->
+        <section id="tab-ledger" role="tabpanel" aria-labelledby="btn-ledger">
+            <button id="dailyQuestBtn" class="daily-quest btn hidden" onclick="claimDaily()">
+                <span data-sprite="chest" data-scale="4"></span>
+                <span><b>Claim your daily reward</b><small id="dailyAmt">Silver and 50 XP are waiting</small></span>
+            </button>
+            <div id="wraithBox"></div>
+            <div class="stat-row">
+                <div class="stat-box">Income<b class="c-gold" id="stIncome">0</b></div>
+                <div class="stat-box">Spent<b style="color:var(--hp-red)" id="stSpent">0</b></div>
+                <div class="stat-box">Left<b style="color:var(--hp-green)" id="stLeft">0</b></div>
+            </div>
+
+            <div class="sec">
+                <div class="sec-h"><h3><span data-sprite="heart" data-scale="3"></span>Monthly budget HP</h3></div>
+                <div class="panel" id="budgetStatsList"></div>
+            </div>
+
+            <div class="sec">
+                <div class="sec-h"><h3><span data-sprite="scroll" data-scale="3"></span>Record a transaction</h3></div>
+                <div class="panel form-panel">
+                    <div class="amount-wrap"><input type="number" id="txAmount" placeholder="Amount (real money)" min="1" step="any" inputmode="decimal" aria-label="Amount"></div>
+                    <input type="text" id="txDesc" placeholder="Description, e.g. Groceries" autocomplete="off" aria-label="Description">
+                    <div class="chips" role="radiogroup" aria-label="Category">
+                        <button type="button" class="chip" role="radio" data-cat="income"><span>💰</span><div>Add funds<small>Increases gold</small></div></button>
+                        <button type="button" class="chip" role="radio" data-cat="provisions"><span>🍎</span><div>Provisions<small>Food</small></div></button>
+                        <button type="button" class="chip" role="radio" data-cat="upkeep"><span>🏰</span><div>Upkeep<small>Castle bills</small></div></button>
+                        <button type="button" class="chip" role="radio" data-cat="gear"><span>🛍️</span><div>Equipment<small>Shopping</small></div></button>
+                    </div>
+                    <select id="txCategory" class="sr-only" tabindex="-1" aria-hidden="true">
+                        <option value="income">💰 Add Funds (Increases Gold)</option>
+                        <option value="provisions">🍎 Provisions (Food)</option>
+                        <option value="upkeep">🏰 Castle Upkeep (Bills)</option>
+                        <option value="gear">🛍️ Equipment (Shopping)</option>
+                    </select>
+                    <button class="btn b-gold" onclick="addTransaction()">Record transaction</button>
+                </div>
+            </div>
+
+            <div class="sec">
+                <div class="sec-h"><h3>📒 Transaction log</h3></div>
+                <div class="ledger-log" id="ledgerLog"></div>
+            </div>
+            <div class="sec">
+                <div class="sec-h"><h3>📊 Spending intel</h3></div>
+                <div class="panel" id="chartBox" style="padding-bottom:12px"></div>
+            </div>
+            <button class="btn b-night" onclick="restAtInn()">🛏️ Rest at the inn<small>Starts a new month: resets budget HP and heals you</small></button>
+        </section>
+
+        <!-- ============ BOUNTIES TAB ============ -->
+        <section id="tab-bounties" class="hidden" role="tabpanel" aria-labelledby="btn-bounties">
+            <div class="sec">
+                <div class="sec-h"><h3>🪧 Bill bounties</h3></div>
+                <div id="billList"></div>
+                <div class="panel form-panel">
+                    <input type="text" id="billName" placeholder="Bill name, e.g. Rent or Phone" autocomplete="off" aria-label="Bill name">
+                    <input type="number" id="billAmt" placeholder="Amount" min="1" step="any" inputmode="decimal" aria-label="Bill amount">
+                    <input type="number" id="billDay" placeholder="Due day of month (1-31)" min="1" max="31" inputmode="numeric" aria-label="Due day">
+                    <button class="btn b-gold" onclick="addBill()">Post bounty</button>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="sec-h"><h3>💵 Paychecks</h3></div>
+                <div id="payList"></div>
+                <div class="panel form-panel">
+                    <input type="text" id="payName" placeholder="Income source, e.g. Day job" autocomplete="off" aria-label="Income source">
+                    <input type="number" id="payAmt" placeholder="Amount" min="1" step="any" inputmode="decimal" aria-label="Paycheck amount">
+                    <input type="number" id="payDay" placeholder="Payday (day of month 1-31)" min="1" max="31" inputmode="numeric" aria-label="Payday">
+                    <button class="btn b-green" onclick="addPay()">Add paycheck</button>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="sec-h"><h3><span data-sprite="chest" data-scale="2"></span>Treasure goals</h3></div>
+                <div id="goalList"></div>
+                <div class="panel form-panel">
+                    <input type="text" id="goalName" placeholder="Goal, e.g. Emergency fund" autocomplete="off" aria-label="Goal name">
+                    <input type="number" id="goalTarget" placeholder="Target amount" min="1" step="any" inputmode="decimal" aria-label="Target amount">
+                    <button class="btn b-violet" onclick="addGoal()">Start hoarding</button>
+                </div>
+            </div>
+            <div class="sec">
+                <div class="sec-h"><h3>🏆 Achievements</h3></div>
+                <div class="ach-grid" id="achList"></div>
+            </div>
+        </section>
+
+        <!-- ============ QUEST TAB (GAMES) ============ -->
+        <section id="tab-adventure" class="hidden" role="tabpanel" aria-labelledby="btn-adventure">
+            <div class="hero-card" id="heroPanel">
+                <div class="hc-top">
+                    <div class="hc-sprite"><span data-sprite="knight" data-scale="4" class="knight"></span></div>
+                    <div class="hc-bars">
+                        <div class="bar-container">
+                            <div class="bar-title"><span class="hp-lbl">Player HP <span id="shieldText"></span></span><span id="playerHpText">100/100</span></div>
+                            <div class="bar-bg seg">
+                                <div class="bar-fill fill-hp" id="playerHpFill"></div>
+                                <div class="bar-fill fill-shield" id="playerShieldFill" style="width:0%;"></div>
+                            </div>
+                        </div>
+                        <div class="weapon-line"><strong id="weaponName">Wooden Stick</strong><span class="dmg">⚔ <span id="weaponDmg">10</span> dmg</span></div>
+                        <div id="weaponEnchants" class="enchant-list"></div>
+                    </div>
+                </div>
+                <div class="inv">
+                    <div class="slot" title="Health potions"><span data-sprite="potR" data-scale="3"></span><div><b id="potionCount">0</b><br>Health</div></div>
+                    <div class="slot" title="Shield potions"><span data-sprite="potB" data-scale="3"></span><div><b id="shieldPotCount">0</b><br>Shield</div></div>
+                    <div class="slot" title="Dungeon keys"><span data-sprite="key" data-scale="3"></span><div><b id="keyCount">0</b><br>Keys</div></div>
+                </div>
+            </div>
+
+            <!-- Adventure hub -->
+            <div id="adventure-hub">
+                <div class="acts">
+                    <button class="btn b-green" onclick="huntGoblinAuto()"><span class="ai">🎲</span>Quick hunt<small>Auto battle</small></button>
+                    <button class="btn b-green" style="--c:#24733f" onclick="startGoblinMinigame()"><span class="ai">🎯</span>Ambush<small>Timing minigame</small></button>
+                    <button class="btn b-red" onclick="startBossBattle(false)"><span class="ai">👹</span>Boss dungeon<small>Turn-based fight</small></button>
+                    <button class="btn b-violet" onclick="enterMegaDungeon()"><span class="ai">🗝️</span>Mega dungeon<small>3 rooms, uses a key</small></button>
+                </div>
+
+                <div class="sec-h" style="margin-top:6px"><h3>🛒 Silver shop</h3><button class="btn mini b-blue" onclick="generateDailyShop(true)">Refresh for 50 S</button></div>
+                <div class="potions">
+                    <div class="shop-item"><span data-sprite="potR" data-scale="4"></span><b>Health potion</b><small>Restores 50 HP</small><button class="btn b-green" style="margin-top:8px" onclick="buyPotion('hp')">25 S</button></div>
+                    <div class="shop-item"><span data-sprite="potB" data-scale="4"></span><b>Shield potion</b><small>Adds 50 armor</small><button class="btn b-blue" style="margin-top:8px" onclick="buyPotion('shield')">50 S</button></div>
+                </div>
+                <div class="shop-grid" id="dynamicShop"></div>
+                <p class="hint">New weapons arrive every day.</p>
+            </div>
+
+            <!-- GOBLIN TIMING MINIGAME -->
+            <div id="goblin-arena" class="minigame-arena">
+                <div class="stage grass" id="goblinStage">
+                    <h2 class="arena-h green">Ambush a goblin!</h2>
+                    <div class="boss-visual-container" id="goblinVisual"><div class="boss-sprite-emoji goblin">👺</div></div>
+                </div>
+                <p class="hint">Strike when the cursor is in the green zone!</p>
+                <div class="timing-meter">
+                    <div class="timing-target"></div>
+                    <div class="timing-cursor" id="timingCursor"></div>
+                </div>
+                <div class="battle-actions">
+                    <button class="btn b-green" onclick="strikeGoblin()">🗡️ Strike!</button>
+                    <button class="btn b-dark" onclick="fleeGoblin()">🏃 Run away</button>
+                </div>
+                <div id="goblinResult"></div>
+            </div>
+
+            <!-- CRYPT KEEPER OFFERING ARENA -->
+            <div id="crypt-arena" class="crypt-arena">
+                <div class="stage crypt">
+                    <div class="fog"></div>
+                    <h2 class="arena-h violet">The Crypt Keeper</h2>
+                    <div class="boss-visual-container" id="cryptKeeperVisual"></div>
+                </div>
+                <p class="quote">"A bribe of sin costs 50 silver... Choose your pact wisely, mortal."</p>
+                <div class="pacts" id="cryptChoices"></div>
+                <button class="btn b-dark" onclick="closeCryptKeeper()">Decline offer</button>
+            </div>
+
+            <!-- BOSS BATTLE ARENA -->
+            <div id="battle-arena" class="battle-arena">
+                <div class="stage dungeon" id="bossStage">
+                    <div class="torch l"><span data-sprite="flame" data-scale="3" class="flame-wrap"></span><span data-sprite="torch" data-scale="3"></span></div>
+                    <div class="torch r"><span data-sprite="flame" data-scale="3" class="flame-wrap"></span><span data-sprite="torch" data-scale="3"></span></div>
+                    <h2 id="bossName">Boss</h2>
+                    <div id="dungeonCounter" class="hidden">Mega Dungeon: Room 1/3</div>
+                    <div class="boss-visual-container" id="battleBossVisual"></div>
+                </div>
+                <div class="bar-container boss-hp">
+                    <div class="bar-title"><span>Boss HP</span> <span id="bossHpText">100/100</span></div>
+                    <div class="bar-bg seg"><div class="bar-fill" id="bossHpFill" style="background:var(--hp-red);"></div></div>
+                </div>
+                <div class="battle-log" id="battleLog" aria-live="polite"></div>
+                <div id="combatControls">
+                    <div class="battle-actions">
+                        <button class="btn b-red" onclick="battleAction('attack')">🗡️ Attack</button>
+                        <button class="btn b-blue" onclick="battleAction('defend')">🛡️ Defend</button>
+                        <button class="btn b-green" onclick="battleAction('heal')">🧪 Heal (50)</button>
+                        <button class="btn b-blue" style="--c:#1f7fae" onclick="battleAction('protect')">🔰 Shield (+50)</button>
+                    </div>
+                    <button id="fleeBtn" class="btn b-dark" onclick="battleAction('flee')">🏃 Flee battle</button>
+                </div>
+                <button id="nextRoomBtn" class="btn b-violet hidden" onclick="nextDungeonRoom()">Enter the next room ➡️</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+/* ---------- pixel sprites, drawn as crisp SVG rects ---------- */
+const PAL = { k:'#14172b', s:'#c9d3e6', S:'#7f8bab', h:'#f4f7ff', r:'#ef5b52', R:'#a5302a', f:'#f3c9a0', F:'#d39a6c', b:'#4a7be0', B:'#2c4f9e', g:'#f5c542', G:'#b8860b', y:'#fff0a0', w:'#eef3ff', n:'#8a5a32', N:'#5c3a1e', e:'#4cc26a', E:'#2c8546', p:'#a27cff', P:'#6a47c9', o:'#ff9f40', c:'#7fd6ff' };
+function pix(rows, scale = 4, cls = '') {
+    const h = rows.length, w = Math.max(...rows.map(r => r.length)); let s = '';
+    rows.forEach((r, y) => { let x = 0; while (x < r.length) { const c = r[x]; if (!PAL[c]) { x++; continue; } let x2 = x; while (x2 < r.length && r[x2] === c) x2++; s += `<rect x="${x}" y="${y}" width="${x2 - x}" height="1" fill="${PAL[c]}"/>`; x = x2; } });
+    return `<svg class="pix ${cls}" viewBox="0 0 ${w} ${h}" width="${w * scale}" height="${h * scale}" shape-rendering="crispEdges" aria-hidden="true">${s}</svg>`;
+}
+const SPR = {
+    knight: [
+        "......rr........",
+        ".....rrR........",
+        "....kkkkkk......",
+        "...khhsssSk.....",
+        "...khsssssk..k..",
+        "...ksfffkfk.kwk.",
+        "...ksffffFk.kwk.",
+        "....kkkkkk..kwk.",
+        "...kbbggbbk.kwk.",
+        "..kbbbggbbbkkwk.",
+        "..kbkbggbkbkgGgk",
+        "..kfkBBBBkfkkNk.",
+        "...kkSSkSSk..kk.",
+        "....kSk.kSk.....",
+        "....kNk.kNk.....",
+        "...kkkk.kkkk...."],
+    coinG: ["..kkkk..", ".kyggGk.", "kyggggGk", "kygGGgGk", "kygGggGk", "kggggGGk", ".kGGGGk.", "..kkkk.."],
+    coinS: ["..kkkk..", ".khssSk.", "khssssSk", "khsSSsSk", "khsSssSk", "kssssSSk", ".kSSSSk.", "..kkkk.."],
+    chest: ["..kkkkkkkk..", ".knnnnnnnnk.", "knnNnnnnNnnk", "kNNNNggNNNNk", "kkkkkgykkkkk", "knnnngGnnnnk", "knnnnnnnnnnk", "knNnnnnnnNnk", "kNNNNNNNNNNk", ".kkkkkkkkkk."],
+    chestOpen: [".kkkkkkkkkk.", "knnnnnnnnnnk", "kNNNNNNNNNNk", ".kyyyggyyyk.", "kygyggygygyk", "kkkkkgykkkkk", "knnnngGnnnnk", "knnnnnnnnnnk", "kNNNNNNNNNNk", ".kkkkkkkkkk."],
+    potR: ["..kkk..", "..knk..", "..kwk..", ".kkkkk.", "kwrrrrk", "krrrrrk", "krRrrRk", "kRRRRRk", ".kkkkk."],
+    potB: ["..kkk..", "..knk..", "..kwk..", ".kkkkk.", "kwbbbbk", "kbbbbbk", "kbBbbBk", "kBBBBBk", ".kkkkk."],
+    key: [".kkkk.......", "kyggGkkkkkkk", "kg..gggggggk", "kGggGkkkgkgk", ".kkkk...k.k."],
+    heart: [".kk.kk.", "krrkrrk", "krrrrRk", ".krrRk.", "..kRk..", "...k..."],
+    torch: ["..kk..", ".kNnk.", ".knnk.", "kNnnNk", ".kNNk.", ".knNk.", ".knNk.", ".knNk.", ".kNNk.", "..kk.."],
+    flame: ["..o...", ".ooo..", ".oyo.o", "ooyyoo", "oyyyyo", ".oyyo."],
+    scroll: [".kkkkkkk.", "knwwwwwnk", "kNkwwwwkk", ".kwkkkwk.", ".kwwwwwk.", ".kwkkkwk.", "kkwwwwwkk", "knwwwwwnk", ".kkkkkkk."]
+};
+const sprite = (k, sc, cls) => pix(SPR[k], sc, cls);
+
+        let budgetLimits = { provisions: 600, upkeep: 2000, gear: 300 };
+        const categoryNames = { provisions: "Provisions HP", upkeep: "Upkeep HP", gear: "Equipment HP" };
+        const catIcons = { income: '💰', provisions: '🍎', upkeep: '🏰', gear: '🛍️' };
+        const $ = id => document.getElementById(id);
+
+        // Paint the pixel sprites into the page
+        document.querySelectorAll('[data-sprite]').forEach(e => { const k = e.dataset.sprite; e.innerHTML = sprite(k, +e.dataset.scale || 3, k === 'flame' ? 'flame' : ''); });
+
+        // Base Roster
+        const defaultBossRoster = [
+            { name: "Ghost", emoji: "👻", baseHp: 100, baseDmg: 10 },
+            { name: "Faceless", emoji: "👽", baseHp: 150, baseDmg: 20 },
+            { name: "Frankenstein", emoji: "🧟‍♂️", baseHp: 140, baseDmg: 18 },
+            { name: "Devil", emoji: "😈", baseHp: 200, baseDmg: 25 },
+            { name: "Fire Devil", emoji: "👹", baseHp: 180, baseDmg: 22 },
+            { name: "Monster Pumpkin", emoji: "🎃", baseHp: 160, baseDmg: 19 }
+        ];
+
+        const weaponTypes = [
+            { t: "Sword", e: "🗡️", mult: 1 }, { t: "Bow", e: "🏹", mult: 0.9 },
+            { t: "Hammer", e: "🔨", mult: 1.2 }, { t: "Axe", e: "🪓", mult: 1.1 },
+            { t: "Pickaxe", e: "⛏️", mult: 0.8 }, { t: "Staff", e: "🦯", mult: 1.3 }
+        ];
+        const possibleEnchants = ["🔥 Fire", "❄️ Ice", "🦇 Lifesteal", "💫 Knockback", "🎯 Crit"];
+
+        // Crypt Keeper Pool Options
+        const cryptOfferPool = [
+            { id: 1, label: "Path of Vitality", text: "✨ +200 XP & 🗝️ +1 Key<br>☠️ Curse: -30 Max HP" },
+            { id: 2, label: "Path of Blood", text: "✨ +2x Weapon Dmg Boost & 🧪 +2 Potions<br>☠️ Curse: Lose 50% Current Silver" },
+            { id: 3, label: "Path of Restoration", text: "✨ Fully Heal & +50 Max HP<br>☠️ Curse: Lose ALL Health Potions" },
+            { id: 4, label: "Path of Greed", text: "✨ +3 Dungeon Keys<br>☠ Curse: Take 50 Unblockable Damage" },
+            { id: 5, label: "Path of Wealth", text: "✨ +500 Silver<br>☠️ Curse: Weapon Shatters (Back to Stick)" },
+            { id: 6, label: "Path of Ascension", text: "✨ Instant Free Level Up<br>☠️ Curse: Lose 50% Vault Gold" }
+        ];
+        let currentCryptOffers = [];
+
+        const getFreshState = () => ({
+            vaultGold: 0, silver: 0, xp: 0, spent: { provisions: 0, upkeep: 0, gear: 0 },
+            transactions: [], lastLoginDate: "", streak: 0, lastCryptDate: "",
+            player: { maxHp: 100, hp: 100, shield: 0, weapon: { name: 'Wooden Stick', dmg: 10, lvl: 1, enchants: [], emoji: '🦯' }, potions: 0, protectionPotions: 0, keys: 0 },
+            activeBoss: null, isDefending: false, dungeon: { active: false, room: 0 },
+            shop: { date: "", items: [] },
+            customBosses: [], cryptKeeperImg: null, cryptKeeperScale: 1.5
+        });
+
+        // Non-blocking toast replaces alert()
+        window.alert = function(msg) {
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+            const w = document.getElementById('toast-wrap'); w.appendChild(t); while (w.children.length > 4) w.firstChild.remove(); setTimeout(() => t.remove(), 3700);
+            sfx(/VICTORY|Achievement|TREASURE|claimed|Daily|CLEARED|banished/i.test(msg) ? 'win' : /BLACKED|MISS|hurt|-\d+ HP|scowls|Not enough/i.test(msg) ? 'bad' : 'blip');
+        };
+        let _ac;
+        function sfx(t) {
+            if (typeof state !== 'undefined' && state && state.sound === false) return;
+            try {
+                _ac = _ac || new (window.AudioContext || window.webkitAudioContext)();
+                const seq = { blip: [[660, .06]], coin: [[988, .07], [1319, .14]], win: [[523, .1], [659, .1], [784, .1], [1047, .25]], bad: [[220, .15], [165, .25]], hit: [[140, .09]] }[t] || [];
+                let at = _ac.currentTime;
+                seq.forEach(([f, d]) => {
+                    const o = _ac.createOscillator(), g = _ac.createGain();
+                    o.type = (t === 'hit' || t === 'bad') ? 'sawtooth' : 'square'; o.frequency.value = f;
+                    g.gain.setValueAtTime(.05, at); g.gain.exponentialRampToValueAtTime(.001, at + d);
+                    o.connect(g); g.connect(_ac.destination); o.start(at); o.stop(at + d); at += d;
+                });
+            } catch (e) {}
+        }
+        const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const curMonth = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1); };
+        const fmtI = n => Math.floor(+n || 0).toLocaleString();
+        const fmtM = n => (Math.round((+n || 0) * 100) / 100).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+        // Styled replacement for confirm() / prompt(). Resolves true/false, or the typed text (null when cancelled).
+        function ask(msg, opt = {}) {
+            return new Promise(res => {
+                const d = $('dlg'), inp = $('dlgInput'), yes = $('dlgYes'), no = $('dlgNo'), back = document.activeElement;
+                $('dlgMsg').textContent = msg; inp.classList.toggle('hidden', !opt.input); inp.value = opt.value || '';
+                yes.textContent = opt.ok || 'OK'; no.textContent = opt.cancel || 'Cancel';
+                yes.className = 'btn ' + (opt.danger ? 'b-red' : 'b-green');
+                d.classList.remove('hidden'); setTimeout(() => (opt.input ? inp : yes).focus(), 30);
+                const done = v => { d.classList.add('hidden'); yes.onclick = no.onclick = d.onkeydown = d.onclick = null; if (back && back.focus) back.focus(); res(v); };
+                yes.onclick = () => done(opt.input ? inp.value : true);
+                no.onclick = () => done(opt.input ? null : false);
+                d.onclick = e => { if (e.target === d) no.onclick(); };
+                d.onkeydown = e => { if (e.key === 'Escape') no.onclick(); else if (e.key === 'Enter' && opt.input) yes.onclick(); };
+            });
+        }
+
+        let state;
+        try { state = JSON.parse(localStorage.getItem('lootLedgerV11')) || getFreshState(); } catch (e) { state = getFreshState(); }
+        // fill anything missing (protects against imported or damaged saves)
+        (() => { const f = getFreshState();
+            if (!state || typeof state !== 'object') state = f;
+            state = Object.assign(f, state);
+            state.player = Object.assign(getFreshState().player, state.player || {});
+            state.player.weapon = Object.assign(getFreshState().player.weapon, state.player.weapon || {});
+            state.spent = Object.assign({ provisions: 0, upkeep: 0, gear: 0 }, state.spent || {});
+            if (!Array.isArray(state.transactions)) state.transactions = [];
+        })();
+
+        // Migrations
+        if(state.player.keys === undefined) state.player.keys = 0;
+        if(!state.player.weapon.enchants) state.player.weapon.enchants = [];
+        if(!state.dungeon) state.dungeon = { active: false, room: 0 };
+        if(!state.shop || !Array.isArray(state.shop.items)) state.shop = { date: "", items: [] };
+        if(!state.lastCryptDate) state.lastCryptDate = "";
+        if(!state.customBosses) state.customBosses = [];
+        if(state.cryptKeeperImg === undefined) state.cryptKeeperImg = null;
+        if(state.cryptKeeperScale === undefined) state.cryptKeeperScale = 1.5;
+        if(!state.bills) state.bills = [];
+        if(!state.goals) state.goals = [];
+        if(!state.limits) state.limits = { ...budgetLimits };
+        if(!state.ach) state.ach = [];
+        if(!state.paychecks) state.paychecks = [];
+        if(state.totalIncome === undefined) state.totalIncome = state.vaultGold;
+        if(!state.player.weapon.emoji) state.player.weapon.emoji = "🦯";
+        Object.assign(budgetLimits, state.limits);
+
+        // Initialize Scale Sliders in Settings to match state
+        document.getElementById('cryptScaleInput').value = state.cryptKeeperScale;
+        document.getElementById('cryptScaleVal').innerText = state.cryptKeeperScale + 'x';
+
+        function saveState() {
+            try {
+                localStorage.setItem('lootLedgerV11', JSON.stringify(state));
+            } catch (e) {
+                if(e.name === 'QuotaExceededError') {
+                    alert("Storage Limit Reached! Cannot save. Please export your save data, then delete some custom bosses.");
+                }
+            }
+            updateUI();
+        }
+
+        // --- SETTINGS & DATA EXPORT/IMPORT ---
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            document.body.style.overflow = modal.classList.contains('hidden') ? '' : 'hidden';
+            if(!modal.classList.contains('hidden')) {
+                renderCustomBosses();
+                setLimitInputs(true);
+            }
+        }
+
+        async function clearAllData() {
+            if(await ask("Are you sure? This deletes ALL progress, gold, and custom bosses permanently!", { ok: 'Delete everything', danger: true })) {
+                localStorage.removeItem('lootLedgerV11');
+                location.reload();
+            }
+        }
+
+        function exportSaveData() {
+            const blob = new Blob([JSON.stringify(state)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const dlNode = document.createElement('a');
+            dlNode.setAttribute("href", url);
+            dlNode.setAttribute("download", "loot_ledger_save.json");
+            document.body.appendChild(dlNode);
+            dlNode.click();
+            dlNode.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+        }
+
+        function importSaveData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let importedState;
+                try { importedState = JSON.parse(e.target.result); } catch (err) { event.target.value = ''; return alert("Invalid Save File! Could not parse JSON."); }
+                if (!importedState || typeof importedState !== 'object' || Array.isArray(importedState)) { event.target.value = ''; return alert("Invalid Save File! Could not parse JSON."); }
+                try { localStorage.setItem('lootLedgerV11', JSON.stringify(importedState)); }
+                catch (err) { return alert("Storage Limit Reached! That save is too large for this browser."); }
+                try { sessionStorage.setItem('ll-imported', '1'); } catch (err) {}
+                alert("Save Data Imported Successfully!");
+                setTimeout(() => location.reload(), 600);
+            };
+            reader.readAsText(file);
+        }
+
+        document.getElementById('bossImgInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const name = file.name.split('.')[0];
+            document.getElementById('bossNameInput').value = name.charAt(0).toUpperCase() + name.slice(1);
+        });
+
+        function addCustomBoss() {
+            const fileInput = document.getElementById('bossImgInput');
+            const scaleInput = document.getElementById('bossScaleInput').value;
+            const file = fileInput.files[0];
+
+            if (!file) return alert("Select an image first!");
+            if (file.size > 2000000) return alert("File is too large! Please use images under 2MB to save storage space.");
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let name = document.getElementById('bossNameInput').value.trim();
+                const randomNames = ["Shadow Fiend", "Gloomstalker", "Void Terror", "Doomsinger"];
+                if(!name) name = randomNames[Math.floor(Math.random() * randomNames.length)];
+
+                state.customBosses.push({
+                    name: name,
+                    img: e.target.result,
+                    baseHp: 150 + Math.floor(Math.random()*100),
+                    baseDmg: 15 + Math.floor(Math.random()*15),
+                    scale: parseFloat(scaleInput)
+                });
+
+                fileInput.value = "";
+                document.getElementById('bossNameInput').value = "";
+                saveState();
+                alert(`Added custom boss: ${name} at ${scaleInput}x scale.`);
+                renderCustomBosses();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderCustomBosses() {
+            const list = document.getElementById('customBossList');
+            if(state.customBosses.length === 0) {
+                list.innerHTML = "<div style='color:var(--dim); padding:5px;'>No custom bosses added.</div>";
+                return;
+            }
+            list.innerHTML = state.customBosses.map((b, i) => `
+                <div class="custom-boss-item">
+                    <div>${esc(b.name)} <span>(${b.scale || 1.5}x)</span></div><button class="del-x" onclick="deleteCustomBoss(${i})" aria-label="Delete ${esc(b.name)}">❌</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteCustomBoss(index) {
+            if(await ask("Delete this custom boss?", { ok: 'Delete', danger: true })) {
+                state.customBosses.splice(index, 1);
+                saveState();
+                renderCustomBosses();
+            }
+        }
+
+        function updateCryptKeeperImg() {
+            const file = document.getElementById('cryptImgInput').files[0];
+            const scaleVal = parseFloat(document.getElementById('cryptScaleInput').value);
+
+            if(!file) {
+                // If no file but user wants to update scale of existing image
+                if (state.cryptKeeperImg) {
+                    state.cryptKeeperScale = scaleVal;
+                    saveState();
+                    alert("Crypt Keeper scale updated!");
+                    const visualDiv = document.getElementById('cryptKeeperVisual');
+                    if (visualDiv) visualDiv.innerHTML = `<img src="${state.cryptKeeperImg}" class="crypt-sprite-img" style="transform: scale(${state.cryptKeeperScale})" alt="Crypt Keeper">`;
+                } else {
+                    return alert("Select an image first!");
+                }
+                return;
+            }
+
+            if (file.size > 2000000) return alert("File too large! Must be under 2MB.");
+            const reader = new FileReader();
+            reader.onload = e => {
+                state.cryptKeeperImg = e.target.result;
+                state.cryptKeeperScale = scaleVal;
+                document.getElementById('cryptImgInput').value = "";
+                saveState();
+                alert("Crypt Keeper image and scale updated!");
+
+                const visualDiv = document.getElementById('cryptKeeperVisual');
+                if (visualDiv) {
+                    visualDiv.innerHTML = `<img src="${state.cryptKeeperImg}" class="crypt-sprite-img" style="transform: scale(${state.cryptKeeperScale})" alt="Crypt Keeper">`;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function resetCryptKeeperImg() {
+            state.cryptKeeperImg = null;
+            state.cryptKeeperScale = 1.5;
+            document.getElementById('cryptScaleInput').value = 1.5;
+            document.getElementById('cryptScaleVal').innerText = "1.5x";
+            saveState();
+            alert("Crypt Keeper reset to default.");
+
+            const visualDiv = document.getElementById('cryptKeeperVisual');
+            if (visualDiv) {
+                visualDiv.innerHTML = `<div class="crypt-sprite-emoji">🦹‍♂️</div>`;
+            }
+        }
+
+
+        // --- CORE SYSTEMS ---
+        function getPlayerLevel() { return Math.floor(state.xp / 100) + 1; }
+        const RANKS = [[16, 'Legend'], [12, 'Hero'], [9, 'Champion'], [6, 'Knight'], [4, 'Squire'], [2, 'Apprentice'], [1, 'Novice']];
+        const rankOf = l => RANKS.find(r => l >= r[0])[1];
+
+        function checkLevelUps() {
+            const lvl = getPlayerLevel();
+            const expectedMaxHp = 100 + ((lvl - 1) * 20);
+            if (state.player.maxHp < expectedMaxHp) {
+                const diff = expectedMaxHp - state.player.maxHp;
+                state.player.maxHp = expectedMaxHp;
+                state.player.hp += diff;
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(btn => { btn.classList.remove('active'); btn.setAttribute('aria-selected', 'false'); });
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            document.getElementById(`btn-${tabId}`).setAttribute('aria-selected', 'true');
+            ['ledger','bounties','adventure'].forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            if (tabId === 'adventure') generateDailyShop(false); // a new day brings new stock
+        }
+
+        // --- LEDGER ---
+        function addTransaction() {
+            const amount = parseFloat(document.getElementById('txAmount').value);
+            const desc = document.getElementById('txDesc').value.trim() || "Transaction";
+            const cat = document.getElementById('txCategory').value;
+            if (isNaN(amount) || amount <= 0) return alert("Enter valid amount!");
+
+            if (cat === 'income') { sfx('coin'); state.vaultGold += amount; state.totalIncome += amount; }
+            else state.spent[cat] += amount;
+
+            state.xp += 15;
+            state.transactions.unshift({ id: Date.now(), amount, desc, category: cat, type: cat === 'income' ? 'income' : 'expense', date: new Date().toLocaleDateString() });
+            if(state.transactions.length > 50) state.transactions.pop();
+
+            document.getElementById('txAmount').value = ''; document.getElementById('txDesc').value = '';
+            alert(cat === 'income' ? `+${amount} Gold! +15 XP` : `-${amount} G spent. +15 XP`);
+            checkLevelUps(); saveState();
+        }
+
+        async function deleteTx(i) {
+            const tx = state.transactions[i]; if (!tx || !(await ask(`Undo "${tx.desc}"?`, { ok: 'Undo it', danger: true }))) return;
+            if (state.transactions[i] !== tx) return;
+            if (tx.type === 'income') { state.vaultGold = Math.max(0, state.vaultGold - tx.amount); state.totalIncome = Math.max(0, state.totalIncome - tx.amount); }
+            else state.spent[tx.category] = Math.max(0, (state.spent[tx.category] || 0) - tx.amount);
+            state.transactions.splice(i, 1); saveState();
+        }
+
+        function saveLimits() {
+            const g = id => parseFloat(document.getElementById(id).value);
+            const v = { provisions: g('limProvisions'), upkeep: g('limUpkeep'), gear: g('limGear') };
+            for (let k in v) if (!(v[k] > 0)) return alert("Enter valid limits!");
+            state.limits = v; Object.assign(budgetLimits, v); saveState(); alert("Budget limits updated!");
+        }
+
+        // --- BILL BOUNTIES ---
+        function addBill() {
+            const name = document.getElementById('billName').value.trim(), amt = parseFloat(document.getElementById('billAmt').value), day = parseInt(document.getElementById('billDay').value);
+            if (!name || !(amt > 0) || !(day >= 1 && day <= 31)) return alert("Fill name, amount and a due day (1-31)!");
+            state.bills.push({ id: Date.now(), name, amt, day, paidMonth: "" });
+            ['billName','billAmt','billDay'].forEach(i => document.getElementById(i).value = '');
+            alert(`Bounty posted: ${name}`); saveState();
+        }
+        function billStatus(b) {
+            if (b.paidMonth === curMonth()) return { cls: 'paid', txt: '✅ Paid this month' };
+            const d = new Date(), today = d.getDate(), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            const diff = Math.min(b.day, last) - today;
+            if (diff < 0) return { cls: 'overdue', txt: `💀 Overdue by ${-diff}d` };
+            if (diff <= 3) return { cls: 'soon', txt: diff === 0 ? '⚠️ Due TODAY' : `⚠️ Due in ${diff}d` };
+            return { cls: 'ok', txt: `Due in ${diff}d (day ${b.day})` };
+        }
+        function payBill(id) {
+            const b = state.bills.find(x => x.id === id); if (!b || b.paidMonth === curMonth()) return;
+            const st = billStatus(b);
+            state.spent.upkeep += b.amt;
+            state.transactions.unshift({ id: Date.now(), amount: b.amt, desc: '🪧 ' + b.name, category: 'upkeep', type: 'expense', date: new Date().toLocaleDateString() });
+            if (state.transactions.length > 50) state.transactions.pop();
+            b.paidMonth = curMonth();
+            sfx('coin'); const onTime = st.cls !== 'overdue', xp = onTime ? 40 : 10, sil = onTime ? 50 : 0;
+            state.xp += xp; state.silver += sil; state.billsPaid = (state.billsPaid || 0) + 1;
+            alert(`Bounty claimed: ${b.name}! +${xp} XP` + (sil ? ` +${sil} Silver (on time)` : ' (late — no bonus)'));
+            checkLevelUps(); saveState();
+        }
+        async function deleteBill(id) { if (await ask("Remove this bounty?", { ok: 'Remove', danger: true })) { state.bills = state.bills.filter(b => b.id !== id); saveState(); } }
+
+        // --- PAYCHECKS ---
+        function addPay() {
+            const name = document.getElementById('payName').value.trim(), amt = parseFloat(document.getElementById('payAmt').value), day = parseInt(document.getElementById('payDay').value);
+            if (!name || !(amt > 0) || !(day >= 1 && day <= 31)) return alert("Fill name, amount and a payday (1-31)!");
+            state.paychecks.push({ id: Date.now(), name, amt, day, lastMonth: "" });
+            ['payName','payAmt','payDay'].forEach(i => document.getElementById(i).value = '');
+            saveState();
+        }
+        function payStatus(c) {
+            if (c.lastMonth === curMonth()) return { ready: false, txt: '✅ Collected this month' };
+            const d = new Date(), last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate(), diff = Math.min(c.day, last) - d.getDate();
+            return diff <= 0 ? { ready: true, txt: '💰 Ready to collect!' } : { ready: false, txt: `Arrives in ${diff}d (day ${c.day})` };
+        }
+        function collectPay(id) {
+            const c = state.paychecks.find(x => x.id === id); if (!c || c.lastMonth === curMonth()) return;
+            state.vaultGold += c.amt; state.totalIncome += c.amt; c.lastMonth = curMonth(); state.paysCollected = (state.paysCollected || 0) + 1;
+            state.transactions.unshift({ id: Date.now(), amount: c.amt, desc: '💵 ' + c.name, category: 'income', type: 'income', date: new Date().toLocaleDateString() });
+            if (state.transactions.length > 50) state.transactions.pop();
+            state.xp += 30; sfx('coin'); alert(`Payday! +${c.amt} Gold from ${c.name}. +30 XP`); checkLevelUps(); saveState();
+        }
+        async function deletePay(id) { if (await ask("Remove this paycheck?", { ok: 'Remove', danger: true })) { state.paychecks = state.paychecks.filter(c => c.id !== id); saveState(); } }
+
+        // --- DEBT WRAITH ---
+        function fightWraith(cat) {
+            if (state.activeBoss) return alert("You're already in a battle!");
+            const over = state.spent[cat] - budgetLimits[cat]; if (over <= 0) return;
+            window.forcedBoss = { name: 'Debt Wraith', emoji: '💸', baseHp: 100 + Math.min(250, Math.round(over / budgetLimits[cat] * 250)), baseDmg: 14, wraithCat: cat };
+            switchTab('adventure'); startBossBattle(false); window.forcedBoss = null;
+        }
+
+        function renderMore() {
+            // Wraith banner
+            const over = Object.keys(budgetLimits).filter(c => state.spent[c] > budgetLimits[c]);
+            document.getElementById('wraithBox').innerHTML = over.map(c => `<div class="wraith"><span class="ghost" aria-hidden="true">👻</span><div style="flex:1"><p>A <strong>Debt Wraith</strong> haunts ${categoryNames[c]}! You're ${fmtM(Math.round(state.spent[c] - budgetLimits[c]))} G over budget.</p><button class="btn b-red" onclick="fightWraith('${c}')">⚔️ Banish the wraith</button></div></div>`).join('');
+            // Charts
+            const tot = Object.values(state.spent).reduce((a, b) => a + b, 0), icons = { provisions: '🍎', upkeep: '🏰', gear: '🛍️' };
+            let html = tot ? Object.keys(state.spent).map(c => { const pc = state.spent[c] / tot * 100; return `<div class="chart-row"><span>${icons[c] || ''} ${c}</span><div class="bar-bg"><div class="bar-fill" style="width:${pc}%;background:var(--neon-cyan)"></div></div><span>${Math.round(pc)}%</span></div>`; }).join('') : '<div class="empty" style="padding:6px">No spending yet this month.</div>';
+            const days = [], now = new Date(); now.setHours(0, 0, 0, 0);
+            for (let i = 6; i >= 0; i--) { const st = new Date(now); st.setDate(st.getDate() - i); const en = st.getTime() + 864e5; days.push({ l: 'SMTWTFS'[st.getDay()], today: i === 0, v: state.transactions.filter(t => t.type === 'expense' && t.id >= st.getTime() && t.id < en).reduce((a, t) => a + t.amount, 0) }); }
+            const mx = Math.max(1, ...days.map(d => d.v));
+            html += `<div style="font-size:15px;color:var(--mut);margin-top:14px;">Spent over the last 7 days</div><div class="week-chart">${days.map(d => `<div class="week-col${d.today ? ' today' : ''}">${d.v ? fmtI(Math.round(d.v)) : ''}<div style="height:${d.v / mx * 72}%"></div>${d.l}</div>`).join('')}</div>`;
+            document.getElementById('chartBox').innerHTML = html;
+            // Paychecks
+            document.getElementById('payList').innerHTML = state.paychecks.length ? '<div class="posters">' + state.paychecks.slice().sort((a, b) => a.day - b.day).map(c => { const st = payStatus(c), done = c.lastMonth === curMonth();
+                return `<div class="bill pay ${st.ready ? 'soon' : (done ? 'paid' : 'ok')}"><div class="bn">${esc(c.name)}</div><div class="ba">+${fmtM(c.amt)} G</div><span class="stamp">${st.ready ? 'Payday' : done ? 'Collected' : 'Day ' + c.day}</span><small>${st.txt}</small><div class="acts-row">${st.ready ? `<button class="btn mini b-green" onclick="collectPay(${c.id})">Collect</button>` : ''}<button class="del-x" onclick="deletePay(${c.id})" aria-label="Remove ${esc(c.name)}">✖</button></div></div>`; }).join('') + '</div>'
+                : '<div class="empty">No paychecks set up. Add one below and collect it on payday.</div>';
+            document.getElementById('soundBtn').innerText = state.sound === false ? '🔇 Sound: Off' : '🔊 Sound: On';
+        }
+
+        // --- TREASURE GOALS ---
+        function addGoal() {
+            const name = document.getElementById('goalName').value.trim(), target = parseFloat(document.getElementById('goalTarget').value);
+            if (!name || !(target > 0)) return alert("Name and target needed!");
+            state.goals.push({ id: Date.now(), name, target, saved: 0, done: false });
+            document.getElementById('goalName').value = ''; document.getElementById('goalTarget').value = '';
+            saveState();
+        }
+        async function fundGoal(id) {
+            const g = state.goals.find(x => x.id === id); if (!g || g.done) return;
+            const a = parseFloat(await ask(`Move how much Gold into "${g.name}"? (Vault: ${Math.floor(state.vaultGold)})`, { input: true, ok: 'Stash gold' }));
+            if (!(a > 0)) return;
+            if (g.done) return;
+            if (a > state.vaultGold) return alert("Not enough Gold in the vault!");
+            state.vaultGold -= a; g.saved += a;
+            if (g.saved >= g.target) { g.done = true; state.xp += 200; state.silver += 300; alert(`💎 TREASURE FOUND: ${g.name}! +200 XP +300 Silver`); }
+            else alert(`Stashed ${a} G in ${g.name}.`);
+            checkLevelUps(); saveState();
+        }
+        async function deleteGoal(id) {
+            const g = state.goals.find(x => x.id === id);
+            if (g && await ask(`Abandon "${g.name}"? Saved gold returns to your vault.`, { ok: 'Abandon goal', danger: true })) { if (!state.goals.includes(g)) return; if (!g.done) state.vaultGold += g.saved; state.goals = state.goals.filter(x => x.id !== id); saveState(); }
+        }
+
+        // --- ACHIEVEMENTS ---
+        const achievements = [
+            { id: 'first', n: '📜 First Entry', t: () => state.transactions.length >= 1 },
+            { id: 'bill', n: '🪧 Bounty Hunter', t: () => (state.billsPaid || 0) >= 1 },
+            { id: 'bill5', n: '🏰 Castle Keeper', t: () => (state.billsPaid || 0) >= 5 },
+            { id: 'goal', n: '💎 Treasure Hunter', t: () => state.goals.some(g => g.done) },
+            { id: 'lvl5', n: '⭐ Level 5', t: () => getPlayerLevel() >= 5 },
+            { id: 'streak7', n: '🔥 7-Day Streak', t: () => state.streak >= 7 },
+            { id: 'rich', n: '💰 1000 Gold', t: () => state.vaultGold >= 1000 },
+            { id: 'wraith', n: '👻 Debt Slayer', t: () => (state.wraiths || 0) >= 1 },
+            { id: 'pay', n: '💵 Payday', t: () => (state.paysCollected || 0) >= 1 }
+        ];
+        function checkAchievements() {
+            let got = false;
+            achievements.forEach(a => { if (!state.ach.includes(a.id) && a.t()) { state.ach.push(a.id); state.xp += 25; got = true; alert(`🏆 Achievement: ${a.n}! +25 XP`); } });
+            if (got) { checkLevelUps(); try { localStorage.setItem('lootLedgerV11', JSON.stringify(state)); } catch (e) {} }
+        }
+
+        function setLimitInputs(force) {
+            [['limProvisions', 'provisions'], ['limUpkeep', 'upkeep'], ['limGear', 'gear']].forEach(([id, k]) => { const e = document.getElementById(id); if (force || document.activeElement !== e) e.value = budgetLimits[k]; });
+        }
+
+        function renderExtras() {
+            const spent = Object.values(state.spent).reduce((a, b) => a + b, 0);
+            document.getElementById('stIncome').innerText = fmtI(state.totalIncome);
+            document.getElementById('stSpent').innerText = fmtI(spent);
+            const left = document.getElementById('stLeft'); left.innerText = fmtI(state.vaultGold);
+            document.getElementById('billList').innerHTML = state.bills.length ? '<div class="posters">' + state.bills.slice().sort((a, b) => a.day - b.day).map(b => { const st = billStatus(b);
+                const stamp = { paid: 'Paid', overdue: 'Overdue', soon: 'Due soon', ok: 'Day ' + b.day }[st.cls];
+                return `<div class="bill ${st.cls}"><div class="bn">${esc(b.name)}</div><div class="ba">${fmtM(b.amt)} G</div><span class="stamp">${stamp}</span><small>${st.txt}</small><div class="acts-row">${st.cls === 'paid' ? '' : `<button class="btn mini b-gold" onclick="payBill(${b.id})">Pay</button>`}<button class="del-x" onclick="deleteBill(${b.id})" aria-label="Remove ${esc(b.name)}">✖</button></div></div>`; }).join('') + '</div>'
+                : '<div class="empty">No bounties posted. Add your bills below!</div>';
+            document.getElementById('goalList').innerHTML = state.goals.length ? state.goals.map(g => { const pct = Math.min(100, g.saved / g.target * 100);
+                return `<div class="goal ${g.done ? 'done' : ''}">${sprite(g.done ? 'chestOpen' : 'chest', 4)}<div class="gbody"><div class="bar-title"><span>${g.done ? '💎 ' : ''}${esc(g.name)}</span><span>${fmtI(g.saved)}/${fmtM(g.target)} G</span></div><div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${g.done ? 'var(--gold)' : 'var(--epic-purple)'}"></div></div><div class="grow">${g.done ? '<span style="color:var(--gold);font-size:15px;font-weight:800">Treasure found!</span>' : `<button class="btn mini b-violet" onclick="fundGoal(${g.id})">Stash gold</button>`}<button class="del-x" onclick="deleteGoal(${g.id})" aria-label="Remove ${esc(g.name)}">✖</button></div></div></div>`; }).join('')
+                : '<div class="empty">No treasure goals yet. Name something you are saving for.</div>';
+            document.getElementById('achList').innerHTML = achievements.map(a => { const [ico, ...rest] = a.n.split(' '), got = state.ach.includes(a.id); return `<div class="ach ${got ? 'got' : ''}" title="${got ? 'Unlocked' : 'Locked'}"><i>${ico}</i>${rest.join(' ')}</div>`; }).join('');
+            setLimitInputs(false);
+        }
+
+        async function restAtInn() {
+            if(!(await ask("Reset month HP and fully heal player?", { ok: 'Rest at the inn' }))) return;
+            for (let cat in budgetLimits) state.spent[cat] = 0;
+            state.player.hp = state.player.maxHp; state.player.shield = 0;
+            alert("Month Reset! Fully rested."); saveState();
+        }
+
+        function claimDaily() {
+            if (state.lastLoginDate === new Date().toLocaleDateString()) return;
+            state.lastLoginDate = new Date().toLocaleDateString();
+            state.streak += 1; state.silver += (100 * getPlayerLevel()); state.xp += 50;
+            alert(`Daily Claimed! +${100 * getPlayerLevel()} Silver. Streak: ${state.streak}`);
+            checkLevelUps(); saveState();
+        }
+
+        // --- WEAPONS & SHOP ---
+        function generateWeapon(targetLevel, minEnchants, maxEnchants) {
+            const wType = weaponTypes[Math.floor(Math.random() * weaponTypes.length)];
+            const enchantCount = Math.floor(Math.random() * (maxEnchants - minEnchants + 1)) + minEnchants;
+
+            let enchants = [];
+            let tempPool = [...possibleEnchants];
+            for(let i=0; i<enchantCount; i++) {
+                if(tempPool.length === 0) break;
+                const idx = Math.floor(Math.random() * tempPool.length);
+                enchants.push(tempPool.splice(idx, 1)[0]);
+            }
+
+            const baseDmg = Math.floor((15 + (targetLevel * 12)) * wType.mult);
+            const cost = (targetLevel * 150) + (enchantCount * targetLevel * 200);
+
+            return {
+                name: `Lvl ${targetLevel} ${wType.t}`,
+                emoji: wType.e, lvl: targetLevel, dmg: baseDmg, cost: cost, enchants: enchants
+            };
+        }
+
+        function generateDailyShop(forceRefresh = false) {
+            const today = new Date().toLocaleDateString();
+            const lvl = getPlayerLevel();
+
+            if (forceRefresh) {
+                if (state.silver < 50) return alert("Not enough Silver to refresh!");
+                state.silver -= 50;
+            } else {
+                if (state.shop.date === today && state.shop.items.length > 0) return;
+            }
+
+            state.shop.date = today;
+            state.shop.items = [];
+            for(let i=0; i<4; i++) {
+                let iLvl = Math.max(1, lvl - 1 + Math.floor(Math.random() * 4));
+                state.shop.items.push(generateWeapon(iLvl, 0, 2));
+            }
+            if (forceRefresh) sfx('coin');
+            saveState();
+        }
+
+        const rarityOf = n => n >= 3 ? ['legendary', 'Legendary'] : n === 2 ? ['epic', 'Epic'] : n === 1 ? ['rare', 'Rare'] : ['common', 'Common'];
+        // draws the shop from the saved stock (runs on every update, so it never goes stale)
+        function renderShopItems() {
+            const shopDiv = document.getElementById('dynamicShop');
+            if (!shopDiv) return;
+            if (!state.shop.items.length) { shopDiv.innerHTML = '<p class="empty" style="grid-column:1/-1">Sold out. Refresh the shop for new stock.</p>'; return; }
+            const cur = state.player.weapon.dmg;
+            shopDiv.innerHTML = state.shop.items.map((item, index) => {
+                const [rk, rn] = rarityOf(item.enchants.length), diff = item.dmg - cur;
+                return `
+                    <div class="shop-item r-${rk}">
+                        <div class="w-ico">${item.emoji}</div>
+                        <div class="w-name">${item.name}</div>
+                        <span class="rar">${rn}</span>
+                        <div class="enchant-list">${item.enchants.length > 0 ? item.enchants.map(e => `<span>${e}</span>`).join('') : 'No Enchants'}</div>
+                        <div class="w-stats"><span>⚔ ${item.dmg} dmg</span>${diff ? `<span class="${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '+' : ''}${diff}</span>` : ''}</div>
+                        <button class="btn b-gold" onclick='buyWeapon(${index})' ${state.silver < item.cost ? 'aria-disabled="true"' : ''}>Buy for ${item.cost} S</button>
+                    </div>`;
+            }).join('');
+        }
+        function renderShop() {
+            generateDailyShop(false);
+            renderShopItems();
+        }
+
+        function buyPotion(type) {
+            let cost = type === 'hp' ? 25 : 50;
+            if (state.silver >= cost) {
+                state.silver -= cost;
+                if(type === 'hp') state.player.potions++; else state.player.protectionPotions++;
+                alert(`Bought ${type === 'hp' ? 'Health' : 'Shield'} Potion!`); saveState();
+            } else alert("Not enough Silver!");
+        }
+
+        function buyWeapon(index) {
+            const w = state.shop.items[index];
+            if (!w) return;
+            if (state.silver >= w.cost) {
+                state.silver -= w.cost;
+                state.player.weapon = w;
+                state.shop.items.splice(index, 1);
+                alert(`Equipped ${w.name}!`); saveState();
+            } else alert("Not enough Silver!");
+        }
+
+        // --- BATTLE EFFECTS ---
+        function floatTxt(host, text, cls = '') {
+            const h = typeof host === 'string' ? $(host) : host; if (!h) return;
+            const f = document.createElement('span'); f.className = 'float ' + cls; f.textContent = text;
+            const r = h.getBoundingClientRect();
+            f.style.left = (r.width / 2 - 20 + (Math.random() * 40 - 20)) + 'px'; f.style.top = (h.id === 'heroPanel' ? 14 : r.height * .42) + 'px';
+            h.appendChild(f); setTimeout(() => f.remove(), 950);
+        }
+        function pulseClass(el, cls, ms) { const e = typeof el === 'string' ? $(el) : el; if (!e) return; e.classList.remove(cls); void e.offsetWidth; e.classList.add(cls); setTimeout(() => e.classList.remove(cls), ms); }
+
+        // --- COMBAT CORE ---
+        function takeDamage(amount) {
+            if (state.player.shield > 0) {
+                if (state.player.shield >= amount) { state.player.shield -= amount; return; }
+                else { amount -= state.player.shield; state.player.shield = 0; }
+            }
+            state.player.hp -= amount;
+        }
+
+        function checkDeath(context) {
+            if (state.player.hp <= 0) {
+                alert(`YOU BLACKED OUT! The guild rescued you. (-20% Silver)`);
+                state.player.hp = state.player.maxHp; state.player.shield = 0;
+                state.silver = Math.floor(state.silver * 0.8);
+
+                if(context === 'boss') {
+                    state.activeBoss = null;
+                    state.dungeon.active = false;
+                    turnBusy = false;
+                    document.getElementById('dungeonCounter').classList.add('hidden');
+                    document.getElementById('battle-arena').style.display = 'none';
+                    document.getElementById('adventure-hub').style.display = 'block';
+                }
+                if(context === 'goblin') fleeGoblin();
+                saveState(); return true;
+            }
+            return false;
+        }
+
+        // --- CRYPT KEEPER ENCOUNTER ---
+        function checkCryptKeeperEncounter() {
+            const today = new Date().toLocaleDateString();
+            if (state.lastCryptDate === today) return false;
+
+            if (Math.random() < 0.10) {
+                triggerCryptKeeper();
+                return true;
+            }
+            return false;
+        }
+
+        function triggerCryptKeeper() {
+            document.getElementById('adventure-hub').style.display = 'none';
+            document.getElementById('crypt-arena').style.display = 'block';
+
+            const visualDiv = document.getElementById('cryptKeeperVisual');
+            if (state.cryptKeeperImg) {
+                visualDiv.innerHTML = `<img src="${state.cryptKeeperImg}" class="crypt-sprite-img" style="transform: scale(${state.cryptKeeperScale || 1.5})" alt="Crypt Keeper">`;
+            } else {
+                visualDiv.innerHTML = `<div class="crypt-sprite-emoji">🦹‍♂️</div>`;
+            }
+
+            let shuffled = [...cryptOfferPool].sort(() => 0.5 - Math.random());
+            currentCryptOffers = shuffled.slice(0, 2);
+
+            const choicesDiv = document.getElementById('cryptChoices');
+            choicesDiv.innerHTML = currentCryptOffers.map((offer, index) => `
+                <button class="btn b-violet" style="--c:#3a2366" onclick="acceptCryptOffer(${index})">
+                    <strong>${offer.label} (50 S)</strong>${offer.text}
+                </button>
+            `).join('');
+        }
+
+        function acceptCryptOffer(index) {
+            const today = new Date().toLocaleDateString();
+            if (state.silver < 50) return alert("The Crypt Keeper scowls: 'You lack the 50 Silver toll!'");
+
+            const offer = currentCryptOffers[index];
+            if (!offer) return;
+            state.silver -= 50;
+            state.lastCryptDate = today;
+
+            switch(offer.id) {
+                case 1:
+                    state.xp += 200; state.player.keys += 1;
+                    state.player.maxHp = Math.max(30, state.player.maxHp - 30);
+                    if(state.player.hp > state.player.maxHp) state.player.hp = state.player.maxHp;
+                    alert("Pact sealed! You gained Wisdom and a Key, but your life force shrivels.");
+                    break;
+                case 2:
+                    state.player.weapon.dmg = Math.floor(state.player.weapon.dmg * 2);
+                    state.player.potions += 2;
+                    state.silver = Math.floor(state.silver / 2);
+                    alert("Pact sealed! Your weapon surges with dark energy, but half your silver vanishes.");
+                    break;
+                case 3:
+                    state.player.maxHp += 50; state.player.hp = state.player.maxHp;
+                    state.player.potions = 0;
+                    alert("Pact sealed! You feel robust and revitalized, but your potions rot away.");
+                    break;
+                case 4:
+                    state.player.keys += 3;
+                    state.player.hp -= 50;
+                    alert("Pact sealed! Keys materialize, but a dark agony strikes your heart! (-50 HP)");
+                    checkDeath('auto');
+                    break;
+                case 5:
+                    state.silver += 500;
+                    state.player.weapon = { name: 'Wooden Stick', dmg: 10, lvl: 1, enchants: [], emoji: "🦯" };
+                    alert("Pact sealed! Riches fill your pockets, but your weapon crumbles to dust.");
+                    break;
+                case 6:
+                    state.xp += (100 - (state.xp % 100));
+                    state.vaultGold = Math.floor(state.vaultGold / 2);
+                    alert("Pact sealed! You instantly gain a level, but the vault has been raided!");
+                    break;
+            }
+
+            if(state.player.hp > 0) closeCryptKeeper();
+            checkLevelUps(); saveState();
+        }
+
+        function closeCryptKeeper() {
+            state.lastCryptDate = new Date().toLocaleDateString();
+            document.getElementById('crypt-arena').style.display = 'none';
+            document.getElementById('adventure-hub').style.display = 'block';
+            saveState();
+        }
+
+        // --- ADVENTURE ENCOUNTERS ---
+        function triggerAmbush() {
+            if(checkCryptKeeperEncounter()) return;
+            alert("AMBUSH! A Boss blocks your path!");
+            if(isMinigameActive) fleeGoblin();
+            startBossBattle(true);
+        }
+
+        function huntGoblinAuto() {
+            if (state.player.hp <= 5) return alert("Your HP is too low to hunt!");
+            if(checkCryptKeeperEncounter()) return;
+            if (Math.random() < 0.05) return triggerAmbush();
+
+            const lvl = getPlayerLevel();
+            const roll = Math.random();
+
+            if (roll < 0.6) {
+                let sGain = Math.floor(Math.random() * 10) + (lvl * 15);
+                state.silver += sGain; takeDamage(5); state.xp += 5;
+                alert(`You slew a Goblin! Found ${sGain} Silver. (-5 HP)`);
+                floatTxt('heroPanel', `+${sGain} S`, 'good');
+            } else if (roll < 0.8) {
+                let sGain = 30 + (lvl * 20); state.silver += sGain;
+                alert(`Found a coin stash! (+${sGain} Silver)`);
+                floatTxt('heroPanel', `+${sGain} S`, 'good');
+            } else {
+                let dGain = 10 + (lvl * 3); takeDamage(dGain);
+                alert(`Ambushed! You fled but got hurt. (-${dGain} HP)`);
+                floatTxt('heroPanel', `-${dGain}`, 'bad'); pulseClass('heroPanel', 'hurt', 400);
+            }
+            checkLevelUps(); checkDeath('auto'); saveState();
+        }
+
+        let minigameAnim; let cursorX = 0; let cursorDir = 1; let isMinigameActive = false; let lastFrame = 0;
+        function startGoblinMinigame() {
+            if (state.player.hp <= 5) return alert("Your HP is too low!");
+            if(checkCryptKeeperEncounter()) return;
+            if (Math.random() < 0.05) return triggerAmbush();
+
+            document.getElementById('adventure-hub').style.display = 'none';
+            document.getElementById('goblin-arena').style.display = 'block';
+            document.getElementById('goblinResult').innerText = "";
+            $('goblinVisual').classList.remove('dead');
+            cursorX = 0; cursorDir = 1; isMinigameActive = true; lastFrame = 0;
+            cancelAnimationFrame(minigameAnim); minigameLoop();
+        }
+        function minigameLoop() {
+            if(!isMinigameActive) return;
+            // same speed as before at 60fps, but no longer twice as fast on 120Hz screens
+            const t = performance.now(), dt = lastFrame ? Math.min(50, t - lastFrame) : 16.67; lastFrame = t;
+            let speed = (2 + (getPlayerLevel() * 0.2)) * dt / 16.67;
+            cursorX += speed * cursorDir;
+            if (cursorX >= 98) { cursorX = 98; cursorDir = -1; } else if (cursorX <= 0) { cursorX = 0; cursorDir = 1; }
+            document.getElementById('timingCursor').style.left = `${cursorX}%`;
+            minigameAnim = requestAnimationFrame(minigameLoop);
+        }
+        function strikeGoblin() {
+            if(!isMinigameActive) return;
+            isMinigameActive = false; cancelAnimationFrame(minigameAnim);
+
+            const resultDiv = document.getElementById('goblinResult');
+            const lvl = getPlayerLevel();
+
+            if (cursorX >= 37.5 && cursorX <= 62.5) {
+                let silverGain = 20 + (lvl * 20);
+                state.silver += silverGain; state.xp += 15;
+                resultDiv.innerHTML = `<span style="color:var(--hp-green)">HIT! Goblin Slain! +${silverGain} Silver</span>`;
+                sfx('hit'); floatTxt('goblinStage', `+${silverGain} S`, 'crit'); $('goblinVisual').classList.add('dead');
+            } else {
+                let goblinDmg = 5 + (lvl * 5); takeDamage(goblinDmg);
+                resultDiv.innerHTML = `<span style="color:var(--hp-red)">MISS! Goblin struck you for ${goblinDmg} DMG!</span>`;
+                sfx('bad'); floatTxt('heroPanel', `-${goblinDmg}`, 'bad'); pulseClass('heroPanel', 'hurt', 400);
+            }
+            checkLevelUps(); saveState();
+            if(!checkDeath('goblin')) setTimeout(fleeGoblin, 1500);
+        }
+        function fleeGoblin() {
+            isMinigameActive = false; cancelAnimationFrame(minigameAnim);
+            document.getElementById('goblin-arena').style.display = 'none';
+            document.getElementById('adventure-hub').style.display = 'block';
+        }
+
+        // --- BOSS BATTLES & DUNGEONS ---
+        let turnBusy = false;
+        function setBusy(b) { turnBusy = b; document.getElementById('combatControls').classList.toggle('wait', b); }
+        function logMsg(msg) {
+            const log = document.getElementById('battleLog');
+            const cls = /VICTORY/.test(msg) ? 'lg-win' : /hit you|cannot|No .* left/i.test(msg) ? 'lg-foe' : /Used|Lifesteal/i.test(msg) ? 'lg-heal' : /Slashed|CRITICAL|Fire|STUN|Ice|stunned/i.test(msg) ? 'lg-me' : 'lg-sys';
+            log.insertAdjacentHTML('beforeend', `<div class="${cls}">▸ ${esc(msg)}</div>`);
+            if (/dmg|CRITICAL|STUN/i.test(msg)) sfx('hit');
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function showBossVisual() {
+            const bVis = document.getElementById('battleBossVisual');
+            bVis.classList.remove('dead', 'hit');
+            if(state.activeBoss.img) {
+                // Apply the custom scale from the boss object, defaulting to 1.5x
+                const customScale = state.activeBoss.scale || 1.5;
+                bVis.innerHTML = `<img src="${state.activeBoss.img}" class="boss-sprite-img" style="transform: scale(${customScale})" alt="${esc(state.activeBoss.name)}">`;
+            } else {
+                bVis.innerHTML = `<div class="boss-sprite-emoji">${state.activeBoss.emoji}</div>`;
+            }
+        }
+
+        function startBossBattle(isAmbush = false) {
+            if (state.player.hp <= 10) return alert("You are too weak. Heal up first!");
+            const lvl = getPlayerLevel();
+            const bossLvl = isAmbush ? lvl + 2 : lvl + Math.floor(Math.random() * 2);
+
+            const fullRoster = [...defaultBossRoster, ...state.customBosses];
+            const randomBoss = window.forcedBoss || fullRoster[Math.floor(Math.random() * fullRoster.length)];
+            window.forcedBoss = null;
+
+            const hpMod = randomBoss.baseHp + (bossLvl * 30);
+            const dmgMod = randomBoss.baseDmg + (bossLvl * 6);
+
+            state.activeBoss = { ...randomBoss, level: bossLvl, maxHp: hpMod, hp: hpMod, dmg: dmgMod, isAmbush: isAmbush, stunned: false, iced: false };
+
+            document.getElementById('adventure-hub').style.display = 'none';
+            document.getElementById('battle-arena').style.display = 'block';
+            document.getElementById('battleLog').innerHTML = '';
+            showBossVisual();
+            setBusy(false);
+
+            document.getElementById('fleeBtn').classList.toggle('hidden', state.activeBoss.isAmbush || state.dungeon.active);
+            document.getElementById('combatControls').classList.remove('hidden');
+            document.getElementById('nextRoomBtn').classList.add('hidden');
+
+            logMsg(isAmbush ? `🚨 AMBUSH! Lvl ${bossLvl} ${state.activeBoss.name} attacks!` : `A wild Lvl ${bossLvl} ${state.activeBoss.name} blocks your path!`);
+            saveState();
+        }
+
+        function enterMegaDungeon() {
+            if (state.player.keys < 1) return alert("You need a 🗝️ Key to enter the Mega Dungeon!");
+            if (state.player.hp < state.player.maxHp * 0.8) return alert("You should heal up more before attempting a Mega Dungeon.");
+
+            state.player.keys--;
+            state.dungeon = { active: true, room: 1 };
+            startBossBattle(false);
+            document.getElementById('dungeonCounter').classList.remove('hidden');
+            document.getElementById('dungeonCounter').innerText = `Mega Dungeon: Room 1/3`;
+            logMsg("You unlocked the Mega Dungeon doors...");
+        }
+
+        function battleAction(action) {
+            if (!state.activeBoss || turnBusy || state.activeBoss.hp <= 0) return;
+            state.isDefending = false;
+
+            if (action === 'flee') {
+                if(state.activeBoss.isAmbush || state.dungeon.active) return logMsg("You cannot flee!");
+                setBusy(true);
+                logMsg("You ran away safely."); return setTimeout(() => endBattle(false), 800);
+            }
+
+            if (action === 'heal') {
+                if (state.player.potions <= 0) return logMsg("No Health Potions left!");
+                state.player.potions--; state.player.hp = Math.min(state.player.maxHp, state.player.hp + 50);
+                logMsg("Used Health Potion! +50 HP.");
+                floatTxt('heroPanel', '+50 HP', 'good');
+            }
+
+            if (action === 'protect') {
+                if (state.player.protectionPotions <= 0) return logMsg("No Shield Potions left!");
+                state.player.protectionPotions--; state.player.shield = Math.min(state.player.maxHp, state.player.shield + 50);
+                logMsg("Used Shield Potion! +50 Armor.");
+                floatTxt('heroPanel', '+50 armor', 'info');
+            }
+
+            if (action === 'defend') { state.isDefending = true; logMsg("You brace yourself. Boss damage halved."); }
+
+            if (action === 'attack') {
+                const weapon = state.player.weapon;
+                let dmg = weapon.dmg + Math.floor(Math.random() * 10);
+                let enchants = weapon.enchants || [];
+                let crit = false;
+
+                if (enchants.includes("🔥 Fire")) { dmg += 20; logMsg("Fire burns the boss!"); }
+                if (enchants.includes("🎯 Crit") && Math.random() < 0.20) { dmg *= 2; crit = true; logMsg("CRITICAL HIT!"); }
+
+                state.activeBoss.hp -= dmg;
+                logMsg(`Slashed with ${weapon.name} for ${dmg} dmg!`);
+                floatTxt('bossStage', `-${dmg}`, crit ? 'crit' : ''); pulseClass('battleBossVisual', 'hit', 340);
+
+                if (enchants.includes("🦇 Lifesteal")) {
+                    let heal = Math.floor(dmg * 0.25);
+                    state.player.hp = Math.min(state.player.maxHp, state.player.hp + heal);
+                    logMsg(`Lifesteal restored ${heal} HP!`);
+                    floatTxt('heroPanel', `+${heal}`, 'good');
+                }
+                if (enchants.includes("💫 Knockback") && Math.random() < 0.20) {
+                    state.activeBoss.stunned = true; logMsg("Boss is STUNNED by Knockback!");
+                }
+                if (enchants.includes("❄️ Ice")) {
+                    state.activeBoss.iced = true; logMsg("Ice chills the boss (Dmg Reduced).");
+                }
+            }
+
+            setBusy(true);
+            updateUI();
+
+            if (state.activeBoss.hp <= 0) {
+                document.getElementById('combatControls').classList.add('hidden');
+                setTimeout(() => $('battleBossVisual').classList.add('dead'), 300);
+                const boss = state.activeBoss;
+
+                setTimeout(() => {
+                    if (state.activeBoss !== boss) return;
+                    const silverReward = Math.floor(state.activeBoss.maxHp * 1.5);
+                    const xpReward = 150 + (state.activeBoss.level * 50);
+                    let lootMsg = `Found ${silverReward} Silver!`;
+
+                    let keyDrop = false;
+                    if (state.activeBoss.isAmbush || Math.random() < 0.25) {
+                        state.player.keys++; keyDrop = true;
+                        lootMsg += `\nDropped 1 🗝️ Dungeon Key!`;
+                    }
+
+                    state.silver += silverReward; state.xp += xpReward;
+                    if (state.activeBoss.wraithCat) { state.silver += 100; state.xp += 100; state.wraiths = (state.wraiths || 0) + 1; lootMsg += `\n👻 Debt Wraith banished! +100 Silver +100 XP bonus`; }
+                    logMsg(`VICTORY! ${state.activeBoss.name} defeated!`);
+
+                    if (state.dungeon.active) {
+                        if (state.dungeon.room < 3) {
+                            alert(`Room ${state.dungeon.room} cleared!\n${lootMsg}`);
+                            state.dungeon.room++;
+                            document.getElementById('dungeonCounter').innerText = `Mega Dungeon: Room ${state.dungeon.room}/3`;
+                            document.getElementById('nextRoomBtn').classList.remove('hidden');
+                        } else {
+                            let megaWeapon = generateWeapon(getPlayerLevel() + 1, 3, 4);
+                            state.player.weapon = megaWeapon;
+                            alert(`🎉 MEGA DUNGEON CLEARED! 🎉\n${lootMsg}\n\nYou acquired the ultra weapon:\n${megaWeapon.emoji} ${megaWeapon.name} [${megaWeapon.enchants.join(', ')}]`);
+                            endBattle(true);
+                        }
+                    } else {
+                        alert(`VICTORY!\n${lootMsg}`);
+                        endBattle(true);
+                    }
+                    checkLevelUps(); saveState();
+                }, 800);
+                return;
+            }
+
+            const boss = state.activeBoss;
+            setTimeout(() => {
+                if (state.activeBoss !== boss || !state.activeBoss) { setBusy(false); return; }
+                if (state.activeBoss.stunned) {
+                    state.activeBoss.stunned = false;
+                    logMsg(`${state.activeBoss.name} is stunned and skips their turn!`);
+                    floatTxt('bossStage', 'Stunned!', 'info');
+                } else {
+                    let bossDmg = state.activeBoss.dmg + Math.floor(Math.random() * 8);
+                    if (state.activeBoss.iced) { bossDmg = Math.floor(bossDmg * 0.75); state.activeBoss.iced = false; }
+                    if (state.isDefending) bossDmg = Math.floor(bossDmg / 2);
+
+                    logMsg(`${state.activeBoss.name} hit you for ${bossDmg} dmg!`);
+                    takeDamage(bossDmg);
+                    floatTxt('heroPanel', `-${bossDmg}`, 'bad'); pulseClass('heroPanel', 'hurt', 400);
+                    checkDeath('boss');
+                }
+                setBusy(false);
+                saveState();
+            }, 1000);
+        }
+
+        function nextDungeonRoom() {
+            document.getElementById('nextRoomBtn').classList.add('hidden');
+            if (state.player.hp <= 10) {
+                // used to leave you stuck between rooms with no buttons
+                alert("You are too weak to go deeper. You retreat from the Mega Dungeon.");
+                return endBattle(false);
+            }
+            startBossBattle(false);
+        }
+
+        function endBattle(won) {
+            state.activeBoss = null;
+            state.dungeon.active = false;
+            setBusy(false);
+            document.getElementById('dungeonCounter').classList.add('hidden');
+            document.getElementById('adventure-hub').style.display = 'block';
+            document.getElementById('battle-arena').style.display = 'none';
+            saveState();
+        }
+
+        // A battle saved mid-fight is picked back up instead of being stuck in the background
+        function resumeBattle() {
+            const b = state.activeBoss;
+            if (!b) { state.dungeon.active = false; return; }
+            if (b.hp <= 0 && !(state.dungeon.active && state.dungeon.room <= 3)) { state.activeBoss = null; state.dungeon.active = false; return; }
+            document.getElementById('adventure-hub').style.display = 'none';
+            document.getElementById('battle-arena').style.display = 'block';
+            showBossVisual();
+            const between = b.hp <= 0;
+            if (between) $('battleBossVisual').classList.add('dead');
+            document.getElementById('combatControls').classList.toggle('hidden', between);
+            document.getElementById('nextRoomBtn').classList.toggle('hidden', !between);
+            document.getElementById('fleeBtn').classList.toggle('hidden', b.isAmbush || state.dungeon.active);
+            document.getElementById('dungeonCounter').classList.toggle('hidden', !state.dungeon.active);
+            document.getElementById('dungeonCounter').innerText = `Mega Dungeon: Room ${state.dungeon.room}/3`;
+            logMsg(between ? 'You catch your breath before the next room.' : `You return to the fight with the Lvl ${b.level} ${b.name}.`);
+            setTimeout(() => alert('⚔️ Your battle is still going on the Quest tab.'), 400);
+        }
+
+        // --- RENDER UI ---
+        function updateUI() {
+            checkLevelUps();
+            const lvl = getPlayerLevel();
+            const currentLevelXP = state.xp % 100;
+            document.getElementById('playerTitle').innerText = `Level ${lvl} ${rankOf(lvl)}`;
+            document.getElementById('vaultGold').innerText = fmtI(state.vaultGold);
+            document.getElementById('vaultSilver').innerText = fmtI(state.silver);
+            document.getElementById('xpText').innerText = `${currentLevelXP}/100`;
+            document.getElementById('xpFill').style.width = `${currentLevelXP}%`;
+
+            let hpPct = Math.max(0, (state.player.hp / state.player.maxHp) * 100);
+            let shieldPct = Math.max(0, (state.player.shield / state.player.maxHp) * 100);
+            document.getElementById('playerHpText').innerText = `${Math.floor(state.player.hp)}/${state.player.maxHp}`;
+            document.getElementById('playerHpFill').style.width = `${Math.min(100, hpPct)}%`;
+            document.getElementById('playerShieldFill').style.width = `${Math.min(100, shieldPct)}%`;
+            document.getElementById('shieldText').innerText = state.player.shield > 0 ? `(+${Math.floor(state.player.shield)} Armor)` : '';
+            document.getElementById('playerHpFill').style.background = hpPct < 20 ? 'var(--hp-red)' : (hpPct < 50 ? '#ffea00' : 'var(--hp-green)');
+
+            const w = state.player.weapon;
+            document.getElementById('weaponName').innerText = `${w.emoji} ${w.name}`;
+            document.getElementById('weaponDmg').innerText = w.dmg;
+            document.getElementById('weaponEnchants').innerHTML = (w.enchants && w.enchants.length > 0) ? w.enchants.map(e => `<span>${esc(e)}</span>`).join('') : '<span style="background:none;box-shadow:none;color:var(--dim);padding:0">No Enchants</span>';
+
+            document.getElementById('potionCount').innerText = state.player.potions;
+            document.getElementById('shieldPotCount').innerText = state.player.protectionPotions;
+            document.getElementById('keyCount').innerText = state.player.keys;
+
+            const statsContainer = document.getElementById('budgetStatsList');
+            statsContainer.innerHTML = Object.keys(budgetLimits).map(cat => {
+                const max = budgetLimits[cat]; const rem = Math.round((max - state.spent[cat]) * 100) / 100;
+                let pct = Math.max(0, Math.min(100, (rem / max) * 100));
+                let color = pct > 50 ? 'var(--hp-green)' : (pct > 20 ? '#ffeb3b' : 'var(--hp-red)');
+                return `<div class="budget ${rem < 0 ? 'over' : ''}"><div class="bar-title"><span>${catIcons[cat]} ${categoryNames[cat]}</span> <span>${rem < 0 ? '💀 ' : ''}${fmtM(rem)}/${fmtM(max)} G</span></div><div class="bar-bg seg"><div class="bar-fill" style="width:${pct}%; background:${color};"></div></div></div>`;
+            }).join('');
+
+            const logContainer = document.getElementById('ledgerLog');
+            logContainer.innerHTML = state.transactions.length === 0 ? '<div class="empty">Empty ledger. Record your first transaction above.</div>' : state.transactions.map((tx, i) => {
+                const isInc = tx.type === 'income';
+                return `<div class="log-entry"><span class="cat-badge c-${esc(tx.category)}" aria-hidden="true">${catIcons[tx.category] || '💰'}</span><div class="le-main"><strong>${esc(tx.desc)}</strong><small>${esc(tx.date)}</small></div><div class="le-amt ${isInc ? 'income-text' : 'expense-text'}">${isInc ? '+' : '-'}${fmtM(tx.amount)} G</div><button class="del-x" onclick="deleteTx(${i})" aria-label="Undo ${esc(tx.desc)}">✖</button></div>`;
+            }).join('');
+
+            if (state.activeBoss) {
+                document.getElementById('bossName').innerText = `Lvl ${state.activeBoss.level} ${state.activeBoss.name}`;
+                document.getElementById('bossHpText').innerText = `${Math.max(0, Math.floor(state.activeBoss.hp))}/${state.activeBoss.maxHp}`;
+                let bPct = Math.max(0, (state.activeBoss.hp / state.activeBoss.maxHp) * 100);
+                document.getElementById('bossHpFill').style.width = `${bPct}%`;
+            }
+
+            const today = new Date().toLocaleDateString();
+            document.getElementById('dailyQuestBtn').classList.toggle('hidden', state.lastLoginDate === today);
+            document.getElementById('dailyAmt').innerText = `+${100 * lvl} silver and 50 XP are waiting`;
+            renderShopItems();
+        }
+
+        // --- LEVEL-UP CELEBRATION ---
+        let shownLvl = null;
+        function levelWatch() {
+            const l = getPlayerLevel();
+            if (shownLvl !== null && l > shownLvl) {
+                const b = $('lvlBanner'); b.innerHTML = `<b>Level up!</b><span>You are now level ${l}, ${rankOf(l)}</span>`;
+                b.classList.remove('hidden'); b.style.animation = 'none'; void b.offsetWidth; b.style.animation = '';
+                clearTimeout(levelWatch.t); levelWatch.t = setTimeout(() => b.classList.add('hidden'), 2950);
+                pulseClass('heroBanner', 'level-up', 950); setTimeout(() => sfx('win'), 250);
+            }
+            shownLvl = l;
+        }
+
+        // --- CATEGORY PICKER (drives the original select) ---
+        function syncChips() { const v = $('txCategory').value; document.querySelectorAll('.chips .chip').forEach(c => c.setAttribute('aria-checked', c.dataset.cat === v ? 'true' : 'false')); }
+        document.querySelectorAll('.chips .chip').forEach(c => c.addEventListener('click', () => { $('txCategory').value = c.dataset.cat; syncChips(); }));
+        document.querySelector('.chips').addEventListener('keydown', e => {
+            if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
+            const cs = [...document.querySelectorAll('.chips .chip')], i = cs.findIndex(c => c.getAttribute('aria-checked') === 'true'), n = cs[(i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : cs.length - 1)) % cs.length];
+            e.preventDefault(); n.click(); n.focus();
+        });
+        syncChips();
+        // Enter submits the small forms
+        [['txAmount', addTransaction], ['txDesc', addTransaction], ['billDay', addBill], ['payDay', addPay], ['goalTarget', addGoal]].forEach(([id, fn]) => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); fn(); } }));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('settings-modal').classList.contains('hidden') && $('dlg').classList.contains('hidden')) toggleSettings(); });
+
+        // Initialize
+        const _baseUpdateUI = updateUI;
+        updateUI = function() { checkAchievements(); _baseUpdateUI(); renderExtras(); renderMore(); levelWatch(); };
+        renderShop();
+        resumeBattle();
+        updateUI();
+        try { if (sessionStorage.getItem('ll-imported')) { sessionStorage.removeItem('ll-imported'); setTimeout(() => alert("Save Data Imported Successfully!"), 300); } } catch (e) {}
+    </script>
+<script src="bc-assets.js"></script>
+<script id="bc-assets-loot">
+/* ===== Synced pictures for Loot & Ledger (from the Photo Manager on the PC) =====
+   "Crypt Keeper" replaces the keeper's picture, and every "Boss: Name" joins the boss roster.
+   They are kept out of your save, so the save stays small and your own uploads are kept. */
+(function () {
+    "use strict";
+    if (!window.BCAssets || window.__bcLootAssets) return;
+    window.__bcLootAssets = 1;
+    var APP = "loot-ledger", BA = window.BCAssets, KEY = "lootLedgerV11", LS = window.localStorage, oS = Storage.prototype.setItem;
+    var isB = function (v) { return typeof v === "string" && (v.indexOf("blob:") === 0 || v.indexOf("bcsync:") === 0); };
+    var userKeeper, userScale;   /* your own keeper picture while the synced one is showing */
+    function S() { try { return state; } catch (e) { return null; } }
+    function hash(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h; }
+    function bosses() { return BA.all(APP).filter(function (x) { return x.slot.indexOf("boss:") === 0 && x.url && !/^video/.test(x.type); }); }
+
+    /* never save synced pictures */
+    Storage.prototype.setItem = function (k, v) {
+        if (this === LS && k === KEY && v) {
+            try {
+                var o = JSON.parse(v);
+                if (o && typeof o === "object") {
+                    if (Array.isArray(o.customBosses)) o.customBosses = o.customBosses.filter(function (b) { return !(b && b.bcsync); });
+                    if (isB(o.cryptKeeperImg)) { o.cryptKeeperImg = userKeeper === undefined ? null : userKeeper; if (userScale != null) o.cryptKeeperScale = userScale; }
+                    if (o.activeBoss && isB(o.activeBoss.img)) o.activeBoss.img = "bcsync:" + o.activeBoss.name;
+                    v = JSON.stringify(o);
+                }
+            } catch (e) { }
+        }
+        return oS.call(this, k, v);
+    };
+
+    function apply() {
+        var st = S(); if (!st) return;
+        try {
+            /* crypt keeper */
+            var ku = BA.url(APP, "crypt-keeper");
+            if (ku && !BA.isVideo(APP, "crypt-keeper")) { if (!isB(st.cryptKeeperImg)) { userKeeper = st.cryptKeeperImg; userScale = st.cryptKeeperScale; } st.cryptKeeperImg = ku; var ks = +(BA.meta(APP, "crypt-keeper").scale); if (ks) st.cryptKeeperScale = ks; }
+            else if (isB(st.cryptKeeperImg)) st.cryptKeeperImg = userKeeper === undefined ? null : userKeeper;
+            var vd = document.getElementById("cryptKeeperVisual");
+            if (vd && vd.offsetParent && st.cryptKeeperImg) vd.innerHTML = '<img src="' + st.cryptKeeperImg + '" class="crypt-sprite-img" style="transform: scale(' + (st.cryptKeeperScale || 1.5) + ')" alt="Crypt Keeper">';
+            /* bosses */
+            st.customBosses = (st.customBosses || []).filter(function (b) { return !(b && b.bcsync); });
+            var list = bosses();
+            list.forEach(function (x) {
+                var name = x.slot.slice(5).trim(), h = hash(name.toLowerCase());
+                var m = x.meta || {};
+                st.customBosses.push({ name: name, img: x.url, baseHp: +m.baseHp || 150 + (h % 100), baseDmg: +m.baseDmg || 15 + ((h >> 7) % 15), scale: +m.scale || 1.5, bcsync: true });
+            });
+            /* a fight that was saved with a synced boss */
+            var ab = st.activeBoss;
+            if (ab && isB(ab.img)) { var m = list.filter(function (x) { return x.slot.slice(5).trim() === ab.name; })[0]; ab.img = m ? m.url : null; if (!ab.emoji) ab.emoji = "👹"; }
+            if (typeof renderCustomBosses === "function") renderCustomBosses();
+            var bv = document.getElementById("battleBossVisual"); if (bv && ab && typeof showBossVisual === "function" && bv.offsetParent) showBossVisual();
+            markList();
+        } catch (e) { console.warn("[bc-assets] loot", e); }
+    }
+    function markList() {   /* synced bosses get a tag instead of a delete button */
+        try {
+            var st = S(), el = document.getElementById("customBossList"); if (!st || !el) return;
+            el.querySelectorAll(".custom-boss-item").forEach(function (row, i) {
+                var b = st.customBosses[i]; if (!b || !b.bcsync) return;
+                var x = row.querySelector(".del-x"); if (x) x.outerHTML = '<span style="font-size:11px;opacity:.75;white-space:nowrap">🖥 from PC</span>';
+            });
+        } catch (e) { }
+    }
+    try { var oR = window.renderCustomBosses; if (typeof oR === "function") window.renderCustomBosses = function () { var r = oR.apply(this, arguments); markList(); return r; }; } catch (e) { }
+
+    BA.load().then(function (ok) { if (ok) apply(); });
+    BA.onChange(function (d) { if (d.type === "change") apply(); });
+
+    /* the card in Settings */
+    function mount() {
+        var host = document.getElementById("customBossList"); if (!host || document.getElementById("bca-loot")) return;
+        var sec = host.closest(".settings-section"); if (!sec) return;
+        var w = document.createElement("div"); w.className = "settings-section"; w.id = "bca-loot";
+        w.appendChild(BA.panel({ app: APP, style: "margin:0" }));
+        sec.parentElement.insertBefore(w, sec);
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
+})();
+</script>
+</body>
+</html>
