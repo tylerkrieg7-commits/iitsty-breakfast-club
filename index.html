@@ -4579,12 +4579,13 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     /* ---------- pictures added on THIS phone go up to the PC library (added only, nothing on the PC is replaced) ---------- */
     var SENT = "bcsync_sent";
     var tiny = function (s) { var h = 5381, i = s.length; while (i) h = (h * 33) ^ s.charCodeAt(--i); return (h >>> 0).toString(36) + ":" + s.length; };
+    var LOST = 0;
     function localPics() {
-        var out = [], isData = function (v) { return typeof v === "string" && /^data:image\/(jpeg|png|webp|gif);base64,/.test(v); };
+        var out = [], isData = function (v) { return typeof v === "string" && /^data:image\/(jpe?g|png|webp|gif|avif|bmp);base64,/i.test(v); }; LOST = 0;
         var titles = {}; (jraw("all_recipes_master", []) || []).forEach(function (r) { if (r && r.id != null && r.title && !r.bcsync) titles[String(r.id)] = r.title; });
         var ri = jraw("recipeImages", {}) || {}; Object.keys(ri).forEach(function (id) { if (isData(ri[id]) && titles[id]) out.push({ slot: "recipe:" + titles[id], name: titles[id], data: ri[id], meta: {} }); });
         var ei = jraw("exerciseImages", {}) || {}; Object.keys(ei).forEach(function (k) { if (isData(ei[k])) out.push({ slot: "exercise:" + k, name: k, data: ei[k], meta: {} }); });
-        (jraw("customCompanions", []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && isData(c.data)) out.push({ slot: "companion:" + c.name, name: c.name, data: c.data, meta: {} }); });
+        (jraw("customCompanions", []) || []).forEach(function (c) { if (c && !c.bcsync && c.name) { if (isData(c.data)) out.push({ slot: "companion:" + c.name, name: c.name, data: c.data, meta: {} }); else if (c.data) LOST++; } });
         [["customAccessories", "accessory:"], ["customToys", "toy:"]].forEach(function (g) {
             (jraw(g[0], []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && isData(c.data)) { var m = {}; if (c.cost != null) m.cost = +c.cost || 0; if (c.unlockLvl != null) m.unlockLvl = +c.unlockLvl || 1; if (g[1] === "toy:" && c.effect) m.effect = c.effect; out.push({ slot: g[1] + c.name, name: c.name, data: c.data, meta: m }); } });
         });
@@ -4593,8 +4594,9 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     var pushing = null;
     window.BCPushLocal = function (loud) {
         if (pushing) return pushing;
-        var sent = jraw(SENT, {}), res = { sent: 0, already: 0 };
+        var sent = jraw(SENT, {}), res = { sent: 0, already: 0, skipped: 0 };
         var todo = localPics().filter(function (p) { var h = tiny(p.data); p.h = h; if (BCAssets.rec(A, p.slot)) { res.already++; return false; } if (sent[p.slot] === h) { res.already++; return false; } return true; });
+        res.skipped = LOST;
         if (!todo.length) return Promise.resolve(res);
         pushing = todo.reduce(function (pr, p) {
             return pr.then(function () {

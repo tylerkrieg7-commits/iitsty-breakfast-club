@@ -155,14 +155,14 @@ http.createServer(async (req, res) => {
       const q = new URL(req.url, 'http://x').searchParams, app = q.get('app') || 'index', slot = q.get('slot') || '', type = (req.headers['content-type'] || '').split(';')[0];
       const ok = (PHONE_OK[app] || []).some(pre => slot.startsWith(pre) && slot.length > pre.length);
       if (!ok || slot.length > 200 || /[\u0000-\u001f]/.test(slot)) return json(res, 400, { error: 'that spot can\'t be filled from a phone' }, CORS);
-      if (!/^image\/(jpeg|png|webp|gif)$/.test(type)) return json(res, 400, { error: 'pictures only' }, CORS);
-      const key = app + '|' + slot;
+      if (!/^image\/(jpe?g|png|webp|gif|avif|bmp)$/.test(type)) return json(res, 400, { error: 'pictures only' }, CORS);
+      const key = app + '|' + slot; const ctype = type === 'image/jpg' ? 'image/jpeg' : type;
       if (LIB.items[key]) { req.resume(); return json(res, 200, { ok: true, status: 'exists' }, CORS); }
       const body = await readBody(req, 12e6); if (!body.length) return json(res, 400, { error: 'empty' }, CORS);
       const hash = crypto.createHash('sha1').update(body).digest('hex'), dest = path.join(FILES, hash);
       if (LIB.items[key]) return json(res, 200, { ok: true, status: 'exists' }, CORS);
       if (!fs.existsSync(dest)) fs.writeFileSync(dest, body);
-      LIB.items[key] = { app, slot, hash, type, size: body.length, name: String(q.get('name') || slot.replace(/^[a-z]+:/, '')).slice(0, 120), meta: parseMeta(q.get('meta')) || {}, updated: Date.now(), from: 'phone' };
+      LIB.items[key] = { app, slot, hash, type: ctype, size: body.length, name: String(q.get('name') || slot.replace(/^[a-z]+:/, '')).slice(0, 120), meta: parseMeta(q.get('meta')) || {}, updated: Date.now(), from: 'phone' };
       saveLib(); if (TUN.url) publish();
       return json(res, 200, { ok: true, status: 'added' }, CORS);
     } catch (e) { return json(res, 400, { error: 'bad request' }, CORS); }
