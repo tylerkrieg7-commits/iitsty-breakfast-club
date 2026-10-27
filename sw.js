@@ -1,7 +1,7 @@
 /* Iitstys Breakfast Club: offline support.
    Bump CACHE_VERSION whenever you upload new files so phones refresh their saved copy.
    (Synced photos and videos are not kept here; they live in the app's own photo storage.) */
-const CACHE_VERSION = "v10";
+const CACHE_VERSION = "v11";
 const CACHE = "breakfast-club-" + CACHE_VERSION;
 const CORE = [
   "./",
@@ -46,12 +46,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Scripts: the saved copy right away, refreshed in the background for next time.
+  // Scripts: the newest copy when online (so updates show up right away), the saved copy when offline.
   if (/\.js$/.test(new URL(req.url).pathname)) {
-    event.respondWith(caches.open(CACHE).then((c) => c.match(req).then((hit) => {
-      const net = fetch(req, { cache: "no-cache" }).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
-      return hit || net;
-    })));
+    event.respondWith(fetch(req, { cache: "no-cache" })
+      .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; })
+      .catch(() => caches.match(req)));
     return;
   }
 
