@@ -238,7 +238,7 @@
     if (!document.getElementById("bca-css")) { var st = document.createElement("style"); st.id = "bca-css"; st.textContent = CSS; document.head.appendChild(st); }
     var el = document.createElement("div"); el.className = "bca"; if (opts.style) el.setAttribute("style", opts.style);
     el.innerHTML = '<h4>📸 Photos, videos & sounds from your PC</h4><p>Saved inside the app, not in your gallery. They keep working when the PC is off.</p><div class="bca-s"></div>' +
-      '<div class="bca-b"><button class="bca-p" data-a="sync">🔄 Sync from my PC</button><button data-a="pack">📦 Import bundle file</button><button data-a="link">🔗 Paste PC link</button><button data-a="clear" style="grid-column:1/-1">🗑 Remove synced files</button></div>' +
+      '<div class="bca-b"><button class="bca-p" data-a="sync">🔄 Sync from my PC</button><button data-a="pack">📦 Import bundle file</button><button data-a="link">🔗 Paste PC link</button><button data-a="push" style="grid-column:1/-1;display:none">⬆ Send my phone\'s own pictures to the PC</button><button data-a="clear" style="grid-column:1/-1">🗑 Remove synced files</button></div>' +
       '<div class="bca-l"><input placeholder="https://….trycloudflare.com/t/…" inputmode="url"><button data-a="save">Save</button></div>' +
       '<input type="file" accept=".bcpack,application/octet-stream" hidden><div class="bca-bar"><i></i></div><div class="bca-m"></div>';
     var q = function (s) { return el.querySelector(s); }, msg = q(".bca-m"), bar = q(".bca-bar"), fi = q('input[type=file]');
@@ -249,6 +249,7 @@
       var s = stats(), m = s.meta, mine = opts.app ? (s.apps[opts.app] || 0) : null;
       q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet.";
       q('[data-a=clear]').style.display = s.count ? "" : "none";
+      q('[data-a=push]').style.display = typeof window.BCPushLocal === "function" ? "" : "none";
     }
     function done(r) {
       bar.style.display = "none"; lock(false); status();
@@ -258,6 +259,7 @@
     el.addEventListener("click", function (e) {
       var b = e.target.closest("[data-a]"); if (!b) return; var a = b.dataset.a;
       if (a === "sync") { lock(true); sync(prog).then(done, fail); }
+      if (a === "push") { lock(true); say("Sending your phone's pictures to the PC…"); window.BCPushLocal(true).then(function (r) { lock(false); say(r.sent ? "✅ Sent " + r.sent + " new picture" + (r.sent === 1 ? "" : "s") + " to your PC" + (r.already ? " (" + r.already + " were already there)" : "") + "." : r.already ? "✅ Your PC already has all " + r.already + " of them." : "Nothing new to send.", "ok"); }, fail); }
       if (a === "pack") fi.click();
       if (a === "link") { var l = q(".bca-l"); l.style.display = l.style.display === "flex" ? "none" : "flex"; q(".bca-l input").value = localStorage.getItem(LINK_KEY) || ""; q(".bca-l input").focus(); }
       if (a === "save") { var v = setLink(q(".bca-l input").value); q(".bca-l").style.display = "none"; say(v ? "Link saved. Tap Sync from my PC." : "That doesn't look like the phone link. Copy it from the Photo Manager.", v ? "ok" : "bad"); }
@@ -268,7 +270,17 @@
     return el;
   }
 
-  window.BCAssets = { postVoice: postVoice, load: load, url: url, all: all, rec: rec, meta: itemMeta, isVideo: isVideo, hasSynced: hasSynced, stats: stats, sync: sync, importBundle: importBundle,
+  /* a picture added on this phone, sent to the PC (the PC only ever ADDS it; it never replaces what the PC already has) */
+  function postPhoto(app, slot, blob, meta, name) {
+    var go = function (link) {
+      var u = link + "photo?app=" + encodeURIComponent(app) + "&slot=" + encodeURIComponent(slot) + "&name=" + encodeURIComponent(name || "") + (meta && Object.keys(meta).length ? "&meta=" + encodeURIComponent(JSON.stringify(meta)) : "");
+      return fetch(u, { method: "POST", headers: { "Content-Type": blob.type || "image/jpeg" }, body: blob })
+        .then(function (r) { if (!r.ok) throw new Error("Your PC said no (" + r.status + ")"); return r.json(); });
+    };
+    if (lastLink.l && Date.now() - lastLink.at < 600000) return go(lastLink.l).catch(function (e) { if (/PC said no/.test(e.message)) throw e; lastLink.l = null; return postPhoto(app, slot, blob, meta, name); });
+    return discover().then(function (f) { lastLink = { l: f.link, at: Date.now() }; return go(f.link); });
+  }
+  window.BCAssets = { postPhoto: postPhoto, postVoice: postVoice, load: load, url: url, all: all, rec: rec, meta: itemMeta, isVideo: isVideo, hasSynced: hasSynced, stats: stats, sync: sync, importBundle: importBundle,
     discover: discover, setLink: setLink, putLocal: putLocal, removeLocal: removeLocal, clearSynced: clearSynced, onChange: onChange, panel: panel, mb: mb };
   load();
 })();

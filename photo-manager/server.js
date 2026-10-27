@@ -89,6 +89,7 @@ function slotKind(app, slot) {
   for (const g of c.groups) { const s = g.slots.find(x => x.id === slot); if (s) return s.kind || g.kind || 'image'; }
   const g = c.groups.find(x => x.free && slot.startsWith(x.free)); return (g && g.kind) || 'image';
 }
+const PHONE_OK = { index: ['recipe:', 'exercise:', 'companion:', 'accessory:', 'toy:'] };
 function parseMeta(v) { if (!v) return null; try { const o = JSON.parse(v); return o && typeof o === 'object' && !Array.isArray(o) && v.length < 60000 ? o : null; } catch (e) { return null; } }
 function upload(req, res, q) {
   const app = q.get('app'), slot = q.get('slot'), name = q.get('name') || 'file', meta = parseMeta(q.get('meta')), type = (req.headers['content-type'] || 'application/octet-stream').split(';')[0];
@@ -146,6 +147,25 @@ http.createServer(async (req, res) => {
   if (vm && req.method === 'POST') {   /* lines a phone wants recorded */
     if (vm[1] !== CFG.token) return send(res, 404, 'not found', CORS);
     try { const b = JSON.parse((await readBody(req, 2e6)).toString() || '{}'); return json(res, 200, VOICE.want(b.lines), CORS); } catch (e) { return json(res, 400, { error: 'bad request' }, CORS); }
+  }
+  const pm = /^\/t\/([a-f0-9]+)\/photo$/.exec(new URL(req.url, 'http://x').pathname);
+  if (pm && req.method === 'POST') {   /* a picture the phone added itself: only ever ADDED, never replaces what is already here */
+    if (pm[1] !== CFG.token) return send(res, 404, 'not found', CORS);
+    try {
+      const q = new URL(req.url, 'http://x').searchParams, app = q.get('app') || 'index', slot = q.get('slot') || '', type = (req.headers['content-type'] || '').split(';')[0];
+      const ok = (PHONE_OK[app] || []).some(pre => slot.startsWith(pre) && slot.length > pre.length);
+      if (!ok || slot.length > 200 || /[\u0000-\u001f]/.test(slot)) return json(res, 400, { error: 'that spot can\'t be filled from a phone' }, CORS);
+      if (!/^image\/(jpeg|png|webp|gif)$/.test(type)) return json(res, 400, { error: 'pictures only' }, CORS);
+      const key = app + '|' + slot;
+      if (LIB.items[key]) { req.resume(); return json(res, 200, { ok: true, status: 'exists' }, CORS); }
+      const body = await readBody(req, 12e6); if (!body.length) return json(res, 400, { error: 'empty' }, CORS);
+      const hash = crypto.createHash('sha1').update(body).digest('hex'), dest = path.join(FILES, hash);
+      if (LIB.items[key]) return json(res, 200, { ok: true, status: 'exists' }, CORS);
+      if (!fs.existsSync(dest)) fs.writeFileSync(dest, body);
+      LIB.items[key] = { app, slot, hash, type, size: body.length, name: String(q.get('name') || slot.replace(/^[a-z]+:/, '')).slice(0, 120), meta: parseMeta(q.get('meta')) || {}, updated: Date.now(), from: 'phone' };
+      saveLib(); if (TUN.url) publish();
+      return json(res, 200, { ok: true, status: 'added' }, CORS);
+    } catch (e) { return json(res, 400, { error: 'bad request' }, CORS); }
   }
   const m = /^\/t\/([a-f0-9]+)\/(manifest\.json|f\/([a-f0-9]{40}))$/.exec(new URL(req.url, 'http://x').pathname);
   if (!m || m[1] !== CFG.token) return send(res, 404, 'not found', CORS);

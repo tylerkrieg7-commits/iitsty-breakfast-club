@@ -50,6 +50,11 @@ GETTING THEM ONTO THE PHONES (both phones, any time the PC is on)
 - When the PC is off: click "Download bundle" in the manager, send the .bcpack file to the
   phone (USB, Quick Share or Drive), then tap "Import bundle file" on the phone.
 - The files are saved inside the app, not in the gallery, and keep working with the PC off.
+- Pictures you add on the phone itself (recipe and exercise pictures, your own companions, pet
+  accessories and toys) go up to the PC library by themselves when the app opens and after each
+  sync. The PC only ADDS them: a spot that already has a picture is never replaced. There is also
+  a "Send my phone's own pictures to the PC" button in the same card. They show up in the manager
+  like any other picture, so they end up in your PC backup too.
 - If you remove something in the manager, the phones drop it at their next sync.
 
 DUNGEON DWELLERS VOICES (PIPER)
