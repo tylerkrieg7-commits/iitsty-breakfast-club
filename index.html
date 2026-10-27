@@ -4579,31 +4579,42 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     /* ---------- pictures added on THIS phone go up to the PC library (added only, nothing on the PC is replaced) ---------- */
     var SENT = "bcsync_sent";
     var tiny = function (s) { var h = 5381, i = s.length; while (i) h = (h * 33) ^ s.charCodeAt(--i); return (h >>> 0).toString(36) + ":" + s.length; };
-    var LOST = 0;
+    var okSrc = function (v) { return typeof v === "string" && /^(data:image\/|https?:\/\/)/i.test(v); };
+    /* any picture the phone can show becomes a normal picture file (SVG, HEIC-less formats and so on are turned into PNG) */
+    function toBlob(src) {
+        return fetch(src).then(function (r) { if (!r.ok) throw new Error("couldn't open the link (" + r.status + ")"); return r.blob(); }).then(function (b) {
+            if (/^image\/(jpe?g|png|webp|gif|avif|bmp)$/.test(b.type)) return b;
+            return new Promise(function (ok, no) {
+                var u = URL.createObjectURL(b), im = new Image();
+                im.onload = function () { try { var c = document.createElement("canvas"); c.width = im.naturalWidth || 512; c.height = im.naturalHeight || 512; c.getContext("2d").drawImage(im, 0, 0); c.toBlob(function (o) { URL.revokeObjectURL(u); o ? ok(o) : no(new Error("couldn't convert it")); }, "image/png"); } catch (e) { no(e); } };
+                im.onerror = function () { URL.revokeObjectURL(u); no(new Error("not a picture the phone can read")); };
+                im.src = u;
+            });
+        }, function (e) { throw new Error(/Failed to fetch|NetworkError|Load failed/i.test(e.message) ? "that web site doesn't allow copying its picture" : e.message); });
+    }
     function localPics() {
-        var out = [], isData = function (v) { return typeof v === "string" && /^data:image\/(jpe?g|png|webp|gif|avif|bmp);base64,/i.test(v); }; LOST = 0;
+        var out = [];
         var titles = {}; (jraw("all_recipes_master", []) || []).forEach(function (r) { if (r && r.id != null && r.title && !r.bcsync) titles[String(r.id)] = r.title; });
-        var ri = jraw("recipeImages", {}) || {}; Object.keys(ri).forEach(function (id) { if (isData(ri[id]) && titles[id]) out.push({ slot: "recipe:" + titles[id], name: titles[id], data: ri[id], meta: {} }); });
-        var ei = jraw("exerciseImages", {}) || {}; Object.keys(ei).forEach(function (k) { if (isData(ei[k])) out.push({ slot: "exercise:" + k, name: k, data: ei[k], meta: {} }); });
-        (jraw("customCompanions", []) || []).forEach(function (c) { if (c && !c.bcsync && c.name) { if (isData(c.data)) out.push({ slot: "companion:" + c.name, name: c.name, data: c.data, meta: {} }); else if (c.data) LOST++; } });
+        var ri = jraw("recipeImages", {}) || {}; Object.keys(ri).forEach(function (id) { if (okSrc(ri[id]) && titles[id]) out.push({ slot: "recipe:" + titles[id], name: titles[id], data: ri[id], meta: {} }); });
+        var ei = jraw("exerciseImages", {}) || {}; Object.keys(ei).forEach(function (k) { if (okSrc(ei[k])) out.push({ slot: "exercise:" + k, name: k, data: ei[k], meta: {} }); });
+        (jraw("customCompanions", []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && okSrc(c.data)) out.push({ slot: "companion:" + c.name, name: c.name, data: c.data, meta: {} }); });
         [["customAccessories", "accessory:"], ["customToys", "toy:"]].forEach(function (g) {
-            (jraw(g[0], []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && isData(c.data)) { var m = {}; if (c.cost != null) m.cost = +c.cost || 0; if (c.unlockLvl != null) m.unlockLvl = +c.unlockLvl || 1; if (g[1] === "toy:" && c.effect) m.effect = c.effect; out.push({ slot: g[1] + c.name, name: c.name, data: c.data, meta: m }); } });
+            (jraw(g[0], []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && okSrc(c.data)) { var m = {}; if (c.cost != null) m.cost = +c.cost || 0; if (c.unlockLvl != null) m.unlockLvl = +c.unlockLvl || 1; if (g[1] === "toy:" && c.effect) m.effect = c.effect; out.push({ slot: g[1] + c.name, name: c.name, data: c.data, meta: m }); } });
         });
         return out;
     }
     var pushing = null;
     window.BCPushLocal = function (loud) {
         if (pushing) return loud ? pushing.then(function () { return window.BCPushLocal(true); }) : pushing;
-        var sent = jraw(SENT, {}), res = { sent: 0, already: 0, skipped: 0 };
+        var sent = jraw(SENT, {}), res = { sent: 0, already: 0, skipped: 0, why: [] };
         var todo = localPics().filter(function (p) { var h = tiny(p.data); p.h = h; if (BCAssets.rec(A, p.slot)) { res.already++; return false; } if (sent[p.slot] === h) { res.already++; return false; } return true; });
-        res.skipped = LOST;
         if (!todo.length) return Promise.resolve(res);
         pushing = todo.reduce(function (pr, p) {
             return pr.then(function () {
-                return fetch(p.data).then(function (r) { return r.blob(); }).then(function (b) { return BCAssets.postPhoto(A, p.slot, b, p.meta, p.name); }).then(function (r) {
+                return toBlob(p.data).then(function (b) { return BCAssets.postPhoto(A, p.slot, b, p.meta, p.name).then(function (r) {
                     sent[p.slot] = p.h; if (r && r.status === "added") res.sent++; else res.already++;
                     try { oS.call(LS, SENT, JSON.stringify(sent)); } catch (e) {}
-                });
+                }); }, function (e) { res.skipped++; res.why.push(p.name + ": " + e.message); });
             });
         }, Promise.resolve()).then(function () { pushing = null; return res; }, function (e) { pushing = null; if (loud) throw e; res.err = e && e.message; return res; });
         return pushing;
