@@ -4593,7 +4593,7 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     }
     var pushing = null;
     window.BCPushLocal = function (loud) {
-        if (pushing) return pushing;
+        if (pushing) return loud ? pushing.then(function () { return window.BCPushLocal(true); }) : pushing;
         var sent = jraw(SENT, {}), res = { sent: 0, already: 0, skipped: 0 };
         var todo = localPics().filter(function (p) { var h = tiny(p.data); p.h = h; if (BCAssets.rec(A, p.slot)) { res.already++; return false; } if (sent[p.slot] === h) { res.already++; return false; } return true; });
         res.skipped = LOST;
@@ -4605,7 +4605,7 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
                     try { oS.call(LS, SENT, JSON.stringify(sent)); } catch (e) {}
                 });
             });
-        }, Promise.resolve()).then(function () { pushing = null; return res; }, function (e) { pushing = null; if (loud) throw e; return res; });
+        }, Promise.resolve()).then(function () { pushing = null; return res; }, function (e) { pushing = null; if (loud) throw e; res.err = e && e.message; return res; });
         return pushing;
     };
     /* quietly, when the app opens and after every sync */
