@@ -4593,9 +4593,27 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
             return "";
         });
     }
+    /* big pictures are kept by the app in its own photo storage; the saved value is only a short reference to them */
+    function idbBlob(src) {
+        var id = src.slice("data:image/x-idb,".length);
+        return new Promise(function (ok, no) {
+            try {
+                var rq = indexedDB.open("fx_photo_store");
+                rq.onerror = function () { no(new Error("couldn't open the app's photo storage")); };
+                rq.onsuccess = function () {
+                    try {
+                        var g = rq.result.transaction("blobs").objectStore("blobs").get(id);
+                        g.onsuccess = function () { rq.result.close(); g.result && g.result.buf ? ok(new Blob([g.result.buf], { type: g.result.type || "" })) : no(new Error("that picture is missing from the app's photo storage")); };
+                        g.onerror = function () { rq.result.close(); no(new Error("couldn't read the app's photo storage")); };
+                    } catch (e) { no(new Error("couldn't read the app's photo storage")); }
+                };
+            } catch (e) { no(new Error("couldn't open the app's photo storage")); }
+        });
+    }
     function toBlob(src) {
         var kind = /^data:/i.test(src) ? src.slice(0, 40).split(";")[0] : "a web link";
-        return fetch(src).then(function (r) { if (!r.ok) throw new Error("couldn't open the link (" + r.status + ")"); return r.blob(); }).then(function (b) {
+        var got = src.indexOf("data:image/x-idb,") === 0 ? idbBlob(src) : fetch(src).then(function (r) { if (!r.ok) throw new Error("couldn't open the link (" + r.status + ")"); return r.blob(); });
+        return got.then(function (b) {
             return sniff(b).then(function (t) {
                 if (t) return t === b.type ? b : new Blob([b], { type: t });   /* it IS a normal picture, just labelled oddly */
                 return new Promise(function (ok, no) {
