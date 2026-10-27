@@ -1,7 +1,7 @@
 /* Iitstys Breakfast Club: offline support.
    Bump CACHE_VERSION whenever you upload new files so phones refresh their saved copy.
    (Synced photos and videos are not kept here; they live in the app's own photo storage.) */
-const CACHE_VERSION = "v8";
+const CACHE_VERSION = "v9";
 const CACHE = "breakfast-club-" + CACHE_VERSION;
 const CORE = [
   "./",
@@ -16,7 +16,7 @@ const CORE = [
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())
+    caches.open(CACHE).then((c) => c.addAll(CORE.map((u) => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())
   );
 });
 
@@ -39,7 +39,7 @@ self.addEventListener("fetch", (event) => {
   if (req.mode === "navigate") {
     const key = pageKey(req);
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: "no-cache" })
         .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(key, copy)); } return res; })
         .catch(() => caches.match(key).then((r) => r || caches.match("./index.html")))
     );
@@ -49,7 +49,7 @@ self.addEventListener("fetch", (event) => {
   // Scripts: the saved copy right away, refreshed in the background for next time.
   if (/\.js$/.test(new URL(req.url).pathname)) {
     event.respondWith(caches.open(CACHE).then((c) => c.match(req).then((hit) => {
-      const net = fetch(req).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
+      const net = fetch(req, { cache: "no-cache" }).then((res) => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
       return hit || net;
     })));
     return;
