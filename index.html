@@ -4581,14 +4581,29 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     var tiny = function (s) { var h = 5381, i = s.length; while (i) h = (h * 33) ^ s.charCodeAt(--i); return (h >>> 0).toString(36) + ":" + s.length; };
     var okSrc = function (v) { return typeof v === "string" && /^(data:image\/|https?:\/\/)/i.test(v); };
     /* any picture the phone can show becomes a normal picture file (SVG, HEIC-less formats and so on are turned into PNG) */
+    function sniff(b) {
+        return b.slice(0, 16).arrayBuffer().then(function (ab) {
+            var u = new Uint8Array(ab), a = function (i, str) { for (var k = 0; k < str.length; k++) if (u[i + k] !== str.charCodeAt(k)) return false; return true; };
+            if (u[0] === 0x89 && a(1, "PNG")) return "image/png";
+            if (u[0] === 0xff && u[1] === 0xd8) return "image/jpeg";
+            if (a(0, "GIF8")) return "image/gif";
+            if (a(0, "RIFF") && a(8, "WEBP")) return "image/webp";
+            if (a(0, "BM")) return "image/bmp";
+            if (a(4, "ftypavif")) return "image/avif";
+            return "";
+        });
+    }
     function toBlob(src) {
+        var kind = /^data:/i.test(src) ? src.slice(0, 40).split(";")[0] : "a web link";
         return fetch(src).then(function (r) { if (!r.ok) throw new Error("couldn't open the link (" + r.status + ")"); return r.blob(); }).then(function (b) {
-            if (/^image\/(jpe?g|png|webp|gif|avif|bmp)$/.test(b.type)) return b;
-            return new Promise(function (ok, no) {
-                var u = URL.createObjectURL(b), im = new Image();
-                im.onload = function () { try { var c = document.createElement("canvas"); c.width = im.naturalWidth || 512; c.height = im.naturalHeight || 512; c.getContext("2d").drawImage(im, 0, 0); c.toBlob(function (o) { URL.revokeObjectURL(u); o ? ok(o) : no(new Error("couldn't convert it")); }, "image/png"); } catch (e) { no(e); } };
-                im.onerror = function () { URL.revokeObjectURL(u); no(new Error("not a picture the phone can read")); };
-                im.src = u;
+            return sniff(b).then(function (t) {
+                if (t) return t === b.type ? b : new Blob([b], { type: t });   /* it IS a normal picture, just labelled oddly */
+                return new Promise(function (ok, no) {
+                    var u = URL.createObjectURL(b), im = new Image();
+                    im.onload = function () { try { var c = document.createElement("canvas"); c.width = im.naturalWidth || 512; c.height = im.naturalHeight || 512; c.getContext("2d").drawImage(im, 0, 0); c.toBlob(function (o) { URL.revokeObjectURL(u); o ? ok(o) : no(new Error("couldn't convert it")); }, "image/png"); } catch (e) { no(e); } };
+                    im.onerror = function () { URL.revokeObjectURL(u); no(new Error("this picture is stored as " + (b.type || kind) + " (" + Math.round(b.size / 1024) + " KB) and the phone can't turn it into a normal picture")); };
+                    im.src = u;
+                });
             });
         }, function (e) { throw new Error(/Failed to fetch|NetworkError|Load failed/i.test(e.message) ? "that web site doesn't allow copying its picture" : e.message); });
     }
