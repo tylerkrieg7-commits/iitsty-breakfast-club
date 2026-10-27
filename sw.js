@@ -1,7 +1,7 @@
 /* Iitstys Breakfast Club: offline support.
    Bump CACHE_VERSION whenever you upload new files so phones refresh their saved copy.
    (Synced photos and videos are not kept here; they live in the app's own photo storage.) */
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const CACHE = "breakfast-club-" + CACHE_VERSION;
 const CORE = [
   "./",
@@ -62,4 +62,27 @@ self.addEventListener("fetch", (event) => {
       return res;
     }))
   );
+});
+
+/* Notifications from your partner (sent by Supabase when a note, cheer, swap or gift arrives) */
+self.addEventListener("push", (event) => {
+  let d = {};
+  try { d = event.data ? event.data.json() : {}; } catch (e) { d = { title: "Breakfast Club", body: event.data ? event.data.text() : "" }; }
+  event.waitUntil(self.registration.showNotification(d.title || "Breakfast Club", {
+    body: d.body || "",
+    tag: d.tag || "club",
+    icon: "icon-192.png",
+    badge: "icon-192.png",
+    data: { url: d.url || "./index.html#mail" }
+  }));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || "./index.html#mail", self.registration.scope).href;
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    const home = list.find((c) => { const p = new URL(c.url).pathname; return p.endsWith("/") || p.endsWith("/index.html"); });
+    if (home) { home.postMessage({ type: "club-open-mail" }); return home.focus(); }
+    return self.clients.openWindow(target);
+  }));
 });

@@ -13893,6 +13893,60 @@ function fxNutEstimate(lines) {
             try { const v = JSON.parse(decodeURIComponent(escape(atob(s.replace(/^BCSYNC:/, "").trim())))); $("fx3-s-url").value = v.url; $("fx3-s-key").value = v.key; $("fx3-s-hh").value = v.hh; $("fx3-me").value = other(); lsSet("fx_me", other()); toast("Filled in — now tap “Turn on sync”."); } catch (e) { toast("That code didn't work — copy it again."); }
         };
     })();
+
+    /* ---------- phone notifications (#89b): Supabase sends one when your partner sends a note, cheer, swap or gift ---------- */
+    (function () {
+        const VAPID = "BA7drl96puKWiOv5fPTF5J9M5QBkFw42QXESrbFSH1Io6w_uRJfvZdvk1O5lKUZjsvBKrJr_59L2q8_3I6sW8v4";
+        const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && window.isSecureContext;
+        const keyBytes = (s) => { const b = atob((s + "===".slice((s.length + 3) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, (ch) => ch.charCodeAt(0)); };
+        async function register(quiet) {
+            const c = cfg(); if (!c || !c.url || !c.key || !c.hh) { if (!quiet) toast("Turn on sync first, then tap this again."); return false; }
+            const reg = await navigator.serviceWorker.ready;
+            let sub = await reg.pushManager.getSubscription();
+            if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(VAPID) });
+            const r = await fetch(base(c) + "rpc/club_push_subscribe", { method: "POST", headers: hdr(c), body: JSON.stringify({ p_household: c.hh, p_person: me(), p_sub: sub.toJSON() }) });
+            if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 120));
+            lsSet("fx_push_on", "1"); return true;
+        }
+        async function unregister() {
+            const c = cfg(); const reg = await navigator.serviceWorker.ready; const sub = await reg.pushManager.getSubscription();
+            if (sub) { if (c && c.url) { try { await fetch(base(c) + "rpc/club_push_unsubscribe", { method: "POST", headers: hdr(c), body: JSON.stringify({ p_endpoint: sub.endpoint }) }); } catch (e) {} } try { await sub.unsubscribe(); } catch (e) {} }
+            lsSet("fx_push_on", "0");
+        }
+        const isOn = () => ok && ls("fx_push_on", "0") === "1" && Notification.permission === "granted";
+        function paint() {
+            const b = $("fx3-push-btn"), s = $("fx3-push-status"); if (!b || !s) return;
+            if (!ok) { b.disabled = true; s.textContent = "This browser can't show notifications. Open the site in Chrome (or from its home-screen icon)."; return; }
+            if (Notification.permission === "denied") { s.textContent = "Notifications are blocked for this site. Allow them in the browser's site settings, then tap the button again."; }
+            else s.textContent = isOn() ? `🔔 On: this phone buzzes when ${nameOf(other())} sends a note, cheer, swap or gift, even with the app closed.` : "Off: messages only show up while the app is open.";
+            b.textContent = isOn() ? "🔕 Turn off notifications" : "🔔 Allow notifications";
+        }
+        const card = $("fx3-sync-card");
+        if (card) {
+            const d = document.createElement("div"); d.style.marginTop = "10px";
+            d.innerHTML = `<div class="fx-btnrow"><button class="btn-action" id="fx3-push-btn" style="background:#ef6c00">🔔 Allow notifications</button></div><div id="fx3-push-status" class="card-desc" style="margin-top:6px"></div>`;
+            card.appendChild(d);
+            $("fx3-push-btn").onclick = async () => {
+                try {
+                    if (isOn()) { await unregister(); toast("Notifications off on this phone"); }
+                    else {
+                        const p = await Notification.requestPermission();
+                        if (p !== "granted") { toast("Notifications weren't allowed."); }
+                        else if (await register(false)) toast(`🔔 Notifications on. You'll hear about ${nameOf(other())}'s messages even with the app closed.`, { cls: "good" });
+                    }
+                } catch (e) { toast("Couldn't turn on notifications: " + e.message); }
+                paint();
+            };
+            const meSel = $("fx3-me"); if (meSel) meSel.addEventListener("change", () => { if (isOn()) register(true).catch(() => {}); setTimeout(paint, 50); });
+            const onBtn = $("fx3-s-on"); if (onBtn) onBtn.addEventListener("click", () => setTimeout(() => { if (isOn()) register(true).catch(() => {}); }, 4000));
+            paint();
+        }
+        // keep the sign-up fresh (phones sometimes renew it), and open the mailbox when a notification is tapped
+        if (isOn()) setTimeout(() => register(true).catch(() => {}), 3000);
+        const openFromPush = () => { try { openMail(); } catch (e) {} };
+        if (ok) navigator.serviceWorker.addEventListener("message", (e) => { if (e.data && e.data.type === "club-open-mail") openFromPush(); });
+        if (location.hash === "#mail") { setTimeout(openFromPush, 600); try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {} }
+    })();
     if (cfg() && cfg().on) schedule();
 
     renderBadge(); decorateAll();
