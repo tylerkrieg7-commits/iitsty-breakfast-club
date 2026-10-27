@@ -16794,5 +16794,297 @@ body.theme-light .fx3-wel-tile { background: rgba(0,0,0,.03); }
 header .gear-btn, #fx-mail-btn { position: absolute; }
 
 </style>
+<script id="bcx-a-safety">
+/* ===== Batch 1a: sync light, update banner, backup reminder, cloud backup/restore, health check, battery saver, settings search ===== */
+(function () {
+    "use strict";
+    if (window.__bcxSafety) return; window.__bcxSafety = 1;
+    var F = window.FX3; if (!F) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var DAY = 86400000;
+    var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; };
+    var cfg = function () { var c = jget("fx_sync_cfg", null); return c && c.url && c.key && c.hh ? c : null; };
+    var hdr = function (c) { var h = { apikey: c.key, "Content-Type": "application/json" }; if (/^eyJ/.test(c.key)) h.Authorization = "Bearer " + c.key; return h; };
+    var rest = function (c, p, o) { return fetch(c.url.replace(/\/+$/, "") + "/rest/v1/" + p, Object.assign({ headers: hdr(c) }, o || {})); };
+    var ago = function (t) { if (!t) return "never"; var s = (Date.now() - t) / 1000; return s < 90 ? "just now" : s < 5400 ? Math.round(s / 60) + " min ago" : s < 129600 ? Math.round(s / 3600) + " h ago" : Math.round(s / 86400) + " days ago"; };
+    var RG = null;   /* the browser's own getItem, so we see what is really saved (not the merged-in synced pictures) */
+    function rawGet(k) { if (!RG) { try { var f = document.createElement("iframe"); f.style.display = "none"; document.body.appendChild(f); RG = f.contentWindow.Storage.prototype.getItem; } catch (e) { RG = Storage.prototype.getItem; } } return RG.call(localStorage, k); }
+    function card(id, page, group, html) {
+        var host = $(page); if (!host) return null; var old = $(id); if (old) old.remove();
+        var c = document.createElement("div"); c.className = "card"; c.id = id; c.dataset.fxGroup = group; c.innerHTML = html; host.appendChild(c); return c;
+    }
+    var st = document.createElement("style"); st.id = "bcx-css";
+    st.textContent = ".bcx-bar{position:fixed;left:8px;right:8px;top:8px;z-index:99990;background:#1565c0;color:#fff;border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:center;font-size:13.5px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.45)}.bcx-bar span{flex:1}.bcx-bar button{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:10px;padding:8px 10px;background:#fff;color:#0d47a1;cursor:pointer}.bcx-bar button.x{background:transparent;color:#fff;padding:8px 6px}" +
+        ".bcx-light{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;margin-bottom:10px;border:1.5px solid var(--border,#444);font-weight:800;font-size:14px}.bcx-light i{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 10px currentColor}.bcx-light small{display:block;font-weight:600;opacity:.8;font-size:12px}" +
+        ".bcx-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:13.5px}.bcx-row:last-child{border:0}.bcx-row b{display:block}.bcx-row small{opacity:.8}.bcx-btns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.bcx-btns button,.bcx-btn{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:12px;padding:10px 12px;cursor:pointer;background:var(--accent-color,#00adb5);color:#fff}.bcx-btns button.alt{background:rgba(128,128,128,.3);color:inherit}" +
+        ".bcx-in{width:100%;box-sizing:border-box;font:inherit;padding:10px;border-radius:10px;border:1.5px solid var(--border,#555);background:rgba(0,0,0,.15);color:inherit;margin:4px 0}" +
+        "body.bcx-saver *{animation:none!important;transition:none!important;scroll-behavior:auto!important}body.bcx-saver canvas[id*='amb']{display:none!important}" +
+        "#bcx-search{margin:0 0 10px}#bcx-search-res{display:none;margin-top:6px;border-radius:12px;border:1.5px solid var(--border,#555);background:var(--card-bg,#1b1b1b);max-height:46vh;overflow:auto}#bcx-search-res div{padding:10px 12px;border-bottom:1px solid rgba(128,128,128,.25);cursor:pointer;font-size:13.5px}#bcx-search-res small{display:block;opacity:.7}.bcx-flash{outline:3px solid #ffd23f!important;outline-offset:2px}";
+    document.head.appendChild(st);
+    var bar = function (id, html, onclick) {
+        var old = $(id); if (old) old.remove();
+        var b = document.createElement("div"); b.className = "bcx-bar"; b.id = id; b.innerHTML = html;
+        b.addEventListener("click", function (e) { var a = e.target.closest("[data-a]"); if (!a) return; if (a.dataset.a === "x") b.remove(); else onclick && onclick(a.dataset.a, b); });
+        document.body.appendChild(b); return b;
+    };
+
+    /* ---------- 96: "a new version is ready" ---------- */
+    if ("serviceWorker" in navigator) {
+        var had = !!navigator.serviceWorker.controller;
+        navigator.serviceWorker.addEventListener("controllerchange", function () { if (had) bar("bcx-upd", '<span>✨ A new version is ready</span><button data-a="go">Refresh</button><button class="x" data-a="x">✕</button>', function () { location.reload(); }); had = true; });
+        navigator.serviceWorker.ready.then(function (r) {
+            setInterval(function () { r.update().catch(function () {}); }, 30 * 60 * 1000);
+            document.addEventListener("visibilitychange", function () { if (!document.hidden) r.update().catch(function () {}); });
+        }).catch(function () {});
+    }
+
+    /* ---------- 48: sync light (only in the Sync tab) ---------- */
+    function lightState() {
+        var c = cfg(), on = jget("fx_sync_cfg", {}) && jget("fx_sync_cfg", {}).on;
+        if (!c || !on) return { col: "#9e9e9e", t: "Sync is off", s: "Turn it on below to share lists and messages." };
+        var last = jget("fx_sync_last", null), stamps = jget("fx_sync_stamps", {}), pushed = jget("fx_sync_pushed", {});
+        var waiting = Object.keys(stamps).filter(function (k) { return stamps[k] > (pushed[k] || 0); }).length;
+        if (!navigator.onLine) return { col: "#fb8c00", t: "Offline", s: waiting ? waiting + " change" + (waiting > 1 ? "s" : "") + " will send when you're back online" : "Nothing is waiting to send" };
+        if (last && last.kind === "err") return { col: "#e53935", t: "Not synced", s: String(last.msg || "Something went wrong").slice(0, 120) };
+        if (waiting) return { col: "#fdd835", t: waiting + " change" + (waiting > 1 ? "s" : "") + " waiting to send", s: "Tap to sync now" };
+        if (!last) return { col: "#fdd835", t: "Connecting…", s: "" };
+        var age = Date.now() - last.t;
+        if (age > 4 * 60000) return { col: "#fdd835", t: "Last synced " + ago(last.t), s: "Tap to sync now" };
+        return { col: "#43a047", t: "All synced", s: "Checked " + ago(last.t) };
+    }
+    function paintLight() {
+        var cardEl = $("fx3-sync-card"); if (!cardEl) return;
+        var el = $("bcx-light");
+        if (!el) { el = document.createElement("div"); el.id = "bcx-light"; el.className = "bcx-light"; el.style.cursor = "pointer"; el.onclick = function () { try { window.FXSync && window.FXSync.on() && window.FXSync.pull().then(window.FXSync.push); } catch (e) {} setTimeout(paintLight, 1200); }; cardEl.insertBefore(el, cardEl.children[1] || null); }
+        var s = lightState(); el.style.color = s.col; el.style.borderColor = s.col;
+        el.innerHTML = '<i style="background:' + s.col + '"></i><div style="color:var(--text-color,#fff)">' + esc(s.t) + "<small>" + esc(s.s) + "</small></div>";
+    }
+    paintLight(); setInterval(function () { if (!document.hidden) paintLight(); }, 2500);
+
+    /* ---------- 286: backup reminder ---------- */
+    if (!ls("bcx_first_seen", "")) lsSet("bcx_first_seen", String(Date.now()));
+    var ac = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () { try { if (this.download && /breakfast_club_complete_backup/.test(this.download)) lsSet("bcx_last_backup", String(Date.now())); } catch (e) {} return ac.apply(this, arguments); };
+    function lastBackup() { return Math.max(+ls("bcx_last_backup", "0") || 0, +ls("bcx_last_cloud", "0") || 0); }
+    function remind() {
+        var base = lastBackup() || +ls("bcx_first_seen", "0") || Date.now(), days = Math.floor((Date.now() - base) / DAY);
+        if (days < 14 || Date.now() - (+ls("bcx_bk_dismiss", "0") || 0) < DAY || $("bcx-upd")) return;
+        bar("bcx-bk", "<span>💾 It's been " + days + " days since your last backup</span><button data-a=\"now\">Back up</button><button class=\"x\" data-a=\"x\">✕</button>", function (a, b) { try { window.exportData(); } catch (e) {} b.remove(); });
+        $("bcx-bk").querySelector(".x").addEventListener("click", function () { lsSet("bcx_bk_dismiss", String(Date.now())); });
+    }
+    setTimeout(remind, 6000);
+
+    /* ---------- 51 / 52 / 287: encrypted cloud backup and one-tap restore ---------- */
+    var SKIP = /^(fx_device|fx_me|fx_sync_|bcx_|bcsync_|sb-|fx_push_on|fx3_sub_|fx_events$)/;
+    var BIGPIC = /data:image\/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+\/=]{20000,}/g, REFPIC = /data:image\/x-idb,[a-z0-9]{8,40}/g;
+    var b64 = function (u8) { var s = "", i = 0; for (; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+    var unb64 = function (s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; };
+    function deriveKey(pass, salt) { return crypto.subtle.importKey("raw", new TextEncoder().encode(pass), "PBKDF2", false, ["deriveKey"]).then(function (k) { return crypto.subtle.deriveKey({ name: "PBKDF2", salt: salt, iterations: 150000, hash: "SHA-256" }, k, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]); }); }
+    function gz(text) {
+        if (typeof CompressionStream !== "function") return Promise.resolve({ u8: new TextEncoder().encode(text), z: 0 });
+        var cs = new CompressionStream("gzip"), w = cs.writable.getWriter(); w.write(new TextEncoder().encode(text)); w.close();
+        return new Response(cs.readable).arrayBuffer().then(function (b) { return { u8: new Uint8Array(b), z: 1 }; });
+    }
+    function gunz(u8) { var ds = new DecompressionStream("gzip"), w = ds.writable.getWriter(); w.write(u8); w.close(); return new Response(ds.readable).arrayBuffer().then(function (b) { return new TextDecoder().decode(b); }); }
+    function seal(text, pass) {
+        var salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+        return gz(text).then(function (g) { return deriveKey(pass, salt).then(function (key) { return crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, g.u8); }).then(function (ct) {
+            var c = new Uint8Array(ct), out = new Uint8Array(28 + c.length); out.set(salt, 0); out.set(iv, 16); out.set(c, 28); return "bc1" + g.z + ":" + b64(out);
+        }); });
+    }
+    function open(payload, pass) {
+        var m = /^bc1([01]):(.*)$/.exec(payload); if (!m) return Promise.reject(new Error("unknown backup format"));
+        var u = unb64(m[2]);
+        return deriveKey(pass, u.subarray(0, 16)).then(function (key) { return crypto.subtle.decrypt({ name: "AES-GCM", iv: u.subarray(16, 28) }, key, u.subarray(28)); })
+            .then(function (pt) { return m[1] === "1" ? gunz(new Uint8Array(pt)) : new TextDecoder().decode(pt); }, function () { throw new Error("Wrong passphrase (or the backup is damaged)"); });
+    }
+    function collect() {
+        var o = {}, stripped = 0;
+        for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i); if (SKIP.test(k)) continue;
+            var v = rawGet(k); if (typeof v !== "string") continue;
+            var n = v.replace(BIGPIC, "").replace(REFPIC, ""); if (n !== v) stripped++; o[k] = n;
+        }
+        return { data: o, stripped: stripped };
+    }
+    function cloudBackup(pass, quiet) {
+        var c = cfg(); if (!c) return Promise.reject(new Error("Turn on sync first (it uses the same Supabase details)."));
+        if (!pass || pass.length < 4) return Promise.reject(new Error("Pick a passphrase of at least 4 characters."));
+        var col = collect(), text = JSON.stringify(col.data);
+        return seal(text, pass).then(function (payload) {
+            if (payload.length > 7500000) throw new Error("This backup is too big for the cloud (" + Math.round(payload.length / 1e6) + " MB). Use the backup file instead.");
+            return rest(c, "club_backup", { method: "POST", headers: Object.assign(hdr(c), { Prefer: "return=minimal" }), body: JSON.stringify({ household: c.hh, person: me(), created_at: Date.now(), label: quiet ? "auto" : "manual", size: text.length, payload: payload }) })
+                .then(function (r) { if (!r.ok) return r.text().then(function (t) { throw new Error(r.status + " " + t.slice(0, 120)); }); lsSet("bcx_last_cloud", String(Date.now())); return prune(c).then(function () { return { size: text.length, stripped: col.stripped }; }); });
+        });
+    }
+    function prune(c) {
+        return rest(c, "club_backup?select=id&household=eq." + encodeURIComponent(c.hh) + "&person=eq." + me() + "&order=created_at.desc&offset=5&limit=100").then(function (r) { return r.ok ? r.json() : []; })
+            .then(function (rows) { if (!rows.length) return; return rest(c, "club_backup?id=in.(" + rows.map(function (x) { return x.id; }).join(",") + ")", { method: "DELETE" }); }).catch(function () {});
+    }
+    function listBackups() {
+        var c = cfg(); if (!c) return Promise.resolve([]);
+        return rest(c, "club_backup?select=id,created_at,label,size&household=eq." + encodeURIComponent(c.hh) + "&person=eq." + me() + "&order=created_at.desc&limit=5").then(function (r) { return r.ok ? r.json() : []; });
+    }
+    var SAVE_KEEP = /^data:image|^blob:/;
+    function mergeVal(cur, bak) {
+        try {
+            var c = JSON.parse(cur), b = JSON.parse(bak);
+            if (Array.isArray(b) && Array.isArray(c)) {
+                var map = {}; c.forEach(function (x) { if (x && x.id != null) map[String(x.id)] = x; });
+                return JSON.stringify(b.map(function (x) { if (!x || x.id == null) return x; var o = map[String(x.id)]; if (!o) return x; var y = Object.assign({}, x); Object.keys(o).forEach(function (f) { if ((y[f] === "" || y[f] == null) && typeof o[f] === "string" && SAVE_KEEP.test(o[f])) y[f] = o[f]; }); return y; }));
+            }
+            if (b && c && typeof b === "object" && typeof c === "object" && !Array.isArray(b)) {
+                var z = Object.assign({}, b); Object.keys(c).forEach(function (f) { if ((z[f] === "" || z[f] == null) && typeof c[f] === "string" && SAVE_KEEP.test(c[f])) z[f] = c[f]; }); return JSON.stringify(z);
+            }
+        } catch (e) {}
+        return bak;
+    }
+    function restoreFrom(row, pass) {
+        var c = cfg();
+        return rest(c, "club_backup?select=payload&id=eq." + row.id).then(function (r) { return r.json(); }).then(function (rows) {
+            if (!rows[0]) throw new Error("That backup is gone."); return open(rows[0].payload, pass);
+        }).then(function (text) {
+            var data = JSON.parse(text), n = 0;
+            Object.keys(data).forEach(function (k) {
+                if (SKIP.test(k) || k === "clubPoints") return;
+                var cur = rawGet(k), v = data[k];
+                if (typeof v !== "string") return;
+                if (cur != null && /^[\[{]/.test(v) && /data:image|x-idb|blob:/.test(cur)) v = mergeVal(cur, v);
+                try { localStorage.setItem(k, v); n++; } catch (e) {}
+            });
+            return n;
+        });
+    }
+    function backupCard() {
+        var c = card("bcx-cloud", "settings-data", "backup", '<div class="card-title">☁️ Cloud backup</div><div class="card-desc">An encrypted copy of your app data (settings, logs, recipes, pets) kept in your Supabase project. Only your passphrase can open it. Pictures are not included; they live in your PC library and in the backup file.</div>' +
+            '<input class="bcx-in" id="bcx-pass" type="password" placeholder="Backup passphrase" autocomplete="off" value="' + esc(ls("bcx_bk_pass", "")) + '">' +
+            '<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin:4px 0"><input type="checkbox" id="bcx-remember" ' + (ls("bcx_bk_pass", "") ? "checked" : "") + '> Remember it on this phone and back up automatically every day</label>' +
+            '<div class="bcx-btns"><button id="bcx-bk-now">☁️ Back up now</button><button class="alt" id="bcx-bk-list">📂 Show my backups</button></div><div id="bcx-bk-msg" class="card-desc"></div><div id="bcx-bk-rows"></div>');
+        if (!c) return;
+        var msg = function (t, bad) { var m = $("bcx-bk-msg"); m.textContent = t; m.style.color = bad ? "#ff6b6b" : ""; };
+        var pass = function () { return $("bcx-pass").value; };
+        var remember = function () { if ($("bcx-remember").checked && pass()) { lsSet("bcx_bk_pass", pass()); lsSet("bcx_bk_auto", "1"); } else { localStorage.removeItem("bcx_bk_pass"); lsSet("bcx_bk_auto", "0"); } };
+        $("bcx-remember").onchange = remember;
+        $("bcx-bk-now").onclick = function () { remember(); msg("Backing up…"); cloudBackup(pass()).then(function (r) { msg("✅ Backed up " + Math.round(r.size / 1024) + " KB" + (r.stripped ? " (pictures left out)" : "") + ". Write the passphrase down: without it nobody can open it."); }, function (e) { msg("⚠ " + e.message, true); }); };
+        function rows() {
+            msg("Looking…");
+            listBackups().then(function (L) {
+                msg(L.length ? "Your last " + L.length + " backup" + (L.length > 1 ? "s" : "") + " (restoring keeps your points and your pictures):" : "No cloud backups yet.");
+                $("bcx-bk-rows").innerHTML = L.map(function (r, i) { return '<div class="bcx-row"><div style="flex:1"><b>' + new Date(r.created_at).toLocaleString() + '</b><small>' + Math.round(r.size / 1024) + " KB · " + esc(r.label || "") + '</small></div><button class="bcx-btn" data-r="' + r.id + '">' + (i ? "Restore" : "⚡ Restore latest") + "</button></div>"; }).join("");
+                $("bcx-bk-rows").querySelectorAll("[data-r]").forEach(function (b) {
+                    b.onclick = function () {
+                        if (!pass()) { msg("Type your passphrase first.", true); return; }
+                        if (!confirm("Restore this backup onto this phone?\n\nYour current settings and logs will be replaced by the backup. Points and pictures stay.")) return;
+                        msg("Restoring…"); restoreFrom({ id: b.dataset.r }, pass()).then(function (n) { msg("✅ Restored " + n + " items. Reloading…"); setTimeout(function () { location.reload(); }, 1200); }, function (e) { msg("⚠ " + e.message, true); });
+                    };
+                });
+            }, function (e) { msg("⚠ " + e.message, true); });
+        }
+        $("bcx-bk-list").onclick = rows;
+    }
+    backupCard();
+    setTimeout(function () {   /* daily automatic backup */
+        if (ls("bcx_bk_auto", "0") !== "1" || !ls("bcx_bk_pass", "") || !cfg() || !navigator.onLine) return;
+        if (Date.now() - (+ls("bcx_last_cloud", "0") || 0) < DAY) return;
+        cloudBackup(ls("bcx_bk_pass", ""), true).catch(function () {});
+    }, 25000);
+    window.bcxCloud = { backup: cloudBackup, list: listBackups, restore: restoreFrom, collect: collect, seal: seal, open: open };
+
+    /* ---------- 100 / 300: health check ---------- */
+    function healthCard() {
+        var c = card("bcx-health", "settings-data", "sync", '<div class="card-title">🩺 Health check</div><div class="card-desc">One tap to test sync, your partner, notifications, your PC, storage and backups.</div><div class="bcx-btns"><button id="bcx-hc-run">Run health check</button></div><div id="bcx-hc-out"></div>');
+        if (c) $("bcx-hc-run").onclick = runHealth;
+    }
+    function timeout(p, ms, fb) { return Promise.race([p, new Promise(function (r) { setTimeout(function () { r(fb); }, ms); })]); }
+    function runHealth() {
+        var out = $("bcx-hc-out"); out.innerHTML = '<div class="card-desc">Checking…</div>';
+        var R = [], add = function (ok, t, s) { R.push({ ok: ok, t: t, s: s || "" }); };
+        var cf = cfg(), t0 = Date.now(), chain = Promise.resolve();
+        add(navigator.onLine ? 1 : 0, "Internet", navigator.onLine ? "Connected" : "This phone is offline.");
+        chain = chain.then(function () {
+            if (!cf) { add(0, "Sync", "Not set up. Settings → Data & Sync → Sync with your partner."); return; }
+            return timeout(rest(cf, "club_kv?select=key,updated_at,updated_by&household=eq." + encodeURIComponent(cf.hh) + "&order=updated_at.desc&limit=30").then(function (r) {
+                if (!r.ok) return r.text().then(function (t) { add(0, "Cloud (Supabase)", r.status + " " + t.slice(0, 100) + " · Check the URL, key and that the project isn't paused."); });
+                return r.json().then(function (rows) {
+                    add(1, "Cloud (Supabase)", "Reachable (" + (Date.now() - t0) + " ms)");
+                    var dev = ls("fx_device", ""), theirs = rows.filter(function (x) { return x.updated_by && x.updated_by !== dev && x.updated_by !== "photo-server"; })[0];
+                    add(theirs ? 1 : 0.5, "Partner's phone", theirs ? "Last sent something " + ago(+theirs.updated_at) : "Nothing from your partner yet. Have them turn on sync with the same household code.");
+                });
+            }, function () { add(0, "Cloud (Supabase)", "Can't reach it. Check your signal and the project URL."); }), 9000, null);
+        });
+        var last = jget("fx_sync_last", null);
+        chain = chain.then(function () { if (cf) add(last && last.kind === "ok" ? 1 : 0.5, "Sync status", last ? (last.kind === "ok" ? "Last synced " + ago(last.t) : "Last try failed: " + (last.msg || "")) : "Hasn't synced yet."); });
+        chain = chain.then(function () {
+            var ok = "Notification" in window && "serviceWorker" in navigator;
+            if (!ok) { add(0, "Notifications", "This browser can't show them. Use Chrome."); return; }
+            if (Notification.permission !== "granted") { add(0.5, "Notifications", "Not allowed yet. Tap the orange 🔔 button on the sync card."); return; }
+            return timeout(navigator.serviceWorker.ready.then(function (r) { return r.pushManager.getSubscription(); }), 4000, null).then(function (sub) { add(sub && ls("fx_push_on", "0") === "1" ? 1 : 0.5, "Notifications", sub && ls("fx_push_on", "0") === "1" ? "On for this phone" : "Allowed, but not signed up. Tap the orange 🔔 button."); });
+        });
+        chain = chain.then(function () {
+            if (!window.BCAssets) return;
+            return timeout(BCAssets.discover().then(function () { add(1, "Your PC (Photo Manager)", "Found and reachable"); }, function (e) { add(0.5, "Your PC (Photo Manager)", String(e && e.message || e).slice(0, 140)); }), 9000, null).then(function (v) { if (v === null) add(0.5, "Your PC (Photo Manager)", "Took too long. Is the PC on?"); });
+        });
+        chain = chain.then(function () {
+            var used = 0; for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i), v = rawGet(k); used += (k.length + (v ? v.length : 0)) * 2; }
+            var pct = Math.round(used / 5.2e6 * 100);
+            add(pct > 85 ? 0 : pct > 65 ? 0.5 : 1, "App data space", pct + "% of the phone's small data area used" + (pct > 65 ? ". Make a backup file and remove big uploads." : "."));
+            if (navigator.storage && navigator.storage.estimate) return navigator.storage.estimate().then(function (e) { return (navigator.storage.persisted ? navigator.storage.persisted() : Promise.resolve(null)).then(function (p) { add(p === false ? 0.5 : 1, "Photo storage", Math.round((e.usage || 0) / 1e6) + " MB used of " + Math.round((e.quota || 0) / 1e9 * 10) / 10 + " GB" + (p === false ? ". Not marked safe from clean-up yet; installing the app helps." : p ? ". Protected from clean-up." : "")); }); });
+        });
+        chain = chain.then(function () {
+            var lb = lastBackup(), d = lb ? Math.floor((Date.now() - lb) / DAY) : null;
+            add(d == null ? 0.5 : d > 30 ? 0 : d > 14 ? 0.5 : 1, "Backups", d == null ? "No backup yet. Settings → Data & Sync → Backup & Reset." : "Last backup " + d + " day" + (d === 1 ? "" : "s") + " ago");
+            if (navigator.serviceWorker) return navigator.serviceWorker.getRegistration().then(function (r) { add(r && r.active ? 1 : 0.5, "Works offline", r && r.active ? "App is saved on this phone" : "Not saved for offline use yet. Reload once while online."); });
+        });
+        chain.then(function () {
+            var bad = R.filter(function (x) { return x.ok === 0; }).length, warn = R.filter(function (x) { return x.ok === 0.5; }).length;
+            out.innerHTML = '<div class="bcx-row" style="font-weight:900;font-size:15px">' + (bad ? "❌ " + bad + " thing" + (bad > 1 ? "s" : "") + " to fix" : warn ? "⚠️ Mostly good, " + warn + " to look at" : "✅ Everything looks good") + "</div>" +
+                R.map(function (x) { return '<div class="bcx-row"><span>' + (x.ok === 1 ? "✅" : x.ok === 0.5 ? "⚠️" : "❌") + "</span><div><b>" + esc(x.t) + "</b><small>" + esc(x.s) + "</small></div></div>"; }).join("");
+            lsSet("bcx_last_health", String(Date.now()));
+        });
+    }
+    healthCard();
+    window.bcxHealth = runHealth;
+
+    /* ---------- 295: battery saver ---------- */
+    function saverApply() {
+        var m = ls("bcx_saver", "off"), on = m === "on";
+        if (m === "auto" && navigator.getBattery) { navigator.getBattery().then(function (b) { var lo = !b.charging && b.level <= 0.2; document.body.classList.toggle("bcx-saver", lo); document.body.classList.toggle("animations-disabled", lo || ls("animationsSetting", "") === "disabled"); b.onlevelchange = b.onchargingchange = saverApply; }); return; }
+        document.body.classList.toggle("bcx-saver", on);
+        if (on) document.body.classList.add("animations-disabled"); else if (!document.body.dataset.bcxKeepAnim) document.body.classList.remove("animations-disabled");
+    }
+    function saverCard() {
+        var c = card("bcx-saver-card", "settings-look", "effects", '<div class="card-title">🔋 Battery saver</div><div class="card-desc">Turns off animations and background effects so the app uses less battery. Auto turns it on when your battery is at 20% or less and not charging.</div><select id="bcx-saver-sel" class="bcx-in"><option value="off">Off</option><option value="auto">Auto (low battery)</option><option value="on">Always on</option></select>');
+        if (!c) return; var s = $("bcx-saver-sel"); s.value = ls("bcx_saver", "off"); s.onchange = function () { lsSet("bcx_saver", s.value); saverApply(); toast(s.value === "off" ? "Battery saver off" : "🔋 Battery saver " + (s.value === "on" ? "on" : "set to auto")); };
+    }
+    saverCard();
+    if (document.body.classList.contains("animations-disabled")) document.body.dataset.bcxKeepAnim = "1";
+    saverApply();
+
+    /* ---------- 97: search every setting ---------- */
+    function searchBox() {
+        var view = $("view-settings"); if (!view || $("bcx-search")) return;
+        var w = document.createElement("div"); w.id = "bcx-search";
+        w.innerHTML = '<input class="bcx-in" id="bcx-q" type="search" placeholder="🔍 Search settings (sync, backup, pet, theme…)" autocomplete="off"><div id="bcx-search-res"></div>';
+        view.insertBefore(w, view.firstChild);
+        var PAGES = [["settings-pets", "Rewards & Pets"], ["settings-look", "Appearance"], ["settings-data", "Data & Sync"]];
+        var q = $("bcx-q"), res = $("bcx-search-res"), tm = 0;
+        function items() {
+            var L = [];
+            PAGES.forEach(function (p) { var pg = $(p[0]); if (!pg) return; [].slice.call(pg.children).forEach(function (el) { if (el.classList.contains("fx3-subnav")) return; var t = ((el.querySelector(".card-title,.dashboard-card-title,summary,h2,h3") || el).textContent || "").replace(/\s+/g, " ").trim(), txt = (el.textContent || "").replace(/\s+/g, " ").toLowerCase(); L.push({ el: el, page: p[0], pname: p[1], title: t.slice(0, 70), txt: txt }); }); });
+            return L;
+        }
+        function run() {
+            var v = q.value.trim().toLowerCase(); if (!v) { res.style.display = "none"; return; }
+            var toks = v.split(/\s+/), hits = items().filter(function (it) { return toks.every(function (t) { return it.txt.indexOf(t) >= 0; }); }).slice(0, 12);
+            res.style.display = "block";
+            res.innerHTML = hits.length ? hits.map(function (h, i) { var at = h.txt.indexOf(toks[0]), snip = h.txt.slice(Math.max(0, at - 30), at + 70); return '<div data-i="' + i + '"><b>' + esc(h.title || "(card)") + "</b><small>" + esc(h.pname) + " · …" + esc(snip) + "…</small></div>"; }).join("") : '<div style="cursor:default">Nothing found for "' + esc(v) + '"</div>';
+            res.querySelectorAll("[data-i]").forEach(function (d) { d.onclick = function () { var h = hits[+d.dataset.i]; try { window.switchSettingsPage(h.page); } catch (e) {} setTimeout(function () { try { window.fx3ShowCard && window.fx3ShowCard(h.el); } catch (e) {} h.el.scrollIntoView({ behavior: "smooth", block: "start" }); h.el.classList.add("bcx-flash"); setTimeout(function () { h.el.classList.remove("bcx-flash"); }, 2200); res.style.display = "none"; }, 120); }; });
+        }
+        q.oninput = function () { clearTimeout(tm); tm = setTimeout(run, 120); };
+    }
+    searchBox();
+})();
+
+</script>
 </body>
 </html>
