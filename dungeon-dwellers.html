@@ -36367,5 +36367,477 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     console.log('[DD b23v] Piper voices layer ready');
 })();
 </script>
+<script id="ddco">
+/* ===== Dungeon Dwellers: cloud saves (68), co-op party (73), hero creator (218), dungeon editor (244) =====
+   Everything is added on top of the game: nothing in the solo game is removed or changed unless co-op is running. */
+(function () {
+    "use strict";
+    if (window.__ddco) return; window.__ddco = 1;
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+    var ls = function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+    var lset = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
+    var jget = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+    var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+    var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; };
+    var banner = function (t) { try { triggerTelltaleBanner(t); } catch (e) {} };
+
+    /* ---------- Supabase (the same project and household as the rest of the club) ---------- */
+    function cfg() { var c = jget("fx_sync_cfg", null); return c && c.url && c.key && c.hh ? c : null; }
+    function hdr(c) { var h = { apikey: c.key, "Content-Type": "application/json" }; if (/^eyJ/.test(c.key)) h.Authorization = "Bearer " + c.key; return h; }
+    function rest(c) { return c.url.replace(/\/+$/, "") + "/rest/v1/"; }
+    function kvGet(key) {
+        var c = cfg(); if (!c) return Promise.resolve(null);
+        return fetch(rest(c) + "club_kv?select=value,updated_at&household=eq." + encodeURIComponent(c.hh) + "&key=eq." + encodeURIComponent(key), { headers: hdr(c), cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) { if (!rows[0]) return null; try { var v = JSON.parse(rows[0].value); v.__t = rows[0].updated_at; return v; } catch (e) { return null; } }).catch(function () { return null; });
+    }
+    function kvSet(key, obj) {
+        var c = cfg(); if (!c) return Promise.resolve(false);
+        return fetch(rest(c) + "club_kv?on_conflict=household,key", { method: "POST", headers: Object.assign(hdr(c), { Prefer: "resolution=merge-duplicates,return=minimal" }), body: JSON.stringify([{ household: c.hh, key: key, value: JSON.stringify(obj), updated_at: Date.now(), updated_by: me() }]) })
+            .then(function (r) { return r.ok; }).catch(function () { return false; });
+    }
+    function kvList(prefix) {
+        var c = cfg(); if (!c) return Promise.resolve([]);
+        return fetch(rest(c) + "club_kv?select=key,value,updated_at&household=eq." + encodeURIComponent(c.hh) + "&key=like." + encodeURIComponent(prefix + "*"), { headers: hdr(c), cache: "no-store" })
+            .then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; });
+    }
+    function kvDel(key) { var c = cfg(); if (!c) return Promise.resolve(false); return fetch(rest(c) + "club_kv?household=eq." + encodeURIComponent(c.hh) + "&key=eq." + encodeURIComponent(key), { method: "DELETE", headers: hdr(c) }).then(function (r) { return r.ok; }).catch(function () { return false; }); }
+    function pushTurn(text) {
+        var c = cfg(); if (!c) return;
+        fetch(rest(c) + "club_events", { method: "POST", headers: Object.assign(hdr(c), { Prefer: "return=minimal" }), body: JSON.stringify({ household: c.hh, ts: Date.now(), sender: me(), kind: "turn", body: { __cid: "t" + Date.now().toString(36), data: { text: text } } }) }).catch(function () {});
+    }
+
+    /* ---------- styles ---------- */
+    var st = document.createElement("style");
+    st.textContent = "#ddco-fab{position:fixed;left:10px;bottom:84px;z-index:9990;width:44px;height:44px;border-radius:50%;border:2px solid #b45309;background:#1c1917;color:#fbbf24;font-size:20px;box-shadow:0 4px 12px #000a;cursor:pointer}#ddco-fab.on{border-color:#4ade80;box-shadow:0 0 12px #4ade80}" +
+        "#ddco{position:fixed;inset:0;z-index:99990;background:#000d;display:none;align-items:flex-end;justify-content:center;font-family:system-ui,sans-serif}#ddco.show{display:flex}" +
+        "#ddco .sh{background:#14110f;color:#e7e5e4;border:1px solid #44403c;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:14px}" +
+        "#ddco h3{margin:0 0 6px;font-size:17px;color:#fbbf24}#ddco .tb{display:flex;gap:6px;margin:8px 0;overflow-x:auto}#ddco .tb button{flex:none}" +
+        "#ddco button,#ddgv button{font:inherit;font-size:13px;font-weight:800;border:1px solid #57534e;background:#292524;color:#e7e5e4;border-radius:10px;padding:9px 12px;cursor:pointer}#ddco button.on{background:#b45309;border-color:#f59e0b;color:#fff}#ddco button.go,#ddgv button.go{background:#15803d;border-color:#4ade80;color:#fff}#ddco button.bad,#ddgv button.bad{background:#7f1d1d;border-color:#ef4444}#ddco button:disabled,#ddgv button:disabled{opacity:.4}" +
+        "#ddco input,#ddco select,#ddco textarea{font:inherit;font-size:14px;background:#0c0a09;color:#e7e5e4;border:1px solid #57534e;border-radius:9px;padding:8px;max-width:100%;box-sizing:border-box}#ddco label{display:block;font-size:12px;color:#a8a29e;margin:6px 0 2px}" +
+        "#ddco .m{color:#a8a29e;font-size:12.5px}#ddco .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}#ddco .card{border:1px solid #44403c;border-radius:12px;padding:10px;margin:8px 0;background:#1c1917}" +
+        "#ddco .code{font-size:30px;font-weight:900;letter-spacing:6px;color:#4ade80;text-align:center;margin:8px 0}" +
+        ".ddbar{height:9px;border-radius:5px;background:#292524;overflow:hidden}.ddbar i{display:block;height:100%;background:#ef4444}.ddbar.a i{background:#22c55e}" +
+        "#ddco-hb{position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:9991;background:#052e16e6;border:1px solid #4ade80;color:#bbf7d0;border-radius:999px;padding:4px 12px;font-size:12px;font-weight:800;display:none;max-width:92vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+        "#ddgv{position:fixed;inset:0;z-index:99995;background:#0c0a09;color:#e7e5e4;display:none;flex-direction:column;font-family:system-ui,sans-serif;padding:12px;gap:8px;overflow:auto}#ddgv.show{display:flex}#ddgv .c{border:1px solid #44403c;border-radius:12px;padding:10px;background:#1c1917}" +
+        "#ddgv .lg{font-size:13px;line-height:1.5;max-height:26vh;overflow:auto}#ddgv .ac{display:grid;grid-template-columns:1fr 1fr;gap:8px}#ddgv .ac button{padding:14px 8px;font-size:14px}#ddgv .warn{background:#7f1d1d;border:1px solid #ef4444;border-radius:10px;padding:8px;font-weight:800;text-align:center}";
+    document.head.appendChild(st);
+
+    /* ---------- the hero creator (218) ---------- */
+    var CL = {   /* the co-op hero uses the game's own classes */
+        Paladin: { e: "🛡️", sp: "Holy Shield", d: "Heals the whole party for 20 and shields you", hp: 20 },
+        ShadowBlade: { e: "🗡️", sp: "Backstab", d: "Huge crit on the weakest foe", hp: 10 },
+        Sorcerer: { e: "🔮", sp: "Fireball", d: "Burns every enemy", hp: 0 },
+        Cleric: { e: "🍺", sp: "Smite", d: "Damage plus heals you and the host", hp: 10 },
+        Ranger: { e: "🏹", sp: "Arrow Volley", d: "Hits two enemies", hp: 15 },
+        Berserker: { e: "🪓", sp: "Reckless Strike", d: "Triple damage, costs you 10 HP", hp: 30 }
+    };
+    var PORT = ["🧙", "🧝", "🧛", "🥷", "🦸", "🤺", "🧑‍🚀", "👸", "🤴", "🐺", "🦊", "🐉", "🐸", "🦉", "🧌", "💀"];
+    function heroDef() { return { name: "", emoji: "🧙", cls: "Paladin", pts: { atk: 2, def: 2, hp: 2, luck: 2 }, quote: "For the snacks!" }; }
+    function hero() { return Object.assign(heroDef(), jget("ddco_hero", {})); }
+    function heroStats(h) {
+        var c = CL[h.cls] || CL.Paladin;
+        return { max: 80 + c.hp + h.pts.hp * 10, atk: 6 + h.pts.atk * 2, def: h.pts.def, crit: 0.05 + h.pts.luck * 0.03 };
+    }
+
+    /* ---------- state ---------- */
+    var CO = { role: "", code: "", g: null, seq: 0, last: 0, skip: false, log: [], seed: 1, sent: -1, lastRoom: null, hostName: "" };
+    function rng() { CO.seed = (CO.seed * 1664525 + 1013904223) >>> 0; return CO.seed / 4294967296; }
+    function hostActive() { return CO.role === "host" && CO.g && CO.g.joined; }
+    function names() { try { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Host", p2: "Guest" }; } catch (e) { return { p1: "Host", p2: "Guest" }; } }
+    function mkCode() { var a = "ABCDEFGHJKMNPQRSTUVWXYZ23456789", s = ""; for (var i = 0; i < 5; i++) s += a[Math.floor(Math.random() * a.length)]; return s; }
+    function addLog(t) { CO.log.push(t); CO.log = CO.log.slice(-14); }
+
+    /* room document written by the host phone (the host is always the authority) */
+    function roomDoc(phase) {
+        var G = CO.g, B = typeof Battle !== "undefined" ? Battle : null, foes = B ? [B].concat(B.minions || []) : [];
+        var comp = []; try { var cs = gameState.companions || {}; ["lyra", "bror"].forEach(function (k) { if (cs[k] && cs[k].alive) comp.push(k[0].toUpperCase() + k.slice(1)); }); if (gameState.mercenary) comp.push(gameState.mercenary.name); if (gameState.familiars && (gameState.familiars.cat || gameState.familiars.hound)) comp.push(gameState.familiars.hound ? "Shadow Hound" : "Spectral Cat"); } catch (e) {}
+        return { v: 1, code: CO.code, phase: phase || CO.phase || "idle", seq: CO.seq, ts: Date.now(),
+            host: { name: names()[me()] || "Host", hp: gameState.hp, max: gameState.maxHp, lvl: gameState.level, cls: gameState.playerClass },
+            guest: G ? { name: G.name, emoji: G.emoji, cls: G.cls, hp: G.hp, max: G.max, down: !!G.down, shield: !!G.shield, cd: G.cd, pots: G.pots, hcd: G.hcd } : null,
+            allies: comp, foes: foes.filter(function (f) { return f.hp > 0; }).map(function (f) { return { n: f.name, hp: Math.max(0, f.hp), max: f.maxHp }; }),
+            log: CO.log.slice(-12), warn: CO.warn || "", dungeon: DNG.active ? { n: DNG.d.name, i: DNG.i + 1, of: DNG.d.rooms.length } : null };
+    }
+    var wT = 0;
+    function writeRoom(phase) { if (phase) CO.phase = phase; clearTimeout(wT); wT = setTimeout(function () { if (CO.role === "host") kvSet("dd_room_" + CO.code, roomDoc()); }, 250); }
+    function writeNow(phase) { if (phase) CO.phase = phase; clearTimeout(wT); return CO.role === "host" ? kvSet("dd_room_" + CO.code, roomDoc()) : Promise.resolve(); }
+
+    /* ---------- host: rooms ---------- */
+    function hostStart() {
+        if (!cfg()) { toast("Turn on Sync in the Breakfast Club app first (Settings → Sync with your partner)."); return; }
+        CO.role = "host"; CO.code = mkCode(); CO.g = null; CO.seq = 0; CO.log = []; CO.seed = Math.floor(Math.random() * 1e9) + 1; CO.phase = "idle";
+        lset("ddco_room", JSON.stringify({ role: "host", code: CO.code, seed: CO.seed }));
+        writeNow("idle"); poll(); draw(); hb();
+    }
+    function hostStop() {
+        if (CO.role === "host") { kvSet("dd_room_" + CO.code, { v: 1, ended: 1, ts: Date.now() }); }
+        CO.role = ""; CO.g = null; CO.code = ""; lset("ddco_room", ""); hb(); draw(); fab();
+    }
+    function toast(t) { banner(t); }
+    var pT = 0;
+    function poll() {
+        clearTimeout(pT); if (CO.role !== "host" || !CO.code) return;
+        kvGet("dd_room_" + CO.code + "_g").then(function (g) {
+            if (CO.role !== "host") return;
+            if (g && g.hero && g.joined && (!CO.g || CO.g.joinedAt !== g.joined)) {
+                var h = g.hero, s = heroStats(h);
+                CO.g = { joined: true, joinedAt: g.joined, name: h.name || "Guest", emoji: h.emoji, cls: h.cls, max: s.max, hp: s.max, atk: s.atk, def: s.def, crit: s.crit, quote: h.quote, cd: 0, hcd: 0, pots: 3, down: false, shield: false };
+                addLog("🎉 " + CO.g.name + " joined the party!"); banner("👥 " + CO.g.name + " joined your party!"); writeNow("idle"); draw(); hb(); fab();
+            }
+            if (g && g.left && CO.g) { addLog(CO.g.name + " left."); CO.g = null; hb(); draw(); fab(); writeNow("idle"); }
+            if (g && CO.waiting && g.seq === CO.seq && g.act) CO.waiting(g);
+        }).then(function () { pT = setTimeout(poll, hostActive() && CO.phase === "guest" ? 1500 : 3500); });
+    }
+    function hb() {
+        var b = $("ddco-hb"); if (!b) { b = document.createElement("div"); b.id = "ddco-hb"; document.body.appendChild(b); }
+        if (hostActive()) { b.style.display = "block"; var G = CO.g; b.textContent = "👥 " + G.emoji + " " + G.name + " " + (G.down ? "(down)" : G.hp + "/" + G.max + " HP") + " · room " + CO.code; }
+        else if (CO.role === "host") { b.style.display = "block"; b.textContent = "👥 Room " + CO.code + " · waiting for your partner to join"; }
+        else b.style.display = "none";
+    }
+    function fab() { var f = $("ddco-fab"); if (f) f.classList.toggle("on", !!CO.role); }
+
+    /* ---------- host: the whole-party round ---------- */
+    function foesAlive() { var B = Battle; return B ? [B].concat(B.minions || []).filter(function (f) { return f.hp > 0; }) : []; }
+    function weakest() { return foesAlive().sort(function (a, b) { return a.hp - b.hp; })[0]; }
+    function dealFoe(f, dmg, color) {
+        f.hp -= dmg; try { spawnDamageNumber(dmg, color || "amber"); updateBattleUI(); } catch (e) {}
+        if (f !== Battle && f.hp <= 0) { var i = Battle.minions.indexOf(f); if (i >= 0) Battle.minions.splice(i, 1); addLog("💥 " + f.name + " falls!"); gameState.gold += 6 + gameState.level; }
+    }
+    function roll(b) { return Math.max(1, Math.round(b * (0.85 + rng() * 0.3))); }
+    function foeAfter() { return !Battle || Battle.hp <= 0; }
+    function wrap(name, fn) { var o = window[name]; if (typeof o !== "function" || o.__dd) return; var n = fn(o); n.__dd = 1; window[name] = n; }
+
+    wrap("startBattle", function (o) { return function () {
+        var r = o.apply(this, arguments);
+        try { if (hostActive() && Battle && !Battle.minions) {
+            var n = Battle.isBoss ? 1 : 2; Battle.minions = [];
+            for (var i = 0; i < n; i++) Battle.minions.push({ name: Battle.name.replace(/^Elder /, "") + (i ? " Thrall" : " Minion"), img: Battle.img, maxHp: Math.max(8, Math.round(Battle.maxHp * 0.5)), hp: Math.max(8, Math.round(Battle.maxHp * 0.5)), atk: Math.max(3, Math.round(Battle.atk * 0.6)) });
+            addLog("⚔️ " + Battle.name + " leads " + n + " more foe" + (n > 1 ? "s" : "") + "!"); banner("2 heroes vs " + (n + 1) + " foes!"); writeNow("idle");
+        } } catch (e) { console.warn(e); }
+        return r; }; });
+
+    wrap("endBattle", function (o) { return function (won) {
+        try { if (hostActive() && won && Battle && Battle.minions && Battle.minions.some(function (m) { return m.hp > 0; })) {
+            var m = Battle.minions.filter(function (x) { return x.hp > 0; })[0]; Battle.minions = Battle.minions.filter(function (x) { return x !== m && x.hp > 0; });
+            var keep = Battle.minions; Object.assign(Battle, { name: m.name, img: m.img, hp: m.hp, maxHp: m.maxHp, atk: m.atk, stunned: false, isBoss: false }); Battle.minions = keep;
+            var nm = $("enemy-name"); if (nm) nm.innerText = Battle.name; try { updateBattleUI(); } catch (e) {}
+            addLog("➡️ " + Battle.name + " steps up!"); banner(Battle.name + " steps forward!"); writeNow("idle"); setTimeout(function () { try { battleMenu(); } catch (e) {} }, 900); return;
+        } } catch (e) { console.warn(e); }
+        var was = hostActive() && typeof Battle !== "undefined" && !!Battle;
+        var r = o.apply(this, arguments);
+        if (was) { var G = CO.g; if (G) { G.down = false; G.hp = Math.max(G.hp, Math.round(G.max * 0.3)); G.pots = 3; G.shield = false; G.cd = 0; G.hcd = 0; } addLog(won ? "🏆 Victory!" : "The battle ends."); hb(); writeNow("idle"); }
+        return r; }; });
+
+    wrap("enemyTurn", function (o) { return function () {
+        var self = this, args = arguments;
+        if (!hostActive() || typeof Battle === "undefined" || !Battle || Battle.hp <= 0 || CO.busy) return o.apply(self, args);
+        CO.busy = true;
+        round().then(function (cont) { CO.busy = false; if (cont && Battle && Battle.hp > 0) o.apply(self, args); }, function (e) { console.warn(e); CO.busy = false; o.apply(self, args); });
+    }; });
+
+    function rest_(f) { return sleep(f || 650); }
+    async function round() {
+        addLog("— Round —"); writeRoom("allies");
+        /* 1) allies: each companion, then the guest hero */
+        var cs = gameState.companions || {}, lvl = gameState.level;
+        var acts = [];
+        if (cs.lyra && cs.lyra.alive) acts.push(["Lyra", gameState.skills && gameState.skills.lyraArcane ? 22 + lvl * 3 : 8 + lvl, "red", gameState.skills && gameState.skills.lyraArcane ? "Arcane Blast" : "Arrow Volley"]);
+        if (cs.bror && cs.bror.alive) acts.push(["Bror", 12 + lvl * 2, "amber", "Shield Bash"]);
+        if (gameState.familiars && (gameState.familiars.cat || gameState.familiars.hound)) acts.push([gameState.familiars.hound ? "Shadow Hound" : "Spectral Cat", gameState.skills && gameState.skills.petFeral ? 20 + lvl * 2 : 8 + lvl, "red", "Feral Strike"]);
+        if (gameState.mercenary) acts.push([gameState.mercenary.name, 14 + lvl * 2, "amber", "Strike"]);
+        for (var i = 0; i < acts.length; i++) {
+            var f = weakest(); if (!f) break; var a = acts[i], d = roll(a[1]); dealFoe(f, d, a[2]); addLog("🤝 " + a[0] + " uses " + a[3] + " on " + f.name + " (" + d + ")"); try { AudioEngine.playHit(); } catch (e) {}
+            writeRoom(); await rest_(550); if (foeAfter()) { try { endBattle(true); } catch (e) {} return false; }
+        }
+        if (CO.g && !CO.g.down) { await guestTurn(); if (foeAfter()) { try { endBattle(true); } catch (e) {} return false; } }
+        /* 2) enemies: the extra foes strike, then the main foe runs its normal attack (the game's own turn) */
+        writeRoom("foes");
+        var minis = (Battle.minions || []).filter(function (m) { return m.hp > 0; });
+        for (var j = 0; j < minis.length; j++) { var ok = await minionAttack(minis[j]); if (!ok) return false; }
+        CO.warn = ""; writeRoom("hero");
+        return true;
+    }
+
+    async function guestTurn() {
+        var G = CO.g; CO.seq++; var seq = CO.seq; CO.skip = false;
+        G.cd = Math.max(0, G.cd - 1); G.hcd = Math.max(0, G.hcd - 1);
+        await writeNow("guest");
+        pushTurn((names()[me()] || "Your partner") + " is fighting " + Battle.name + " and needs you!");
+        var ov = $("ddco-wait"); if (!ov) { ov = document.createElement("div"); ov.id = "ddco-wait"; ov.style.cssText = "position:fixed;left:50%;bottom:140px;transform:translateX(-50%);z-index:9992;background:#1c1917;border:1px solid #f59e0b;color:#fde68a;border-radius:12px;padding:8px 12px;font-weight:800;font-size:13px;text-align:center"; document.body.appendChild(ov); }
+        ov.innerHTML = G.emoji + " Waiting for " + esc(G.name) + "… <button id=\"ddco-skip\" style=\"margin-left:8px;font:inherit;font-size:12px;padding:4px 8px;border-radius:8px\">Skip</button>"; ov.style.display = "block";
+        $("ddco-skip").onclick = function () { CO.skip = true; };
+        var act = await new Promise(function (res) {
+            var done = false, t0 = Date.now(), fin = function (v) { if (done) return; done = true; CO.waiting = null; clearInterval(iv); res(v); };
+            CO.waiting = function (g) { fin(g); };
+            var iv = setInterval(function () { if (CO.skip || Date.now() - t0 > 150000 || CO.role !== "host") fin(null); }, 500);
+        });
+        ov.style.display = "none";
+        resolveGuest(act && act.act ? act : { act: "defend", auto: 1 });
+        writeRoom("allies"); await rest_(700);
+    }
+
+    function resolveGuest(g) {
+        var G = CO.g, act = g.act, lvl = gameState.level, f = weakest(), who = G.name, bonus = Math.floor(lvl * 1.2);
+        if (g.auto) addLog("💤 " + who + " hesitates and braces.");
+        var crit = rng() < G.crit, mul = crit ? 2 : 1, d;
+        try { AudioEngine.playHit(); } catch (e) {}
+        if (act === "attack" && f) { d = roll((G.atk + bonus) * mul); dealFoe(f, d, crit ? "purple" : "amber"); addLog("⚔️ " + who + " attacks " + f.name + " for " + d + (crit ? " (CRIT!)" : "")); }
+        else if (act === "special" && G.cd <= 0) {
+            G.cd = 3; var sp = (CL[G.cls] || CL.Paladin).sp;
+            if (G.cls === "Sorcerer") { foesAlive().forEach(function (x) { dealFoe(x, roll(10 + bonus + G.atk * 0.8), "purple"); }); addLog("🔥 " + who + " casts Fireball on every foe!"); }
+            else if (G.cls === "Ranger") { foesAlive().sort(function (a, b) { return a.hp - b.hp; }).slice(0, 2).forEach(function (x) { dealFoe(x, roll(G.atk * 1.6 + bonus), "amber"); }); addLog("🏹 " + who + " looses an Arrow Volley!"); }
+            else if (G.cls === "ShadowBlade" && f) { d = roll((G.atk + bonus) * 2.8); dealFoe(f, d, "purple"); addLog("🗡️ " + who + " backstabs " + f.name + " for " + d + "!"); }
+            else if (G.cls === "Berserker" && f) { d = roll((G.atk + bonus) * 3); dealFoe(f, d, "red"); G.hp = Math.max(1, G.hp - 10); addLog("🪓 " + who + " goes reckless: " + d + " damage, -10 HP"); }
+            else if (G.cls === "Cleric" && f) { d = roll(G.atk * 1.5 + 14 + bonus); dealFoe(f, d, "amber"); G.hp = Math.min(G.max, G.hp + 15); gameState.hp = Math.min(gameState.maxHp, gameState.hp + 15); addLog("✨ " + who + " smites " + f.name + " (" + d + ") and heals the party 15"); }
+            else { G.hp = Math.min(G.max, G.hp + 20); gameState.hp = Math.min(gameState.maxHp, gameState.hp + 20); G.shield = true; addLog("🛡️ " + who + " raises a Holy Shield: party healed 20"); }
+            try { updateUI(); } catch (e) {}
+        }
+        else if (act === "potion" && G.pots > 0) { G.pots--; G.hp = Math.min(G.max, G.hp + 35); addLog("🧪 " + who + " drinks a potion (+35)"); }
+        else if (act === "healhost" && G.hcd <= 0) { G.hcd = 2; gameState.hp = Math.min(gameState.maxHp, gameState.hp + 25); try { updateUI(); } catch (e) {} addLog("💚 " + who + " patches up the host (+25)"); }
+        else { G.shield = true; if (act !== "defend") addLog("🛡️ " + who + " can't do that yet and braces instead."); else addLog("🛡️ " + who + " braces."); }
+        hb();
+    }
+
+    async function minionAttack(m) {
+        var G = CO.g, hostT = !G || G.down || rng() < 0.5, dmg;
+        if (hostT) {
+            var def = gameState.gear && gameState.gear.armor ? gameState.gear.armor.def : 0; dmg = Math.max(1, roll(m.atk) - def);
+            if (Battle.playerDefending) dmg = Math.max(1, Math.floor(dmg / 2));
+            if (gameState.divineShield) { gameState.divineShield = false; dmg = 0; banner("🛡️ DIVINE SHIELD ABSORBED THE BLOW!"); }
+            var la = gameState.companions && gameState.companions.lyra && gameState.companions.lyra.alive, ba = gameState.companions && gameState.companions.bror && gameState.companions.bror.alive;
+            if ((la || ba) && dmg >= gameState.maxHp * 0.4 && rng() < 0.25) {   /* same heroic-sacrifice rule as the solo game */
+                var v = la && ba ? (rng() < 0.5 ? "lyra" : "bror") : la ? "lyra" : "bror"; try { killCompanion(v, "took the fatal blow from " + m.name + "!"); } catch (e) {} addLog("💔 " + v.toUpperCase() + " takes the blow for the host!"); dmg = 0;
+            }
+            if (dmg >= gameState.maxHp * 0.3) { banner("⚠️ HEAVY HIT incoming from " + m.name + "!"); CO.warn = "⚠️ Heavy hit on the host!"; }
+            addLog("👹 " + m.name + " hits " + (names()[me()] || "the host") + " for " + dmg);
+            if (dmg > 0) { try { spawnDamageNumber(dmg, "red", true); damagePlayer(dmg); } catch (e) {} }
+            writeRoom(); await rest_(650); if (gameState.hp <= 0) return false;
+        } else {
+            dmg = Math.max(1, roll(m.atk) - G.def); if (G.shield) { dmg = Math.floor(dmg / 2); G.shield = false; }
+            G.hp -= dmg; var heavy = dmg >= G.max * 0.3;
+            if (heavy) { CO.warn = "⚠️ HEAVY HIT on " + G.name + "!"; banner("⚠️ " + G.name + " took a heavy hit!"); }
+            addLog("👹 " + m.name + " hits " + G.name + " for " + dmg + (heavy ? " ⚠️" : ""));
+            if (G.hp <= 0) { G.hp = 0; G.down = true; addLog("💫 " + G.name + " is down!"); banner(G.name + " is down!"); }
+            hb(); writeNow(); await rest_(650);
+        }
+        return true;
+    }
+
+    /* ---------- guest: the battle screen on the partner's phone ---------- */
+    var gv, gT = 0, lastBuzz = -1;
+    function guestJoin(code) {
+        code = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); if (!code) return;
+        if (!cfg()) { toast("Turn on Sync in the Breakfast Club app first."); return; }
+        var h = hero(); if (!h.name) { toast("Create your hero first (Hero tab)."); setTab("hero"); return; }
+        kvGet("dd_room_" + code).then(function (r) {
+            if (!r || r.ended) { toast("No open room with that code."); return; }
+            CO.role = "guest"; CO.code = code; CO.sent = -1; CO.joinedAt = Date.now(); lset("ddco_room", JSON.stringify({ role: "guest", code: code, jt: CO.joinedAt }));
+            return kvSet("dd_room_" + code + "_g", { joined: CO.joinedAt, hero: h, seq: -1 }).then(function () { close(); gvShow(); gPoll(); });
+        });
+    }
+    function guestLeave() { if (CO.role === "guest") { kvSet("dd_room_" + CO.code + "_g", { left: Date.now(), seq: -1 }); } CO.role = ""; lset("ddco_room", ""); clearTimeout(gT); if (gv) gv.classList.remove("show"); fab(); }
+    function gvShow() {
+        if (!gv) { gv = document.createElement("div"); gv.id = "ddgv"; document.body.appendChild(gv); }
+        gv.classList.add("show"); fab();
+    }
+    function bar(h, m, cls) { return '<div class="ddbar ' + (cls || "") + '"><i style="width:' + Math.max(0, Math.min(100, Math.round(h / Math.max(1, m) * 100))) + '%"></i></div>'; }
+    function gPoll() {
+        clearTimeout(gT); if (CO.role !== "guest") return;
+        kvGet("dd_room_" + CO.code).then(function (r) {
+            if (CO.role !== "guest") return;
+            if (r && r.ended) { toast("The host closed the room."); guestLeave(); return; }
+            if (r) gDraw(r);
+        }).then(function () { gT = setTimeout(gPoll, document.hidden ? 6000 : 1800); });
+    }
+    function gDraw(r) {
+        var mine = r.phase === "guest" && r.seq > CO.sent && r.guest && !r.guest.down;
+        if (mine && r.seq !== lastBuzz) { lastBuzz = r.seq; try { navigator.vibrate && navigator.vibrate([200, 80, 200, 80, 400]); } catch (e) {} try { window.AudioEngine && AudioEngine.playSuccess && AudioEngine.playSuccess(); } catch (e) {} }
+        var G = r.guest || {}, cls = CL[G.cls] || CL.Paladin;
+        gv.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b style="color:#fbbf24;flex:1">👥 Room ' + esc(CO.code) + (r.dungeon ? " · " + esc(r.dungeon.n) + " (" + r.dungeon.i + "/" + r.dungeon.of + ")" : "") + '</b><button id="gv-x" class="bad">Leave</button></div>' +
+            (r.warn ? '<div class="warn">' + esc(r.warn) + '</div>' : "") +
+            '<div class="c"><b>Your party</b><div style="margin:6px 0">' + esc(r.host.name) + ' (host, lvl ' + r.host.lvl + ') ' + r.host.hp + '/' + r.host.max + bar(r.host.hp, r.host.max, "a") + '</div>' +
+            '<div style="margin:6px 0">' + esc(G.emoji) + " " + esc(G.name) + (G.down ? " 💫 DOWN" : "") + ' ' + G.hp + '/' + G.max + bar(G.hp, G.max, "a") + '</div>' +
+            ((r.allies || []).length ? '<div class="m" style="font-size:12px;color:#a8a29e">With you: ' + r.allies.map(esc).join(", ") + '</div>' : "") + '</div>' +
+            '<div class="c"><b>Enemies</b>' + ((r.foes || []).length ? r.foes.map(function (f) { return '<div style="margin:6px 0">' + esc(f.n) + ' ' + f.hp + '/' + f.max + bar(f.hp, f.max) + '</div>'; }).join("") : '<div style="color:#a8a29e;font-size:13px;margin-top:4px">No fight right now. The host is exploring.</div>') + '</div>' +
+            '<div class="c lg">' + (r.log || []).map(esc).join("<br>") + '</div>' +
+            (mine ? '<div class="c"><b style="color:#4ade80">⚔️ YOUR TURN</b><div class="ac" style="margin-top:8px"><button class="go" data-a="attack">🗡️ Attack</button><button data-a="special"' + (G.cd > 0 ? " disabled" : "") + '>' + cls.e + " " + esc(cls.sp) + (G.cd > 0 ? " (" + G.cd + ")" : "") + '</button><button data-a="defend">🛡️ Defend</button><button data-a="potion"' + (G.pots > 0 ? "" : " disabled") + '>🧪 Potion (' + G.pots + ')</button><button data-a="healhost"' + (G.hcd > 0 ? " disabled" : "") + ' style="grid-column:1/3">💚 Patch up ' + esc(r.host.name) + '</button></div><div class="m" style="margin-top:6px;font-size:12px;color:#a8a29e">' + esc(cls.d) + '</div></div>'
+                : '<div class="c" style="text-align:center;color:#a8a29e">' + (G.down ? "You are down until the battle ends." : r.phase === "guest" ? "Sent. Waiting for the host…" : "Waiting for your turn…") + '</div>');
+        $("gv-x") && ($("gv-x").onclick = function () { if (confirm("Leave this room?")) guestLeave(); });
+        gv.querySelectorAll("[data-a]").forEach(function (b) { b.onclick = function () { CO.sent = r.seq; kvSet("dd_room_" + CO.code + "_g", { seq: r.seq, act: b.dataset.a, hero: hero(), joined: CO.joinedAt || undefined, t: Date.now() }); b.parentNode.innerHTML = '<div style="grid-column:1/3;text-align:center">Sent!</div>'; }; });
+    }
+
+    /* ---------- cloud saves (68) ---------- */
+    var SAVE_KEYS = ["dwellerStateV9", "dwellerMetaV9"];
+    function saveSummary() { var s = jget("dwellerStateV9", null); return s ? { lvl: s.level, cls: s.playerClass, gold: s.gold, hp: s.hp } : null; }
+    function cloudSave(slot) {
+        var sm = saveSummary(); if (!sm) return Promise.resolve(false);
+        return kvSet("dd_save_" + slot, { t: Date.now(), sum: sm, state: ls("dwellerStateV9", ""), meta: ls("dwellerMetaV9", ""), by: me() });
+    }
+    function cloudLoad(slot) {
+        return kvGet("dd_save_" + slot).then(function (v) { if (!v || !v.state) return false; lset("dwellerStateV9", v.state); if (v.meta) lset("dwellerMetaV9", v.meta); return true; });
+    }
+    var lastAuto = 0;
+    wrap("saveGame", function (o) { return function () {
+        var r = o.apply(this, arguments);
+        try { if (ls("ddco_auto", "1") === "1" && cfg() && Date.now() - lastAuto > 120000) { lastAuto = Date.now(); setTimeout(function () { cloudSave("auto"); }, 500); } } catch (e) {}
+        return r; }; });
+
+    /* ---------- custom dungeons (244) ---------- */
+    var DNG = { active: false, d: null, i: -1 };
+    var RT = { story: "📖 Story", battle: "⚔️ Battle", boss: "👑 Boss", treasure: "💰 Treasure", rest: "⛺ Rest", trap: "🪤 Trap" };
+    function enemyList() { var l = ["Slime", "Goblin", "Orc", "Wraith", "Drake", "Mimic"]; try { (CustomAssets.enemies || []).forEach(function (e) { if (l.indexOf(e.name) < 0) l.push(e.name); }); } catch (e) {} return l; }
+    function imgFor(n) { try { var c = (CustomAssets.enemies || []).filter(function (e) { return e.name === n; })[0]; if (c) return c.url; return getAsset(n); } catch (e) { return ""; } }
+    function bgNow() { try { return CustomAssets.backgrounds.length ? CustomAssets.backgrounds[Math.floor(Math.random() * CustomAssets.backgrounds.length)].url : getAsset("cave"); } catch (e) { return ""; } }
+    function runDungeon(d) {
+        DNG = { active: true, d: d, i: -1 }; close();
+        try { document.getElementById("choices-container").innerHTML = ""; } catch (e) {}
+        executeCustomNode(bgNow(), null, d.name, "Custom Dungeon", (d.intro || "You step through a hidden door…") + "\n\n(" + d.rooms.length + " rooms)", function () { renderChoices([{ text: "Enter", action: nextRoom }]); });
+        addLog("🗺️ Entering " + d.name); writeRoom();
+    }
+    function nextRoom() {
+        DNG.i++; var d = DNG.d;
+        if (DNG.i >= d.rooms.length) {
+            DNG.active = false; var g = 40 + d.rooms.length * 15; gameState.gold += g; try { updateUI(); saveGame(); } catch (e) {}
+            addLog("🏁 " + d.name + " cleared!"); writeRoom();
+            executeCustomNode(bgNow(), null, "Victory", d.name + " cleared!", (d.outro || "The last door opens onto daylight.") + "\n\n+" + g + " Gold", function () { renderChoices([{ text: "Proceed deeper into the dungeon", action: walkToNextNode }]); }); return;
+        }
+        var r = d.rooms[DNG.i], head = "Room " + (DNG.i + 1) + "/" + d.rooms.length, bg = bgNow(), cont = function () { renderChoices([{ text: "Continue", action: nextRoom }]); };
+        writeRoom();
+        if (r.type === "battle" || r.type === "boss") {
+            var boss = r.type === "boss";
+            executeCustomNode(bg, imgFor(r.enemy), r.enemy || "Foe", head, r.text || (boss ? "A great presence fills the chamber." : "Something lurks here."), function () {
+                renderChoices([{ text: boss ? "👑 Face the boss!" : "⚔️ Fight!", action: function () { startBattle({ name: r.enemy || "Goblin", url: imgFor(r.enemy) }, Math.max(1, +r.lvl || gameState.level), boss); } }]);
+            });
+        } else if (r.type === "treasure") {
+            var g2 = Math.max(1, +r.amt || 30); gameState.gold += g2; try { updateUI(); } catch (e) {}
+            executeCustomNode(bg, null, "Treasure", head, (r.text || "A chest glitters in the dark.") + "\n\n+" + g2 + " Gold", cont);
+        } else if (r.type === "rest") {
+            gameState.hp = gameState.maxHp; if (CO.g) { CO.g.hp = CO.g.max; CO.g.down = false; } try { updateUI(); } catch (e) {} hb();
+            executeCustomNode(bg, null, "Camp", head, (r.text || "A quiet corner. You catch your breath.") + "\n\nEveryone is fully healed.", cont);
+        } else if (r.type === "trap") {
+            var dm = Math.max(1, +r.amt || 15);
+            executeCustomNode(bg, null, "Trap!", head, (r.text || "Click. The floor gives way!") + "\n\n-" + dm + " HP", function () {
+                if (CO.g && !CO.g.down) { CO.g.hp = Math.max(1, CO.g.hp - dm); hb(); }
+                try { spawnDamageNumber(dm, "red", true); damagePlayer(dm); } catch (e) {}
+                if (gameState.hp > 0) cont();
+            });
+        } else executeCustomNode(bg, null, r.title || "Story", head, r.text || "…", cont);
+    }
+    wrap("walkToNextNode", function (o) { return function () { if (DNG.active) return nextRoom(); return o.apply(this, arguments); }; });
+
+    /* ---------- the panel ---------- */
+    var tab = "co", ov;
+    function setTab(t) { tab = t; draw(); }
+    function open() { if (!ov) build(); ov.classList.add("show"); draw(); }
+    function close() { if (ov) ov.classList.remove("show"); }
+    function build() {
+        ov = document.createElement("div"); ov.id = "ddco"; ov.innerHTML = '<div class="sh" id="ddco-sh"></div>'; document.body.appendChild(ov);
+        ov.onclick = function (e) { if (e.target === ov) close(); };
+        var f = document.createElement("button"); f.id = "ddco-fab"; f.textContent = "👥"; f.title = "Co-op, hero, dungeons, cloud saves"; f.onclick = open; document.body.appendChild(f);
+    }
+    function draw() {
+        if (!ov || !ov.classList.contains("show")) return; var sh = $("ddco-sh");
+        var T = [["co", "👥 Co-op"], ["hero", "🧙 Hero"], ["dng", "🗺️ Dungeons"], ["cloud", "☁️ Saves"]];
+        sh.innerHTML = '<div class="r"><h3 style="flex:1">Dungeon Dwellers together</h3><button id="dd-x">Close</button></div><div class="tb">' + T.map(function (t) { return '<button data-t="' + t[0] + '"' + (tab === t[0] ? ' class="on"' : "") + ">" + t[1] + "</button>"; }).join("") + '</div><div id="dd-body"></div>';
+        $("dd-x").onclick = close; sh.querySelectorAll("[data-t]").forEach(function (b) { b.onclick = function () { setTab(b.dataset.t); }; });
+        var body = $("dd-body"); ({ co: pCo, hero: pHero, dng: pDng, cloud: pCloud })[tab](body);
+    }
+    function pCo(b) {
+        if (!cfg()) { b.innerHTML = '<div class="card">Co-op, cloud saves and shared dungeons use the same Sync as the Breakfast Club app. Turn it on there first (Settings → Sync with your partner), then come back.</div>'; return; }
+        if (CO.role === "host") {
+            var G = CO.g;
+            b.innerHTML = '<div class="card"><div class="m">Tell your partner to open Dungeon Dwellers → 👥 → Join, and type this code:</div><div class="code">' + esc(CO.code) + '</div>' +
+                (G ? '<div>' + esc(G.emoji) + " <b>" + esc(G.name) + '</b> (' + esc((CL[G.cls] || {}).e || "") + " " + esc(G.cls) + ') is in your party. HP ' + G.hp + '/' + G.max + '</div>' : '<div class="m">⏳ Waiting for your partner to join…</div>') +
+                '<div class="m" style="margin-top:8px">Play like normal. When a fight starts, your partner joins it: 2 heroes (plus your companions, pet and mercenary) against ' + "up to 3 foes. Every round goes allies first, then all the enemies. Your partner gets a “your turn” alert when it's their move.</div>" +
+                '<div class="r"><button class="bad" id="dd-stop">Close the room</button></div></div>';
+            $("dd-stop").onclick = function () { if (confirm("Close the co-op room?")) hostStop(); };
+        } else if (CO.role === "guest") {
+            b.innerHTML = '<div class="card">You are in room <b>' + esc(CO.code) + '</b>.<div class="r"><button class="go" id="dd-show">Open the battle screen</button><button class="bad" id="dd-leave">Leave</button></div></div>';
+            $("dd-show").onclick = function () { close(); gvShow(); gPoll(); }; $("dd-leave").onclick = function () { guestLeave(); draw(); };
+        } else {
+            var h = hero();
+            b.innerHTML = '<div class="card"><b>Host a room</b><div class="m">You play the main game. Your partner joins your battles from their phone.</div><div class="r"><button class="go" id="dd-host">Host a room</button></div></div>' +
+                '<div class="card"><b>Join your partner</b><div class="m">Your hero: ' + (h.name ? esc(h.emoji + " " + h.name) : "not made yet (Hero tab)") + '</div><div class="r"><input id="dd-code" placeholder="Room code" maxlength="6" style="width:130px;text-transform:uppercase"><button class="go" id="dd-join">Join</button></div></div>';
+            $("dd-host").onclick = hostStart; $("dd-join").onclick = function () { guestJoin($("dd-code").value); };
+        }
+    }
+    function pHero(b) {
+        var h = hero(), left = 8 - (h.pts.atk + h.pts.def + h.pts.hp + h.pts.luck), s = heroStats(h);
+        b.innerHTML = '<div class="m">Make the hero you use when you join your partner\'s game.</div>' +
+            '<label>Name</label><input id="hh-n" value="' + esc(h.name) + '" maxlength="16" placeholder="Hero name">' +
+            '<label>Portrait</label><div class="r">' + PORT.map(function (p) { return '<button data-e="' + p + '"' + (h.emoji === p ? ' class="on"' : "") + ' style="font-size:20px;padding:6px 9px">' + p + "</button>"; }).join("") + '</div>' +
+            '<label>Class</label><div class="r">' + Object.keys(CL).map(function (c) { return '<button data-c="' + c + '"' + (h.cls === c ? ' class="on"' : "") + ">" + CL[c].e + " " + c + "</button>"; }).join("") + '</div><div class="m">' + esc(CL[h.cls].sp) + ": " + esc(CL[h.cls].d) + '</div>' +
+            '<label>Stat points to spend: <b>' + left + '</b> (8 total)</label>' + [["atk", "⚔️ Attack"], ["def", "🛡️ Armor"], ["hp", "❤️ Health"], ["luck", "🍀 Crit luck"]].map(function (x) { return '<div class="r"><span style="width:100px">' + x[1] + '</span><button data-p="' + x[0] + '-">−</button><b style="width:24px;text-align:center">' + h.pts[x[0]] + '</b><button data-p="' + x[0] + '+">+</button></div>'; }).join("") +
+            '<div class="card m">HP ' + s.max + " · Attack " + s.atk + " · Armor " + s.def + " · Crit " + Math.round(s.crit * 100) + "%</div>" +
+            '<label>Battle cry</label><input id="hh-q" value="' + esc(h.quote) + '" maxlength="40"><div class="r"><button class="go" id="hh-save">Save hero</button></div>';
+        var save = function () { h.name = $("hh-n").value.trim(); h.quote = $("hh-q").value; lset("ddco_hero", JSON.stringify(h)); };
+        b.querySelectorAll("[data-e]").forEach(function (x) { x.onclick = function () { save(); h.emoji = x.dataset.e; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
+        b.querySelectorAll("[data-c]").forEach(function (x) { x.onclick = function () { save(); h.cls = x.dataset.c; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
+        b.querySelectorAll("[data-p]").forEach(function (x) { x.onclick = function () { save(); var k = x.dataset.p.slice(0, -1), up = x.dataset.p.slice(-1) === "+"; if (up && left > 0) h.pts[k]++; if (!up && h.pts[k] > 0) h.pts[k]--; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
+        $("hh-save").onclick = function () { save(); if (!h.name) { toast("Give your hero a name."); return; } kvSet("dd_hero_" + me(), h); toast("Hero saved: " + h.name); };
+    }
+    function pCloud(b) {
+        b.innerHTML = '<div class="m">Save your run to the cloud and load it on any phone. The last save of each slot wins.</div><div id="dd-slots" class="m">Loading…</div>' +
+            '<label class="m" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="dd-auto"' + (ls("ddco_auto", "1") === "1" ? " checked" : "") + '> Auto-save to the cloud every couple of minutes</label>';
+        $("dd-auto").onchange = function (e) { lset("ddco_auto", e.target.checked ? "1" : "0"); };
+        if (!cfg()) { $("dd-slots").textContent = "Turn on Sync in the Breakfast Club app first."; return; }
+        Promise.all(["1", "2", "3", "auto"].map(function (s) { return kvGet("dd_save_" + s).then(function (v) { return [s, v]; }); })).then(function (all) {
+            var box = $("dd-slots"); if (!box) return; var here = saveSummary();
+            box.innerHTML = '<div class="card m">On this phone: ' + (here ? "level " + here.lvl + " " + esc(here.cls) + ", " + here.gold + " gold" : "no save yet") + '</div>' + all.map(function (p) {
+                var s = p[0], v = p[1], name = s === "auto" ? "Auto-save" : "Slot " + s;
+                return '<div class="card"><b>' + name + '</b> <span class="m">' + (v ? "level " + v.sum.lvl + " " + esc(v.sum.cls) + " · " + v.sum.gold + " gold · " + new Date(v.t).toLocaleString() : "empty") + '</span><div class="r">' + (s !== "auto" ? '<button class="go" data-s="' + s + '">Save here</button>' : "") + '<button data-l="' + s + '"' + (v ? "" : " disabled") + ">Load</button></div></div>";
+            }).join("");
+            box.querySelectorAll("[data-s]").forEach(function (x) { x.onclick = function () { x.disabled = true; cloudSave(x.dataset.s).then(function (ok) { toast(ok ? "Saved to the cloud" : "Could not save (offline?)"); draw(); }); }; });
+            box.querySelectorAll("[data-l]").forEach(function (x) { x.onclick = function () { if (!confirm("Replace the run on this phone with this cloud save? Save it to a slot first if you want to keep this one.")) return; cloudLoad(x.dataset.l).then(function (ok) { if (ok) location.reload(); else toast("Could not load"); }); }; });
+        });
+    }
+    var EDIT = null;
+    function pDng(b) {
+        if (EDIT) return pEdit(b);
+        b.innerHTML = '<div class="m">Build your own dungeon: a list of rooms with fights, bosses, treasure, traps and stories. It plays with the co-op party, or on your own.</div><div class="r"><button class="go" id="dd-new">＋ New dungeon</button></div><div id="dd-dl" class="m">Loading…</div>';
+        $("dd-new").onclick = function () { EDIT = { id: "d" + Date.now().toString(36), name: "My Dungeon", intro: "", outro: "", rooms: [{ type: "battle", enemy: "Goblin", lvl: 1, text: "", amt: 30 }] }; draw(); };
+        var local = jget("ddco_dungeons", {});
+        kvList("dd_dng_").then(function (rows) {
+            rows.forEach(function (r) { try { var d = JSON.parse(r.value); if (d && d.id) { local[d.id] = d; } } catch (e) {} }); lset("ddco_dungeons", JSON.stringify(local));
+            var box = $("dd-dl"); if (!box) return; var ids = Object.keys(local);
+            box.innerHTML = ids.length ? ids.map(function (id) { var d = local[id]; return '<div class="card"><b>' + esc(d.name) + '</b> <span class="m">' + d.rooms.length + ' rooms</span><div class="r"><button class="go" data-run="' + id + '">▶ Play</button><button data-ed="' + id + '">✏️ Edit</button><button class="bad" data-del="' + id + '">🗑</button></div></div>'; }).join("") : "No dungeons yet.";
+            box.querySelectorAll("[data-run]").forEach(function (x) { x.onclick = function () { runDungeon(local[x.dataset.run]); }; });
+            box.querySelectorAll("[data-ed]").forEach(function (x) { x.onclick = function () { EDIT = JSON.parse(JSON.stringify(local[x.dataset.ed])); draw(); }; });
+            box.querySelectorAll("[data-del]").forEach(function (x) { x.onclick = function () { if (!confirm("Delete this dungeon for both phones?")) return; delete local[x.dataset.del]; lset("ddco_dungeons", JSON.stringify(local)); kvDel("dd_dng_" + x.dataset.del); draw(); }; });
+        });
+    }
+    function pEdit(b) {
+        var E = EDIT, en = enemyList();
+        b.innerHTML = '<label>Dungeon name</label><input id="de-n" value="' + esc(E.name) + '" maxlength="30"><label>Opening line</label><input id="de-i" value="' + esc(E.intro) + '" style="width:100%"><label>Ending line</label><input id="de-o" value="' + esc(E.outro) + '" style="width:100%">' +
+            E.rooms.map(function (r, i) {
+                return '<div class="card" data-i="' + i + '"><div class="r"><b>Room ' + (i + 1) + '</b><select data-f="type">' + Object.keys(RT).map(function (k) { return '<option value="' + k + '"' + (r.type === k ? " selected" : "") + ">" + RT[k] + "</option>"; }).join("") + '</select><button data-m="up">▲</button><button data-m="dn">▼</button><button class="bad" data-m="rm">✖</button></div>' +
+                    ((r.type === "battle" || r.type === "boss") ? '<div class="r"><select data-f="enemy">' + en.map(function (e) { return "<option" + (r.enemy === e ? " selected" : "") + ">" + esc(e) + "</option>"; }).join("") + '</select><label style="margin:0">Level</label><input data-f="lvl" type="number" min="1" max="99" value="' + (r.lvl || 1) + '" style="width:64px"></div>' : "") +
+                    ((r.type === "treasure" || r.type === "trap") ? '<div class="r"><label style="margin:0">' + (r.type === "trap" ? "Damage" : "Gold") + '</label><input data-f="amt" type="number" min="1" value="' + (r.amt || 20) + '" style="width:80px"></div>' : "") +
+                    '<textarea data-f="text" rows="2" style="width:100%" placeholder="What the room looks like (optional)">' + esc(r.text || "") + "</textarea></div>";
+            }).join("") + '<div class="r"><button id="de-add">＋ Add room</button></div><div class="r"><button class="go" id="de-save">Save</button><button id="de-cancel">Cancel</button></div>';
+        var grab = function () { E.name = $("de-n").value.trim() || "My Dungeon"; E.intro = $("de-i").value; E.outro = $("de-o").value; b.querySelectorAll(".card[data-i]").forEach(function (c) { var r = E.rooms[+c.dataset.i]; c.querySelectorAll("[data-f]").forEach(function (f) { r[f.dataset.f] = f.type === "number" ? +f.value : f.value; }); }); };
+        b.querySelectorAll("[data-f=type]").forEach(function (s) { s.onchange = function () { grab(); draw(); }; });
+        b.querySelectorAll("[data-m]").forEach(function (x) { x.onclick = function () { grab(); var i = +x.closest(".card").dataset.i, m = x.dataset.m; if (m === "rm" && E.rooms.length > 1) E.rooms.splice(i, 1); if (m === "up" && i > 0) E.rooms.splice(i - 1, 0, E.rooms.splice(i, 1)[0]); if (m === "dn" && i < E.rooms.length - 1) E.rooms.splice(i + 1, 0, E.rooms.splice(i, 1)[0]); draw(); }; });
+        $("de-add").onclick = function () { grab(); E.rooms.push({ type: "battle", enemy: "Goblin", lvl: 1, text: "", amt: 30 }); draw(); };
+        $("de-cancel").onclick = function () { EDIT = null; draw(); };
+        $("de-save").onclick = function () { grab(); var local = jget("ddco_dungeons", {}); local[E.id] = E; lset("ddco_dungeons", JSON.stringify(local)); kvSet("dd_dng_" + E.id, E).then(function (ok) { toast(ok ? "Dungeon saved for both phones" : "Saved on this phone (cloud unavailable)"); }); EDIT = null; draw(); };
+    }
+
+    /* ---------- boot ---------- */
+    function boot() {
+        build(); fab();
+        var saved = jget("ddco_room", null);
+        if (saved && saved.code) {
+            if (saved.role === "host") { kvGet("dd_room_" + saved.code).then(function (r) { if (r && !r.ended) { CO.role = "host"; CO.code = saved.code; CO.seed = saved.seed || 7; CO.phase = "idle"; poll(); hb(); fab(); } }); }
+            else if (saved.role === "guest") { CO.role = "guest"; CO.code = saved.code; CO.joinedAt = saved.jt; gvShow(); gPoll(); }
+        }
+        if (/coop/.test(location.hash)) { if (CO.role === "guest") { gvShow(); } else open(); }
+        setInterval(function () { if (CO.role === "host" && !CO.busy) { if (typeof Battle === "undefined" || !Battle) { if (CO.phase !== "idle") writeNow("idle"); else if (Date.now() - (CO.hbT || 0) > 20000) { CO.hbT = Date.now(); writeNow("idle"); } } } }, 4000);
+    }
+    window.DDCO = { open: open, state: CO, runDungeon: runDungeon, cloudSave: cloudSave };
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+
+</script>
 </body>
 </html>
