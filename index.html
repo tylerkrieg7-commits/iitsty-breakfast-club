@@ -13853,7 +13853,7 @@ function fxNutEstimate(lines) {
        SYNC (#89) — Supabase free tier (also works with self-hosted Supabase in Docker)
        ===================================================================== */
     const SHARED = new Set(["sharedGroceryList", "chores_weekly", "chores_monthly", "weekly_chores_grid_data", "chore_schedule_days", "fx_recur", "fx_recur_done", "fx_pantry", "clubRewardsList", "householdNameP1", "householdNameP2", "fx_ious", "fx_aisles", "fx_plan", "fx_shopping", "fx_chore_hist", "fx_rot", "fx_wreset"]);
-    const isShared = (k) => SHARED.has(k) || /^fx_stats_p[12]$/.test(k);
+    const isShared = (k) => SHARED.has(k) || /^fx_stats_p[12]$/.test(k) || /^bcx_s_/.test(k);
     const cfg = () => jget("fx_sync_cfg", null);
     let applying = false, pushT = 0, pollT = 0, busy = false;
     const stamps = jget("fx_sync_stamps", {});
@@ -13893,7 +13893,7 @@ function fxNutEstimate(lines) {
                 maxT = Math.max(maxT, +x.updated_at || 0);
                 if (x.updated_by === deviceId || !isShared(x.key) || (+x.updated_at || 0) <= (stamps[x.key] || 0)) return;
                 applying = true; try { if (x.value == null) localStorage.removeItem(x.key); else localStorage.setItem(x.key, x.value); } finally { applying = false; }
-                stamps[x.key] = +x.updated_at; (RERENDER[x.key] || []).forEach((f) => fns.add(f)); if (/householdName/.test(x.key)) namesChanged = true;
+                stamps[x.key] = +x.updated_at; (RERENDER[x.key] || []).forEach((f) => fns.add(f)); if (/^bcx_s_/.test(x.key)) fns.add("__bcxSynced"); if (/householdName/.test(x.key)) namesChanged = true;
             });
             saveStamps(); lsSet("fx_sync_since", String(maxT));
             fns.forEach((f) => { try { typeof window[f] === "function" && window[f](); } catch (e) {} });
@@ -17083,6 +17083,180 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         q.oninput = function () { clearTimeout(tm); tm = setTimeout(run, 120); };
     }
     searchBox();
+})();
+
+</script>
+<script id="bcx-b-together">
+/* ===== Batch 1b: Together tools (cook rotation, date jar, gifts, countdowns, inventory, home care) + more holidays ===== */
+(function () {
+    "use strict";
+    if (window.__bcxTogether) return; window.__bcxTogether = 1;
+    var F = window.FX3; if (!F || !F.onClubRender) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
+    var names = function () { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Person 1", p2: "Person 2" }; };
+    var nm = function (w) { return w === "p1" ? names().p1 : w === "p2" ? names().p2 : "Shared"; };
+    var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+    var iso = function (d) { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+    var parse = function (s) { var a = s.split("-").map(Number); return new Date(a[0], a[1] - 1, a[2]); };
+    var addDays = function (d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); };
+    var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    var tell = function (kind, body) { try { window.fxAddEvent && window.fxAddEvent(kind, body); } catch (e) {} };
+    var sget = function (k, d) { return jget("bcx_s_" + k, d); }, sset = function (k, v) { jset("bcx_s_" + k, v); };
+
+    var st = document.createElement("style");
+    st.textContent = "#bcx-tg .tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin:8px 0}#bcx-tg .tabs button{flex:none;font:inherit;font-size:13px;font-weight:800;border:1.5px solid var(--border,#555);background:transparent;color:inherit;border-radius:20px;padding:7px 12px;cursor:pointer}#bcx-tg .tabs button.on{background:var(--accent-color,#00adb5);border-color:transparent;color:#fff}" +
+        "#bcx-tg .r{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:14px}#bcx-tg .r:last-child{border:0}#bcx-tg .r>span:first-child{flex:1;min-width:0;word-break:break-word}#bcx-tg small{opacity:.75}" +
+        "#bcx-tg input,#bcx-tg select{font:inherit;box-sizing:border-box;padding:9px;border-radius:10px;border:1.5px solid var(--border,#555);background:rgba(0,0,0,.15);color:inherit;max-width:100%}#bcx-tg .add{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}#bcx-tg .add input{flex:1;min-width:120px}" +
+        "#bcx-tg .b{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:10px;padding:9px 12px;cursor:pointer;background:var(--accent-color,#00adb5);color:#fff}#bcx-tg .b.g{background:rgba(128,128,128,.3);color:inherit}#bcx-tg .x{background:none;border:0;color:inherit;opacity:.6;font-size:16px;cursor:pointer;padding:4px 8px}" +
+        "#bcx-tg .big{text-align:center;font-size:20px;font-weight:900;padding:18px 10px;border-radius:14px;background:rgba(128,128,128,.18);margin:8px 0}" +
+        ".bcx-cd{position:relative;border-radius:16px;overflow:hidden;min-height:110px;margin:8px 0;background:linear-gradient(135deg,#5c6bc0,#ec407a);color:#fff;display:flex;align-items:flex-end;background-size:cover;background-position:center}.bcx-cd .in{width:100%;padding:12px;background:linear-gradient(transparent,rgba(0,0,0,.7));display:flex;align-items:center;gap:10px}.bcx-cd .n{font-size:34px;font-weight:900;line-height:1}.bcx-cd .t{flex:1;font-weight:800}.bcx-cd button{background:rgba(0,0,0,.4);color:#fff;border:0;border-radius:8px;padding:6px 8px;cursor:pointer}";
+    document.head.appendChild(st);
+
+    /* ---------- 7: who cooks (follows the chore rotation when asked) ---------- */
+    var cookCfg = function () { return Object.assign({ mode: "alt", off: 0, ov: {} }, sget("cook", {})); };
+    function kitchenOwner() {
+        try { var L = window.getStoredChores("weekly").filter(function (c) { return /kitchen|dish|cook|dinner/i.test(c.task) && (c.assignee === "p1" || c.assignee === "p2"); }); return L.length ? L[0].assignee : null; } catch (e) { return null; }
+    }
+    function cookFor(d) {
+        var c = cookCfg(), k = iso(d);
+        if (c.ov[k]) return { who: c.ov[k], swapped: true };
+        if (c.mode === "chores") {   /* the person who does NOT have the kitchen-clean chore cooks; it flips whenever the chore rotation flips */
+            var ko = kitchenOwner(); if (ko) return { who: ko === "p1" ? "p2" : "p1", swapped: false, viaChores: true };
+        }
+        var n = Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5);
+        return { who: ((n + (+c.off || 0)) % 2 + 2) % 2 === 0 ? "p1" : "p2", swapped: false };
+    }
+    function paneCook(el) {
+        var c = cookCfg(), t = new Date(), td = cookFor(t), rows = "";
+        for (var i = 0; i < 7; i++) { var d = addDays(t, i), x = cookFor(d); rows += '<div class="r"><span><b>' + (i ? DOW[d.getDay()] + " " + (d.getMonth() + 1) + "/" + d.getDate() : "Tonight") + "</b> · " + esc(nm(x.who)) + (x.swapped ? " <small>(swapped)</small>" : "") + '</span><button class="b g" data-sw="' + iso(d) + '">Swap</button></div>'; }
+        el.innerHTML = '<div class="big">👩‍🍳 ' + esc(nm(td.who)) + " cooks tonight</div>" + rows +
+            '<div class="add"><select id="bcx-cm"><option value="alt">Take turns each day</option><option value="chores">Follow the chore rotation (whoever isn\'t on kitchen clean-up cooks)</option></select></div><small id="bcx-cn"></small>';
+        $("bcx-cm").value = c.mode; $("bcx-cn").textContent = c.mode === "chores" ? (kitchenOwner() ? "Kitchen chore is " + nm(kitchenOwner()) + "'s this week, so the other one cooks. It flips when chores rotate." : "No weekly kitchen/dishes chore with a person on it, so it takes turns instead.") : "Swap any day and your partner is told.";
+        $("bcx-cm").onchange = function (e) { var o = cookCfg(); o.mode = e.target.value; sset("cook", o); paneCook(el); };
+        el.querySelectorAll("[data-sw]").forEach(function (b) { b.onclick = function () { var o = cookCfg(), d = parse(b.dataset.sw), cur = cookFor(d).who, nw = cur === "p1" ? "p2" : "p1"; o.ov[b.dataset.sw] = nw; Object.keys(o.ov).forEach(function (k) { if (k < iso(addDays(new Date(), -3))) delete o.ov[k]; }); sset("cook", o); tell("activity", { text: "🔁 " + nm(me()) + " swapped cooking on " + DOW[d.getDay()] + ": " + nm(nw) + " cooks" }); paneCook(el); }; });
+    }
+
+    /* ---------- 8: date night jar ---------- */
+    var STARTERS = ["Picnic in the living room", "Cook a new recipe together", "Board game night", "Sunset walk", "Movie marathon with homemade popcorn", "Try a new restaurant", "Build a pillow fort", "Stargazing", "Visit a farmers market", "Bake something silly", "Go bowling", "Arcade night", "Drive somewhere new, no map", "Karaoke at home", "Paint each other", "Fancy dinner at home", "Mini golf", "Museum afternoon", "Breakfast for dinner", "Photo walk with one rule: only photograph each other"];
+    function paneJar(el) {
+        var J = sget("jar", []), open = J.filter(function (x) { return !x.done; });
+        el.innerHTML = '<div class="big" id="bcx-jp">' + (open.length ? "🫙 " + open.length + " ideas in the jar" : "🫙 The jar is empty. Add an idea!") + '</div><div class="add"><button class="b" id="bcx-jpick" style="flex:1">🎲 Pick one for us</button></div><div class="add"><input id="bcx-jt" placeholder="Add your own idea…"><button class="b" id="bcx-ja">Add</button></div>' +
+            J.slice().sort(function (a, b) { return (a.done ? 1 : 0) - (b.done ? 1 : 0) || b.ts - a.ts; }).map(function (x) { return '<div class="r"><span style="' + (x.done ? "text-decoration:line-through;opacity:.6" : "") + '">' + esc(x.t) + " <small>" + esc(nm(x.by)) + '</small></span><button class="b g" data-d="' + x.id + '">' + (x.done ? "Undo" : "Done ✓") + '</button><button class="x" data-r="' + x.id + '">✕</button></div>'; }).join("") +
+            (J.length < 3 ? '<div class="add"><button class="b g" id="bcx-jstart">+ Add 20 starter ideas</button></div>' : "");
+        var add = function (t, by) { var A = sget("jar", []); A.push({ id: uid(), t: t, by: by || me(), ts: Date.now(), done: 0 }); sset("jar", A); };
+        $("bcx-ja").onclick = function () { var v = $("bcx-jt").value.trim(); if (!v) return; add(v); paneJar(el); };
+        $("bcx-jt").onkeydown = function (e) { if (e.key === "Enter") $("bcx-ja").click(); };
+        if ($("bcx-jstart")) $("bcx-jstart").onclick = function () { var A = sget("jar", []); STARTERS.forEach(function (t) { if (!A.some(function (x) { return x.t === t; })) A.push({ id: uid(), t: t, by: "p1", ts: Date.now(), done: 0 }); }); sset("jar", A); paneJar(el); };
+        $("bcx-jpick").onclick = function () {
+            var A = sget("jar", []).filter(function (x) { return !x.done; }); if (!A.length) { toast("Add some ideas first!"); return; }
+            var p = $("bcx-jp"), n = 0, t = setInterval(function () { p.textContent = "🎲 " + A[Math.floor(Math.random() * A.length)].t; if (++n > 12) { clearInterval(t); var w = A[Math.floor(Math.random() * A.length)]; p.textContent = "✨ " + w.t; tell("activity", { text: "🫙 Date night pick: " + w.t }); F.sfx && F.sfx("coin"); } }, 90);
+        };
+        el.querySelectorAll("[data-d]").forEach(function (b) { b.onclick = function () { var A = sget("jar", []); A.forEach(function (x) { if (x.id === b.dataset.d) x.done = x.done ? 0 : Date.now(); }); sset("jar", A); paneJar(el); }; });
+        el.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { sset("jar", sget("jar", []).filter(function (x) { return x.id !== b.dataset.r; })); paneJar(el); }; });
+    }
+
+    /* ---------- 11: gift list (private until you reveal one) ---------- */
+    var gk = function () { return "bcx_g_" + me(); };
+    function paneGift(el) {
+        var G = jget(gk(), []);
+        el.innerHTML = '<div class="card-desc">Ideas for <b>' + esc(nm(other())) + '</b>. Only you can see this list. Reveal one when you want them to know.</div><div class="add"><input id="bcx-gt" placeholder="Gift idea (link or note)…"><button class="b" id="bcx-ga">Save</button></div>' +
+            (G.length ? G.map(function (x) { return '<div class="r"><span style="' + (x.got ? "opacity:.6" : "") + '">' + (x.got ? "✅ " : "🎁 ") + esc(x.t) + (x.shown ? " <small>revealed</small>" : "") + '</span><button class="b g" data-g="' + x.id + '">' + (x.got ? "Not yet" : "Got it") + '</button><button class="b" data-v="' + x.id + '">Reveal</button><button class="x" data-r="' + x.id + '">✕</button></div>'; }).join("") : '<div class="card-desc">Nothing saved yet.</div>');
+        $("bcx-ga").onclick = function () { var v = $("bcx-gt").value.trim(); if (!v) return; var A = jget(gk(), []); A.push({ id: uid(), t: v, ts: Date.now() }); jset(gk(), A); paneGift(el); };
+        $("bcx-gt").onkeydown = function (e) { if (e.key === "Enter") $("bcx-ga").click(); };
+        el.querySelectorAll("[data-g]").forEach(function (b) { b.onclick = function () { var A = jget(gk(), []); A.forEach(function (x) { if (x.id === b.dataset.g) x.got = !x.got; }); jset(gk(), A); paneGift(el); }; });
+        el.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { jset(gk(), jget(gk(), []).filter(function (x) { return x.id !== b.dataset.r; })); paneGift(el); }; });
+        el.querySelectorAll("[data-v]").forEach(function (b) { b.onclick = function () { var A = jget(gk(), []), g = A.filter(function (x) { return x.id === b.dataset.v; })[0]; if (!g || !confirm("Show this idea to " + nm(other()) + " now?")) return; tell("cheer", { emoji: "🎁", text: nm(me()) + " revealed a gift idea: " + g.t }); g.shown = 1; jset(gk(), A); toast("Sent 🎁"); paneGift(el); }; });
+    }
+
+    /* ---------- 173: countdown cards with photos ---------- */
+    function shrink(file, max) {
+        return new Promise(function (res, rej) {
+            var img = new Image(), u = URL.createObjectURL(file);
+            img.onload = function () { var s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL("image/jpeg", 0.8)); };
+            img.onerror = function () { rej(new Error("not a picture")); }; img.src = u;
+        });
+    }
+    function nextDate(c) {
+        var d = parse(c.date), t = parse(iso());
+        if (c.yearly) { while (d < t) d = new Date(d.getFullYear() + 1, d.getMonth(), d.getDate()); }
+        return d;
+    }
+    var daysTo = function (c) { return Math.round((nextDate(c) - parse(iso())) / 864e5); };
+    function cdHTML(c) {
+        var n = daysTo(c), pic = ls("bcx_p_" + c.id, "");
+        return '<div class="bcx-cd" style="' + (pic ? "background-image:url(" + pic + ")" : "") + '"><div class="in"><div class="n">' + (n < 0 ? "✔" : n === 0 ? "🎉" : n) + '</div><div class="t">' + esc(c.e || "⏳") + " " + esc(c.t) + "<br><small>" + (n < 0 ? "passed" : n === 0 ? "today!" : n === 1 ? "day to go" : "days to go") + " · " + nextDate(c).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) + '</small></div><button data-cp="' + c.id + '">📷</button><button data-cx="' + c.id + '">✕</button></div></div>';
+    }
+    function paneCd(el) {
+        var C = sget("cd", []).slice().sort(function (a, b) { return nextDate(a) - nextDate(b); });
+        el.innerHTML = '<div class="add"><input id="bcx-ct" placeholder="Event (trip, birthday…)"><input id="bcx-ce" style="width:60px;flex:none" placeholder="🎉" maxlength="4"><input id="bcx-cdt" type="date"></div><div class="add"><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="bcx-cy"> Repeats every year</label><button class="b" id="bcx-cadd">Add countdown</button></div>' + (C.length ? C.map(cdHTML).join("") : '<div class="card-desc">No countdowns yet. Add a trip, birthday or anniversary and tap 📷 to give it a photo (the photo stays on this phone).</div>');
+        $("bcx-cadd").onclick = function () { var t = $("bcx-ct").value.trim(), d = $("bcx-cdt").value; if (!t || !d) { toast("Add a name and a date."); return; } var A = sget("cd", []); A.push({ id: uid(), t: t, e: $("bcx-ce").value.trim() || "⏳", date: d, yearly: $("bcx-cy").checked ? 1 : 0 }); sset("cd", A); paneCd(el); };
+        el.querySelectorAll("[data-cx]").forEach(function (b) { b.onclick = function () { if (!confirm("Remove this countdown?")) return; sset("cd", sget("cd", []).filter(function (x) { return x.id !== b.dataset.cx; })); localStorage.removeItem("bcx_p_" + b.dataset.cx); paneCd(el); }; });
+        el.querySelectorAll("[data-cp]").forEach(function (b) { b.onclick = function () { var f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = function () { if (!f.files[0]) return; shrink(f.files[0], 640).then(function (u) { try { lsSet("bcx_p_" + b.dataset.cp, u); } catch (e) { toast("Not enough space for that photo."); } paneCd(el); }, function () { toast("Couldn't read that picture."); }); }; f.click(); }; });
+    }
+
+    /* ---------- 175: household inventory ---------- */
+    function paneInv(el) {
+        var I = sget("inv", []);
+        el.innerHTML = '<div class="add"><input id="bcx-in" placeholder="Item (paper towels…)"><input id="bcx-iq" type="number" min="0" style="width:70px;flex:none" value="1"><input id="bcx-il" placeholder="Where (pantry)" style="width:110px;flex:none"></div><div class="add"><input id="bcx-im" type="number" min="0" style="width:120px;flex:none" placeholder="Low at…" title="Warn me when it gets this low"><button class="b" id="bcx-iadd">Add item</button></div>' +
+            (I.length ? I.slice().sort(function (a, b) { return (a.l || "").localeCompare(b.l || "") || a.n.localeCompare(b.n); }).map(function (x) { var low = x.min != null && x.q <= x.min; return '<div class="r"><span>' + (low ? "⚠️ " : "") + esc(x.n) + " <small>" + esc(x.l || "") + (x.min != null ? " · low at " + x.min : "") + '</small></span><button class="b g" data-m="' + x.id + '">−</button><b>' + x.q + '</b><button class="b g" data-p="' + x.id + '">+</button>' + (low ? '<button class="b" data-g="' + x.id + '">🛒</button>' : "") + '<button class="x" data-r="' + x.id + '">✕</button></div>'; }).join("") : '<div class="card-desc">Track what you have at home. Items running low can go straight on the grocery list.</div>');
+        $("bcx-iadd").onclick = function () { var n = $("bcx-in").value.trim(); if (!n) return; var A = sget("inv", []), m = $("bcx-im").value; A.push({ id: uid(), n: n, q: +$("bcx-iq").value || 0, l: $("bcx-il").value.trim(), min: m === "" ? null : +m }); sset("inv", A); paneInv(el); };
+        var chg = function (id, d) { var A = sget("inv", []); A.forEach(function (x) { if (x.id === id) x.q = Math.max(0, x.q + d); }); sset("inv", A); paneInv(el); };
+        el.querySelectorAll("[data-m]").forEach(function (b) { b.onclick = function () { chg(b.dataset.m, -1); }; });
+        el.querySelectorAll("[data-p]").forEach(function (b) { b.onclick = function () { chg(b.dataset.p, 1); }; });
+        el.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { sset("inv", sget("inv", []).filter(function (x) { return x.id !== b.dataset.r; })); paneInv(el); }; });
+        el.querySelectorAll("[data-g]").forEach(function (b) { b.onclick = function () { var it = sget("inv", []).filter(function (x) { return x.id === b.dataset.g; })[0]; if (!it) return; try { var L = jget("sharedGroceryList", []); if (!L.some(function (g) { return !g.done && String(g.item).toLowerCase() === it.n.toLowerCase(); })) { L.push({ item: it.n, category: "Misc", done: false }); jset("sharedGroceryList", L); window.loadGroceryList && window.loadGroceryList(); } toast("🛒 Added to the grocery list"); } catch (e) {} }; });
+    }
+
+    /* ---------- 168: home maintenance (builds on the Recurring Chores in the Chores tab) ---------- */
+    var HOME = [["Change HVAC / furnace filter", { type: "quarterly", dom: 1 }, 10], ["Test smoke & CO detectors", { type: "every", n: 90 }, 10], ["Replace smoke detector batteries", { type: "yearly", dom: 1, mon: 0 }, 10], ["Flush water heater", { type: "yearly", dom: 1, mon: 5 }, 20], ["Clean dryer vent", { type: "yearly", dom: 1, mon: 2 }, 20], ["Clean fridge coils", { type: "yearly", dom: 1, mon: 8 }, 20], ["Clean gutters (spring)", { type: "yearly", dom: 1, mon: 4 }, 30], ["Clean gutters (fall)", { type: "yearly", dom: 1, mon: 10 }, 30], ["Run dishwasher cleaner", { type: "monthly", dom: 1 }, 5], ["Clean washing machine", { type: "monthly", dom: 15 }, 10], ["Deep clean oven", { type: "quarterly", dom: 10 }, 20], ["Replace water filter", { type: "every", n: 182 }, 10], ["Check tires & car fluids", { type: "monthly", dom: 5 }, 10], ["Vacuum under furniture", { type: "monthly", dom: 20 }, 10], ["Wash windows", { type: "yearly", dom: 1, mon: 3 }, 20]];
+    function dueOn(c, d) {
+        var r = c.rule, st = parse(c.start); if (d < st) return false; var days = Math.round((d - st) / 864e5);
+        if (r.type === "daily") return true; if (r.type === "every") return days % Math.max(1, r.n) === 0;
+        if (r.type === "weekly") return (d.getDay() + 6) % 7 === r.dow; if (r.type === "monthly") return d.getDate() === Math.min(r.dom, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate());
+        if (r.type === "yearly") return d.getDate() === (r.dom || 1) && d.getMonth() === (r.mon != null ? r.mon : st.getMonth());
+        if (r.type === "quarterly") { var md = (d.getFullYear() - st.getFullYear()) * 12 + d.getMonth() - (r.mon != null ? r.mon : st.getMonth()); return d.getDate() === (r.dom || 1) && ((md % 3) + 3) % 3 === 0; }
+        return false;
+    }
+    function nextDue(c) { var t = new Date(); for (var i = 0; i < 740; i++) { var d = addDays(t, i); if (dueOn(c, d)) return d; } return null; }
+    function paneHome(el) {
+        var R = jget("fx_recur", []), have = function (n) { return R.filter(function (c) { return c.name === n; })[0]; }, D = jget("fx_recur_done", {});
+        el.innerHTML = '<div class="card-desc">Add upkeep jobs once; they show up in 🔁 Recurring Chores (Chores tab) with points, streaks and reminders.</div>' + HOME.map(function (h, i) {
+            var c = have(h[0]), nd = c && nextDue(c), last = c && D[c.id] ? Object.keys(D[c.id]).sort().pop() : null;
+            return '<div class="r"><span>' + (c ? "✅ " : "") + esc(h[0]) + "<br><small>" + (c ? "Next " + (nd ? nd.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "-") + (last ? " · last done " + last : "") : "Not added") + "</small></span>" + (c ? "" : '<button class="b" data-h="' + i + '">Add</button>') + "</div>";
+        }).join("") + '<div class="add"><button class="b g" id="bcx-hall">Add all</button></div>';
+        var addOne = function (i) { var h = HOME[i], A = jget("fx_recur", []); if (A.some(function (c) { return c.name === h[0]; })) return; A.push({ id: uid(), name: h[0], who: "Shared", rule: h[1], start: iso(), pts: h[2] }); jset("fx_recur", A); };
+        var after = function () { try { window.__fxRenderRecur && window.__fxRenderRecur(); } catch (e) {} paneHome(el); };
+        el.querySelectorAll("[data-h]").forEach(function (b) { b.onclick = function () { addOne(+b.dataset.h); after(); }; });
+        $("bcx-hall").onclick = function () { HOME.forEach(function (h, i) { addOne(i); }); after(); toast("Added to Recurring Chores"); };
+    }
+
+    /* ---------- the card ---------- */
+    var TABS = [["cook", "🍳 Cook", paneCook], ["jar", "🫙 Date jar", paneJar], ["gift", "🎁 Gifts", paneGift], ["cd", "⏳ Countdowns", paneCd], ["inv", "📦 Inventory", paneInv], ["home", "🔧 Home care", paneHome]];
+    function nextCdLine() { var C = sget("cd", []).filter(function (c) { return daysTo(c) >= 0; }).sort(function (a, b) { return nextDate(a) - nextDate(b); })[0]; return C ? (C.e || "⏳") + " " + esc(C.t) + ": " + (daysTo(C) === 0 ? "today!" : daysTo(C) + " day" + (daysTo(C) === 1 ? "" : "s")) : ""; }
+    function build(v) {
+        if (!v.classList.contains("active") || v.querySelector("#bcx-tg")) return;
+        var cur = ls("bcx_tg_tab", "cook"); if (!TABS.some(function (t) { return t[0] === cur; })) cur = "cook";
+        var c = document.createElement("div"); c.className = "card"; c.id = "bcx-tg";
+        c.innerHTML = '<div class="card-header"><span class="card-title">💞 Together</span><small id="bcx-tgn">' + nextCdLine() + '</small></div><div class="tabs">' + TABS.map(function (t) { return '<button data-t="' + t[0] + '">' + t[1] + "</button>"; }).join("") + '</div><div id="bcx-tgp"></div>';
+        var anchor = v.querySelector(":scope > .card"); if (anchor) anchor.insertAdjacentElement("afterend", c); else v.appendChild(c);
+        var show = function (id) { lsSet("bcx_tg_tab", id); c.querySelectorAll(".tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === id); }); TABS.filter(function (t) { return t[0] === id; })[0][2]($("bcx-tgp")); var n = $("bcx-tgn"); if (n) n.innerHTML = nextCdLine(); };
+        c.querySelector(".tabs").onclick = function (e) { var b = e.target.closest("[data-t]"); if (b) show(b.dataset.t); };
+        show(cur); window.__bcxTgShow = function () { var t = $("bcx-tgp"); if (t && $("bcx-tg")) show(ls("bcx_tg_tab", "cook")); };
+    }
+    F.onClubRender(build);
+    window.__bcxSynced = function () { try { window.__bcxTgShow && window.__bcxTgShow(); } catch (e) {} };
+
+    /* ---------- 118: more holidays (added to the existing seasonal events) ---------- */
+    var EV = window.FX3_EVENTS;
+    if (EV && !EV.some(function (e) { return e.id === "groundhog"; })) {
+        [["groundhog", "Groundhog Day", "🦫", 201, 203, "Six more weeks of winter? Stay active either way.", ["workouts", 2]], ["mardi", "Mardi Gras", "🎭", 210, 218, "Beads, parades and king cake.", ["meals", 8]], ["lunar", "Lunar New Year", "🧧", 125, 212, "Red envelopes and noodles for luck.", ["cooks", 2]],
+            ["easter", "Spring Egg Hunt", "🐣", 401, 420, "Find eggs, eat chocolate, take a walk.", ["plays", 6]], ["mothers", "Mother's Day", "💐", 505, 514, "Call your mom!", ["chores", 5]], ["starwars", "May the Fourth", "🚀", 501, 505, "Train like a Jedi.", ["workouts", 3]], ["cinco", "Cinco de Mayo", "🪇", 503, 507, "Fiesta time.", ["cooks", 2]],
+            ["memorial", "Memorial Day Weekend", "🇺🇸", 523, 531, "Cookout and a long weekend.", ["sets", 30]], ["pride", "Pride Month", "🏳️‍🌈", 601, 630, "Love is love. Celebrate daily.", ["days", 15]], ["fathers", "Father's Day", "👔", 614, 622, "Grill something for dad.", ["cooks", 1]], ["juneteenth", "Juneteenth", "✊🏾", 617, 620, "Reflect, celebrate, gather.", ["meals", 4]],
+            ["donut", "Donut Day", "🍩", 603, 607, "Treat yourselves, then do a few extra sets.", ["sets", 25]], ["catday", "International Cat Day", "🐱", 806, 810, "Extra pets for the cats.", ["plays", 8]], ["labor", "Labor Day Weekend", "🛠️", 901, 909, "You earned a rest. Maybe a hike too.", ["workouts", 3]], ["talk", "Talk Like a Pirate Day", "🏴‍☠️", 917, 920, "Arr! Get yer sets in, matey.", ["sets", 20]],
+            ["diwali", "Diwali Lights", "🪔", 1101, 1107, "Festival of lights and sweets.", ["cooks", 2]], ["blackfri", "Black Friday Week", "🛍️", 1124, 1130, "Save money, save the grocery budget.", ["meals", 10]], ["hanukkah", "Hanukkah Lights", "🕎", 1210, 1220, "Eight nights of light.", ["cooks", 2]], ["solstice", "Winter Solstice", "🌅", 1219, 1223, "Longest night. Cozy meals, early bed.", ["water", 15]], ["friday13", "Friday the 13th Spooks", "🔪", 1013, 1013, "Lucky for some.", ["workouts", 1]]
+        ].forEach(function (x) { EV.push({ id: x[0], n: x[1], e: x[2], f: x[3], t: x[4], d: x[5], goal: x[6] }); });
+    }
 })();
 
 </script>
