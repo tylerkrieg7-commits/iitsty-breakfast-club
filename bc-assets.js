@@ -188,7 +188,7 @@
         return Promise.all([worker(), worker(), worker()]).then(function () {
           return gone.reduce(function (p, k) { return p.then(function () { return delRec(k); }); }, Promise.resolve()).then(function () { return updMeta(metaOnly); });
         }).then(function () {
-          setMeta({ synced: Date.now(), version: found.manifest.version, via: "pc" });
+          setMeta({ synced: Date.now(), version: found.manifest.version, via: "pc", pm: found.manifest.pm || 0 });
           var res = { added: todo.length - failed + metaOnly.length, removed: gone.length, failed: failed, total: files.length };
           emit("change", res); return res;
         });
@@ -272,7 +272,7 @@
     function lock(on) { el.querySelectorAll("button").forEach(function (b) { b.disabled = on; }); }
     function status() {
       var s = stats(), m = s.meta, mine = opts.app ? (s.apps[opts.app] || 0) : null;
-      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 22";
+      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 23"; if (m.via === "pc") q(".bca-s").textContent += (m.pm ? " · PC Photo Manager build " + m.pm : "") + (!m.pm || m.pm < 23 ? " · ⚠️ update the Photo Manager on your PC" : "");
       q('[data-a=clear]').style.display = s.count ? "" : "none";
       q('[data-a=push]').style.display = typeof window.BCPushLocal === "function" ? "" : "none";
     }

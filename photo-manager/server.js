@@ -49,7 +49,8 @@ function sendFile(res, file, type, extra, req) {
 let HIDX = { v: -1, m: null };
 function byHash(h) { if (HIDX.v !== LIB.version || !HIDX.m) { HIDX = { v: LIB.version, m: new Map() }; Object.values(LIB.items).forEach(i => HIDX.m.set(i.hash, i)); } return HIDX.m.get(h); }
 const shownItems = () => { const o = {}; Object.keys(LIB.items).forEach(k => { if (!/^dd-voice/.test(k)) o[k] = LIB.items[k]; }); return o; };
-const manifest = () => ({ version: LIB.version || 0, updated: LIB.updated || 0, files: Object.values(LIB.items).map(i => ({ app: i.app, slot: i.slot, hash: i.hash, type: i.type, size: i.size, meta: i.meta || {} })) });
+const PM_BUILD = 23;   /* shown on the phones, so you can tell when the PC copy is out of date */
+const manifest = () => ({ pm: PM_BUILD, version: LIB.version || 0, updated: LIB.updated || 0, files: Object.values(LIB.items).map(i => ({ app: i.app, slot: i.slot, hash: i.hash, type: i.type, size: i.size, meta: i.meta || {} })) });
 
 /* ---------------- the phone link (Cloudflare quick tunnel) ---------------- */
 const TUN = { status: 'starting', url: null, log: [], publish: null };
@@ -134,7 +135,7 @@ http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x'), p = u.pathname;
     if (p === '/' || p === '/index.html') return sendFile(res, path.join(APP_DIR, 'manager.html'), MIME['.html'], null, req);
-    if (p === '/api/state') return json(res, 200, { catalogs: CATALOGS, items: shownItems(), version: LIB.version, tunnel: { status: TUN.status, link: phoneLink(), log: TUN.log.slice(-12), publish: TUN.publish }, voice: VOICE.status(), phones: TOOLS.phones(), supabase: CFG.supabase ? { url: CFG.supabase.url, hh: CFG.supabase.hh, hasKey: !!CFG.supabase.key } : null, bytes: Object.values(LIB.items).reduce((a, i) => a + i.size, 0) });
+    if (p === '/api/state') return json(res, 200, { build: PM_BUILD, catalogs: CATALOGS, items: shownItems(), version: LIB.version, tunnel: { status: TUN.status, link: phoneLink(), log: TUN.log.slice(-12), publish: TUN.publish }, voice: VOICE.status(), phones: TOOLS.phones(), supabase: CFG.supabase ? { url: CFG.supabase.url, hh: CFG.supabase.hh, hasKey: !!CFG.supabase.key } : null, bytes: Object.values(LIB.items).reduce((a, i) => a + i.size, 0) });
     if (p === '/api/file' && req.method === 'PUT') return upload(req, res, u.searchParams);
     if (p === '/api/file' && req.method === 'DELETE') { delete LIB.items[u.searchParams.get('app') + '|' + u.searchParams.get('slot')]; saveLib(); gc(); if (TUN.url) publish(); return json(res, 200, { ok: true }); }
     if (p.startsWith('/files/')) { const h = p.slice(7).replace(/[^a-f0-9]/g, ''), it = byHash(h); return sendFile(res, path.join(FILES, h), it ? it.type : undefined, { 'Cache-Control': 'max-age=31536000' }, req); }

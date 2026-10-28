@@ -65,7 +65,7 @@ dialog::backdrop{background:rgba(20,18,43,.55)}
 .it.new{border-style:dashed;border-color:var(--pri);cursor:pointer}.it.new .pic{background:color-mix(in srgb,var(--pri) 10%,var(--card));color:var(--pri);font-size:15px;font-weight:900;flex-direction:column;gap:6px}.it.new .pic b{font-size:34px;line-height:1}
 @media (max-width:640px){.row{grid-template-columns:56px 1fr}.row .slotbox,.row .rbtn{grid-column:1/-1}}
 </style></head><body>
-<header><h1>📸 Breakfast Club Photo Manager</h1><span class="sp"></span><span class="pill" id="h-count">…</span></header>
+<header><h1>📸 Breakfast Club Photo Manager</h1><span class="sp"></span><span class="pill" id="h-build" title="Photo Manager version">build …</span><span class="pill" id="h-count">…</span></header>
 <div class="wrap">
   <div class="cards">
     <div class="card"><h2>📱 Phone link <span class="pill" id="t-pill">…</span></h2>
@@ -135,7 +135,7 @@ function toId(val){val=String(val||'').trim();if(!val)return null;const L=slotLi
 function guess(fname,fk){const n=norm(fname);if(!n)return '';const ft=new Set(n.split(' ')),L=slotList().filter(s=>fk==='video'?s.kind==='video':fits(fk||'image',s.kind));let best=null,bs=0;
   L.forEach(s=>{const names=[s.label,s.id].concat(s.alias).map(norm);names.forEach(x=>{if(!x)return;let sc=0;const tk=x.split(' ').filter(t=>t&&t!=='cutscene'&&t!=='the'&&t!=='of'&&t!=='cabinet'&&t!=='sound');
     if(x===n)sc=1000;else if(tk.length&&tk.every(t=>ft.has(t)))sc=tk.join('').length*2+tk.length;else if(n.includes(x)&&x.length>=3)sc=x.length*2;else if(x.includes(n)&&n.length>=4)sc=n.length;if(sc>bs){bs=sc;best=s}})});return best?best.label:''}
-async function load(){ST=await (await fetch('/api/state')).json();buildPrefixes();render();renderVoice(ST.voice)}
+async function load(){ST=await (await fetch('/api/state')).json();try{document.getElementById('h-build').textContent='build '+(ST.build||'?')}catch(e){}buildPrefixes();render();renderVoice(ST.voice)}
 function render(){
   const all=Object.values(ST.items);$('#h-count').textContent=all.length+' files · '+mb(ST.bytes||0);$('#b-size').textContent=all.length?mb(ST.bytes)+' in '+all.length+' files':'Nothing in the library yet';
   const T=ST.tunnel,pill=$('#t-pill');pill.className='pill '+(T.status==='live'?'ok':T.status==='starting'||T.status==='restarting'?'wait':'bad');pill.textContent=T.status==='live'?'Live':T.status==='starting'?'Starting':T.status==='restarting'?'Restarting':T.status==='off'?'Off':'Not available';

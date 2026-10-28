@@ -3882,29 +3882,296 @@
     },
     {
      "id": "photo:Ghost Lyra",
-     "label": "Companion: Ghost Lyra",
-     "info": "Halloween companion form of Lyra (shows in the Hollow Night story).",
+     "label": "Lyra's Halloween costume (optional)",
+     "info": "Lyra in costume for the Halloween tale. Leave it empty and Lyra uses the same photo as in the main game.",
      "q": "Ghost Lyra"
     },
     {
      "id": "photo:Skeleton Bror",
-     "label": "Companion: Skeleton Bror",
-     "info": "Halloween companion form of Bror.",
+     "label": "Bror's Halloween costume (optional)",
+     "info": "Bror in costume for the Halloween tale. Leave it empty and Bror uses the same photo as in the main game.",
      "q": "Skeleton Bror"
     },
     {
      "id": "photo:Jolly Lyra",
-     "label": "Companion: Jolly Lyra",
-     "info": "Christmas companion form of Lyra.",
+     "label": "Lyra's Christmas costume (optional)",
+     "info": "Lyra in costume for the Christmas tale. Leave it empty and Lyra uses the same photo as in the main game.",
      "q": "Jolly Lyra"
     },
     {
      "id": "photo:Helper Bror",
-     "label": "Companion: Helper Bror",
-     "info": "Christmas companion form of Bror (Santa's helper).",
+     "label": "Bror's Christmas costume (optional)",
+     "info": "Bror in costume for the Christmas tale. Leave it empty and Bror uses the same photo as in the main game.",
      "q": "Helper Bror"
+    },
+    {
+     "id": "photo:The Peddler",
+     "label": "Person: The Peddler",
+     "info": "Halloween: the hooded peddler at the crossroads (and his lantern hands). Shows when they talk.",
+     "q": "The Peddler"
+    },
+    {
+     "id": "photo:Gingerbread Peddler",
+     "label": "Person: Gingerbread Peddler",
+     "info": "Christmas: the sugar-toothed baker in the lit window. Shows when they talk.",
+     "q": "Gingerbread Peddler"
+    },
+    {
+     "id": "photo:Father Christmas",
+     "label": "Person: Father Christmas",
+     "info": "Christmas: Kris, frozen in the Ice Hall until you free him. Shows when they talk.",
+     "q": "Father Christmas"
+    },
+    {
+     "id": "photo:Frozen Child",
+     "label": "Person: Frozen Child",
+     "info": "Christmas: the child frozen mid-laugh in Frostmere's square. Shows when they talk.",
+     "q": "Frozen Child"
+    },
+    {
+     "id": "photo:Season: Gravewick Gate",
+     "label": "Place: Gravewick Gate",
+     "info": "Background behind every line spoken at Gravewick Gate in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Gravewick Gate dark fantasy"
+    },
+    {
+     "id": "photo:Season: Gravewick Square",
+     "label": "Place: Gravewick Square",
+     "info": "Background behind every line spoken at Gravewick Square in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Gravewick Square dark fantasy"
+    },
+    {
+     "id": "photo:Season: Cottages",
+     "label": "Place: Cottages",
+     "info": "Background behind every line spoken at Cottages in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Cottages dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Well",
+     "label": "Place: The Well",
+     "info": "Background behind every line spoken at The Well in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Well dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Field",
+     "label": "Place: The Field",
+     "info": "Background behind every line spoken at The Field in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Field dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Crossroads",
+     "label": "Place: The Crossroads",
+     "info": "Background behind every line spoken at The Crossroads in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Crossroads dark fantasy"
+    },
+    {
+     "id": "photo:Season: Bonfire",
+     "label": "Place: Bonfire",
+     "info": "Background behind every line spoken at Bonfire in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Bonfire dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Black Pool",
+     "label": "Place: The Black Pool",
+     "info": "Background behind every line spoken at The Black Pool in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Black Pool dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Hollow Chapel",
+     "label": "Place: The Hollow Chapel",
+     "info": "Background behind every line spoken at The Hollow Chapel in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Hollow Chapel dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Crypt Stair",
+     "label": "Place: The Crypt Stair",
+     "info": "Background behind every line spoken at The Crypt Stair in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Crypt Stair dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Crypt Door",
+     "label": "Place: The Crypt Door",
+     "info": "Background behind every line spoken at The Crypt Door in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Crypt Door dark fantasy"
+    },
+    {
+     "id": "photo:Season: Hollow Jack",
+     "label": "Place: The Lantern Keep",
+     "info": "Background behind every line spoken at The Lantern Keep in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Lantern Keep dark fantasy"
+    },
+    {
+     "id": "photo:Season: Gravewick",
+     "label": "Place: Gravewick",
+     "info": "Background behind every line spoken at Gravewick in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Gravewick dark fantasy"
+    },
+    {
+     "id": "photo:Season: Frostmere",
+     "label": "Place: Frostmere",
+     "info": "Background behind every line spoken at Frostmere in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Frostmere dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Frozen Square",
+     "label": "Place: The Frozen Square",
+     "info": "Background behind every line spoken at The Frozen Square in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Frozen Square dark fantasy"
+    },
+    {
+     "id": "photo:Season: Present Alley",
+     "label": "Place: Present Alley",
+     "info": "Background behind every line spoken at Present Alley in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "Present Alley dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Snowman Road",
+     "label": "Place: The Snowman Road",
+     "info": "Background behind every line spoken at The Snowman Road in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Snowman Road dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Last Fire",
+     "label": "Place: The Last Fire",
+     "info": "Background behind every line spoken at The Last Fire in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Last Fire dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Ice Hole",
+     "label": "Place: The Ice Hole",
+     "info": "Background behind every line spoken at The Ice Hole in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Ice Hole dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Sleigh-Bells",
+     "label": "Place: The Sleigh-Bells",
+     "info": "Background behind every line spoken at The Sleigh-Bells in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Sleigh-Bells dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Black Forest",
+     "label": "Place: The Black Forest",
+     "info": "Background behind every line spoken at The Black Forest in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Black Forest dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Glass Stair",
+     "label": "Place: The Glass Stair",
+     "info": "Background behind every line spoken at The Glass Stair in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Glass Stair dark fantasy"
+    },
+    {
+     "id": "photo:Season: The Advent Doors",
+     "label": "Place: The Advent Doors",
+     "info": "Background behind every line spoken at The Advent Doors in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Advent Doors dark fantasy"
+    },
+    {
+     "id": "photo:Season: Old Man Winter",
+     "label": "Place: The Ice Hall",
+     "info": "Background behind every line spoken at The Ice Hall in the Seasonal Tales. Empty = the dungeon background.",
+     "q": "The Ice Hall dark fantasy"
+    },
+    {
+     "id": "Cutscene: Seasonal: Dawn Breaks",
+     "label": "Cutscene: Seasonal ending: Dawn Breaks",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"Dawn Breaks\".",
+     "q": "Dawn Breaks"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Wake (Secret)",
+     "label": "Cutscene: Seasonal ending: The Wake (Secret)",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"The Wake (Secret)\".",
+     "q": "The Wake (Secret)"
+    },
+    {
+     "id": "Cutscene: Seasonal: Bone and Candlelight",
+     "label": "Cutscene: Seasonal ending: Bone and Candlelight",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"Bone and Candlelight\".",
+     "q": "Bone and Candlelight"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Lantern Passed",
+     "label": "Cutscene: Seasonal ending: The Lantern Passed",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"The Lantern Passed\".",
+     "q": "The Lantern Passed"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Last Gift",
+     "label": "Cutscene: Seasonal ending: The Last Gift",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"The Last Gift\".",
+     "q": "The Last Gift"
+    },
+    {
+     "id": "Cutscene: Seasonal: Coal in the Stocking",
+     "label": "Cutscene: Seasonal ending: Coal in the Stocking",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"Coal in the Stocking\".",
+     "q": "Coal in the Stocking"
+    },
+    {
+     "id": "Cutscene: Seasonal: Silent Night, Saved",
+     "label": "Cutscene: Seasonal ending: Silent Night, Saved",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"Silent Night, Saved\".",
+     "q": "Silent Night, Saved"
+    },
+    {
+     "id": "Cutscene: Seasonal: Everyone at the Table (Secret)",
+     "label": "Cutscene: Seasonal ending: Everyone at the Table (Secret)",
+     "kind": "video",
+     "info": "Plays before the seasonal ending \"Everyone at the Table (Secret)\".",
+     "q": "Everyone at the Table (Secret)"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Hollow Night: Gravewick",
+     "label": "Cutscene: The Hollow Night: Gravewick",
+     "kind": "video",
+     "info": "Plays after the chapter card \"Gravewick\" in The Hollow Night.",
+     "q": "Gravewick"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Hollow Night: The Hollow Chapel",
+     "label": "Cutscene: The Hollow Night: The Hollow Chapel",
+     "kind": "video",
+     "info": "Plays after the chapter card \"The Hollow Chapel\" in The Hollow Night.",
+     "q": "The Hollow Chapel"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Hollow Night: The Lantern Keep",
+     "label": "Cutscene: The Hollow Night: The Lantern Keep",
+     "kind": "video",
+     "info": "Plays after the chapter card \"The Lantern Keep\" in The Hollow Night.",
+     "q": "The Lantern Keep"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Long Winter's Night: Frostmere",
+     "label": "Cutscene: The Long Winter's Night: Frostmere",
+     "kind": "video",
+     "info": "Plays after the chapter card \"Frostmere\" in The Long Winter's Night.",
+     "q": "Frostmere"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Long Winter's Night: The Black Forest",
+     "label": "Cutscene: The Long Winter's Night: The Black Forest",
+     "kind": "video",
+     "info": "Plays after the chapter card \"The Black Forest\" in The Long Winter's Night.",
+     "q": "The Black Forest"
+    },
+    {
+     "id": "Cutscene: Seasonal: The Long Winter's Night: The Ice Hall",
+     "label": "Cutscene: The Long Winter's Night: The Ice Hall",
+     "kind": "video",
+     "info": "Plays after the chapter card \"The Ice Hall\" in The Long Winter's Night.",
+     "q": "The Ice Hall"
     }
-   ]
+   ],
+   "note": "Bosses, people, places and cutscenes for The Hollow Night and The Long Winter's Night. Every spot is optional."
   }
  ]
 }

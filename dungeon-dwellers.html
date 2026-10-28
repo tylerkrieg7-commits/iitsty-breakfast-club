@@ -35994,7 +35994,13 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     var W = { ph: null, ox: null, chain: Promise.resolve(), ready: null };
     function call(w, type, data, ms) {
         return new Promise(function (ok, no) {
-            var t = setTimeout(function () { no(new Error('Piper took too long (' + type + ')')); }, ms || 90000);
+            var t = setTimeout(function () {
+                /* a stuck worker would hand its late answer to the NEXT line, so throw both away and start fresh next time */
+                W.slow = (W.slow || 0) + 1;
+                try { W.ph && W.ph.terminate(); W.ox && W.ox.terminate(); } catch (x) { }
+                W.ph = W.ox = null; W.ready = null;
+                no(new Error('Piper took too long (' + type + ')'));
+            }, ms || (type === 'phonemize' ? 45000 : 90000));
             w.onmessage = function (e) { clearTimeout(t); ok(e.data); };
             w.onerror = function (e) { clearTimeout(t); no(new Error((e && e.message) || 'Piper stopped')); };
             w.postMessage({ type: type, data: data });
@@ -36035,8 +36041,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             W.ox.postMessage({ type: 'constructor', data: { basePath: { wasm: F[4] }, numThreads: self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1 } });
             await call(W.ox, 'loadSession', [[M.cfg, M.url]], 180000);
             try {   /* the very first line is the slowest: make a tiny one now so the first real line is quick */
-                var vd0 = [M.cfg, M.url], ph0 = await call(W.ph, 'phonemize', ['Hm.', vd0]); await call(W.ox, 'generate', [ph0, vd0, 0]);
-            } catch (e) { }
+                var vd0 = [M.cfg, M.url], ph0 = await call(W.ph, 'phonemize', ['Hm.', vd0], 120000); await call(W.ox, 'generate', [ph0, vd0, 0], 120000);
+            } catch (e) { if (!W.ph || !W.ox) throw e; }
             setState('ready', { err: '' });
         })();
         W.ready.catch(function (e) {
@@ -36047,6 +36053,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         return W.ready;
     }
     function synth(text, speaker, ls) {
+        /* this phone has timed out twice: use the phone's own voice for the rest of the session instead of erroring */
+        if ((W.slow || 0) >= 2) { var e2 = new Error('Piper is too slow on this phone right now'); e2.quiet = 1; return Promise.reject(e2); }
         return boot().then(function () {
             return serial(async function () {
                 var inf = Object.assign({}, M.cfg.inference || {}); inf.length_scale = (inf.length_scale || 1) * (ls || 1);
@@ -36152,7 +36160,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         if (recorded(key)) return null;
         if (!PRE.has(key)) {
             want({ k: key, m: CFG.model, s: sp, ls: ls, t: text, w: who });   /* your PC records it for next time, even if the phone is too slow now */
-            PRE.set(key, synth(text, sp, ls));
+            var pr = synth(text, sp, ls); pr.catch(function () { });   /* handled where the line is played; never an unhandled error */
+            PRE.set(key, pr);
             if (PRE.size > 80) { var first = PRE.keys().next().value; PRE.delete(first); }
         }
         return PRE.get(key);
@@ -36165,7 +36174,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         return p.then(function (blob) {
             PRE.delete(job.key);
             if (job.dead || job.late) return; job.url = URL.createObjectURL(blob); job.ready = true;
-        }, function (e) { PRE.delete(job.key); warn('line', e); job.fail = true; job.ready = true; });
+        }, function (e) { PRE.delete(job.key); if (!(e && e.quiet)) warn('line', e); job.fail = true; job.ready = true; });
     }
     function hookTop() {   /* outermost: sees every line as soon as it is made, and remembers who said it */
         var SS = window.speechSynthesis; if (!SS || (SS.speak && SS.speak.__b23v)) return;
@@ -36903,7 +36912,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         if (/coop/.test(location.hash)) { if (CO.role === "guest") { gvShow(); } else open(); }
         setInterval(function () { if (CO.role === "host" && !CO.busy) { if (typeof Battle === "undefined" || !Battle) { if (CO.phase !== "idle") writeNow("idle"); else if (Date.now() - (CO.hbT || 0) > 20000) { CO.hbT = Date.now(); writeNow("idle"); } } } }, 4000);
     }
-    window.DDCO = { api: { CO: CO, kvGet: kvGet, kvSet: kvSet, cfg: cfg, hostActive: hostActive, addLog: addLog, writeNow: writeNow, writeRoom: writeRoom, banner: banner, esc: esc, av: av, hero: hero, heroStats: heroStats, sleep: sleep, me: me, names: names, hb: hb, rng: rng, imgFor: imgFor, bgNow: bgNow, enemyList: enemyList, RT: RT, DNG: function () { return DNG; }, nextRoom: function () { return nextRoom(); }, pushTurn: pushTurn, RACES: RACES, BACKS: BACKS, wrap: wrap }, open: open, openTab: function (t) { open(t, true); }, state: CO, runDungeon: runDungeon, cloudSave: cloudSave };
+    window.DDCO = { api: { CO: CO, kvGet: kvGet, kvSet: kvSet, kvList: kvList, kvDel: kvDel, shrinkPhoto: shrinkPhoto, cfg: cfg, hostActive: hostActive, addLog: addLog, writeNow: writeNow, writeRoom: writeRoom, banner: banner, esc: esc, av: av, hero: hero, heroStats: heroStats, sleep: sleep, me: me, names: names, hb: hb, rng: rng, imgFor: imgFor, bgNow: bgNow, enemyList: enemyList, RT: RT, DNG: function () { return DNG; }, nextRoom: function () { return nextRoom(); }, pushTurn: pushTurn, RACES: RACES, BACKS: BACKS, wrap: wrap }, open: open, openTab: function (t) { open(t, true); }, state: CO, runDungeon: runDungeon, cloudSave: cloudSave };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();
 
@@ -37315,7 +37324,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         /* ---------- run state ---------- */
         var SE = { active: false, tale: null, id: null, f: {}, next: null, boss: null, turn: 0, p2: false, stamp: 0, mono: null };
         var RUNK = "ddse_run", ENDK = "ddse_endings";
-        var save = function () { jset(RUNK, { tale: SE.tale && SE.tale.id, id: SE.id, f: SE.f }); };
+        var save = function () { jset(RUNK, { tale: SE.tale && SE.tale.id, id: SE.id, f: SE.f, path: SE.path, lg: SE.lg, cards: SE.cards, custom: SE.tale && SE.tale.custom ? SE.tale : null }); };
         var hero = function () { try { return A.hero(); } catch (e) { return { name: "", fear: "The dark", back: "Soldier" }; } };
         var meName = function () { return (hero().name || "Traveler"); };
         var palName = function () { return CO.g ? CO.g.name : "your shadow"; };
@@ -37333,7 +37342,10 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             if (fx.hp > 0) { gameState.hp = Math.min(gameState.maxHp, gameState.hp + fx.hp); if (CO.g && !CO.g.down) CO.g.hp = Math.min(CO.g.max, CO.g.hp + fx.hp); }
             if (fx.item) { try { addItem(fx.item[0], fx.item[1] || "fa-flask text-red-500"); } catch (e) {} }
             if (fx.pot && CO.g) CO.g.pots = Math.min(9, (CO.g.pots || 0) + fx.pot);
-            if (fx.f) Object.keys(fx.f).forEach(function (k) { var v = fx.f[k]; SE.f[k] = (v === "+1") ? ((SE.f[k] || 0) + 1) : v; });
+            if (fx.f) Object.keys(fx.f).forEach(function (k) { var v = fx.f[k]; SE.f[k] = (v === "+1") ? ((SE.f[k] || 0) + 1) : (v === "-1") ? ((SE.f[k] || 0) - 1) : v; });
+            if (fx.loy) Object.keys(fx.loy).forEach(function (k) { try { if (here(k)) DDC.b20.addLoy(k, +fx.loy[k] || 0, (SE.tale && SE.tale.name) || "A tale"); } catch (e) {} });
+            if (fx.sane) { try { DDC.b10.U.sane(+fx.sane || 0); } catch (e) { try { gameState.sanity = Math.max(0, Math.min(gameState.maxSanity || 100, (gameState.sanity || 0) + (+fx.sane || 0))); } catch (x) {} } }
+            if (fx.xp) { try { gainXp(+fx.xp); } catch (e) { try { gameState.xp = (gameState.xp || 0) + (+fx.xp); } catch (x) {} } }
             try { updateUI(); } catch (e) {}
             if (fx.hp < 0) { var d = -fx.hp; try { spawnDamageNumber(d, "red", true); damagePlayer(d); } catch (e) {} hurtGuest(d); if (gameState.hp <= 0) return false; }
             A.hb(); return true;
@@ -37341,35 +37353,140 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
 
         /* ---------- engine ---------- */
         function head(n) { return n.title || (SE.tale ? SE.tale.name : "Seasonal Tale"); }
+        /* ---------- talking the way the main game talks: one line at a time, real portraits, each voice its own ---------- */
+        var B20 = function () { return (window.DDC && DDC.b20) || null; };
+        function here(k) {
+            try { var b = B20(); if (b && b.here) return b.here(k); } catch (e) {}
+            try { var c = gameState.companions && gameState.companions[k]; return !!(c && c.alive); } catch (e) { return false; }
+        }
+        function cname(k) { try { var b = B20(); if (b && b.NM) return b.NM(k); } catch (e) {} return { lyra: "Lyra", bror: "Bror", mira: "Mira" }[k] || k; }
+        var COSTUME = { halloween: { lyra: "Ghost Lyra", bror: "Skeleton Bror" }, christmas: { lyra: "Jolly Lyra", bror: "Helper Bror" } };
+        function customPic(k) { try { return (k in DefaultDB) && DefaultDB[k] !== BaseDefaultDB[k] ? DefaultDB[k] : null; } catch (e) { return null; } }
+        function face(k) {   /* a costume photo if you set one in the Photo Manager / Photo Studio, otherwise their normal photo */
+            var t = SE.tale && (COSTUME[SE.tale.id] || SE.tale.costume), c = t && t[k] && customPic(t[k]); if (c) return c;
+            try { return getAsset(k); } catch (e) { return null; }
+        }
+        var NPC = { "Crowmaw": "Old Crowmaw", "The Bride": "The Hollow Bride", "Bride": "The Hollow Bride", "Jack": "Hollow Jack", "General Frostbite": "General Frostbite", "Mimic": "Gift Mimic", "Krampus": "Krampus", "Winter": "Old Man Winter", "Kris": "Father Christmas", "Child": "Frozen Child", "Peddler": "The Peddler" };
+        function npcArt(nm) {
+            var cast = SE.tale && SE.tale.cast; if (cast && cast[nm] && cast[nm].img) return cast[nm].img;
+            return art(NPC[nm] || nm) || art(nm);
+        }
+        function heroPic() { try { var h = hero(); return h.photo || null; } catch (e) { return null; } }
+        function sceneBg(meta) {
+            if (meta && meta.bg) { if (/^(data:|https?:|blob:)/.test(meta.bg)) return meta.bg; try { return getAsset(meta.bg); } catch (e) {} }
+            var k = meta && meta.who ? "Season: " + meta.who : null, c = k && customPic(k); if (c) return c;
+            if (SE.tale && SE.tale.bg) { if (/^(data:|https?:|blob:)/.test(SE.tale.bg)) return SE.tale.bg; try { return getAsset(SE.tale.bg); } catch (e) {} }
+            return A.bgNow();
+        }
+        function spkKey(raw) { var nm = String(raw).replace(/^[^A-Za-z]+/, "").trim(); if (/^lyra$/i.test(nm)) return "lyra"; if (/^bror$/i.test(nm)) return "bror"; if (/^mira$/i.test(nm)) return "mira"; return "@" + nm; }
+        function parse(text) {   /* "👻 Lyra: "…"" paragraphs become Lyra's own lines; everything else is the narrator */
+            var out = [], nar = [];
+            var flush = function () { if (nar.length) { out.push({ s: "nar", t: nar.join("\n\n") }); nar = []; } };
+            String(text || "").split(/\n\s*\n/).forEach(function (p) {
+                p = p.trim(); if (!p) return;
+                var m = /^([^\sA-Za-z"“\[]{1,8}\s+)?([A-Z][A-Za-z' .]{0,28}?):\s*["“]([\s\S]*)["”]\s*([\s\S]*)$/.exec(p);
+                if (m && (m[1] || /^(Lyra|Bror|Mira)$/.test(m[2]))) { flush(); out.push({ s: spkKey(m[2]), t: m[3] }); if (m[4] && m[4].trim()) nar.push(m[4].trim()); }
+                else nar.push(p);
+            });
+            flush(); return out;
+        }
+        function cast(seq) {   /* same rules as the main game: nobody speaks unless they are actually with you, and the dead stay quiet */
+            return seq.map(function (L) {
+                var w = L.s || "nar";
+                if (w === "lyra" || w === "bror") { if (!here(w)) { var o = w === "lyra" ? "bror" : "lyra"; if (here(o) && !L.only) w = o; else return null; } }
+                if (w === "mira" && !here("mira")) return null;
+                return { w: w, t: T(L.t), img: L.img || null };
+            }).filter(Boolean);
+        }
+        function say(meta, text, then, lines) {
+            var seq = cast(lines || parse(T(text))), i = 0, bg = sceneBg(meta), title = head(meta);
+            if (!seq.length) seq = [{ w: "nar", t: T(text) || "…" }];
+            SE.talking = true;
+            function step() {
+                var L = seq[i++], last = i >= seq.length;
+                var nm = L.w === "nar" ? "Narrator" : L.w === "you" ? (meName() || "You") : L.w.charAt(0) === "@" ? L.w.slice(1) : cname(L.w);
+                var img = L.img || (L.w === "nar" ? (meta && meta.img ? art(meta.img) || npcArt(meta.img) : null) : L.w === "you" ? heroPic() : L.w.charAt(0) === "@" ? npcArt(L.w.slice(1)) : face(L.w));
+                if (img && !/^(data:|https?:|blob:)/.test(img)) { try { img = getAsset(img); } catch (e) {} }
+                executeCustomNode(bg, img, nm, title, L.t, function () {
+                    if (last) { SE.talking = false; return then && then(); }
+                    var b = [{ text: "▶", action: step }];
+                    if (seq.length - i > 1) b.push({ text: "⏭ Skip conversation", action: function () { i = seq.length - 1; step(); } });
+                    renderChoices(b);
+                });
+            }
+            step();
+        }
         function show(n, then) {
-            var txt = T(n.text) + (co() && n.co ? "\n\n" + T(n.co) : "");
+            var txt = n.lines ? n.lines.map(function (l) { return (l.s && l.s !== "nar" ? (l.s.charAt(0) === "@" ? l.s.slice(1) : cname(l.s)) + ': "' + T(l.t) + '"' : T(l.t)); }).join("\n\n") : T(n.text);
+            if (co() && n.co) txt += "\n\n" + T(n.co);
             if (co()) E.scene({ speaker: n.who, title: head(n), text: txt, opts: n.choices ? n.choices.map(function (c) { return T(c.t); }) : null });
-            executeCustomNode(A.bgNow(), art(n.img || ({"👻 Lyra": "Ghost Lyra", "💀 Bror": "Skeleton Bror", "🤶 Lyra": "Jolly Lyra", "🧝 Bror": "Helper Bror"})[n.who] || n.who), n.who || "", head(n), txt, then);
+            var lines = n.lines ? n.lines.slice() : null;
+            if (!lines) { lines = parse(T(n.text)); if (co() && n.co) lines = lines.concat(parse(T(n.co))); }
+            say(n, null, then, lines);
         }
         var cont = function (n, label) { return function () { renderChoices([{ text: label || "Continue", action: function () { E.clearScene(); go(n); } }]); }; };
+        function cond(c) {   /* built-in tales use functions; stories made in the Story Creator use plain data */
+            if (!c) return true; if (typeof c === "function") { try { return !!c(); } catch (e) { return false; } }
+            if (Array.isArray(c)) return c.every(cond);
+            if (c.has) return here(c.has);
+            if (c.gold != null) return (gameState.gold || 0) >= +c.gold;
+            var v = SE.f[c.flag];
+            switch (c.op) {
+                case "unset": return !v; case "=": return String(v) === String(c.val); case "!=": return String(v) !== String(c.val);
+                case ">=": return (+v || 0) >= +c.val; case "<": return (+v || 0) < +c.val; default: return !!v;
+            }
+        }
+        var LOYMAP = {
+            halloween: { h1c: { lyra: 2 }, h4r: { lyra: 2, bror: 2 }, h_free: { lyra: 6, bror: 3 }, h_bsl: { lyra: -6, bror: -2 }, h_trick: { lyra: 4, bror: 6 }, h_took: { bror: -40, lyra: -20 }, e_dawn: { lyra: 5, bror: 8 }, e_wake: { lyra: 8, bror: 8 } },
+            christmas: { c1c: { lyra: 2 }, c2a: { lyra: 4, bror: 2 }, c2b: { lyra: -4 }, c6r: { lyra: 2, bror: 2 }, c7p: { lyra: 5, bror: 3 }, c7w: { lyra: -3, bror: -2 }, c_last: { bror: 10, lyra: 4 }, c_crown: { lyra: -30, bror: -30 }, e_table: { lyra: 8, bror: 8 } }
+        };
+        var SCARY = { halloween: { h_well: -4, h_f0: -3, h_ch0: -4, h_k0: -5, h_took: -8 }, christmas: { c3: -2, c7: -5, c10: -4 } };
+        var CHAP = {
+            halloween: { h2: ["I", "Gravewick", "The dead are allowed to walk tonight."], h_ch0: ["II", "The Hollow Chapel", "A bride, a hundred lanterns, a promise kept too long."], h_k0: ["III", "The Lantern Keep", "Every soul in Gravewick hangs here, glowing."] },
+            christmas: { c2: ["I", "Frostmere", "It has been midnight for nineteen days."], c7: ["II", "The Black Forest", "Every tree an antler. Every branch a tine."], c10: ["III", "The Ice Hall", "Two to open it. One to stay."] }
+        };
         function go(id) {
             var n = SE.tale.nodes[id]; if (!n) { console.warn("missing node", id); return endRun(); }
-            SE.id = id; save();
+            SE.id = id; SE.path = SE.path || []; if (SE.path[SE.path.length - 1] !== id) SE.path.push(id); save();
             if (n.fx && !applyFx(typeof n.fx === "function" ? n.fx() : n.fx)) return;
-            if (n.when && !n.when()) { return go(n.skip); }
+            SE.lg = SE.lg || {};
+            if (!SE.lg[id]) {
+                SE.lg[id] = 1;
+                var lm = (LOYMAP[SE.tale.id] || {})[id] || n.loy; if (lm) applyFx({ loy: lm });
+                var sc = (SCARY[SE.tale.id] || {})[id]; if (sc) applyFx({ sane: sc });
+            }
+            if (n.when && !cond(n.when)) { return go(n.skip); }
             var t = n.t || "scene";
-            if (t === "route") return go(n.fn());
-            if (t === "fight") return doFight(n);
-            if (t === "ev") return doEv(n);
-            if (t === "room") return doRoom(n);
-            if (t === "fish") return doFish(n);
-            if (t === "end") return doEnd(n);
-            show(n, function () {
-                if (n.choices) {
-                    var arr = n.choices.filter(function (c) { return !c.req || c.req(); }).map(function (c) {
-                        return { text: T(c.t), action: function () {
-                            if (c.cost && gameState.gold < c.cost) { banner("Not enough gold."); return; }
-                            E.clearScene(); if (c.cost) gameState.gold -= c.cost; if (c.fx && !applyFx(c.fx)) return; go(c.go);
-                        } };
-                    });
-                    renderChoices(arr);
-                } else cont(n.next, n.btn)();
-            });
+            var dispatch = function () {
+                if (t === "route") { if (n.fn) return go(n.fn()); var r = (n.rules || []).filter(function (x) { return cond(x.if); })[0]; return go(r ? r.go : n.else); }
+                if (t === "fight") return doFight(n);
+                if (t === "ev") return doEv(n);
+                if (t === "room") return doRoom(n);
+                if (t === "fish") return doFish(n);
+                if (t === "end") return doEnd(n);
+                show(n, function () {
+                    if (n.choices) {
+                        var arr = n.choices.filter(function (c) { return cond(c.req); }).map(function (c) {
+                            return { text: T(c.t) + (c.cost ? " (" + c.cost + " gold)" : ""), action: function () {
+                                if (c.cost && gameState.gold < c.cost) { banner("Not enough gold."); return; }
+                                E.clearScene(); if (c.cost) gameState.gold -= c.cost; if (c.fx && !applyFx(c.fx)) return; go(c.go);
+                            } };
+                        });
+                        if (!arr.length) arr = [{ text: "Continue", action: function () { E.clearScene(); go(n.next || n.choices[0].go); } }];
+                        renderChoices(arr);
+                    } else cont(n.next, n.btn)();
+                });
+            };
+            var ch = n.chap ? [n.chapNo || "", n.chap, n.chapEpi || ""] : (CHAP[SE.tale.id] || {})[id];
+            SE.cards = SE.cards || {};
+            if (ch && !SE.cards[id] && B20() && B20().card) {
+                SE.cards[id] = 1;
+                return B20().card((SE.tale.emoji || "") + " " + esc(SE.tale.name) + (ch[0] ? " · CHAPTER " + ch[0] : ""), esc(ch[1]), esc(ch[2]), function () {
+                    if (window.DDC && DDC.b23p && DDC.b23p.play("Cutscene: Seasonal: " + SE.tale.name + ": " + ch[1], ch[1], dispatch)) return;
+                    dispatch();
+                });
+            }
+            dispatch();
         }
         function doEv(n) {
             show(n, function () {
@@ -37378,7 +37495,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
                     E.run({ kind: n.kind, title: n.evTitle || n.title, text: T(n.evText || ""), data: n.data || {}, need: n.need, timeout: 100 }).then(function (res) {
                         var ok = !!res.ok; if (!applyFx(ok ? n.okFx : n.badFx)) return;
                         var line = T(ok ? n.okText : n.badText);
-                        executeCustomNode(A.bgNow(), art(n.img || n.who), n.who || "", ok ? "Success" : "Failure", line, cont(ok ? n.ok : (n.bad || n.ok)));
+                        say({ who: n.who, img: n.img || n.who, title: ok ? "Success" : "Failure" }, line, cont(ok ? n.ok : (n.bad || n.ok)));
                     });
                 } }]);
             });
@@ -37386,9 +37503,16 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         function doRoom(n) {
             var r = Object.assign({}, n.room, { text: T(n.room.text || "") });
             var next = cont(n.next, n.btn);
-            if (n.pool) { E.waresRoom(r, head(n), A.bgNow(), next, n.pool()); return; }
-            var done = E.toneRoom(r, head(n), A.bgNow(), next); if (!done) next();
+            if (n.pool || n.wares) { E.waresRoom(r, head(n), sceneBg(n), next, n.pool ? n.pool() : n.wares.map(function (w) { return themed(w.i || 0, w.n || E.CURSED[w.i || 0].n, w.gain, w.curse); })); return; }
+            if (r.type === "treasure" || r.type === "rest" || r.type === "trap") {
+                var fx = r.type === "treasure" ? { gold: +r.amt || 30 } : r.type === "rest" ? { heal: true } : { hp: -(+r.amt || 10) };
+                var line = r.text || (r.type === "treasure" ? "You find a stash of coins." : r.type === "rest" ? "You rest a while. Everyone feels better." : "A trap springs!");
+                if (!applyFx(fx)) return;
+                return say({ who: n.who, img: n.img, title: n.title || RTN[r.type] }, line + (r.type === "treasure" ? "\n\n+" + (fx.gold) + " gold" : r.type === "trap" ? "\n\n-" + (-fx.hp) + " HP" : ""), next);
+            }
+            var done = E.toneRoom(r, head(n), sceneBg(n), next); if (!done) next();
         }
+        var RTN = { treasure: "💰 Treasure", rest: "⛺ Rest", trap: "🪤 Trap" };
         function doFish(n) {
             show(n, function () {
                 renderChoices([{ text: "🎣 Cast a line", action: function () {
@@ -37396,7 +37520,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
                     mg.run(function () { return mg.fish({}); }).then(function (rr) {
                         var ok = rr && rr.ok; if (ok) { var h2 = Math.min(40, rr.food || 12); gameState.hp = Math.min(gameState.maxHp, gameState.hp + h2); if (CO.g) CO.g.hp = Math.min(CO.g.max, CO.g.hp + h2); try { updateUI(); } catch (e) {} }
                         if (ok && n.flag) SE.f[n.flag] = 1;
-                        executeCustomNode(A.bgNow(), art(n.img || n.who), n.who || "", ok ? "A catch" : "Nothing", T(ok ? n.okText.replace("{fish}", rr.catchName || "fish") : n.badText), cont(n.next));
+                        say({ who: n.who, img: n.img || n.who, title: ok ? "A catch" : "Nothing" }, (ok ? n.okText.replace("{fish}", rr.catchName || "fish") : n.badText), cont(n.next));
                     });
                 } }, { text: "Leave it", action: function () { E.clearScene(); go(n.next); } }]);
             });
@@ -37404,17 +37528,17 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
 
         /* ---------- fights: story bosses with specials and a mid-fight QTE ---------- */
         function doFight(n) {
-            show({ who: n.boss, title: n.title || (n.minor ? "Ambush" : "Boss"), text: n.text, img: n.boss, co: n.co }, function () {
+            show({ who: n.boss, title: n.title || (n.minor ? "Ambush" : "Boss"), text: n.text, lines: n.lines, img: n.bossImg || n.boss, bg: n.bg, co: n.co }, function () {
                 renderChoices([{ text: n.btn || (n.minor ? "⚔️ Fight!" : "👑 Face " + n.boss), action: function () { E.clearScene(); beginFight(n); } }]);
             });
         }
         function beginFight(n) {
             SE.next = n.win; SE.boss = n; SE.turn = 0; SE.p2 = false; SE.stamp = gameState.enemiesSlain || 0; SE.mono = n.taunt ? T(n.taunt) : null;
-            startBattle({ name: n.boss, url: art(n.boss) }, Math.max(1, gameState.level + (n.lvl || 0)), !n.minor);
+            startBattle({ name: n.boss, url: n.bossImg || npcArt(n.boss) || art(n.boss) }, Math.max(1, gameState.level + (n.lvl || 0)), !n.minor);
             try {
                 if (Battle) {
                     var m = n.mult || 1; Battle.maxHp = Math.round(Battle.maxHp * m); Battle.hp = Battle.maxHp; Battle.atk = Math.round(Battle.atk * (n.atkm || 1));
-                    if (n.edge && n.edge()) { Battle.hp = Math.floor(Battle.hp * 0.85); banner("✨ Your preparation weakens it!"); }
+                    if (n.edge && cond(n.edge)) { Battle.hp = Math.floor(Battle.hp * 0.85); banner("✨ Your preparation weakens it!"); }
                     updateBattleUI();
                 }
             } catch (e) { console.warn(e); }
@@ -37461,13 +37585,20 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         /* ---------- endings ---------- */
         function endRun() { SE.active = false; SE.next = null; SE.boss = null; jset(RUNK, null); }
         function doEnd(n) {
-            var seen = jget(ENDK, {}); var first = !seen[n.id]; seen[n.id] = 1; jset(ENDK, seen);
-            if (n.fx) applyFx(n.fx); var rw = SE.tale.reward || {}; gameState.gold += rw.gold || 0; gameState.silver = (gameState.silver || 0) + (rw.silver || 0);
-            var got = Object.keys(seen).filter(function (k) { return k.indexOf(SE.tale.id) === 0; }).length;
-            show({ who: n.who, title: "ENDING: " + n.name, text: n.text + "\n\n— " + n.name + " —\n+" + ((rw.gold || 0)) + " gold, +" + (rw.silver || 0) + " silver\nEndings found: " + got + "/" + SE.tale.endings.length + (first ? " (new!)" : "") }, function () {
-                endRun(); A.addLog("🎭 " + SE.tale.name + ": " + n.name);
-                renderChoices([{ text: "Return to the dungeon", action: function () { E.clearScene(); walkToNextNode(); } }, { text: "🔁 Play this tale again", action: function () { E.clearScene(); start(SE.tale.id); } }]);
-            });
+            var eid = n.id || (SE.tale.id + ":" + SE.id);
+            var seen = jget(ENDK, {}); var first = !seen[eid]; seen[eid] = 1; jset(ENDK, seen);
+            if (n.fx) applyFx(n.fx); var rw = SE.tale.reward || {}; gameState.gold += +rw.gold || 0; gameState.silver = (gameState.silver || 0) + (+rw.silver || 0);
+            var got = Object.keys(seen).filter(function (k) { return k.indexOf(SE.tale.id + ":") === 0; }).length;
+            var total = (SE.tale.endings || []).length || got;
+            var finish = function () {
+                var lines = n.lines ? n.lines.concat([{ s: "nar", t: "— " + n.name + " —\n+" + (+rw.gold || 0) + " gold, +" + (+rw.silver || 0) + " silver\nEndings found: " + got + "/" + total + (first ? " (new!)" : "") }]) : null;
+                show({ who: n.who, title: "ENDING: " + n.name, text: n.text + "\n\n— " + n.name + " —\n+" + (+rw.gold || 0) + " gold, +" + (+rw.silver || 0) + " silver\nEndings found: " + got + "/" + total + (first ? " (new!)" : ""), lines: lines, img: n.img, bg: n.bg }, function () {
+                    var tale = SE.tale; endRun(); A.addLog("🎭 " + tale.name + ": " + n.name);
+                    renderChoices([{ text: "Return to the dungeon", action: function () { E.clearScene(); walkToNextNode(); } }, { text: "🔁 Play this tale again", action: function () { E.clearScene(); tale.custom ? play(tale) : start(tale.id); } }]);
+                });
+            };
+            if (window.DDC && DDC.b23p && DDC.b23p.play("Cutscene: Seasonal: " + n.name, "ENDING: " + n.name, finish)) return;
+            finish();
         }
         window.__ddseEndings = function () { return jget(ENDK, {}); };
 
@@ -37567,6 +37698,78 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             }
         };
         var TALES = { halloween: HALLOWEEN, christmas: CHRISTMAS };
+        /* ---------- Photo Studio / Photo Manager spots for every seasonal boss, person, place and ending ---------- */
+        var SEASON_SLOTS = {
+            boss: ["Old Crowmaw", "The Hollow Bride", "Hollow Jack", "Gift Mimic", "General Frostbite", "Krampus", "Old Man Winter"],
+            people: [["Ghost Lyra", "lyra"], ["Skeleton Bror", "bror"], ["Jolly Lyra", "lyra"], ["Helper Bror", "bror"], ["The Peddler", "👳", "#44403c", "#0c0a09"], ["Gingerbread Peddler", "🧁", "#b45309", "#1c0a02"], ["Father Christmas", "🎅", "#dc2626", "#0c1a2e"], ["Frozen Child", "🧒", "#7dd3fc", "#0c1a2e"]],
+            places: [["Gravewick Gate", "🕸️"], ["Gravewick Square", "🏮"], ["Cottages", "🏚️"], ["The Well", "🕳️"], ["The Field", "🌽"], ["The Crossroads", "🪦"], ["Bonfire", "🔥"], ["The Black Pool", "🌑"], ["The Hollow Chapel", "⛪"], ["The Crypt Stair", "🗝️"], ["The Crypt Door", "🚪"], ["Hollow Jack", "🏮"], ["Gravewick", "🌅"],
+                ["Frostmere", "🎄"], ["The Frozen Square", "⛄"], ["Present Alley", "🎁"], ["The Snowman Road", "☃️"], ["The Last Fire", "🔥"], ["The Ice Hole", "🧊"], ["The Sleigh-Bells", "🔔"], ["The Black Forest", "🌲"], ["The Glass Stair", "🪜"], ["The Advent Doors", "🚪"], ["Old Man Winter", "❄️"]]
+        };
+        var SEASON_KEYS = [];
+        function regSlots() {
+            try {
+                var put = function (k, v) { if (!(k in BaseDefaultDB)) BaseDefaultDB[k] = v; if (!DefaultDB[k]) DefaultDB[k] = BaseDefaultDB[k]; if (SEASON_KEYS.indexOf(k) < 0) SEASON_KEYS.push(k); };
+                SEASON_SLOTS.boss.forEach(function (b) { var a = ART[b]; put(b, a ? svg(a[0], a[1], a[2], b) : BaseDefaultDB.cave); });
+                SEASON_SLOTS.people.forEach(function (p) { if (p.length === 2) put(p[0], BaseDefaultDB[p[1]] || BaseDefaultDB.cave); else put(p[0], svg(p[1], p[2], p[3], p[0])); });
+                SEASON_SLOTS.places.forEach(function (p) { put("Season: " + p[0], svg(p[1], "#292524", "#0c0a09", p[0])); });
+                var endN = [];
+                [HALLOWEEN, CHRISTMAS].forEach(function (t) { Object.keys(t.nodes).forEach(function (id) { var n = t.nodes[id]; if (n.t === "end") endN.push(n.name); }); Object.keys(CHAP[t.id] || {}).forEach(function (id) { endN.push(t.name + ": " + CHAP[t.id][id][1]); }); });
+                var B = window.DDC && DDC.b23p;
+                endN.forEach(function (nm) { var k = "Cutscene: Seasonal: " + nm; put(k, svg("🎬", "#3b0764", "#1f1147", nm)); if (B && B.CUT && B.CUT.indexOf(k) < 0) B.CUT.push(k); });
+                if (window.V4 && V4.groups && !V4.groups.__ddse) {
+                    var og = V4.groups;
+                    V4.groups = function () {
+                        var g = og.apply(this, arguments);
+                        try {
+                            var mine = SEASON_KEYS.filter(function (k) { return k.indexOf("Cutscene: ") !== 0; });
+                            Object.keys(g).forEach(function (n) { if (n === "Cutscenes (video, GIF or picture)") return; g[n] = g[n].filter(function (k) { return mine.indexOf(k) < 0; }); if (!g[n].length) delete g[n]; });
+                            g["Seasonal Tales (bosses, people, places)"] = mine.slice();
+                            var cut = g["Cutscenes (video, GIF or picture)"]; if (cut) SEASON_KEYS.forEach(function (k) { if (k.indexOf("Cutscene: ") === 0 && cut.indexOf(k) < 0) cut.push(k); });
+                        } catch (e) {}
+                        return g;
+                    };
+                    V4.groups.__ddse = 1; Object.keys(og).forEach(function (k) { if (!(k in V4.groups)) V4.groups[k] = og[k]; });
+                }
+                if (B && B.applyAll) B.applyAll();
+            } catch (e) { console.warn("ddse slots", e); }
+        }
+        regSlots(); setTimeout(regSlots, 3000);
+
+        /* ---------- stories made in the Story Creator play on this same engine ---------- */
+        function play(story, resume) {
+            if (!story || !story.nodes) return;
+            var id = "u:" + (story.id || "story");
+            var t = Object.assign({}, story, { id: id, custom: true, emoji: story.emoji || "📖", name: story.name || "A Story", reward: story.reward || { gold: 60, silver: 10 } });
+            if (!t.endings || !t.endings.length) t.endings = Object.keys(t.nodes).filter(function (k) { return t.nodes[k].t === "end"; });
+            Object.keys(t.nodes).forEach(function (k) { var n = t.nodes[k]; if (n.t === "end" && !n.id) n.id = id + ":" + k; });
+            TALES[id] = t; start(id, resume);
+        }
+
+        /* ---------- the path you have walked (like the run map) ---------- */
+        var ICON = { scene: "📖", fight: "⚔️", ev: "⚡", room: "🚪", fish: "🎣", end: "🎭", route: "🔀" };
+        function tmap() {
+            if (!SE.active || !SE.tale) return;
+            var o = document.getElementById("ddse-map"); if (!o) { o = document.createElement("div"); o.id = "ddse-map"; document.body.appendChild(o); }
+            var P = SE.path || [], nodes = SE.tale.nodes, seenPlace = {};
+            var rows = P.filter(function (id) { var n = nodes[id]; return n && n.t !== "route"; }).map(function (id, i, arr) {
+                var n = nodes[id], nm = n.title || n.who || n.boss || id, cur = i === arr.length - 1;
+                return '<div class="st' + (cur ? " cur" : "") + '"><span>' + (ICON[n.t || "scene"] || "📖") + "</span><b>" + esc(nm) + "</b>" + (cur ? "<i>you are here</i>" : "") + "</div>";
+            });
+            var left = Object.keys(nodes).filter(function (k) { return nodes[k].t === "end"; }).length;
+            o.innerHTML = '<div class="sh"><h3>' + esc((SE.tale.emoji || "") + " " + SE.tale.name) + '</h3><div class="m">The road so far</div><div class="road">' + rows.join('<div class="ln"></div>') + '<div class="ln"></div><div class="st fog"><span>❔</span><b>The rest of the night</b><i>' + left + " endings wait somewhere ahead</i></div></div>" +
+                '<div class="m">Flags: ' + (Object.keys(SE.f).length ? Object.keys(SE.f).map(function (k) { return esc(k) + "=" + esc(SE.f[k]); }).join(", ") : "none yet") + '</div><button id="ddse-mx">Close</button></div>';
+            o.style.display = "flex"; o.onclick = function (e) { if (e.target === o || e.target.id === "ddse-mx") o.style.display = "none"; };
+        }
+        (function () {
+            var st = document.createElement("style");
+            st.textContent = "#ddse-map{position:fixed;inset:0;z-index:99992;background:#000c;display:none;align-items:center;justify-content:center;padding:12px}#ddse-map .sh{width:100%;max-width:420px;max-height:88vh;overflow:auto;background:#0c0a09;border:2px solid #7f1d1d;border-radius:16px;padding:14px;color:#e7e5e4;font-family:system-ui,sans-serif}#ddse-map h3{margin:0;color:#fbbf24;font-family:Cinzel,serif}#ddse-map .m{font-size:12px;color:#a8a29e;margin:4px 0}" +
+                "#ddse-map .road{margin:10px 0}#ddse-map .st{display:flex;align-items:center;gap:8px;background:#1c1917;border:1px solid #44403c;border-radius:12px;padding:8px 10px}#ddse-map .st span{font-size:20px}#ddse-map .st b{flex:1;font-size:13px}#ddse-map .st i{font-size:11px;color:#fbbf24;font-style:normal}#ddse-map .st.cur{border-color:#f59e0b;box-shadow:0 0 12px #f59e0b55}#ddse-map .st.fog{opacity:.6;border-style:dashed}#ddse-map .ln{width:3px;height:14px;margin:0 0 0 22px;background:repeating-linear-gradient(#f59e0b88 0 4px,transparent 4px 8px)}" +
+                "#ddse-map button{font:inherit;font-weight:800;border:1px solid #7f1d1d;background:#241010;color:#fde68a;border-radius:10px;padding:8px 14px}#ddse-mapb{position:fixed;left:8px;top:64px;z-index:60;width:40px;height:40px;border-radius:50%;border:1px solid #7f1d1d;background:#0c0a09e6;color:#fde68a;font-size:18px;display:none}";
+            document.head.appendChild(st);
+            var b = document.createElement("button"); b.id = "ddse-mapb"; b.textContent = "🗺️"; b.title = "The road so far"; b.onclick = tmap; document.body.appendChild(b);
+            setInterval(function () { b.style.display = SE.active ? "block" : "none"; }, 1000);
+        })();
+
         /* Christmas fallback: "c_last"/"c_crown" nodes are endings, "e_*" nodes are routed to */
         CHRISTMAS.nodes.c_last.id = "christmas:c_last";
 
@@ -37579,11 +37782,12 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             try { beginJourney(); } catch (e) { return; } setTimeout(cb, 1600);
         }
         function start(id, resume) {
-            var tale = TALES[id]; if (!tale) return;
+            var tale = TALES[id]; if (!tale && resume) { var rr = jget(RUNK, null); if (rr && rr.tale === id && rr.custom) tale = TALES[id] = rr.custom; } if (!tale) return;
             ensureInGame(function () {
-                SE = { active: true, tale: tale, id: null, f: {}, next: null, boss: null, turn: 0, p2: false, stamp: 0, mono: null };
-                var first = "h0"; if (id === "christmas") first = "c0";
-                var run = resume ? jget(RUNK, null) : null; if (run && run.tale === id) { SE.f = run.f || {}; first = run.id || first; }
+                SE = { active: true, tale: tale, id: null, f: {}, next: null, boss: null, turn: 0, p2: false, stamp: 0, mono: null, path: [], lg: {}, cards: {} };
+                if (!here('lyra') && !here('bror')) banner('Lyra and Bror are not with you in this run, so they stay quiet in this tale.');
+                var first = tale.start || (id === "christmas" ? "c0" : id === "halloween" ? "h0" : Object.keys(tale.nodes)[0]);
+                var run = resume ? jget(RUNK, null) : null; if (run && run.tale === id) { SE.f = run.f || {}; first = run.id || first; SE.path = run.path || []; SE.lg = run.lg || {}; SE.cards = run.cards || {}; }
                 closeMenu(); try { document.getElementById("choices-container").innerHTML = ""; } catch (e) {}
                 A.addLog(tale.emoji + " " + tale.name + (resume ? " (resumed)" : " begins"));
                 go(first);
@@ -37591,6 +37795,13 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         }
         function inSeason(t) { var d = new Date(), m = d.getMonth() + 1, day = d.getDate(); if (t.id === "halloween") return (m === 10 && day >= 15) || (m === 11 && day <= 2); return m === 12 || (m === 1 && day <= 2); }
         var menu = null;
+        function mineHTML() {
+            var L = []; try { L = window.DDSC ? DDSC.list() : []; } catch (e) {}
+            var run = jget(RUNK, null);
+            return '<div class="tale"><b class="t">📖 Your stories</b><div class="m">Made in the Story Creator, by you or your partner. They play on this same engine: talking companions, bosses, mini-games and endings.</div>' +
+                (L.length ? L.map(function (st) { var can = run && run.tale === "u:" + st.id; return '<div class="m" style="display:flex;gap:6px;align-items:center;margin-top:6px"><span style="flex:1">' + esc((st.emoji || "📖") + " " + st.name) + (st.by ? " · by " + esc(st.by) : "") + '</span><button class="go" data-u="' + esc(st.id) + '">▶</button>' + (can ? '<button data-r="u:' + esc(st.id) + '">↩</button>' : "") + "</div>"; }).join("") : '<div class="m">None yet.</div>') +
+                '<button id="ddse-mk" style="margin-top:8px">🛠️ Open the Story Creator</button></div>';
+        }
         function closeMenu() { if (menu) menu.style.display = "none"; }
         function openMenu() {
             if (!menu) { menu = document.createElement("div"); menu.id = "ddse"; document.body.appendChild(menu); var st = document.createElement("style"); st.textContent = "#ddse{position:fixed;inset:0;z-index:99991;background:#000d;display:none;align-items:center;justify-content:center;padding:12px}#ddse .sh{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:linear-gradient(180deg,#1a0a0a,#0a0a0a);border:2px solid #7f1d1d;border-radius:18px;padding:14px;color:#e7e5e4;font-family:system-ui,sans-serif}#ddse h3{margin:0 0 4px;font-size:20px;letter-spacing:.06em;text-transform:uppercase}#ddse .tale{border:1px solid #7f1d1d;border-radius:14px;padding:12px;margin:10px 0;background:#00000066}#ddse .tale.h{border-color:#c2410c;box-shadow:0 0 18px #c2410c44 inset}#ddse .tale.c{border-color:#15803d;box-shadow:0 0 18px #15803d44 inset}#ddse b.t{font-size:16px}#ddse .m{color:#a8a29e;font-size:12px;line-height:1.4;margin:4px 0}#ddse button{font:inherit;font-weight:800;font-size:13px;border-radius:10px;border:1px solid #7f1d1d;background:#241010;color:#fde68a;padding:9px 12px;margin:4px 6px 0 0}#ddse button.go{background:#b45309;color:#fff;border-color:#f59e0b}#ddse .live{display:inline-block;background:#16a34a;color:#fff;border-radius:99px;padding:1px 8px;font-size:11px;margin-left:6px}"; document.head.appendChild(st); }
@@ -37599,10 +37810,12 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
                 var n = t.endings.filter(function (e) { return seen[t.id + ":" + e]; }).length, live = inSeason(t), lock = !live && !pv, can = run && run.tale === t.id;
                 return '<div class="tale ' + cls + '"><b class="t">' + t.emoji + " " + esc(t.name) + "</b>" + (live ? '<span class="live">LIVE NOW</span>' : "") + '<div class="m">' + esc(t.tag) + '</div><div class="m">In season: ' + t.window + " · Endings found: " + n + "/" + t.endings.length + " · Plays solo or with a partner (they follow every scene, lean on choices and join the mini-games)</div>" + (lock ? '<div class="m">Back in season soon. (Turn on "Preview off-season tales" below.)</div>' : '<button class="go" data-s="' + t.id + '">▶ Begin</button>' + (can ? '<button data-r="' + t.id + '">↩ Resume</button>' : "")) + "</div>";
             };
-            menu.innerHTML = '<div class="sh"><h3 class="title-font">🎃 Seasonal Tales 🎄</h3><div class="m">Short, dangerous holiday adventures with their own bosses, companions and endings.</div>' + card(HALLOWEEN, "h") + card(CHRISTMAS, "c") + '<label class="m" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="ddse-pv"' + (pv ? " checked" : "") + '> Preview off-season tales</label><button id="ddse-x" style="margin-top:10px">Close</button></div>';
+            menu.innerHTML = '<div class="sh"><h3 class="title-font">🎃 Seasonal Tales 🎄</h3><div class="m">Short, dangerous holiday adventures with their own bosses, companions and endings.</div>' + card(HALLOWEEN, "h") + card(CHRISTMAS, "c") + mineHTML() + '<label class="m" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="ddse-pv"' + (pv ? " checked" : "") + '> Preview off-season tales</label><button id="ddse-x" style="margin-top:10px">Close</button></div>';
             menu.style.display = "flex";
             menu.querySelectorAll("[data-s]").forEach(function (b) { b.onclick = function () { start(b.dataset.s, false); }; });
             menu.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { start(b.dataset.r, true); }; });
+            menu.querySelectorAll("[data-u]").forEach(function (b) { b.onclick = function () { var st = window.DDSC && DDSC.get(b.dataset.u); if (st) play(st); }; });
+            var mk = $("ddse-mk"); if (mk) mk.onclick = function () { closeMenu(); if (window.DDSC) DDSC.open(); };
             $("ddse-pv").onchange = function (e) { jset("ddse_preview", e.target.checked); openMenu(); };
             $("ddse-x").onclick = closeMenu; menu.onclick = function (e) { if (e.target === menu) closeMenu(); };
         }
@@ -37618,12 +37831,457 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
                 if (j && j.parentNode) j.parentNode.insertBefore(s, j.nextSibling); else if (m.firstElementChild) m.firstElementChild.appendChild(s);
             }
         })();
-        window.DDSE = { open: openMenu, start: start, state: function () { return SE; }, TALES: TALES, art: art, go: go };
+        window.DDSE = { open: openMenu, start: start, play: play, state: function () { return SE; }, TALES: TALES, art: art, go: go, parse: parse, map: tmap, cond: cond, CURSED: E.CURSED, SLOTS: SEASON_SLOTS };
         document.dispatchEvent(new Event("ddse-ready"));
     }
 })();
 
 </script>
+<script id="ddsc">
+/* ===== Dungeon Dwellers: Story Creator. Branching stories with talking companions, bosses, mini-games, rooms, checks and endings.
+   Plays on the Seasonal Tales engine (same rules as the main game). Saves to both phones, shares as a code or a file. ===== */
+(function () {
+    "use strict";
+    if (window.__ddsc) return; window.__ddsc = 1;
+    (function boot() { if (!window.DDSE || !window.DDCO || !DDCO.api) return setTimeout(boot, 400); try { init(DDCO.api); } catch (e) { console.warn("ddsc", e); } })();
+
+    function init(A) {
+        var esc = A.esc, $ = function (i) { return document.getElementById(i); };
+        var jget = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+        var jset = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { toast("This phone is out of space for stories. Remove some pictures."); return false; } };
+        var toast = function (t) { try { A.banner(t); } catch (e) { } };
+        var uid = function (p) { return (p || "n") + Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5); };
+        var myName = function () { try { return A.names()[A.me()] || "You"; } catch (e) { return "You"; } };
+        var KEY = "ddsc_stories";
+
+        /* ---------- library: this phone + the cloud (both phones) ---------- */
+        function local() { return jget(KEY, {}); }
+        function list() { var L = local(); return Object.keys(L).map(function (k) { return L[k]; }).sort(function (a, b) { return (b.t || 0) - (a.t || 0); }); }
+        function get(id) { return local()[id] || null; }
+        function put(st) { st.t = Date.now(); var L = local(); L[st.id] = st; return jset(KEY, L); }
+        function cloudSave(st) { try { if (!A.cfg()) return Promise.resolve(false); return A.kvSet("dd_story_" + st.id, st); } catch (e) { return Promise.resolve(false); } }
+        function cloudPull() {
+            try {
+                if (!A.cfg() || !A.kvList) return Promise.resolve(0);
+                return A.kvList("dd_story_").then(function (rows) {
+                    var L = local(), n = 0;
+                    (rows || []).forEach(function (r) { try { var st = JSON.parse(r.value); if (st && st.id && st.nodes && (!L[st.id] || (st.t || 0) > (L[st.id].t || 0))) { L[st.id] = st; n++; } } catch (e) { } });
+                    jset(KEY, L); return n;
+                });
+            } catch (e) { return Promise.resolve(0); }
+        }
+
+        /* ---------- sharing: a code you can text, or a file ---------- */
+        function b64(u8) { var s = ""; for (var i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+        function unb64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+        function encode(st) {
+            var json = JSON.stringify(st), bytes = new TextEncoder().encode(json);
+            if (!window.CompressionStream) return Promise.resolve("DDS0:" + b64(bytes));
+            var cs = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+            return new Response(cs).arrayBuffer().then(function (ab) { return "DDS1:" + b64(new Uint8Array(ab)); });
+        }
+        function decode(code) {
+            code = String(code || "").trim().replace(/\s+/g, "");
+            if (/^\{/.test(code)) return Promise.resolve(JSON.parse(code));
+            var m = /^DDS([01]):(.+)$/.exec(code); if (!m) return Promise.reject(new Error("That is not a story code."));
+            var u = unb64(m[2]);
+            if (m[1] === "0") return Promise.resolve(JSON.parse(new TextDecoder().decode(u)));
+            var ds = new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"));
+            return new Response(ds).text().then(JSON.parse);
+        }
+        function importStory(st) {
+            if (!st || !st.nodes || typeof st.nodes !== "object") throw new Error("That story is empty.");
+            var L = local(); if (L[st.id] && JSON.stringify(L[st.id].nodes) !== JSON.stringify(st.nodes)) { st = JSON.parse(JSON.stringify(st)); st.id = uid("s"); st.name += " (copy)"; }
+            if (!st.id) st.id = uid("s"); put(st); cloudSave(st); return st;
+        }
+
+        /* ---------- templates ---------- */
+        function blank() {
+            var a = uid(), b = uid(), c = uid();
+            var st = { id: uid("s"), v: 1, name: "My Story", emoji: "📖", tag: "", by: myName(), start: a, reward: { gold: 60, silver: 10 }, cast: {}, nodes: {} };
+            st.nodes[a] = { t: "scene", title: "The Beginning", lines: [{ s: "nar", t: "The torch gutters. Somewhere below, something is waiting for you." }, { s: "lyra", t: "I don't like this, {you}. Let's be quick." }, { s: "bror", t: "Quick is fine. Alive is better." }], choices: [{ t: "⚔️ Go down and face it", go: b }, { t: "🕯️ Turn back while you can", go: c }] };
+            st.nodes[b] = { t: "fight", title: "The Thing Below", boss: "Wraith", lvl: 0, mult: 1, sp: "drain", every: 3, lines: [{ s: "nar", t: "It rises out of the dark to meet you." }], phase: null, win: c };
+            st.nodes[c] = { t: "end", name: "Home Before Dawn", lines: [{ s: "nar", t: "You make it out. That is a story worth telling." }] };
+            return st;
+        }
+        function inn() {
+            var st = blank(); st.name = "The Inn at Hollow Ford"; st.emoji = "🕯️"; st.tag = "A rainy night, a crooked inn, and a guest who checked in a hundred years ago.";
+            var N = {}; ["gate", "bar", "cellar", "ghost", "fight", "deal", "riddle", "route", "e_good", "e_bad", "e_secret"].forEach(function (k) { N[k] = uid(); });
+            st.start = N.gate; st.cast = { "The Innkeeper": { emoji: "🧔" }, "The Guest": { emoji: "👻" } };
+            st.nodes = {};
+            st.nodes[N.gate] = { t: "scene", title: "Hollow Ford", lines: [{ s: "nar", t: "Rain hammers the road. The only light for miles is a crooked inn with one window lit." }, { s: "bror", t: "A roof. A fire. I'd fight a bear for a fire." }, { s: "lyra", t: "Every inn on this road burned down a century ago. So why is this one standing?" }], choices: [{ t: "🚪 Knock", go: N.bar }, { t: "🔦 Circle round to the cellar door", go: N.cellar, fx: { f: { sneaky: 1 } } }] };
+            st.nodes[N.bar] = { t: "scene", title: "The Common Room", lines: [{ s: "@The Innkeeper", t: "Welcome, travellers. Rooms are a silver each. Breakfast is... complicated." }, { s: "nar", t: "Every chair is full. Nobody in them is breathing." }, { s: "lyra", t: "{you}. Don't eat anything." }], choices: [{ t: "🍲 Eat the stew anyway", go: N.ghost, fx: { hp: 15, f: { ate: 1 } } }, { t: "❓ Ask about the guest in room thirteen", go: N.riddle }] };
+            st.nodes[N.cellar] = { t: "room", title: "The Cellar", room: { type: "lockbox", amt: 50, text: "Behind the barrels: an old strongbox with two keyholes." }, next: N.ghost };
+            st.nodes[N.riddle] = { t: "room", title: "Room Thirteen", room: { type: "riddle", q: "The more you take, the more you leave behind. What am I?", o1: "Footsteps", o2: "Coins", o3: "Time", o4: "Secrets", right: 1, amt: 10, text: "The door speaks before you touch it." }, next: N.ghost };
+            st.nodes[N.ghost] = { t: "scene", title: "The Guest", lines: [{ s: "@The Guest", t: "You can see me. Nobody has seen me in a hundred years. Will you help me leave?" }, { s: "bror", t: "Leaving's easy. Door's right there." }, { s: "@The Guest", t: "Not for me. Not while he keeps the key." }], choices: [{ t: "🤝 \"We'll help you.\"", go: N.fight, fx: { f: { helped: 1 }, loy: { lyra: 4 } } }, { t: "💰 \"What's it worth?\"", go: N.deal, fx: { loy: { lyra: -3 } } }] };
+            st.nodes[N.deal] = { t: "scene", title: "A Price", lines: [{ s: "@The Guest", t: "Everything I have. Which is one silver and a very old curse." }, { s: "lyra", t: "Take the silver. Leave the curse." }], choices: [{ t: "Fine. We'll help.", go: N.fight, fx: { gold: 20 } }] };
+            st.nodes[N.fight] = { t: "fight", title: "The Innkeeper", boss: "The Innkeeper", lvl: 1, mult: 1.1, sp: "drain", every: 3, spTxt: "The innkeeper drinks your warmth", lines: [{ s: "@The Innkeeper", t: "Nobody leaves Hollow Ford. Nobody ever leaves." }], taunt: "Stay. Stay for breakfast. Stay forever.", phase: { kind: "keys", title: "Grab the Key!", text: "The key hangs at his belt. Snatch it when the needle hits the green!", cut: 0.25, dmg: 12, okTxt: "You snatch the key!", badTxt: "He slaps your hand away." }, win: N.route };
+            st.nodes[N.route] = { t: "route", rules: [{ if: { flag: "helped", op: "set" }, go: N.e_good }, { if: { flag: "ate", op: "set" }, go: N.e_secret }], else: N.e_bad };
+            st.nodes[N.e_good] = { t: "end", name: "Checkout Time", lines: [{ s: "@The Guest", t: "Thank you. I can feel the morning." }, { s: "nar", t: "The inn folds up like wet paper, and the sun comes out over an empty ford." }] };
+            st.nodes[N.e_secret] = { t: "end", name: "Breakfast Is Served (Secret)", lines: [{ s: "nar", t: "The stew was the key all along. Every ghost in the room sits up, hungry and remembering. They finally finish their meal, and finally go." }, { s: "bror", t: "Best stew I've ever had. Don't tell anyone." }] };
+            st.nodes[N.e_bad] = { t: "end", name: "One More Guest", lines: [{ s: "nar", t: "You leave with the key and a heavy purse. Behind you, room thirteen stays lit." }] };
+            return st;
+        }
+        function snow() {
+            var st = blank(); st.name = "The Snow Spirit"; st.emoji = "❄️"; st.tag = "A blizzard, a lost child, and something tall walking in the white.";
+            var a = uid(), b = uid(), c = uid(), d = uid(), e = uid(), f = uid();
+            st.start = a; st.cast = { "The Snow Spirit": { emoji: "🌨️" }, "Lost Child": { emoji: "🧒" } };
+            st.nodes = {};
+            st.nodes[a] = { t: "scene", title: "The White Road", lines: [{ s: "nar", t: "The blizzard swallows the road. Somewhere ahead, a child is crying." }, { s: "lyra", t: "That's not the wind." }], choices: [{ t: "🧒 Follow the crying", go: b }, { t: "🔥 Make camp first", go: c }] };
+            st.nodes[c] = { t: "room", title: "A Snow Cave", room: { type: "rest", text: "You dig into a drift and build a fire. Everyone warms up." }, next: b };
+            st.nodes[b] = { t: "ev", title: "The Ice Bridge", lines: [{ s: "@Lost Child", t: "Help! The bridge is cracking!" }], kind: "hold", evText: "Hold steady and keep your balance across the ice!", need: 0.5, okText: "You reach the child and pull them back.", badText: "The ice gives. You scramble out, soaked and freezing.", badFx: { hp: -12 }, okFx: { f: { saved: 1 } }, ok: d, bad: d };
+            st.nodes[d] = { t: "fight", title: "The Snow Spirit", boss: "The Snow Spirit", lvl: 1, mult: 1.15, sp: "chill", every: 3, lines: [{ s: "@The Snow Spirit", t: "The cold keeps what it finds." }], phase: { kind: "rhythm", title: "Ring the Bells!", text: "Ring the sleigh bells in time to drive it back!", cut: 0.25, dmg: 12 }, win: e };
+            st.nodes[e] = { t: "route", rules: [{ if: { flag: "saved", op: "set" }, go: f }], else: f };
+            st.nodes[f] = { t: "end", name: "Warm Again", lines: [{ s: "nar", t: "The snow stops all at once. Lights glow in a village you didn't know was there." }, { s: "bror", t: "Cocoa. Somebody find me cocoa." }] };
+            return st;
+        }
+        function fromClassic(d) {   /* a classic room-list dungeon becomes a story */
+            var st = blank(); st.name = d.name || "My Dungeon"; st.nodes = {}; var ids = d.rooms.map(function () { return uid(); }), endId = uid();
+            st.start = ids[0] || endId;
+            d.rooms.forEach(function (r, i) {
+                var nx = ids[i + 1] || endId, id = ids[i], txt = r.text || "";
+                if (r.type === "battle" || r.type === "boss") st.nodes[id] = { t: "fight", title: (r.type === "boss" ? "Boss: " : "") + (r.enemy || "Foe"), boss: r.enemy || "Goblin", minor: r.type === "battle", lvl: Math.max(0, (r.lvl || 1) - 1), mult: r.type === "boss" ? 1.2 : 1, lines: txt ? [{ s: "nar", t: txt }] : [{ s: "nar", t: "Something moves in the dark." }], win: nx };
+                else if (r.type === "story") st.nodes[id] = { t: "scene", title: "Room " + (i + 1), lines: [{ s: "nar", t: txt || "A quiet room." }], next: nx };
+                else if (r.type === "fishing") st.nodes[id] = { t: "fish", title: "Fishing Pool", lines: [{ s: "nar", t: txt || "A still pool." }], okText: "You land a {fish}!", badText: "Nothing bites.", next: nx };
+                else st.nodes[id] = { t: "room", title: "Room " + (i + 1), room: Object.assign({}, r), next: nx };
+            });
+            st.nodes[endId] = { t: "end", name: "The End", lines: [{ s: "nar", t: d.outro || "You made it through." }] };
+            if (d.intro && st.nodes[st.start] && st.nodes[st.start].lines) st.nodes[st.start].lines.unshift({ s: "nar", t: d.intro });
+            return st;
+        }
+
+        /* ---------- checking a story ---------- */
+        function targets(n) {
+            var t = [];
+            if (n.next) t.push(n.next); if (n.win) t.push(n.win); if (n.ok) t.push(n.ok); if (n.bad) t.push(n.bad); if (n.else) t.push(n.else);
+            (n.choices || []).forEach(function (c) { if (c.go) t.push(c.go); }); (n.rules || []).forEach(function (r) { if (r.go) t.push(r.go); });
+            return t;
+        }
+        function order(st) {
+            var seen = {}, out = [], q = [st.start];
+            while (q.length) { var id = q.shift(); if (!id || seen[id] || !st.nodes[id]) continue; seen[id] = 1; out.push(id); targets(st.nodes[id]).forEach(function (x) { if (!seen[x]) q.push(x); }); }
+            var loose = Object.keys(st.nodes).filter(function (k) { return !seen[k]; });
+            return { main: out, loose: loose };
+        }
+        function problems(st) {
+            var P = [], o = order(st);
+            if (!st.nodes[st.start]) P.push("The story has no starting scene.");
+            if (!Object.keys(st.nodes).some(function (k) { return st.nodes[k].t === "end"; })) P.push("Add at least one 🎭 Ending.");
+            Object.keys(st.nodes).forEach(function (k) {
+                var n = st.nodes[k], nm = label(st, k);
+                targets(n).forEach(function (x) { if (!st.nodes[x]) P.push(nm + ": leads to a scene that was deleted."); });
+                if (n.t === "scene" && !n.next && !(n.choices && n.choices.length)) P.push(nm + ": needs a Continue target or at least one choice.");
+                if (n.t === "fight" && !n.win) P.push(nm + ": where do you go after winning?");
+                if ((n.t === "room" || n.t === "fish") && !n.next) P.push(nm + ": where does it lead next?");
+                if (n.t === "ev" && !n.ok) P.push(nm + ": where do you go after the mini-game?");
+                if (n.t === "route" && !n.else) P.push(nm + ": needs an \"otherwise\" target.");
+                (n.choices || []).forEach(function (c, i) { if (!c.go) P.push(nm + ": choice " + (i + 1) + " goes nowhere."); });
+            });
+            if (o.loose.length) P.push(o.loose.length + " scene" + (o.loose.length > 1 ? "s are" : " is") + " not connected to the story yet.");
+            return P;
+        }
+        var TYPES = { scene: ["📖", "Scene"], fight: ["⚔️", "Fight"], ev: ["⚡", "Mini-game"], room: ["🚪", "Room"], fish: ["🎣", "Fishing"], route: ["🔀", "Check"], end: ["🎭", "Ending"] };
+        function label(st, id) { var n = st.nodes[id]; if (!n) return "(deleted)"; return (TYPES[n.t] || ["📖"])[0] + " " + (n.t === "end" ? (n.name || "Ending") : n.t === "fight" ? (n.title || n.boss || "Fight") : n.title || (TYPES[n.t] || ["", "Scene"])[1]); }
+
+        /* ---------- pictures ---------- */
+        function shrink(file, max) {
+            return new Promise(function (ok, no) {
+                var img = new Image(), u = URL.createObjectURL(file);
+                img.onload = function () { var s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL("image/jpeg", 0.78)); };
+                img.onerror = function () { no(new Error("not a picture")); }; img.src = u;
+            });
+        }
+        function photoKeys() { try { return Object.keys(DefaultDB).filter(function (k) { return !/^Cutscene: /.test(k) && typeof DefaultDB[k] === "string"; }).sort(); } catch (e) { return []; } }
+        function thumb(v) { if (!v) return ""; var u = /^(data:|https?:|blob:)/.test(v) ? v : (function () { try { return getAsset(v); } catch (e) { return ""; } })(); return u ? '<img src="' + esc(u) + '" alt="">' : ""; }
+        function enemies(st) {
+            var l = []; try { l = A.enemyList(); } catch (e) { }
+            try { (CustomAssets.bosses || []).forEach(function (b) { if (l.indexOf(b.name) < 0) l.push(b.name); }); } catch (e) { }
+            try { (V4.MOB2 || []).forEach(function (m) { if (l.indexOf(m[0]) < 0) l.push(m[0]); }); } catch (e) { }
+            try { DDSE.SLOTS.boss.forEach(function (b) { if (l.indexOf(b) < 0) l.push(b); }); } catch (e) { }
+            Object.keys(st.cast || {}).forEach(function (c) { if (l.indexOf(c) < 0) l.unshift(c); });
+            return l;
+        }
+
+        /* ---------- UI ---------- */
+        var css = document.createElement("style");
+        css.textContent = "#ddsc2{position:fixed;inset:0;z-index:99993;background:#0a0807;color:#e7e5e4;font-family:system-ui,sans-serif;display:none;flex-direction:column}#ddsc2 .top{display:flex;align-items:center;gap:6px;padding:10px 10px 8px;border-bottom:1px solid #44403c;background:#120c0a}#ddsc2 .top h3{flex:1;margin:0;font-family:Cinzel,serif;color:#fbbf24;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}" +
+            "#ddsc2 .bd{flex:1;overflow:auto;padding:10px 12px 90px}#ddsc2 button{font:inherit;font-size:13px;font-weight:800;border:1px solid #7f1d1d;background:#241010;color:#fde68a;border-radius:10px;padding:8px 10px;cursor:pointer}#ddsc2 button.go{background:linear-gradient(#b45309,#78350f);border-color:#f59e0b;color:#fff}#ddsc2 button.bad{border-color:#991b1b;color:#fca5a5}#ddsc2 button.sm{padding:4px 8px;font-size:12px}" +
+            "#ddsc2 .card{background:#17110e;border:1px solid #44403c;border-radius:14px;padding:10px;margin:8px 0}#ddsc2 .m{font-size:12px;color:#a8a29e;line-height:1.4}#ddsc2 label{display:block;font-size:11px;color:#d6d3d1;margin:8px 0 3px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}" +
+            "#ddsc2 input,#ddsc2 select,#ddsc2 textarea{font:inherit;font-size:14px;width:100%;box-sizing:border-box;background:#0c0a09;color:#f5f5f4;border:1px solid #57534e;border-radius:9px;padding:8px}#ddsc2 textarea{min-height:56px;resize:vertical}#ddsc2 .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#ddsc2 .row>*{flex:1;min-width:0}#ddsc2 .row>button,#ddsc2 .row>.fix{flex:none}" +
+            "#ddsc2 .node{display:flex;gap:10px;align-items:flex-start;cursor:pointer}#ddsc2 .node .ic{font-size:22px;width:34px;text-align:center}#ddsc2 .node b{display:block;font-size:14px}#ddsc2 .node .to{font-size:11px;color:#fbbf24;margin-top:3px}#ddsc2 .node.start{border-color:#16a34a}#ddsc2 .node.cur{border-color:#f59e0b}#ddsc2 .tabs{display:flex;gap:6px;margin-bottom:6px}#ddsc2 .tabs button.on{background:#b45309;color:#fff}" +
+            "#ddsc2 .line{border-left:3px solid #7f1d1d;padding-left:8px;margin:8px 0}#ddsc2 .pic{display:flex;gap:8px;align-items:center}#ddsc2 .pic img{width:54px;height:54px;object-fit:cover;border-radius:8px;border:1px solid #57534e}#ddsc2 .fx{display:grid;grid-template-columns:1fr 1fr;gap:6px}#ddsc2 .fx input{padding:6px}#ddsc2 .warn{color:#fca5a5;font-size:12.5px;margin:4px 0}#ddsc2 .ok{color:#86efac}#ddsc2 .ind{margin-left:14px}";
+        document.head.appendChild(css);
+        var ov = document.createElement("div"); ov.id = "ddsc2"; document.body.appendChild(ov);
+        var S = { view: "lib", st: null, node: null, tab: "map", dirty: false };
+
+        function open() { ov.style.display = "flex"; S.view = "lib"; draw(); cloudPull().then(function (n) { if (n && S.view === "lib") draw(); }); }
+        function close() { if (S.dirty && S.st && !confirm("Leave without saving your changes?")) return; S.dirty = false; ov.style.display = "none"; }
+        function draw() { var sc = ov.querySelector(".bd") ? ov.querySelector(".bd").scrollTop : 0; ov.innerHTML = S.view === "lib" ? vLib() : S.view === "node" ? vNode() : vEdit(); var bd = ov.querySelector(".bd"); if (bd && S.keepScroll) bd.scrollTop = sc; S.keepScroll = false; }
+
+        function vLib() {
+            var L = list();
+            return '<div class="top"><h3>🛠️ Story Creator</h3><button data-a="close">✕</button></div><div class="bd">' +
+                '<div class="m">Write your own adventure. Lyra and Bror talk in their own voices, bosses fight with specials and mini-games, choices branch, flags remember, and every story can have as many endings as you like. Stories save to both phones, and you can share them as a code or a file.</div>' +
+                '<div class="card"><b>Start a new story</b><div class="row" style="margin-top:8px"><button class="go" data-a="new" data-k="blank">📄 Blank</button><button data-a="new" data-k="inn">🕯️ Haunted inn</button><button data-a="new" data-k="snow">❄️ Snow spirit</button></div>' +
+                '<div class="row" style="margin-top:6px"><button data-a="import">📥 Import a code or file</button><button data-a="classic">🔁 Convert a classic dungeon</button></div></div>' +
+                (L.length ? L.map(function (st) {
+                    var n = Object.keys(st.nodes).length, e = Object.keys(st.nodes).filter(function (k) { return st.nodes[k].t === "end"; }).length;
+                    return '<div class="card"><b>' + esc((st.emoji || "📖") + " " + st.name) + '</b><div class="m">' + n + " scenes · " + e + " ending" + (e === 1 ? "" : "s") + (st.by ? " · by " + esc(st.by) : "") + (st.tag ? "<br>" + esc(st.tag) : "") + '</div><div class="row" style="margin-top:8px"><button class="go" data-a="play" data-k="' + esc(st.id) + '">▶ Play</button><button data-a="edit" data-k="' + esc(st.id) + '">✏️ Edit</button><button data-a="share" data-k="' + esc(st.id) + '">📤 Share</button><button class="bad" data-a="del" data-k="' + esc(st.id) + '">🗑</button></div></div>';
+                }).join("") : '<div class="m" style="margin-top:12px">No stories yet. Start with a template, it is the quickest way to see how everything fits.</div>') + "</div>";
+        }
+        function vEdit() {
+            var st = S.st, o = order(st), P = problems(st);
+            var tabs = '<div class="tabs"><button data-a="tab" data-k="map" class="' + (S.tab === "map" ? "on" : "") + '">🗺️ Scenes</button><button data-a="tab" data-k="meta" class="' + (S.tab === "meta" ? "on" : "") + '">⚙️ Story & cast</button><button data-a="tab" data-k="check" class="' + (S.tab === "check" ? "on" : "") + '">' + (P.length ? "⚠️ " + P.length : "✅") + " Check</button></div>";
+            var body = "";
+            if (S.tab === "map") {
+                var depth = {}; depth[st.start] = 0; o.main.forEach(function (id) { targets(st.nodes[id]).forEach(function (x) { if (depth[x] == null) depth[x] = Math.min(6, (depth[id] || 0) + 1); }); });
+                var card = function (id) {
+                    var n = st.nodes[id], to = targets(n).filter(function (v, i, a) { return a.indexOf(v) === i; }).map(function (x) { return label(st, x); });
+                    var prev = n.lines && n.lines[0] ? n.lines[0].t : n.t === "room" ? ((n.room && n.room.text) || "") : n.evText || "";
+                    return '<div class="card node' + (id === st.start ? " start" : "") + '" data-a="open" data-k="' + id + '" style="margin-left:' + Math.min(5, depth[id] || 0) * 10 + 'px"><div class="ic">' + (TYPES[n.t] || ["📖"])[0] + '</div><div style="flex:1;min-width:0"><b>' + esc(label(st, id).replace(/^\S+ /, "")) + (id === st.start ? ' <span class="ok" style="font-size:11px">START</span>' : "") + '</b><div class="m">' + esc(String(prev).slice(0, 90)) + "</div>" + (to.length ? '<div class="to">→ ' + esc(to.join(" · ")) + "</div>" : "") + "</div></div>";
+                };
+                body = o.main.map(card).join("") + (o.loose.length ? '<div class="m" style="margin-top:14px">Not connected yet:</div>' + o.loose.map(card).join("") : "") +
+                    '<div class="row" style="margin-top:10px">' + Object.keys(TYPES).map(function (k) { return '<button class="sm" data-a="add" data-k="' + k + '">＋ ' + TYPES[k][0] + " " + TYPES[k][1] + "</button>"; }).join("") + "</div>";
+            } else if (S.tab === "meta") {
+                body = '<label>Name</label><input data-p="name" value="' + esc(st.name) + '" maxlength="40"><div class="row"><div><label>Emoji</label><input data-p="emoji" value="' + esc(st.emoji || "") + '" maxlength="4"></div><div><label>Gold reward</label><input data-p="reward.gold" data-num="1" type="number" value="' + (st.reward && st.reward.gold || 0) + '"></div><div><label>Silver</label><input data-p="reward.silver" data-num="1" type="number" value="' + (st.reward && st.reward.silver || 0) + '"></div></div>' +
+                    '<label>One-line pitch</label><input data-p="tag" value="' + esc(st.tag || "") + '" maxlength="140"><label>Starting scene</label>' + pick("start", st.start, false) +
+                    '<label>Background for every scene (optional)</label>' + picField("bg", st.bg) +
+                    '<label>Costumes for Lyra and Bror (optional: they use their normal photos otherwise)</label><div class="row"><div>' + picField("costume.lyra", st.costume && st.costume.lyra, "Lyra") + '</div><div>' + picField("costume.bror", st.costume && st.costume.bror, "Bror") + "</div></div>" +
+                    '<h4 style="margin:16px 0 4px;color:#fbbf24">🎭 Cast</h4><div class="m">People who talk or fight in your story. Give each one a picture from your phone or a Photo Studio name, and pick them as a speaker or a boss.</div>' +
+                    Object.keys(st.cast || {}).map(function (nm) { var c = st.cast[nm]; return '<div class="card"><div class="row"><b>' + esc((c.emoji || "") + " " + nm) + '</b><button class="sm bad" data-a="uncast" data-k="' + esc(nm) + '">✖</button></div>' + picField("cast." + nm + ".img", c.img) + "</div>"; }).join("") +
+                    '<div class="row"><input id="ddsc-cn" placeholder="New character name"><input id="ddsc-ce" placeholder="🙂" maxlength="4" style="max-width:60px"><button data-a="cast">＋ Add</button></div>';
+            } else {
+                body = P.length ? P.map(function (p) { return '<div class="warn">⚠️ ' + esc(p) + "</div>"; }).join("") : '<div class="ok">✅ Everything connects. Ready to play and share!</div>';
+                body += '<div class="m" style="margin-top:10px">Tokens you can use in any line: {you} your hero\'s name, {L} Lyra, {B} Bror, {me} your name, {pal} your partner, {fear} your hero\'s fear.</div>';
+            }
+            return '<div class="top"><button data-a="lib">←</button><h3>' + esc((st.emoji || "") + " " + st.name) + '</h3><button data-a="test">▶</button><button class="go" data-a="save">💾</button></div><div class="bd">' + tabs + body + "</div>";
+        }
+        function pick(path, val, allowNew) {
+            var st = S.st, ids = order(st); ids = ids.main.concat(ids.loose);
+            return '<select data-p="' + path + '" data-pick="1"><option value="">— choose —</option>' + ids.map(function (id) { return '<option value="' + id + '"' + (id === val ? " selected" : "") + ">" + esc(label(st, id)) + "</option>"; }).join("") +
+                (allowNew !== false ? Object.keys(TYPES).map(function (k) { return '<option value="+' + k + '">＋ New ' + TYPES[k][1].toLowerCase() + "…</option>"; }).join("") : "") + "</select>";
+        }
+        function picField(path, val, title) {
+            var keys = photoKeys();
+            return '<div class="pic">' + thumb(val) + '<div style="flex:1"><input data-p="' + path + '" list="ddsc-keys" placeholder="' + (title ? title + ": " : "") + 'Photo Studio name, or upload →" value="' + esc(val && !/^data:/.test(val) ? val : val ? "(your photo)" : "") + '"' + (val && /^data:/.test(val) ? " readonly" : "") + '></div><button class="sm fix" data-a="upload" data-k="' + path + '">📷</button>' + (val ? '<button class="sm fix bad" data-a="unpic" data-k="' + path + '">✖</button>' : "") + "</div>" +
+                (document.getElementById("ddsc-keys") ? "" : '<datalist id="ddsc-keys">' + keys.map(function (k) { return '<option value="' + esc(k) + '">'; }).join("") + "</datalist>");
+        }
+        function speakerSel(path, val) {
+            var st = S.st, o = [["nar", "Narrator"], ["you", "You (your hero)"], ["lyra", "Lyra"], ["bror", "Bror"], ["mira", "Mira"]];
+            Object.keys(st.cast || {}).forEach(function (c) { o.push(["@" + c, (st.cast[c].emoji || "🎭") + " " + c]); });
+            if (val && val.charAt(0) === "@" && !o.some(function (x) { return x[0] === val; })) o.push([val, val.slice(1)]);
+            return '<select data-p="' + path + '">' + o.map(function (x) { return '<option value="' + esc(x[0]) + '"' + (x[0] === val ? " selected" : "") + ">" + esc(x[1]) + "</option>"; }).join("") + "</select>";
+        }
+        function linesEd(base, lines) {
+            return (lines || []).map(function (L, i) {
+                return '<div class="line"><div class="row">' + speakerSel(base + "." + i + ".s", L.s || "nar") + '<button class="sm fix" data-a="lup" data-k="' + base + "|" + i + '">▲</button><button class="sm fix bad" data-a="ldel" data-k="' + base + "|" + i + '">✖</button></div><textarea data-p="' + base + "." + i + '.t" placeholder="What they say">' + esc(L.t || "") + "</textarea></div>";
+            }).join("") + '<button class="sm" data-a="ladd" data-k="' + base + '">＋ Add a line</button>';
+        }
+        function fxEd(base, fx) {
+            fx = fx || {}; var f = fx.f ? Object.keys(fx.f)[0] : "", fv = f ? fx.f[f] : "";
+            var n = function (p, ph, v) { return '<input data-p="' + base + "." + p + '" data-num="1" type="number" placeholder="' + ph + '" value="' + (v == null ? "" : v) + '">'; };
+            return '<details' + (Object.keys(fx).length ? " open" : "") + '><summary class="m" style="cursor:pointer">✨ Effects ' + (Object.keys(fx).length ? "(" + Object.keys(fx).join(", ") + ")" : "(none)") + '</summary><div class="fx" style="margin-top:6px">' +
+                n("gold", "💰 gold ±", fx.gold) + n("hp", "❤️ HP ±", fx.hp) + n("loy.lyra", "💜 Lyra trust ±", fx.loy && fx.loy.lyra) + n("loy.bror", "🛡️ Bror trust ±", fx.loy && fx.loy.bror) + n("sane", "🧠 sanity ±", fx.sane) + n("xp", "⭐ XP", fx.xp) +
+                '<input data-p="' + base + '.item.0" placeholder="🎁 give an item" value="' + esc(fx.item ? fx.item[0] : "") + '"><label style="display:flex;gap:6px;align-items:center;margin:0;text-transform:none"><input type="checkbox" data-p="' + base + '.heal" data-bool="1" style="width:auto"' + (fx.heal ? " checked" : "") + "> ❤️ full heal</label>" +
+                '<input data-flagk="' + base + '" placeholder="🚩 remember (flag)" value="' + esc(f) + '"><input data-flagv="' + base + '" placeholder="value (1, yes, +1)" value="' + esc(fv) + '"></div></details>';
+        }
+        function condEd(base, c) {
+            c = c || {}; var k = c.has ? "has_" + c.has : c.gold != null ? "gold" : c.flag ? (c.op || "set") : "";
+            return '<div class="row"><select data-cond="' + base + '"><option value="">always</option><option value="set"' + (k === "set" ? " selected" : "") + '>if flag is set</option><option value="unset"' + (k === "unset" ? " selected" : "") + '>if flag is NOT set</option><option value="="' + (k === "=" ? " selected" : "") + '>if flag =</option><option value=">="' + (k === ">=" ? " selected" : "") + '>if flag ≥</option><option value="gold"' + (k === "gold" ? " selected" : "") + '>if gold ≥</option><option value="has_lyra"' + (k === "has_lyra" ? " selected" : "") + '>if Lyra is with you</option><option value="has_bror"' + (k === "has_bror" ? " selected" : "") + ">if Bror is with you</option></select>" +
+                (k && k !== "has_lyra" && k !== "has_bror" ? (k !== "gold" ? '<input data-p="' + base + '.flag" placeholder="flag" value="' + esc(c.flag || "") + '">' : "") + (k === "=" || k === ">=" || k === "gold" ? '<input data-p="' + base + (k === "gold" ? ".gold" : ".val") + '" placeholder="value" value="' + esc(k === "gold" ? c.gold : c.val || "") + '">' : "") : "") + "</div>";
+        }
+        function vNode() {
+            var st = S.st, id = S.node, n = st.nodes[id], P = "nodes." + id; if (!n) { S.view = "edit"; return vEdit(); }
+            var h = '<label>Kind</label><select data-a2="type">' + Object.keys(TYPES).map(function (k) { return '<option value="' + k + '"' + (n.t === k ? " selected" : "") + ">" + TYPES[k][0] + " " + TYPES[k][1] + "</option>"; }).join("") + "</select>";
+            if (n.t !== "route" && n.t !== "end") h += '<label>Title</label><input data-p="' + P + '.title" value="' + esc(n.title || "") + '" placeholder="Where are we?">';
+            if (n.t === "end") h += '<label>Ending name</label><input data-p="' + P + '.name" value="' + esc(n.name || "") + '">';
+            if (n.t !== "route") h += '<label>Background (optional)</label>' + picField(P + ".bg", n.bg);
+            if (n.t !== "route" && n.t !== "room") h += '<label>' + (n.t === "fight" ? "Before the fight" : n.t === "end" ? "How it ends" : "Conversation") + "</label>" + linesEd(P + ".lines", n.lines);
+            if (n.t === "scene") {
+                h += '<label>Effects when this scene starts</label>' + fxEd(P + ".fx", n.fx) + '<h4 style="margin:14px 0 4px;color:#fbbf24">Choices</h4><div class="m">No choices? The scene just continues to the next one.</div>';
+                (n.choices || []).forEach(function (c, i) {
+                    var cp = P + ".choices." + i;
+                    h += '<div class="card"><div class="row"><input data-p="' + cp + '.t" value="' + esc(c.t || "") + '" placeholder="What you choose"><button class="sm fix bad" data-a="cdel" data-k="' + i + '">✖</button></div><label>Goes to</label>' + pick(cp + ".go", c.go) +
+                        '<div class="row"><div><label>Costs gold</label><input data-p="' + cp + '.cost" data-num="1" type="number" value="' + (c.cost || "") + '"></div></div><label>Only shows</label>' + condEd(cp + ".req", c.req) + fxEd(cp + ".fx", c.fx) + "</div>";
+                });
+                h += '<button class="sm" data-a="cadd">＋ Add a choice</button>';
+                if (!(n.choices && n.choices.length)) h += '<label>Continues to</label>' + pick(P + ".next", n.next) + '<label>Button text</label><input data-p="' + P + '.btn" value="' + esc(n.btn || "") + '" placeholder="Continue">';
+            }
+            if (n.t === "fight") {
+                var en = enemies(st);
+                h += '<div class="row"><div><label>Foe</label><input data-p="' + P + '.boss" list="ddsc-en" value="' + esc(n.boss || "") + '"><datalist id="ddsc-en">' + en.map(function (e) { return '<option value="' + esc(e) + '">'; }).join("") + '</datalist></div><div class="fix"><label>Boss?</label><input type="checkbox" data-p="' + P + '.minor" data-bool="1" data-inv="1" style="width:auto"' + (n.minor ? "" : " checked") + "></div></div>" +
+                    '<label>Foe picture (optional; Photo Studio picture is used otherwise)</label>' + picField(P + ".bossImg", n.bossImg) +
+                    '<div class="row"><div><label>Level ±</label><input data-p="' + P + '.lvl" data-num="1" type="number" value="' + (n.lvl || 0) + '"></div><div><label>HP ×</label><input data-p="' + P + '.mult" data-num="1" type="number" step="0.05" value="' + (n.mult || 1) + '"></div><div><label>Hits ×</label><input data-p="' + P + '.atkm" data-num="1" type="number" step="0.05" value="' + (n.atkm || 1) + '"></div></div>' +
+                    '<div class="row"><div><label>Special move</label><select data-p="' + P + '.sp">' + [["", "none"], ["drain", "🩸 Drain life"], ["scream", "📣 Scream (hits everyone)"], ["chill", "❄️ Chill (and steals gold)"], ["steal", "🎒 Steal gold"], ["enrage", "🔥 Enrage (gets stronger)"]].map(function (x) { return '<option value="' + x[0] + '"' + ((n.sp || "") === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + '</select></div><div><label>Every N turns</label><input data-p="' + P + '.every" data-num="1" type="number" value="' + (n.every || 3) + '"></div></div>' +
+                    '<label>Taunt (mid-fight line)</label><input data-p="' + P + '.taunt" value="' + esc(n.taunt || "") + '">' +
+                    '<label><input type="checkbox" data-a2="phase" style="width:auto"' + (n.phase ? " checked" : "") + "> Half-health mini-game (both of you, in co-op)</label>" +
+                    (n.phase ? '<div class="card">' + kindSel(P + ".phase.kind", n.phase.kind) + '<input data-p="' + P + '.phase.title" placeholder="Title" value="' + esc(n.phase.title || "") + '"><textarea data-p="' + P + '.phase.text" placeholder="What to do">' + esc(n.phase.text || "") + '</textarea><div class="row"><input data-p="' + P + '.phase.okTxt" placeholder="If it works" value="' + esc(n.phase.okTxt || "") + '"><input data-p="' + P + '.phase.badTxt" placeholder="If it fails" value="' + esc(n.phase.badTxt || "") + "\"></div></div>" : "") +
+                    '<label>After you win</label>' + pick(P + ".win", n.win);
+            }
+            if (n.t === "ev") {
+                h += kindSel(P + ".kind", n.kind) + '<label>Instructions</label><input data-p="' + P + '.evText" value="' + esc(n.evText || "") + '"><div class="row"><div><label>How good (0.3 easy – 0.8 hard)</label><input data-p="' + P + '.need" data-num="1" type="number" step="0.05" value="' + (n.need || 0.5) + '"></div></div>' +
+                    '<label>If you succeed</label><textarea data-p="' + P + '.okText">' + esc(n.okText || "") + "</textarea>" + fxEd(P + ".okFx", n.okFx) + pick(P + ".ok", n.ok) +
+                    '<label>If you fail</label><textarea data-p="' + P + '.badText">' + esc(n.badText || "") + "</textarea>" + fxEd(P + ".badFx", n.badFx) + pick(P + ".bad", n.bad);
+            }
+            if (n.t === "room") {
+                var r = n.room || (n.room = { type: "riddle" }), RP = P + ".room";
+                h += '<label>Room</label><select data-p="' + RP + '.type" data-re="1">' + [["riddle", "❓ Trap riddle"], ["puzzle", "🧩 Puzzle for two"], ["lockbox", "🗝️ Twin-lock chest"], ["haunted", "👂 Haunted walls (learn a weakness)"], ["wares", "🕯️ Cursed peddler"], ["treasure", "💰 Treasure"], ["rest", "⛺ Rest"], ["trap", "🪤 Trap"]].map(function (x) { return '<option value="' + x[0] + '"' + (r.type === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select>" +
+                    '<label>What you see</label><textarea data-p="' + RP + '.text">' + esc(r.text || "") + "</textarea>";
+                if (r.type === "riddle") h += '<input data-p="' + RP + '.q" placeholder="The riddle" value="' + esc(r.q || "") + '">' + [1, 2, 3, 4].map(function (i) { return '<input data-p="' + RP + ".o" + i + '" placeholder="Answer ' + i + '" value="' + esc(r["o" + i] || "") + '" style="margin-top:4px">'; }).join("") + '<div class="row"><div><label>Right answer #</label><input data-p="' + RP + '.right" data-num="1" type="number" min="1" max="4" value="' + (r.right || 1) + '"></div><div><label>Damage if wrong</label><input data-p="' + RP + '.amt" data-num="1" type="number" value="' + (r.amt || 10) + '"></div></div>';
+                if (r.type === "puzzle") h += '<label>Puzzle # (1–8)</label><input data-p="' + RP + '.lvl" data-num="1" type="number" min="1" max="8" value="' + (r.lvl || 1) + '">';
+                if (r.type === "lockbox" || r.type === "treasure" || r.type === "trap") h += '<label>' + (r.type === "trap" ? "Damage" : "Gold") + '</label><input data-p="' + RP + '.amt" data-num="1" type="number" value="' + (r.amt || 30) + '">';
+                if (r.type === "haunted") h += '<label>The foe it warns about</label><input data-p="' + RP + '.enemy" list="ddsc-en2" value="' + esc(r.enemy || "") + '"><datalist id="ddsc-en2">' + enemies(st).map(function (e) { return '<option value="' + esc(e) + '">'; }).join("") + "</datalist>";
+                h += '<label>Then</label>' + pick(P + ".next", n.next);
+            }
+            if (n.t === "fish") h += '<label>If you catch something ({fish} = what you caught)</label><textarea data-p="' + P + '.okText">' + esc(n.okText || "") + '</textarea><label>If nothing bites</label><input data-p="' + P + '.badText" value="' + esc(n.badText || "") + '"><label>Remember a catch as flag</label><input data-p="' + P + '.flag" value="' + esc(n.flag || "") + '"><label>Then</label>' + pick(P + ".next", n.next);
+            if (n.t === "route") {
+                h += '<div class="m">A check sends the story one way or another based on what happened so far. The first rule that matches wins.</div>';
+                (n.rules || []).forEach(function (r, i) { h += '<div class="card"><div class="row"><b>Rule ' + (i + 1) + '</b><button class="sm fix bad" data-a="rdel" data-k="' + i + '">✖</button></div>' + condEd(P + ".rules." + i + ".if", r.if) + '<label>Go to</label>' + pick(P + ".rules." + i + ".go", r.go) + "</div>"; });
+                h += '<button class="sm" data-a="radd">＋ Add a rule</button><label>Otherwise</label>' + pick(P + ".else", n.else);
+            }
+            if (n.t === "end") h += '<label>Effects</label>' + fxEd(P + ".fx", n.fx);
+            h += '<div class="row" style="margin-top:16px"><button data-a="startfrom">⭐ Make this the start</button><button data-a="testhere">▶ Test from here</button><button data-a="dup">⧉ Copy</button><button class="bad" data-a="ndel">🗑 Delete</button></div>';
+            return '<div class="top"><button data-a="back">←</button><h3>' + esc(label(st, id)) + '</h3><button class="go" data-a="save">💾</button></div><div class="bd">' + h + "</div>";
+        }
+        function kindSel(path, v) { return '<label>Mini-game</label><select data-p="' + path + '">' + [["rhythm", "🥁 Rhythm taps"], ["keys", "🗝️ Timing needle"], ["hold", "✋ Hold steady"]].map(function (x) { return '<option value="' + x[0] + '"' + ((v || "rhythm") === x[0] ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select>"; }
+
+        /* ---------- editing ---------- */
+        function getP(o, path) { return path.split(".").reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
+        function setP(o, path, v) {
+            var ks = path.split("."), last = ks.pop(), t = o;
+            ks.forEach(function (k, i) { if (t[k] == null || typeof t[k] !== "object") t[k] = /^\d+$/.test(ks[i + 1] || last) ? [] : {}; t = t[k]; });
+            if (v === "" || v == null || (typeof v === "number" && isNaN(v))) { if (Array.isArray(t)) t[last] = ""; else delete t[last]; } else t[last] = v;
+            clean(o, ks);
+        }
+        function clean(o, ks) { for (var i = ks.length; i > 0; i--) { var p = ks.slice(0, i), par = getP(o, p.slice(0, -1).join(".")) || o, k = p[p.length - 1], v = par[k]; if (v && typeof v === "object" && !Array.isArray(v) && !Object.keys(v).length && /fx|loy|req|if|item/.test(k)) delete par[k]; } }
+        function newNode(t) {
+            var id = uid(), n = { t: t };
+            if (t === "scene") { n.title = "New scene"; n.lines = [{ s: "nar", t: "" }]; }
+            if (t === "fight") { n.title = "A fight"; n.boss = "Goblin"; n.lvl = 0; n.mult = 1; n.lines = [{ s: "nar", t: "" }]; n.every = 3; }
+            if (t === "ev") { n.title = "A test"; n.kind = "rhythm"; n.need = 0.5; n.lines = [{ s: "nar", t: "" }]; }
+            if (t === "room") { n.title = "A room"; n.room = { type: "riddle", amt: 10, right: 1 }; }
+            if (t === "fish") { n.title = "A pool"; n.lines = [{ s: "nar", t: "Still water." }]; n.okText = "You land a {fish}!"; n.badText = "Nothing bites."; }
+            if (t === "route") { n.rules = [{ if: { flag: "", op: "set" }, go: "" }]; }
+            if (t === "end") { n.name = "An ending"; n.lines = [{ s: "nar", t: "" }]; }
+            S.st.nodes[id] = n; S.dirty = true; return id;
+        }
+        function save(quiet) {
+            var st = S.st; if (!st) return;
+            st.by = st.by || myName(); st.endings = Object.keys(st.nodes).filter(function (k) { return st.nodes[k].t === "end"; });
+            if (put(st)) { S.dirty = false; cloudSave(st).then(function (ok) { if (!quiet) toast(ok ? "💾 Saved for both phones" : "💾 Saved on this phone"); }); }
+        }
+        function test(from) {
+            save(true); var st = JSON.parse(JSON.stringify(S.st)); if (from) st.start = from;
+            ov.style.display = "none"; DDSE.play(st);
+        }
+        function share(st) {
+            encode(st).then(function (code) {
+                var big = code.length > 60000;
+                var o = document.createElement("div"); o.className = "card";
+                var html = '<b>📤 Share "' + esc(st.name) + '"</b><div class="m">Your partner already has it (stories save to both phones). To share with anyone else, send this code or the file. They tap Import in their Story Creator.' + (big ? " This one has big pictures, so the file is easier." : "") + '</div><textarea readonly style="min-height:90px;font-size:11px">' + esc(code) + '</textarea><div class="row" style="margin-top:6px"><button data-z="copy">📋 Copy code</button><button data-z="file">💾 Save file</button>' + (navigator.share ? '<button data-z="send">📨 Send</button>' : "") + "</div>";
+                o.innerHTML = html; var bd = ov.querySelector(".bd"); bd.insertBefore(o, bd.firstChild); bd.scrollTop = 0;
+                o.onclick = function (e) {
+                    var z = e.target.dataset.z; if (!z) return;
+                    if (z === "copy") { (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(function () { toast("Code copied"); }, function () { o.querySelector("textarea").select(); document.execCommand("copy"); toast("Code copied"); }); }
+                    if (z === "file") { var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(st)], { type: "application/json" })); a.download = (st.name || "story").replace(/[^\w -]+/g, "") + ".ddstory.json"; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000); }
+                    if (z === "send") { navigator.share({ title: st.name, text: "A Dungeon Dwellers story: " + st.name + "\n\n" + code }).catch(function () { }); }
+                };
+            });
+        }
+        function importUI() {
+            var o = document.createElement("div"); o.className = "card";
+            o.innerHTML = '<b>📥 Import a story</b><textarea id="ddsc-code" placeholder="Paste a story code (starts with DDS1:)"></textarea><div class="row" style="margin-top:6px"><button class="go" data-z="paste">Import code</button><button data-z="file">📂 Pick a file</button></div>';
+            var bd = ov.querySelector(".bd"); bd.insertBefore(o, bd.firstChild); bd.scrollTop = 0;
+            o.onclick = function (e) {
+                var z = e.target.dataset.z; if (!z) return;
+                var done = function (st) { try { st = importStory(st); toast("📥 Imported " + st.name); draw(); } catch (x) { toast(x.message); } };
+                if (z === "paste") decode($("ddsc-code").value).then(done, function (x) { toast(x.message || "That code didn't work."); });
+                if (z === "file") { var f = document.createElement("input"); f.type = "file"; f.accept = ".json,application/json"; f.onchange = function () { if (!f.files[0]) return; f.files[0].text().then(function (t) { try { done(JSON.parse(t)); } catch (x) { toast("That file isn't a story."); } }); }; f.click(); }
+            };
+        }
+
+        ov.addEventListener("click", function (e) {
+            var b = e.target.closest("[data-a]"); if (!b || !ov.contains(b)) return;
+            var a = b.dataset.a, k = b.dataset.k, st = S.st;
+            if (a === "close") return close();
+            if (a === "new") { S.st = k === "inn" ? inn() : k === "snow" ? snow() : blank(); S.view = "edit"; S.tab = "map"; S.dirty = true; return draw(); }
+            if (a === "import") return importUI();
+            if (a === "classic") {
+                var C = jget("ddco_dungeons", {}), ids = Object.keys(C); if (!ids.length) return toast("No classic dungeons on this phone yet.");
+                var nm = prompt("Which one? Type its number:\n" + ids.map(function (id, i) { return (i + 1) + ". " + C[id].name; }).join("\n"), "1"); var d = C[ids[(+nm || 1) - 1]]; if (!d) return;
+                S.st = fromClassic(d); S.view = "edit"; S.tab = "map"; S.dirty = true; return draw();
+            }
+            if (a === "play") { var s1 = get(k); if (s1) { ov.style.display = "none"; DDSE.play(s1); } return; }
+            if (a === "edit") { S.st = JSON.parse(JSON.stringify(get(k))); S.view = "edit"; S.tab = "map"; S.dirty = false; return draw(); }
+            if (a === "share") return share(get(k));
+            if (a === "del") { if (!confirm("Delete this story from both phones?")) return; var L = local(); delete L[k]; jset(KEY, L); try { A.kvDel && A.kvDel("dd_story_" + k); } catch (x) { } return draw(); }
+            if (a === "lib") { if (S.dirty && !confirm("Leave without saving?")) return; S.dirty = false; S.st = null; S.view = "lib"; return draw(); }
+            if (a === "tab") { S.tab = k; return draw(); }
+            if (a === "save") { save(); S.keepScroll = true; return draw(); }
+            if (a === "test") { var pr = problems(st).filter(function (p) { return /no starting|Add at least/.test(p); }); if (pr.length) return toast(pr[0]); return test(); }
+            if (a === "open") { S.node = k; S.view = "node"; return draw(); }
+            if (a === "back") { S.view = "edit"; return draw(); }
+            if (a === "add") { var nid = newNode(k); S.node = nid; S.view = "node"; return draw(); }
+            if (a === "cast") { var cn = $("ddsc-cn").value.trim(); if (!cn) return; st.cast = st.cast || {}; st.cast[cn] = { emoji: $("ddsc-ce").value.trim() }; S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "uncast") { delete st.cast[k]; S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "upload") { var f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = function () { if (!f.files[0]) return; shrink(f.files[0], 520).then(function (u) { setP(st, k, u); S.dirty = true; S.keepScroll = true; draw(); }, function () { toast("Couldn't read that picture."); }); }; return f.click(); }
+            if (a === "unpic") { setP(st, k, ""); S.dirty = true; S.keepScroll = true; return draw(); }
+            var n = st && st.nodes[S.node];
+            if (a === "ladd") { var arr = getP(st, k) || []; arr.push({ s: arr.length ? arr[arr.length - 1].s === "lyra" ? "bror" : "lyra" : "nar", t: "" }); setP(st, k, arr); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "ldel" || a === "lup") { var pp = k.split("|"), ar = getP(st, pp[0]), ix = +pp[1]; if (a === "ldel") ar.splice(ix, 1); else if (ix > 0) ar.splice(ix - 1, 0, ar.splice(ix, 1)[0]); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "cadd") { n.choices = n.choices || []; n.choices.push({ t: "", go: "" }); delete n.next; S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "cdel") { n.choices.splice(+k, 1); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "radd") { n.rules = n.rules || []; n.rules.push({ if: { flag: "", op: "set" }, go: "" }); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "rdel") { n.rules.splice(+k, 1); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (a === "startfrom") { st.start = S.node; S.dirty = true; toast("This is now the first scene"); return draw(); }
+            if (a === "testhere") return test(S.node);
+            if (a === "dup") { var cp = JSON.parse(JSON.stringify(n)), id2 = uid(); if (cp.title) cp.title += " (copy)"; if (cp.name) cp.name += " (copy)"; st.nodes[id2] = cp; S.node = id2; S.dirty = true; return draw(); }
+            if (a === "ndel") {
+                if (Object.keys(st.nodes).length <= 1) return toast("A story needs at least one scene.");
+                if (!confirm("Delete this scene? Anything that led here will need a new target.")) return;
+                delete st.nodes[S.node]; if (st.start === S.node) st.start = Object.keys(st.nodes)[0]; S.dirty = true; S.view = "edit"; return draw();
+            }
+        });
+        function onField(e) {
+            var t = e.target; if (!S.st || !ov.contains(t)) return;
+            if (t.dataset.a2 === "type") { var n = S.st.nodes[S.node], keep = { lines: n.lines, title: n.title, bg: n.bg }; var id = S.node; delete S.st.nodes[id]; var nid = newNode(t.value), nn = S.st.nodes[nid]; delete S.st.nodes[nid]; Object.keys(keep).forEach(function (k) { if (keep[k] && t.value !== "route") nn[k] = keep[k]; }); S.st.nodes[id] = nn; S.dirty = true; return draw(); }
+            if (t.dataset.a2 === "phase") { var n2 = S.st.nodes[S.node]; n2.phase = t.checked ? { kind: "keys", title: "Strike now!", text: "Time it right, both of you!", cut: 0.25, dmg: 12 } : null; S.dirty = true; S.keepScroll = true; return draw(); }
+            if (t.dataset.cond) { var base = t.dataset.cond, v = t.value; var c = v === "" ? null : v === "gold" ? { gold: 0 } : /^has_/.test(v) ? { has: v.slice(4) } : { flag: (getP(S.st, base) || {}).flag || "", op: v }; if (c) setP(S.st, base, c); else setP(S.st, base, ""); S.dirty = true; S.keepScroll = true; return draw(); }
+            if (t.dataset.flagk != null || t.dataset.flagv != null) {
+                var bs = t.dataset.flagk || t.dataset.flagv, fx = getP(S.st, bs) || {}, row = t.parentNode, fk = row.querySelector("[data-flagk]").value.trim(), fv = row.querySelector("[data-flagv]").value.trim();
+                if (fk) { fx.f = {}; fx.f[fk] = fv === "" ? 1 : /^-?\d+$/.test(fv) ? +fv : fv; } else delete fx.f; setP(S.st, bs, Object.keys(fx).length ? fx : ""); S.dirty = true; return;
+            }
+            var p = t.dataset.p; if (!p) return;
+            if (t.readOnly) return;
+            var v2 = t.dataset.bool ? (t.dataset.inv ? !t.checked : t.checked) : t.dataset.num ? (t.value === "" ? "" : +t.value) : t.value;
+            if (t.dataset.bool && !v2) v2 = "";
+            if (t.dataset.pick && /^\+/.test(v2)) { var nid2 = newNode(v2.slice(1)); setP(S.st, p, nid2); S.keepScroll = true; return draw(); }
+            setP(S.st, p, v2); S.dirty = true;
+            if (t.dataset.pick || t.dataset.re || e.type === "change" && t.tagName === "SELECT") { S.keepScroll = true; draw(); }
+        }
+        ov.addEventListener("change", onField);
+        ov.addEventListener("input", function (e) { if (e.target.tagName !== "SELECT" && e.target.type !== "checkbox") onField(e); });
+
+        /* ---------- ways in: the Dungeons tab, the Seasonal Tales menu, the settings menu ---------- */
+        window.DDSC = { open: open, list: list, get: get, play: function (id) { var st = get(id); if (st) DDSE.play(st); }, encode: encode, decode: decode, importStory: importStory, problems: problems, fromClassic: fromClassic, templates: { blank: blank, inn: inn, snow: snow } };
+        (function hook() {
+            var m = $("settings-modal"), j = $("dd-season-set");
+            if (m && j && !$("dd-story-set")) { var s = document.createElement("button"); s.id = "dd-story-set"; s.className = j.className; s.textContent = "🛠️ Story Creator"; s.onclick = function () { try { toggleSettingsMenu(); } catch (e) { } open(); }; j.parentNode.insertBefore(s, j.nextSibling); }
+            var t = $("dd-season-btn"); if (t && !$("dd-story-btn")) { var b2 = document.createElement("button"); b2.id = "dd-story-btn"; b2.className = t.className; b2.innerHTML = "<span>🛠️</span><span>Story Creator</span>"; b2.onclick = open; t.parentNode.insertBefore(b2, t.nextSibling); }
+            setTimeout(function () { if (!$("dd-story-set") || !$("dd-story-btn")) hook(); }, 2000);
+        })();
+        /* the Dungeons tab in the co-op panel gets a big door into the Story Creator */
+        setInterval(function () {
+            var nb = $("dd-new"); if (nb && !$("dd-sc-door")) {
+                var d = document.createElement("div"); d.id = "dd-sc-door"; d.style.cssText = "border:1px solid #f59e0b;border-radius:12px;padding:10px;margin:8px 0;background:#1c1208";
+                d.innerHTML = '<b style="color:#fbbf24">🛠️ Story Creator (new)</b><div style="font-size:12px;color:#d6d3d1;margin:4px 0 8px">Branching stories with talking companions, bosses, mini-games, checks, endings and sharing. Classic room-list dungeons are still below, and you can convert one into a story.</div><button class="go" id="dd-sc-open">Open the Story Creator</button>';
+                nb.parentNode.parentNode.insertBefore(d, nb.parentNode); $("dd-sc-open").onclick = function () { try { document.getElementById("ddco") && (document.getElementById("ddco").style.display = "none"); } catch (e) { } open(); };
+            }
+        }, 1200);
+    }
+})();
+</script>
+
 <script>
 /* build 21: publish achievements to the Club tab */
 (function(){ function pub(){ try{ var D=window.DD13; if(!D||!D.ACH||!window.BCX) return; var got={}; try{got=JSON.parse(localStorage.getItem('ddx13_ach'))||{};}catch(e){}
