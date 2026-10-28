@@ -250,6 +250,7 @@
         BCX.songList().then(function (L) { SONGS = L; var b = document.getElementById("bcx-b-pl"); if (b) b.innerHTML = plHTML(); });
     }
     function refresh(sec) { var H = hall(), b = document.getElementById("bcx-b-" + sec); if (!b) return; b.innerHTML = sec === "road" ? roadHTML(H) : sec === "hall" ? hallHTML(H) : sec === "eggs" ? eggsHTML() : sec === "pl" ? plHTML() : sec === "mix" ? mixHTML() : backupHTML(); }
+    (function watch() { var v = document.getElementById("view-club"); if (!v) return void setTimeout(watch, 300); try { new MutationObserver(function () { inject(); }).observe(v, { childList: true }); } catch (x) {} inject(); })();
     setInterval(function () { try { inject(); var e = document.getElementById("bcx-b-eggs"); if (e && e.parentNode.open && !document.hidden) refresh("eggs"); } catch (x) {} }, 1500);
     function refreshTrophies() { try { ["road", "hall", "eggs"].forEach(refresh); } catch (x) {} }
     window.addEventListener("storage", function (e) { if (e.key && /^bc_(hall_|eggs)/.test(e.key)) refreshTrophies(); });
