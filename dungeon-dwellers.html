@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="bc-extras.js"></script>
 <script id="ddb23v-early">
 /* DD BATCH 23V (early part) - lets the Piper voices sit underneath every speech layer.
    Loads before everything else and changes nothing until the Piper voices are switched on:
@@ -37623,6 +37623,12 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     }
 })();
 
+</script>
+<script>
+/* build 21: publish achievements to the Club tab */
+(function(){ function pub(){ try{ var D=window.DD13; if(!D||!D.ACH||!window.BCX) return; var got={}; try{got=JSON.parse(localStorage.getItem('ddx13_ach'))||{};}catch(e){}
+  BCX.publish('dd', D.ACH.map(function(a){ var ok=!!got[a[0]], p=String(a[1]).split(' '), ic=p.shift(); return [a[0], ic, p.join(' '), (a[5]&&!ok)?'A hidden achievement.':a[2], ok]; })); }catch(e){} }
+  setInterval(pub,4000); setTimeout(pub,1500); })();
 </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="bc-extras.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#a5652e">
@@ -989,7 +989,7 @@ fish:{t:'🎣 Fishing Pond',h:()=>`<p class="mut" id="ft">Cast your line! 🪱 $
  i:()=>{let fs='idle';const say=(t,e,b)=>{$('ft').textContent=t;$('fe').textContent=e;$('fb').textContent=b};
   GM=()=>{if(fs=='idle'){if(lures()<1){say('Out of lures. One comes back soon.','😴','Cast line');return}lures();G.lure.n--;fs='wait';say(`Waiting for a bite… 🪱 ${lures()}/5`,'🎣','Wait…');later(()=>{fs='bite';say('Fish on! Hook it now!','🐟','Hook!');snd('pop');later(()=>{if(fs=='bite'){fs='idle';say('It got away. Cast again.','🌊','Cast line')}},1500)},(1500+R()*2500)*fishMul())}
    else if(fs=='wait'){GT.forEach(clearTimeout);GT=[];fs='idle';say('Too early. The fish got spooked.','🌊','Cast line')}
-   else{fs='idle';if(give('fish',1)){addXp(3);inc('fish');say('Caught a fish! 🏆','🐟','Cast again');snd('coin')}else say('Barn is full!','📦','Cast again');upd()}}}},
+   else{fs='idle';const cf=(room('fish')>0&&window.__pf2)?__pf2.catchFish():null;if(give('fish',1)){addXp(3);inc('fish');say(cf?cf.msg:'Caught a fish! 🏆',cf?cf.e:'🐟','Cast again');snd('coin')}else say('Barn is full!','📦','Cast again');upd()}}}},
 whack:{t:'🐹 Gopher Whack',h:()=>`<p class="mut"><b id="ws">0</b> caught · <b id="wt">20</b>s left</p><div class="hg">${'<button class="hole"></button>'.repeat(9)}</div>`,
  i:()=>{let sc=0,tl=20,up=-1;const hs=[...document.querySelectorAll('.hole')];hs.forEach((h,i)=>h.onpointerdown=()=>{if(i!=up)return;up=-1;h.textContent='💥';sc++;$('ws').textContent=sc;snd('tap');later(()=>h.textContent='',250)});
   every(()=>{if(up>=0)hs[up].textContent='';up=rnd(9);hs[up].textContent='🐹'},650);
@@ -1156,6 +1156,177 @@ SH.pt=()=>{const p=P(),o=oth(),on=!!cfgx();if(!on)return['💞 Together',`<p cla
 ACT.pt=()=>{open('pt');poll(1)};ACT.pth=k=>help(k);
 const b=document.createElement('button');b.id='pt-btn';b.dataset.a='pt';b.textContent='💞';b.setAttribute('aria-label','Together');b.style.cssText='position:fixed;right:10px;bottom:150px;z-index:20;width:46px;height:46px;border-radius:50%;border:0;font-size:22px;background:#fff;box-shadow:0 2px 8px #0004';document.body.appendChild(b);
 setTimeout(()=>poll(1),2500);setInterval(()=>poll(0),30000);
+})();
+// ===== Farm Extras (build 21) — additive: weather events, pond dex, orchard, compost, farmhand, cards, gift tree, tour, year book =====
+(function(){
+const lsg=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const meId=()=>localStorage.getItem('fx_me')==='p2'?'p2':'p1',oth=()=>meId()==='p1'?'p2':'p1';
+const cfgx=()=>{const c=lsg('fx_sync_cfg',null);return c&&c.url&&c.key&&c.hh?c:null};
+const nameOf=p=>localStorage.getItem(p==='p2'?'householdNameP2':'householdNameP1')||(p==='p2'?'Player 2':'Player 1');
+const hd=c=>{const h={apikey:c.key,'Content-Type':'application/json'};if(/^eyJ/.test(c.key))h.Authorization='Bearer '+c.key;return h};
+const rs=c=>c.url.replace(/\/+$/,'')+'/rest/v1/';
+function kg(k){const c=cfgx();if(!c)return Promise.resolve(undefined);return fetch(rs(c)+'club_kv?select=value&household=eq.'+encodeURIComponent(c.hh)+'&key=eq.'+encodeURIComponent(k),{headers:hd(c),cache:'no-store'}).then(r=>r.ok?r.json():[]).then(x=>{if(!x[0])return null;try{return JSON.parse(x[0].value)}catch(e){return null}}).catch(()=>undefined)}
+function ks(k,o){const c=cfgx();if(!c)return Promise.resolve(false);return fetch(rs(c)+'club_kv?on_conflict=household,key',{method:'POST',headers:Object.assign(hd(c),{Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([{household:c.hh,key:k,value:JSON.stringify(o),updated_at:Date.now(),updated_by:meId()}])}).then(r=>r.ok).catch(()=>false)}
+const X=()=>{const x=G.x2||(G.x2={});x.dex=x.dex||{};x.orch=x.orch||[];x.comp=x.comp||{fert:0,bin:[]};x.fh=x.fh||{on:0,pet:'🐕',name:'Biscuit',n:0,last:0};x.cards=x.cards||{};x.cdone=x.cdone||{};if(x.cseen==null)x.cseen=G.st.truck||0;x.book=x.book||[];x.storms=x.storms||0;if(x.lvSeen==null)x.lvSeen=G.lv;x.ms=x.ms||{};if(x.rb==null)x.rb=Object.keys(G.claimed||{}).length;x.tree=x.tree||{};return x};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const btn=(a,k,t,c,d)=>`<button class="btn ${c||'g'}" data-a="${a}" data-k="${k}" ${d?'disabled':''}>${t}</button>`;
+function note(e,m){const x=X();x.book.push({t:Date.now(),e,m});if(x.book.length>160)x.book.splice(0,x.book.length-160)}
+const wkN=()=>fl(dayN()/7);
+
+/* ---------- 84: weather events ---------- */
+const _wc=wxChanged;
+wxChanged=function(p,n){_wc(p,n);if(p==null)return;const x=X();
+ if(n=='Rain'||n=='Storm'){const t=now();let c=0;G.pl.forEach(pl=>{if(pl.s==2&&pl.e>t){pl.e=t+(pl.e-t)*.85;c++}});if(c){toast('🌧️ The rain watered '+c+' field'+(c>1?'s':'')+'. Growing faster!');note('🌧️','Rain watered '+c+' field'+(c>1?'s':''))}}
+ if(n=='Storm'){const prot=G.decor.includes('scarecrow'),gr=G.pl.map((p,i)=>p.s==2?i:-1).filter(i=>i>=0);
+  if(gr.length&&R()<(prot?.12:.4)){const i=gr[rnd(gr.length)];G.pl[i].s=1;G.pl[i].c=null;G.pl[i].fz=0;drawPlot(i);x.storms++;toast('⛈️ The storm flattened a field!'+(prot?'':' A scarecrow helps protect your crops.'),1);note('⛈️','A storm flattened one of the fields')}
+  else if(gr.length)toast('🧑‍🌾 Your crops weathered the storm')}
+ save()};
+
+/* ---------- 85: pond dex ---------- */
+const FISH=[['minnow','Minnow','🐟',0,30,()=>1,0,'Anywhere, anytime'],['carp','Carp','🐠',0,24,()=>1,0,'Anywhere, anytime'],['perch','Perch','🐡',0,20,()=>1,2,'Anywhere, anytime'],['trout','Trout','🐟',1,12,()=>1,6,'Anywhere, with luck'],['bass','Bass','🐟',1,10,()=>1,8,'Anywhere, with luck'],['catfish','Catfish','🐡',1,10,()=>SK.night>.5,10,'Only at night'],['ice','Ice Char','❄️',2,5,()=>W=='Snow',25,'When it snows'],['rbow','Rainbow Trout','🌈',2,5,()=>W=='Rain'||W=='Storm',25,'In the rain'],['koi','Golden Koi','🏵️',2,4,()=>W=='Clear',30,'On clear days'],['ghost','Ghost Pike','👻',2,4,()=>W=='Fog',30,'In the fog'],['eel','Moon Eel','🐍',2,4,()=>SK.night>.6,30,'Deep at night'],['ray','Storm Ray','⚡',3,2,()=>W=='Storm',60,'During a thunderstorm'],['stur','Legend Sturgeon','🐲',3,1,()=>1,100,'Very rarely, any time']];
+const RAR=['Common','Uncommon','Rare','Legendary'];
+function catchFish(){const x=X(),pool=FISH.filter(f=>f[5]());let tot=0;pool.forEach(f=>tot+=f[4]);let r=R()*tot,f=pool[0];for(const q of pool){r-=q[4];if(r<0){f=q;break}}
+ const first=!x.dex[f[0]];x.dex[f[0]]=(x.dex[f[0]]||0)+1;let msg='Caught a '+f[1]+'! ';
+ if(f[6]){G.coins+=f[6];msg+='+🪙'+f[6]+' '}
+ if(first){const b=20*(f[3]+1);G.coins+=b;msg+='NEW in your book! +🪙'+b;note(f[2],'First '+f[1]+' ('+RAR[f[3]]+')');
+  if(FISH.every(q=>x.dex[q[0]])&&!x.dexDone){x.dexDone=1;G.gems+=8;toast('📖 Pond book complete! +💎8');note('📖','Completed the fish encyclopedia')}}
+ else if(f[3]>=2)note(f[2],'Caught a '+f[1]);
+ if(f[3]>=2)toast(f[2]+' A '+RAR[f[3]].toLowerCase()+' '+f[1]+'!');hud();save();return{msg:msg,e:f[2]}}
+window.__pf2={catchFish};
+SH.x2dex=()=>{const x=X(),n=FISH.filter(f=>x.dex[f[0]]).length;
+ return['📖 Fish book',`<div class="cd"><b>${n}/${FISH.length} species</b><div class="pr"><i style="width:${n/FISH.length*100}%;background:var(--gold)"></i></div><small class="mut">Cast a line at the pond. Weather and time of day change what bites. Today: ${WX[W].e} ${WX[W].n}${SK.night>.5?' 🌙':''}</small></div>`+
+ FISH.map(f=>{const c=x.dex[f[0]]||0;return `<div class="cd rt"><span class="big">${c?f[2]:'❔'}</span><div><b>${c?f[1]:'???'}</b> <small class="mut">${RAR[f[3]]}</small><br><small>${c?'Caught ×'+c+(f[6]?' · +🪙'+f[6]+' each':''):'Hint: '+f[7]}</small></div></div>`}).join('')+`<p class="mut">Tap the 🎣 Fishing Pond on the map to cast.</p>`]};
+
+/* ---------- 96: orchard ---------- */
+const FR={apple:['Apple','🍎',420,200,2,24],pear:['Pear','🍐',600,300,4,40],peach:['Peach','🍑',780,420,6,64],gapple:['Golden Apple','🍏',1200,800,8,160]};
+Object.keys(FR).forEach(k=>{const f=FR[k];I[k]={n:f[0],e:f[1],b:f[5],k:'c'}});
+const oSlots=()=>Math.min(6,2+fl(G.lv/3));
+SH.x2orch=()=>{const x=X(),t=now(),n=oSlots();let h='';
+ for(let i=0;i<n;i++){const tr=x.orch[i];
+  if(!tr)h+=`<div class="cd"><b>🌱 Empty orchard spot</b><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">${Object.keys(FR).map(k=>{const f=FR[k],lk=G.lv<f[4];return btn('x2op',i+':'+k,`${f[1]} ${f[0]}<br><small>${lk?'🔒 L'+f[4]:'🪙'+f[3]+' · '+fmt(du(f[2]))}</small>`,'b',lk||G.coins<f[3])}).join('')}</div></div>`;
+  else{const f=FR[tr.k],rd=t>=tr.e,pc=clamp(1-(tr.e-t)/du(tr.full||f[2]),0,1);
+   h+=`<div class="cd rt"><span class="big">${rd?'🌳':pc>.5?'🌲':'🌱'}${rd?f[1]:''}</span><div><b>${f[0]} tree</b> <small class="mut">harvested ×${tr.n||0}</small><br>${rd?'<small>Ripe! 4 × '+f[1]+' (🪙'+f[5]+' each)</small>':`<small>Ripens in <span data-e="${tr.e}">${fmt(tr.e-t)}</span></small>`}</div>${rd?btn('x2oh',i,'Pick'):''}</div>`}}
+ return['🍎 Orchard',`<p class="mut">Fruit trees grow slowly but the fruit sells for a lot. Each tree regrows after you pick it. Level ups add more spots (${n}/6).</p>${h}`]};
+ACT.x2op=k=>{const[i,f]=k.split(':'),F=FR[f],x=X();if(x.orch[+i]||G.coins<F[3]||G.lv<F[4])return;G.coins-=F[3];x.orch[+i]={k:f,e:now()+du(F[2]),full:F[2],n:0};snd('tap');note(F[1],'Planted a '+F[0]+' tree');save();hud();paint()};
+ACT.x2oh=k=>{const x=X(),tr=x.orch[+k];if(!tr||now()<tr.e)return;const F=FR[tr.k];if(!give(tr.k,4)){return}tr.n=(tr.n||0)+1;tr.full=Math.round(F[2]*.6);tr.e=now()+du(tr.full);addXp(8+F[4]);snd('coin');inc('orch');if(tr.n==1)note(F[1],'First '+F[0]+' harvest');toast(F[1]+'×4 picked!');save();upd();paint()};
+
+/* ---------- 97: compost & fertiliser ---------- */
+const _ph=plotH;plotH=function(p,i){return _ph(p,i)+(p.fz&&p.s>=2?'<span style="position:absolute;left:3px;top:1px;font-size:12px;z-index:2">✨</span>':'')};
+const _hv=harvestAt;harvestAt=function(i,e,q){const p=G.pl[i],c=p&&p.c,fz=p&&p.fz;const ok=_hv(i,e,q);if(ok&&fz&&c){G.pl[i].fz=0;if(give(c,2,true)&&e&&!q)fx(e.clientX,e.clientY-18,'✨+2 bonus')}return ok};
+function compTick(){const x=X(),t=now();let n=0;x.comp.bin=x.comp.bin.filter(b=>{if(t>=b.e){n++;return false}return true});if(n){x.comp.fert+=n;toast('🪱 Compost ready! +'+n+' fertiliser');snd('coin');save();if(S.cur&&S.cur.t=='x2comp')paint()}}
+SH.x2comp=()=>{const x=X(),t=now(),ids=Object.keys(G.inv).filter(id=>I[id]&&I[id].k=='c'&&G.inv[id]>=3),gr=G.pl.filter(p=>p.s==2&&!p.fz).length;
+ return['🪱 Compost',`<div class="cd"><b>🧪 Fertiliser: ${x.comp.fert}</b><br><small class="mut">A fertilised field gives <b>+2 extra crops</b> when harvested.</small><br>${btn('x2cs','',`✨ Spread on growing fields (${gr})`,'g',!x.comp.fert||!gr)}</div>
+ <h3>Compost bin (${x.comp.bin.length}/3)</h3>${x.comp.bin.length?x.comp.bin.map(b=>`<div class="cd rt"><span class="big">🪱</span><div><b>Composting…</b><br><small data-e="${b.e}">${fmt(b.e-t)}</small></div></div>`).join(''):'<p class="mut">The bin is empty.</p>'}
+ <h3>Add 3 crops → 1 fertiliser</h3>${ids.length?'<div class="sg">'+ids.map(id=>`<button class="slot" data-a="x2cc" data-k="${id}" ${x.comp.bin.length>=3?'disabled':''}><span>${I[id].e}</span><small>×${G.inv[id]}</small></button>`).join('')+'</div>':'<p class="mut">You need at least 3 of a crop in your silo.</p>'}`]};
+ACT.x2cc=id=>{const x=X();if(x.comp.bin.length>=3||!has(id,3))return;take(id,3);x.comp.bin.push({e:now()+du(60)});snd('tap');save();upd();paint()};
+ACT.x2cs=()=>{const x=X();let n=0;G.pl.forEach((p,i)=>{if(x.comp.fert>0&&p.s==2&&!p.fz){p.fz=1;x.comp.fert--;n++;drawPlot(i)}});if(n){toast('✨ Fertilised '+n+' field'+(n>1?'s':''));if(!x.ms.fz){x.ms.fz=1;note('🧪','First fertiliser spread')}snd('coin');save();paint()}};
+
+/* ---------- 98: pet farmhand ---------- */
+const PETS=[['🐕','Biscuit'],['🐈','Mochi'],['🐇','Clover'],['🦊','Rusty'],['🐿️','Nutmeg'],['🐷','Waffles']];
+function fhWork(max,quiet){const x=X(),t=now();let n=0;G.pl.forEach(p=>{if(p.s==2&&t>=p.e)p.s=3});
+ for(let i=0;i<G.pl.length&&n<max;i++){if(G.pl[i].s==3&&harvestAt(i,null,true)){drawPlot(i);n++}}
+ if(n){x.fh.n+=n;fbar();hud();save()}return n}
+function fhTick(){const x=X();if(!x.fh.on||document.hidden)return;const t=now();if(t-x.fh.last<du(100))return;if(fhWork(1)){x.fh.last=t;if(!(S.cur&&S.cur.t=='game'))toast(x.fh.pet+' '+x.fh.name+' harvested a field')}else x.fh.last=t-du(100)+8}
+const _aw=away;away=function(){const d=now()-(G.seen||now());_aw();const x=X();if(x.fh.on&&d>=90){const k=Math.min(8,fl(d/du(100))),n=fhWork(k,true);if(n)pop(`<div class="em">${x.fh.pet}</div><h2>${x.fh.name} was busy!</h2><p>Harvested ${n} field${n>1?'s':''} while you were away.</p><button class="btn g wide" data-a="pc">Good dog… er, pet!</button>`)}};
+SH.x2fh=()=>{const x=X(),f=x.fh;
+ if(!f.on)return['🐕 Farmhand',`<div class="cd"><b>Hire a pet farmhand</b><br><small class="mut">Harvests one ready field every ${fmt(du(100))}, even while you are away (up to 8 while you are gone). Needs level 3.</small></div><div class="sg">${PETS.map(p=>`<button class="slot ${f.pet==p[0]?'rd':''}" data-a="x2fp" data-k="${p[0]}"><span>${p[0]}</span><small>${p[1]}</small></button>`).join('')}</div>${btn('x2fhire','','Hire '+f.pet+' · 🪙300','g',G.lv<3||G.coins<300)}`];
+ return['🐕 Farmhand',`<div class="cd rt"><span class="big">${f.pet}</span><div><b>${f.name}</b> is on the job<br><small>${f.n} fields harvested so far</small></div></div><p class="mut">Works one ready field every ${fmt(du(100))}. Let your farmhand take the easy rows.</p>`]};
+ACT.x2fp=k=>{const f=X().fh,p=PETS.find(q=>q[0]==k);if(p){f.pet=p[0];f.name=p[1];paint()}};
+ACT.x2fhire=()=>{const x=X();if(G.lv<3||G.coins<300)return;G.coins-=300;x.fh.on=1;x.fh.last=now();note(x.fh.pet,x.fh.name+' joined the farm');snd('lvl');save();hud();paint()};
+
+/* ---------- 99: farm cards ---------- */
+const CS=[['crop','🌾 Field Friends',[['🌾','Wheat',0],['🌽','Corn',0],['🥕','Carrot',0],['🍅','Tomato',0],['🥬','Lettuce',1],['🍓','Strawberry',1],['🎃','Pumpkin',1],['🌶️','Chili',1],['🌻','Sunflower King',2]]],
+['barn','🐄 Barnyard Buddies',[['🐔','Hen',0],['🐄','Cow',0],['🐖','Pig',0],['🐑','Sheep',0],['🦆','Duck',1],['🐴','Pony',1],['🐐','Goat',1],['🐈','Barn Cat',1],['🐓','Golden Rooster',2]]],
+['town','🏡 Townsfolk',[['👨‍🌾','Farmer Joe',0],['👵','Granny May',0],['👨‍🍳','Chef Luca',0],['👩‍🌾','Mayor Ruth',0],['🥖','Nell the Baker',1],['🧑‍✈️','Captain Hal',1],['🐝','Bea',1],['🧒','Pip',1],['🧙','The Wandering Wizard',2]]],
+['sky','⛅ Sky & Pond',[['☀️','Sunny',0],['🌧️','Raindrop',0],['⛈️','Thunder',0],['❄️','Snowflake',0],['🐸','Pond Frog',1],['🌕','Full Moon',1],['🦋','Monarch',1],['🏵️','Golden Koi',1],['🌈','Rainbow',2]]]];
+const ALLC=[];CS.forEach(s=>s[2].forEach((c,i)=>ALLC.push({id:s[0]+i,set:s[0],e:c[0],n:c[1],r:c[2]})));
+function drawCard(why){const x=X(),r=R(),rar=r<.05?2:r<.30?1:0,pool=ALLC.filter(c=>c.r==rar),c=pool[rnd(pool.length)],isNew=!x.cards[c.id];x.cards[c.id]=(x.cards[c.id]||0)+1;
+ toast('🃏 '+(why||'New card')+': '+c.e+' '+c.n+(isNew?' (NEW!)':'')+(rar?' ⭐'.repeat(rar):''));if(isNew&&rar)note(c.e,'Found the '+c.n+' card');
+ CS.forEach(s=>{if(!x.cdone[s[0]]&&s[2].every((_,i)=>x.cards[s[0]+i])){x.cdone[s[0]]=1;G.coins+=400;G.gems+=4;pop(`<div class="em">🃏</div><h2>${s[1]} complete!</h2><p>+🪙400 +💎4</p><button class="btn g wide" data-a="pc">Nice!</button>`);note('🃏','Completed the '+s[1]+' card set')}});snd('coin');save()}
+SH.x2cards=()=>{const x=X(),own=ALLC.filter(c=>x.cards[c.id]).length;
+ return['🃏 Farm cards',`<div class="cd"><b>${own}/${ALLC.length} cards</b><br><small class="mut">Every delivered truck order earns a card pack. Finish a set for 🪙400 + 💎4.</small></div>`+CS.map(s=>{const n=s[2].filter((_,i)=>x.cards[s[0]+i]).length;return `<h3>${s[1]} ${n}/9${x.cdone[s[0]]?' ✅':''}</h3><div class="sg">${s[2].map((c,i)=>{const k=x.cards[s[0]+i]||0;return `<div class="slot" style="${k?(c[2]==2?'box-shadow:0 0 0 2px gold':c[2]==1?'box-shadow:0 0 0 2px #7cc5ff':''):'opacity:.4'}"><span>${k?c[0]:'❔'}</span><small>${k?c[1]+(k>1?' ×'+k:''):'???'}</small></div>`}).join('')}</div>`}).join('')]};
+
+/* ---------- 94: gift tree (shared) ---------- */
+async function treeLoad(){const w=wkN();let d=await kg('pf_tree');if(d===undefined){const l=X().tree;d=(l&&l.wk===w)?l:null}if(!d||d.wk!==w)d={wk:w,w:{p1:[],p2:[]},c:{}};d.w=d.w||{p1:[],p2:[]};d.w.p1=d.w.p1||[];d.w.p2=d.w.p2||[];d.c=d.c||{};return d}
+let TR=null;
+const treeNeed=()=>cfgx()?{own:2,both:6}:{own:5,both:5};
+const treeBloom=d=>{const nd=treeNeed(),a=d.w.p1.length,b=d.w.p2.length;return cfgx()?(a>=2&&b>=2&&a+b>=nd.both):(d.w[meId()].length>=nd.own)};
+SH.x2tree=()=>{const d=TR,sync=!!cfgx();if(!d)return['🌳 Gift tree','<p class="mut">Loading the tree…</p>'];
+ const me=meId(),o=oth(),mine=d.w[me].length,his=d.w[o].length,tot=sync?mine+his:mine,need=treeNeed(),bloom=treeBloom(d),done=d.c[me]===d.wk,today=d.w[me].includes(dayN());
+ const st=bloom?5:Math.min(4,Math.floor(tot/(need.both/5)));const em=['🌱','🌿','🪴','🌳','🌳','🎁'][st];
+ return['🌳 Gift tree',`<div class="cd" style="text-align:center"><div style="font-size:64px">${em}</div><b>${bloom?'The tree is full of gifts!':'Water it together every day'}</b><div class="pr"><i style="width:${Math.min(100,tot/need.both*100)}%;background:var(--grn)"></i></div><small>${sync?`You ${mine} · ${nameOf(o)} ${his} waterings this week (need ${need.both} total, ${2} each)`:`${mine}/${need.own} waterings this week (sync off: solo tree)`}</small></div>
+ <div class="bar" style="display:flex;gap:8px;margin:8px 0">${btn('x2tw','','💧 Water today','b',today)}${btn('x2tc','','🎁 Pick gifts','g',!bloom||done)}</div><small class="mut">${today?'You watered today. Come back tomorrow!':'One watering each per day.'} ${done?'Gifts picked for this week. A new tree starts next week.':''}</small>`]};
+ACT.x2tree=async()=>{TR=await treeLoad();open('x2tree')};
+ACT.x2tw=async()=>{const d=await treeLoad(),me=meId();if(!d.w[me].includes(dayN())){d.w[me].push(dayN());G.coins+=10;X().tree=d;await ks('pf_tree',d);toast('💧 Tree watered +🪙10');snd('coin');if(treeBloom(d))note('🌳','The gift tree bloomed')}TR=d;save();hud();paint()};
+ACT.x2tc=async()=>{const d=await treeLoad(),me=meId();if(!treeBloom(d)||d.c[me]===d.wk)return;d.c[me]=d.wk;X().tree=d;await ks('pf_tree',d);
+ const f=Object.keys(FR)[rnd(2)];G.coins+=200;G.gems+=2;give(f,3,true);drawCard('Gift tree');pop(`<div class="em">🎁</div><h2>Gift tree gifts!</h2><p>+🪙200 · +💎2 · ${FR[f][1]}×3</p><button class="btn g wide" data-a="pc">Thanks, tree!</button>`);note('🎁','Picked the weekly gift tree gifts');TR=d;save();hud();paint()};
+
+/* ---------- 95: farm tour ---------- */
+function tourSnap(){const x=X(),an={};PENS.forEach(p=>{if(G.bt[p])an[p]=(G.an[p]||[]).length});
+ return{n:nameOf(meId()),lv:G.lv,theme:G.eq.theme,coins:G.coins,harv:G.st.harv||0,pl:G.pl.map(p=>p.s>=2?{s:p.s,c:p.c}:{s:p.s}),bt:Object.keys(G.bt).filter(k=>G.bt[k]),an:an,decor:G.decor,orch:x.orch.map(t=>t&&t.k),fish:Object.keys(x.dex).length,cards:Object.keys(x.cards).length,fh:x.fh.on?x.fh.pet:'',storms:x.storms,ts:Date.now()}}
+let TS=null,TI=0,TW='mine';
+async function tourPush(){if(cfgx())await ks('pf_tour_'+meId(),tourSnap())}
+const STOPS=['gate','fields','barn','works','orch','shelf'];
+function stopHTML(s,d){const sc=(em,tx)=>`<div style="text-align:center;font-size:44px;line-height:1.3;word-break:break-all">${em}</div><p style="text-align:center">${tx}</p>`;
+ if(s=='gate')return sc('🚪🌻🏡','Welcome to <b>'+esc(d.n)+'\'s farm</b>! Level '+d.lv+(d.fh?' · '+d.fh+' on guard':'')+'.<br><small class="mut">Theme: '+d.theme+' · '+d.harv+' crops harvested</small>');
+ if(s=='fields'){const g=d.pl.filter(p=>p.s>=2),ow=d.pl.filter(p=>p.s>=1).length;return sc(d.pl.map(p=>p.s==0?'🪨':p.s==1?'🟫':(I[p.c]?I[p.c].e:'🌱')).join(''),`${ow} fields tilled, ${g.length} growing right now.`)}
+ if(s=='barn'){const e=Object.keys(d.an).map(k=>(AN[k].e).repeat(d.an[k]||0)).join(' ');return sc(e||'🛖','The barnyard is '+(e?'full of friends.':'quiet for now.'))}
+ if(s=='works')return sc(d.bt.map(k=>BL[k]?BL[k][1]:'').join(' '),d.bt.length+' buildings keep the farm humming.'+(d.decor.length?'<br><small class="mut">'+d.decor.length+' decorations placed</small>':''));
+ if(s=='orch'){const tr=(d.orch||[]).filter(Boolean).map(k=>FR[k]?FR[k][1]:'').join('');return sc((tr||'🌱')+' 🎣',`${(d.orch||[]).filter(Boolean).length} fruit trees · ${d.fish||0}/${FISH.length} fish in the pond book`)}
+ return sc('🏆🃏⛈️',`${d.cards||0}/${ALLC.length} cards collected · ${d.storms||0} storms survived`)}
+SH.x2tour=()=>{const d=TW=='mine'?tourSnap():TS;
+ if(!d)return['🚜 Farm tour',`<p class="mut">${cfgx()?nameOf(oth())+' has not opened the farm tour yet. Ask them to open Farm+ once!':'Sync is off, so you can only tour your own farm.'}</p>${btn('x2tw2','mine','🚜 Tour my farm','g')}`];
+ return['🚜 Farm tour',`<div class="tabs"><button class="${TW=='mine'?'on':''}" data-a="x2tw2" data-k="mine">My farm</button><button class="${TW=='her'?'on':''}" data-a="x2tw2" data-k="her">${esc(nameOf(oth()))}'s farm</button></div>
+ <div class="cd" style="min-height:190px"><div class="mut" style="text-align:center">Stop ${TI+1} of ${STOPS.length} ${'🚶'}</div>${stopHTML(STOPS[TI],d)}</div>
+ <div class="bar" style="display:flex;gap:8px">${btn('x2tn','-1','◀ Back','b',TI<=0)}${btn('x2tn','1',TI>=STOPS.length-1?'The end 🌅':'Next ▶','g',TI>=STOPS.length-1)}</div>`]};
+ACT.x2tour=async()=>{TI=0;TW=cfgx()?'her':'mine';TS=null;open('x2tour');tourPush();if(cfgx()){const d=await kg('pf_tour_'+oth());TS=d||null;if(!TS)TW='mine';paint()}};
+ACT.x2tw2=k=>{TW=k;TI=0;paint()};ACT.x2tn=k=>{TI=clamp(TI+(+k),0,STOPS.length-1);snd('tap');paint()};
+
+/* ---------- 100: year book ---------- */
+let YB=0,YF=0;
+SH.x2book=()=>{const x=X(),all=x.book.map((b,i)=>Object.assign({i},b)).reverse(),list=YF?all.filter(b=>b.s):all,per=8,pg=clamp(YB,0,Math.max(0,Math.ceil(list.length/per)-1)),sl=list.slice(pg*per,pg*per+per);
+ const days=Math.max(1,Math.round((Date.now()-(x.book[0]?x.book[0].t:Date.now()))/864e5)+1);
+ return['📔 Year book',`<div class="cd" style="background:linear-gradient(#fff8e1,#ffecb3);color:#5d4037"><b>${esc(nameOf(meId()))}'s farm scrapbook</b><br><small>Level ${G.lv} · 🧺 ${G.st.harv||0} harvested · 🚚 ${G.st.truck||0} deliveries · 🐟 ${Object.keys(x.dex).length}/${FISH.length} fish · 🃏 ${Object.keys(x.cards).length} cards · ⛈️ ${x.storms} storms · ${days} day${days>1?'s':''} of memories</small></div>
+ <div class="tabs"><button class="${YF?'':'on'}" data-a="x2by" data-k="0">All moments</button><button class="${YF?'on':''}" data-a="x2by" data-k="1">⭐ Favourites</button></div>
+ ${sl.length?sl.map(b=>`<div class="cd rt"><span class="big">${b.e}</span><div><b>${esc(b.m)}</b><br><small class="mut">${new Date(b.t).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</small></div><button class="btn ${b.s?'g':'b'}" data-a="x2bs" data-k="${b.i}" aria-label="Favourite">${b.s?'★':'☆'}</button></div>`).join(''):'<p class="mut">'+(YF?'Star a moment to keep it here.':'Play on and your best moments will show up here: level-ups, rare fish, storms, cards and more.')+'</p>'}
+ <div class="bar" style="display:flex;gap:8px">${btn('x2bp','-1','◀','b',pg<=0)}<span class="mut" style="flex:1;text-align:center">Page ${pg+1}/${Math.max(1,Math.ceil(list.length/per))}</span>${btn('x2bp','1','▶','b',(pg+1)*per>=list.length)}</div>`]};
+ACT.x2by=k=>{YF=+k;YB=0;paint()};ACT.x2bp=k=>{YB+=+k;paint()};ACT.x2bs=k=>{const b=X().book[+k];if(b){b.s=b.s?0:1;save();paint()}};
+
+/* ---------- hub + watchers ---------- */
+SH.x2hub=()=>{const x=X(),own=ALLC.filter(c=>x.cards[c.id]).length;
+ const tile=(a,e,t,s)=>`<button class="slot" data-a="${a}" style="min-height:92px"><span>${e}</span><small><b>${t}</b><br>${s}</small></button>`;
+ return['🌿 Farm+',`<p class="mut">Weather: ${WX[W].e} ${WX[W].n}. ${W=='Rain'||W=='Storm'?'Rain waters your fields.':''}${W=='Storm'?' Storms can flatten a field!':''}</p><div class="sg">
+ ${tile('x2o:x2orch','🍎','Orchard',x.orch.filter(Boolean).length+'/'+oSlots()+' trees')}${tile('x2o:x2comp','🪱','Compost',x.comp.fert+' fertiliser')}${tile('x2o:x2dex','📖','Fish book',Object.keys(x.dex).length+'/'+FISH.length)}
+ ${tile('x2tree','🌳','Gift tree','water together')}${tile('x2tour','🚜','Farm tour','visit a farm')}${tile('x2o:x2fh','🐕','Farmhand',x.fh.on?x.fh.name+' working':'hire a pet')}
+ ${tile('x2o:x2cards','🃏','Cards',own+'/'+ALLC.length)}${tile('x2o:x2book','📔','Year book',x.book.length+' moments')}</div>`]};
+ACT.x2o=k=>open(k);
+// tile data-a values like "x2o:x2orch" -> route through click capture
+document.addEventListener('click',e=>{const el=e.target.closest('[data-a^="x2o:"]');if(!el)return;e.stopPropagation();open(el.dataset.a.slice(4))},true);
+ACT.x2hub=()=>{open('x2hub');tourPush()};
+const fb=document.createElement('button');fb.id='x2-btn';fb.dataset.a='x2hub';fb.textContent='🌿';fb.setAttribute('aria-label','Farm+');fb.style.cssText='position:fixed;right:10px;bottom:204px;z-index:20;width:46px;height:46px;border-radius:50%;border:0;font-size:22px;background:#fff;box-shadow:0 2px 8px #0004';document.body.appendChild(fb);
+const MS=[50,100,250,500,1000,2500,5000];
+setInterval(()=>{if(!G||!G.pl)return;const x=X();
+ if(G.lv>x.lvSeen){for(let l=x.lvSeen+1;l<=G.lv;l++)note('⭐','Reached level '+l);x.lvSeen=G.lv}
+ const h=G.st.harv||0;MS.forEach(m=>{if(h>=m&&!x.ms['h'+m]){x.ms['h'+m]=1;note('🧺','Harvested '+m+' crops')}});
+ const tr=G.st.truck||0;while(x.cseen<tr){x.cseen++;drawCard('Order delivered')}
+ const rb=Object.keys(G.claimed||{}).length;if(rb>x.rb){x.rb=rb;note('🎀','Earned a ribbon')}
+ compTick();fhTick();
+ if(S.cur&&(S.cur.t=='x2orch'||S.cur.t=='x2fh')&&!document.hidden)paint()},3000);
+setInterval(()=>{if(!document.hidden)tourPush()},90000);
+
+/* ---------- publish trophies to the Club tab ---------- */
+function pubFarm(){try{if(!window.BCX)return;const x=X(),l=[];
+ RB.forEach(([k,n,e,t])=>t.forEach((c,i)=>l.push([k+i,e,n+' '+['I','II','III'][i],'Reach '+c+' ('+n.toLowerCase()+' stat).',!!G.claimed[k+i]])));
+ [5,10,15,20].forEach(L=>l.push(['lv'+L,'⭐','Level '+L,'Reach farm level '+L+'.',G.lv>=L]));
+ l.push(['dex1','🎣','First catch','Catch your first fish for the book.',Object.keys(x.dex).length>=1]);
+ l.push(['dex7','📖','Angler','Fill half of the fish book.',Object.keys(x.dex).length>=7]);
+ l.push(['dexall','🐲','Pond master','Complete the fish book.',!!x.dexDone]);
+ CS.forEach(s=>l.push(['cs_'+s[0],'🃏',s[1].replace(/^\S+ /,''),'Complete this card set.',!!x.cdone[s[0]]]));
+ l.push(['orch','🍎','Orchardist','Pick fruit from your first tree.',(G.st.orch||0)>=1]);
+ l.push(['storm','⛈️','Storm survivor','Weather 3 storms (one is enough to flatten a field).',x.storms>=1]);
+ l.push(['fh','🐕','Farmhand hired','Hire a pet farmhand.',!!x.fh.on]);
+ BCX.publish('farm',l)}catch(e){}}
+setInterval(pubFarm,5000);setTimeout(pubFarm,1500);
 })();
 boot();
 })();

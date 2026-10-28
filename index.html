@@ -1,7 +1,7 @@
 <!doctype html>
 
 <html lang="en">
-    <head>
+    <head><script src="bc-extras.js"></script>
         <meta charset="UTF-8" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12251,6 +12251,8 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
         if (e.target.id === "fx-gcap") lsSet("fx_gcap", e.target.value);
     });
     window.__fxRenderClub = render;
+    /* build 21: publish club achievements for the shared Achievement Hall */
+    setInterval(() => { try { if (window.BCX) { const U = jget("fx_ach", {}); BCX.publish("club", ACH.map((a) => [a.id, a.i, a.n, a.d, !!U[a.id]])); } } catch (e) {} }, 4000);
 
     /* ---------- level chip under the tab bar ---------- */
     const chip = document.createElement("div"); chip.id = "fx-chip"; chip.className = "fx-chipbar"; chip.onclick = () => switchTab("club");

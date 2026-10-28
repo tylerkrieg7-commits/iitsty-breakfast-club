@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="bc-extras.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f5f3ff">
@@ -2080,6 +2080,7 @@ const BADGES=[
  {id:'s7',n:'Week warrior',d:'Finish a picture 7 days in a row',f:x=>x.best>=7}
 ];
 const allBadges=()=>BADGES.concat(CATEGORIES.filter(c=>c.key!=='all'&&c.key!=='mine').map(c=>({id:'cat_'+c.key,n:c.label+' master',d:'Finish every '+c.label+' picture',f:x=>x.cats[c.key]})));
+setInterval(()=>{try{if(!window.BCX)return;const got=store.get('ica_badges',{});BCX.publish('color',allBadges().map(b=>[b.id,'🏅',b.n,b.d||'Pixel Art badge',!!got[b.id]]))}catch(e){}},4000);
 function badgeCtx(){
   const all=LIB.concat(custom),cats={};let done=0,perfect=false,speed=false;
   all.forEach(l=>{if(stat(l).complete)done++;const b=store.get('best_'+l.id,null);if(b){if(b.stars===3)perfect=true;if(b.secs<=120&&l.total>=150)speed=true}});

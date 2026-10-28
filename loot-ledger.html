@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="bc-extras.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#191d33">
@@ -1854,6 +1854,12 @@ const sprite = (k, sc, cls) => pix(SPR[k], sc, cls);
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount); else mount();
 })();
+</script>
+<script>
+/* build 21: publish achievements to the Club tab */
+(function(){ function pub(){ try{ if(!window.BCX||typeof achievements==='undefined'||typeof state==='undefined'||!state) return; var got=state.ach||[];
+  BCX.publish('loot', achievements.map(function(a){ var p=a.n.split(' '), ic=p.shift(); return [a.id, ic, p.join(' '), 'Loot Ledger achievement', got.indexOf(a.id)>=0]; })); }catch(e){} }
+  setInterval(pub,4000); setTimeout(pub,1500); })();
 </script>
 </body>
 </html>

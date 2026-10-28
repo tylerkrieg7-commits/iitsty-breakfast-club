@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script src="bc-extras.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0f0d1e">
@@ -6230,6 +6230,451 @@ function renderTrophies() {
     });
 })();
 
+// ======================================================================
+//  BUILD 21 CABINETS: Rhythm Tap, Garden Defense, Anglers' Pond, Skee-Ball
+// ======================================================================
+ACH.push(
+    { id: 'rhy_full', icon: '🎶', name: 'Full Combo',      desc: 'Finish a Rhythm Tap song without missing a note.' },
+    { id: 'rhy_mine', icon: '📻', name: 'Your Jam',        desc: 'Play Rhythm Tap to one of your own songs.' },
+    { id: 'gd_win',   icon: '🥕', name: 'Carrot Keeper',   desc: 'Survive all 12 waves in Garden Defense.' },
+    { id: 'ang_5',    icon: '🎣', name: 'Hooked',          desc: 'Record 5 different fish in the Anglers\' book.' },
+    { id: 'ang_rare', icon: '🐉', name: 'Legend of the Pond', desc: 'Catch a legendary fish.' },
+    { id: 'skee_100', icon: '🎯', name: 'Bullseye',        desc: 'Roll a 100 in Skee-Ball.' }
+);
+
+// ---------- RHYTHM TAP ----------
+(function() {
+    const W = 300, H = 450, LANES = 4, LW = W / LANES, HIT_Y = 372, FALL = 1.55, LEAD = 1.6;
+    const COL = ['#ff4081', '#ffea00', '#00e5ff', '#76ff03'];
+    const SYNTH = [
+        {id: 'neon', name: 'Neon Pulse', sub: 'Easy · 100 BPM', bpm: 100, bars: 24, dens: 0.42, root: 196, seed: 11},
+        {id: 'pixel', name: 'Pixel Rain', sub: 'Medium · 124 BPM', bpm: 124, bars: 28, dens: 0.6, root: 220, seed: 29},
+        {id: 'turbo', name: 'Turbo Arcade', sub: 'Hard · 148 BPM', bpm: 148, bars: 30, dens: 0.8, root: 247, seed: 47}
+    ];
+    let S = null, mine = null, mineLoad = 0;
+    function srng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+    function idb() { return new Promise((ok, no) => { try { const r = indexedDB.open('bcx_music', 1); r.onupgradeneeded = () => { r.result.createObjectStore('songs', {keyPath: 'id'}); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); } catch(e) { no(e); } }); }
+    function loadMine() {
+        if(mineLoad) return; mineLoad = 1; mine = [];
+        idb().then(db => { const rq = db.transaction('songs', 'readonly').objectStore('songs').getAll(); rq.onsuccess = () => { (rq.result || []).forEach(x => mine.push({id: 'loc:' + x.id, name: x.name, blob: x.blob})); }; }).catch(() => {});
+        try { const BA = window.BCAssets; if(BA && BA.all) BA.all('index').forEach(x => { if(String(x.slot).indexOf('music:') === 0 && x.url && /^audio/.test(x.type || '')) mine.push({id: 'pc:' + x.slot, name: String(x.slot).slice(6), url: x.url}); }); } catch(e) {}
+    }
+    function chartSynth(sg) {
+        const r = srng(sg.seed), beat = 60 / sg.bpm, notes = [], total = sg.bars * 4 * 2; let last = 1;
+        for(let i = 4; i < total; i++) {
+            const t = i * beat / 2, strong = i % 2 === 0;
+            if(r() < (strong ? sg.dens + 0.25 : sg.dens - 0.1)) {
+                let l = Math.floor(r() * LANES); if(l === last && r() < 0.6) l = (l + 1 + Math.floor(r() * 3)) % LANES;
+                notes.push({t: LEAD + t, lane: l, st: 0}); last = l;
+                if(sg.dens > 0.7 && strong && r() < 0.25) notes.push({t: LEAD + t, lane: (l + 2) % LANES, st: 0});
+            }
+        }
+        return notes;
+    }
+    function scheduleSynth(sg) {
+        if(muted || !audio()) return;
+        const beat = 60 / sg.bpm, minor = [0, 3, 5, 7, 10, 12, 15], f = n => sg.root * Math.pow(2, n / 12);
+        const r = srng(sg.seed + 5);
+        for(let b = 0; b < sg.bars * 4; b++) {
+            const t = LEAD + b * beat;
+            tone(110, 'sine', 0.16, 0.14, 40, t);
+            if(b % 2 === 1) noise(0.1, 0.07, 3000, t, 'highpass');
+            noise(0.03, 0.04, 6000, t + beat / 2, 'highpass');
+            if(b % 4 === 0) tone(f(minor[Math.floor(r() * 3)] - 24), 'sawtooth', beat * 3.6, 0.04, 0, t);
+            tone(f(minor[Math.floor(r() * minor.length)]), 'square', beat * 0.4, 0.025, 0, t + beat / 2 * (r() < 0.5 ? 0 : 1));
+        }
+    }
+    // ---- turn any song into a note chart (energy onsets) ----
+    function chartFrom(buf) {
+        const d = buf.getChannelData(0), sr = buf.sampleRate, hop = Math.floor(sr * 0.023), n = Math.min(Math.floor(d.length / hop), Math.floor(170 / 0.023));
+        const e = new Float32Array(n), z = new Float32Array(n);
+        for(let i = 0; i < n; i++) { let s = 0, zc = 0, prev = 0; for(let j = 0; j < hop; j += 2) { const v = d[i * hop + j]; s += v * v; if(v * prev < 0) zc++; prev = v; } e[i] = Math.sqrt(s / (hop / 2)); z[i] = zc; }
+        const flux = new Float32Array(n); let mx = 0; for(let i = 1; i < n; i++) { flux[i] = Math.max(0, e[i] - e[i - 1]); if(flux[i] > mx) mx = flux[i]; }
+        const zs = Array.from(z).sort((a, b) => a - b), q = [zs[Math.floor(n * 0.25)], zs[Math.floor(n * 0.5)], zs[Math.floor(n * 0.75)]];
+        const notes = []; let lastT = -1, lastLane = -1, same = 0;
+        for(let i = 8; i < n - 8; i++) {
+            let m = 0; for(let k = -8; k <= 8; k++) m += flux[i + k]; m /= 17;
+            if(flux[i] > m * 1.7 + mx * 0.03 && flux[i] >= flux[i - 1] && flux[i] >= flux[i + 1]) {
+                const t = i * 0.023; if(t - lastT < 0.24) continue;
+                let l = z[i] < q[0] ? 0 : z[i] < q[1] ? 1 : z[i] < q[2] ? 2 : 3;
+                if(l === lastLane) { same++; if(same >= 2) { l = (l + 1 + (i % 3)) % LANES; same = 0; } } else same = 0;
+                notes.push({t: LEAD + t, lane: l, st: 0}); lastT = t; lastLane = l;
+            }
+        }
+        return notes;
+    }
+    function startSynth(sg) {
+        const notes = chartSynth(sg);
+        S.sel = sg; S.notes = notes; S.dur = notes.length ? notes[notes.length - 1].t + 2.2 : 10; S.phase = 'play'; S.t0 = performance.now(); scheduleSynth(sg); S.beat = 60 / sg.bpm;
+    }
+    function startMine(sg) {
+        S.phase = 'load'; S.msg = 'Listening to "' + sg.name.slice(0, 22) + '"…';
+        const get = sg.blob ? sg.blob.arrayBuffer() : fetch(sg.url).then(r => r.arrayBuffer());
+        Promise.resolve(get).then(ab => { if(!audio()) throw 0; return new Promise((ok, no) => actx.decodeAudioData(ab, ok, no)); }).then(buf => {
+            if(!S || S.phase !== 'load') return;
+            let notes = chartFrom(buf); if(notes.length < 12) { S.phase = 'menu'; S.msg = 'Not enough beat in that one. Try another!'; return; }
+            S.sel = sg; S.notes = notes; S.dur = Math.min(buf.duration, 175) + LEAD + 1.5; S.phase = 'play'; S.t0 = performance.now();
+            const src = actx.createBufferSource(); src.buffer = buf; src.connect(master); src.start(actx.currentTime + LEAD); S.src = src; S.mine = true; S.beat = 0.5;
+        }).catch(() => { if(S) { S.phase = 'menu'; S.msg = 'Could not read that song.'; } });
+    }
+    function now() { return (performance.now() - S.t0) / 1000; }
+    function judge(l) {
+        const t = now(); let best = null, bd = 9;
+        S.notes.forEach(n => { if(n.lane === l && !n.st) { const d = Math.abs(n.t - t); if(d < bd) { bd = d; best = n; } } });
+        S.lanePress[l] = 8;
+        if(!best || bd > 0.2) { S.lanePress[l] = 4; return; }
+        const x = l * LW + LW / 2;
+        if(bd < 0.075) { best.st = 1; S.perfect++; S.score += 100 * (1 + Math.floor(S.combo / 10) * 0.5); S.combo++; FX.burst(x, HIT_Y, [COL[l], '#fff'], 10, 2.4, {g: 0.04}); FX.text('PERFECT', x, HIT_Y - 26, '#ffea00', 11, {px: true}); sfx('note', 523 * Math.pow(2, l / 6)); }
+        else if(bd < 0.14) { best.st = 2; S.good++; S.score += 50 * (1 + Math.floor(S.combo / 10) * 0.5); S.combo++; FX.burst(x, HIT_Y, COL[l], 6, 1.8); FX.text('GOOD', x, HIT_Y - 26, '#69f0ae', 10, {px: true}); sfx('tick'); }
+        else { best.st = 3; S.miss++; S.combo = 0; FX.text('LATE', x, HIT_Y - 26, '#ff5252', 9, {px: true}); sfx('click'); }
+        S.score = Math.round(S.score); S.maxCombo = Math.max(S.maxCombo, S.combo); A.setScore(S.score);
+    }
+    function update() {
+        S.f++; for(let i = 0; i < LANES; i++) if(S.lanePress[i] > 0) S.lanePress[i]--;
+        if(S.phase !== 'play') return;
+        const t = now();
+        S.notes.forEach(n => { if(!n.st && t - n.t > 0.2) { n.st = 3; S.miss++; if(S.combo > 4) FX.text('BREAK', n.lane * LW + LW / 2, HIT_Y - 26, '#ff5252', 10, {px: true}); S.combo = 0; } });
+        if(S.beat) S.pulse = Math.max(0, 1 - ((t - LEAD) % S.beat) / S.beat);
+        if(t > S.dur) {
+            const tot = S.notes.length, acc = (S.perfect + S.good * 0.6) / Math.max(1, tot);
+            if(S.miss === 0) unlock('rhy_full'); if(S.mine) unlock('rhy_mine');
+            A.over({win: true, title: acc > 0.9 ? 'ROCK STAR!' : 'SONG CLEAR', score: S.score, hsKey: 'rhy_hs', pts: Math.floor(S.score / 900), reason: 'Rhythm Tap', sub: `${Math.round(acc * 100)}% · max combo ${S.maxCombo}`, sub2: `${S.perfect} perfect · ${S.good} good · ${S.miss} missed`});
+        }
+    }
+    function draw(c) {
+        const t = S.phase === 'play' ? now() : 0, pul = S.pulse || 0;
+        c.fillStyle = vgrad(c, 0, H, ['#12002b', '#2a0a4a', '#12002b']); c.fillRect(0, 0, W, H);
+        c.globalAlpha = 0.08 + pul * 0.12; c.fillStyle = '#ff2bd6'; c.fillRect(0, 0, W, H); c.globalAlpha = 1;
+        for(let l = 0; l < LANES; l++) {
+            c.fillStyle = hexA(COL[l], 0.07 + (S.lanePress[l] > 0 ? 0.22 : 0)); c.fillRect(l * LW, 0, LW, H);
+            c.fillStyle = '#ffffff12'; c.fillRect(l * LW, 0, 1, H);
+        }
+        if(S.phase === 'menu' || S.phase === 'load') { drawMenu(c); return; }
+        S.notes.forEach(n => {
+            const y = HIT_Y - (n.t - t) / FALL * HIT_Y; if(y < -20 || y > H + 20) return;
+            if(n.st === 1 || n.st === 2) return;
+            const x = n.lane * LW + 4;
+            c.globalAlpha = n.st === 3 ? 0.25 : 1; fillRR(c, x, y - 11, LW - 8, 22, 8, COL[n.lane]); fillRR(c, x + 3, y - 9, LW - 14, 6, 3, '#ffffff66'); c.globalAlpha = 1;
+        });
+        c.fillStyle = '#fff'; c.fillRect(0, HIT_Y - 2, W, 3); c.globalAlpha = 0.3; c.fillStyle = '#ff2bd6'; c.fillRect(0, HIT_Y - 8, W, 15); c.globalAlpha = 1;
+        for(let l = 0; l < LANES; l++) { c.beginPath(); c.arc(l * LW + LW / 2, HIT_Y, 19 + (S.lanePress[l] > 0 ? 3 : 0), 0, TAU); c.strokeStyle = COL[l]; c.lineWidth = 3; c.stroke(); if(S.lanePress[l] > 0) { c.fillStyle = hexA(COL[l], 0.35); c.fill(); } }
+        PX(c, String(S.score), W / 2, 22, 16, '#fff', 'center', '#ff2bd6');
+        if(S.combo > 3) PX(c, S.combo + ' COMBO', W / 2, 46, 9, '#ffea00', 'center');
+        T(c, S.sel.name, W / 2, H - 22, 11, '#ffffff99');
+        if(t < LEAD - 0.2) T(c, 'GET READY…', W / 2, 200, 18, '#fff');
+        c.fillStyle = '#ffffff22'; c.fillRect(0, H - 6, W, 4); c.fillStyle = '#ff2bd6'; c.fillRect(0, H - 6, W * clamp(t / S.dur, 0, 1), 4);
+    }
+    function drawMenu(c) {
+        PX(c, 'RHYTHM TAP', W / 2, 32, 14, '#ffea00', 'center', '#ff2bd6');
+        T(c, S.msg || 'Pick a song · tap the lanes in time', W / 2, 58, 11, '#ffffffbb');
+        const rows = rowsList(); S.rows = rows;
+        rows.forEach((r, i) => {
+            const y = 78 + i * 46;
+            fillRR(c, 14, y, W - 28, 40, 10, r.kind === 'song' ? '#ffffff14' : '#7c4dff55');
+            T(c, r.title, 26, y + 15, 13, '#fff', 'left'); T(c, r.sub, 26, y + 31, 10, '#ffffff88', 'left');
+            if(r.kind === 'song') EMO(c, r.mine ? '📻' : '🎵', W - 34, y + 20, 20); else EMO(c, '➡️', W - 34, y + 20, 18);
+        });
+    }
+    function rowsList() {
+        const rows = SYNTH.map(s => ({kind: 'song', title: s.name, sub: s.sub, sg: s}));
+        loadMine(); const m = mine || [];
+        if(S.mode === 'mine') {
+            rows.length = 0; rows.push({kind: 'back', title: '⬅ Back to arcade songs', sub: 'Songs from your radio / music library'});
+            m.slice(S.page * 5, S.page * 5 + 5).forEach(x => rows.push({kind: 'song', mine: 1, title: x.name.slice(0, 26), sub: 'Your song · beats found automatically', sg: x}));
+            if(m.length > (S.page + 1) * 5) rows.push({kind: 'more', title: 'More songs ➡', sub: 'page ' + (S.page + 2)});
+            if(!m.length) rows.push({kind: 'back', title: 'No songs yet', sub: 'Add music in the Workout tab (🎧) or the Photo Manager'});
+        } else rows.push({kind: 'mine', title: '📻 Play your own songs', sub: m.length ? m.length + ' song' + (m.length === 1 ? '' : 's') + ' from your radio library' : 'Add songs in the Workout tab first'});
+        return rows;
+    }
+    defGame({
+        dbg: () => S, id: 'rhythm', name: 'Rhythm Tap', icon: '🎶', color: '#ff4081', cat: 'action', isNew: true, w: W, h: H, noPause: true,
+        desc: 'Notes rain down four lanes: tap them as they hit the line! Play three arcade tracks, or pick any song from your own radio library and the game finds the beat for you.',
+        tip: 'Tap the lanes in time · perfect hits build combos', help: ['Tap a lane when a note reaches the glowing line', 'Perfect timing scores double-ish and builds combo', 'Every 10 combo adds +50% to hits', 'Your radio songs work: the game finds the beat automatically'],
+        best: () => LS.int('rhy_hs') ? fmt(LS.int('rhy_hs')) : '',
+        init() { S = {f: 0, phase: 'menu', mode: 'arc', page: 0, notes: [], score: 0, combo: 0, maxCombo: 0, perfect: 0, good: 0, miss: 0, lanePress: [0, 0, 0, 0], msg: '', pulse: 0}; loadMine(); },
+        stop() { try { if(S && S.src) S.src.stop(); } catch(e) {} },
+        update, draw,
+        pdown(x, y) {
+            audio();
+            if(S.phase === 'play') { judge(clamp(Math.floor(x / LW), 0, LANES - 1)); return; }
+            if(S.phase !== 'menu') return;
+            const i = Math.floor((y - 78) / 46); const r = (S.rows || [])[i]; if(!r || y < 78) return; sfx('select');
+            if(r.kind === 'mine') { S.mode = 'mine'; S.page = 0; } else if(r.kind === 'back') { S.mode = 'arc'; } else if(r.kind === 'more') { S.page++; }
+            else if(r.sg.bpm) startSynth(r.sg); else startMine(r.sg);
+        }
+    });
+})();
+
+// ---------- GARDEN DEFENSE ----------
+(function() {
+    const W = 300, H = 450, TS = 44, OX = 18, OY = 44, COLS = 6, ROWS = 8, PAL_Y = 398;
+    const WP = [[0,0],[5,0],[5,2],[0,2],[0,4],[5,4],[5,6],[0,6],[0,7]];
+    const PATH = []; for(let i = 0; i < WP.length - 1; i++) { const [a, b] = WP[i], [c2, d] = WP[i + 1]; const dx = Math.sign(c2 - a), dy = Math.sign(d - b); let x = a, y = b; while(x !== c2 || y !== d) { PATH.push([x, y]); x += dx; y += dy; } } PATH.push(WP[WP.length - 1]);
+    const PXY = PATH.map(([x, y]) => [OX + x * TS + TS / 2, OY + y * TS + TS / 2]);
+    const isPath = (x, y) => PATH.some(p => p[0] === x && p[1] === y);
+    const PLANTS = [
+        {id: 'sun', e: '🌻', name: 'Sunflower', cost: 50, info: 'Makes sun'},
+        {id: 'pea', e: '🌱', name: 'Pea Shooter', cost: 60, info: 'Shoots pests'},
+        {id: 'chili', e: '🌶️', name: 'Chili Burst', cost: 100, info: 'Area burn'},
+        {id: 'mint', e: '🌿', name: 'Frost Mint', cost: 80, info: 'Slows pests'}
+    ];
+    const PESTS = {aphid: {e: '🐛', hp: 4, sp: 0.55, r: 9}, cricket: {e: '🦗', hp: 3, sp: 1.1, r: 8}, snail: {e: '🐌', hp: 14, sp: 0.38, r: 10}, crow: {e: '🐦', hp: 8, sp: 0.8, r: 10}, mole: {e: '🐀', hp: 22, sp: 0.6, r: 11}, boss: {e: '🐌', hp: 160, sp: 0.3, r: 20}};
+    let S = null;
+    function waveList(n) {
+        const l = []; const c = 5 + n * 2;
+        for(let i = 0; i < c; i++) { let k = 'aphid'; const r = Math.random(); if(n >= 2 && r < 0.3) k = 'cricket'; if(n >= 3 && r > 0.75) k = 'snail'; if(n >= 5 && r > 0.55 && r < 0.7) k = 'crow'; if(n >= 7 && r > 0.88) k = 'mole'; l.push(k); }
+        if(n === 6 || n === 12) l.push('boss'); return l;
+    }
+    function startWave() { S.wave++; S.queue = waveList(S.wave); S.spawnT = 30; S.waveOn = true; sfx('whistle'); }
+    function plantAt(tx, ty) { return S.plants.find(p => p.x === tx && p.y === ty); }
+    function dmgOf(p) { return p.id === 'pea' ? 1 + p.lv * 0.8 : p.id === 'chili' ? 2 + p.lv * 1.2 : 0; }
+    function update() {
+        S.f++; const steps = S.fast ? 2 : 1;
+        for(let s = 0; s < steps; s++) tick();
+        if(S.msgT > 0) S.msgT--;
+    }
+    function tick() {
+        if(S.over) return;
+        if(!S.waveOn) { S.gap--; if(S.gap <= 0) { if(S.wave >= 12) return win(); startWave(); } }
+        else {
+            if(S.queue.length && --S.spawnT <= 0) { const k = S.queue.shift(); const d = PESTS[k]; const hpm = 1 + S.wave * 0.12; S.pests.push({k, hp: d.hp * hpm, max: d.hp * hpm, i: 0, f: 0, slow: 0, burn: 0}); S.spawnT = Math.max(14, 44 - S.wave * 2); }
+            if(!S.queue.length && !S.pests.length) { S.waveOn = false; S.gap = 150; S.sun += 30; FX.text('WAVE ' + S.wave + ' CLEAR  +30☀', W / 2, 200, '#ffea00', 11, {px: true}); sfx('win'); A.setScore(S.score); if(S.wave === 12) win(); }
+        }
+        S.plants.forEach(p => {
+            p.cd--; 
+            if(p.id === 'sun') { if(p.cd <= 0) { S.sun += 20 + p.lv * 10; p.cd = 420; const [x, y] = [OX + p.x * TS + TS / 2, OY + p.y * TS]; FX.text('+' + (20 + p.lv * 10) + '☀', x, y, '#ffea00', 9, {px: true}); sfx('tick'); } return; }
+            const X = OX + p.x * TS + TS / 2, Y = OY + p.y * TS + TS / 2, range = p.id === 'pea' ? 100 + p.lv * 14 : p.id === 'chili' ? 62 + p.lv * 8 : 78 + p.lv * 12;
+            if(p.id === 'mint') { S.pests.forEach(z => { const [zx, zy] = pos(z); if(Math.hypot(zx - X, zy - Y) < range) z.slow = 12; }); return; }
+            if(p.cd > 0) return;
+            const tg = S.pests.map(z => ({z, d: Math.hypot(pos(z)[0] - X, pos(z)[1] - Y)})).filter(o => o.d < range).sort((a, b) => b.z.i - a.z.i);
+            if(!tg.length) return;
+            if(p.id === 'pea') { const t = tg[0].z; S.shots.push({x: X, y: Y, t, d: dmgOf(p)}); p.cd = Math.max(16, 46 - p.lv * 8); sfx('shoot'); }
+            if(p.id === 'chili') { tg.forEach(o => hurt(o.z, dmgOf(p) * 2.2)); S.rings.push({x: X, y: Y, r: 6, max: range}); p.cd = 150 - p.lv * 18; sfx('pop'); }
+        });
+        S.shots.forEach(sh => { const [tx, ty] = pos(sh.t); const dx = tx - sh.x, dy = ty - sh.y, d = Math.hypot(dx, dy); if(d < 7 || sh.t.hp <= 0) { sh.done = 1; if(sh.t.hp > 0) hurt(sh.t, sh.d); } else { sh.x += dx / d * 5; sh.y += dy / d * 5; } });
+        S.shots = S.shots.filter(s => !s.done);
+        S.rings.forEach(r => r.r += 3.2); S.rings = S.rings.filter(r => r.r < r.max);
+        S.pests.forEach(z => {
+            const d = PESTS[z.k], v = d.sp * (z.slow > 0 ? 0.5 : 1); if(z.slow > 0) z.slow--; z.f += v * 0.025;
+            while(z.f >= 1 && z.i < PXY.length - 1) { z.f -= 1; z.i++; }
+            if(z.i >= PXY.length - 1) { z.gone = 1; S.lives -= z.k === 'boss' ? 5 : 1; FX.shake(5); sfx('error'); FX.flash('#ff1744', 0.25); }
+        });
+        S.pests = S.pests.filter(z => { if(z.hp <= 0) { S.score += 10 + S.wave; S.sun += z.k === 'boss' ? 80 : 6; const [x, y] = pos(z); FX.burst(x, y, ['#8bc34a', '#fff59d'], 8, 1.6); A.setScore(S.score); return false; } return !z.gone; });
+        if(S.lives <= 0 && !S.over) { S.over = 1; A.over({score: S.score, hsKey: 'gd_hs', pts: Math.floor(S.score / 40), reason: 'Garden Defense', sub: `Fell on wave ${S.wave}`, sub2: `Score ${S.score}`}); }
+    }
+    function win() { if(S.over) return; S.over = 1; unlock('gd_win'); S.score += S.lives * 40; A.setScore(S.score); A.over({win: true, title: 'GARDEN SAVED!', score: S.score, hsKey: 'gd_hs', pts: Math.floor(S.score / 30) + 5, reason: 'Garden Defense', sub: `${S.lives} carrots left`, sub2: 'All 12 waves cleared'}); }
+    function pos(z) { const a = PXY[Math.min(z.i, PXY.length - 1)], b = PXY[Math.min(z.i + 1, PXY.length - 1)]; return [a[0] + (b[0] - a[0]) * z.f, a[1] + (b[1] - a[1]) * z.f]; }
+    function hurt(z, d) { z.hp -= d; }
+    function draw(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#33691e', '#558b2f']); c.fillRect(0, 0, W, H);
+        for(let y = 0; y < ROWS; y++) for(let x = 0; x < COLS; x++) { const p = isPath(x, y); c.fillStyle = p ? '#a1887f' : ((x + y) % 2 ? '#689f38' : '#7cb342'); c.fillRect(OX + x * TS, OY + y * TS, TS, TS); if(p) { c.fillStyle = '#8d6e63'; c.fillRect(OX + x * TS + 4, OY + y * TS + 4, TS - 8, TS - 8); } }
+        EMO(c, '🥕', OX + TS / 2, OY + 7 * TS + TS / 2 + 8, 20); EMO(c, '🚪', OX + TS / 2, OY + TS / 2, 20);
+        S.plants.forEach(p => { const x = OX + p.x * TS + TS / 2, y = OY + p.y * TS + TS / 2; if(S.sel === p) { c.strokeStyle = '#fff'; c.lineWidth = 2; c.beginPath(); c.arc(x, y, p.id === 'pea' ? 100 + p.lv * 14 : 70, 0, TAU); c.stroke(); } EMO(c, PLANTS.find(q => q.id === p.id).e, x, y, 26); if(p.lv) T(c, '★'.repeat(p.lv), x, y + 18, 8, '#ffea00'); });
+        S.rings.forEach(r => { c.strokeStyle = '#ff7043'; c.lineWidth = 3; c.globalAlpha = 1 - r.r / r.max; c.beginPath(); c.arc(r.x, r.y, r.r, 0, TAU); c.stroke(); c.globalAlpha = 1; });
+        S.pests.forEach(z => { const [x, y] = pos(z), d = PESTS[z.k]; EMO(c, d.e, x, y, d.r * 2 + (z.k === 'boss' ? 10 : 4)); c.fillStyle = '#000a'; c.fillRect(x - 10, y - d.r - 7, 20, 3); c.fillStyle = z.slow > 0 ? '#4fc3f7' : '#ef5350'; c.fillRect(x - 10, y - d.r - 7, 20 * clamp(z.hp / z.max, 0, 1), 3); });
+        S.shots.forEach(s => { c.fillStyle = '#c6ff00'; c.beginPath(); c.arc(s.x, s.y, 3, 0, TAU); c.fill(); });
+        c.fillStyle = '#1b3a0f'; c.fillRect(0, 0, W, 40);
+        T(c, '☀ ' + Math.floor(S.sun), 10, 16, 14, '#ffea00', 'left'); T(c, '🥕 ' + S.lives, 10, 33, 11, '#ffcc80', 'left');
+        PX(c, 'WAVE ' + Math.max(1, S.wave) + '/12', W / 2, 20, 9, '#fff', 'center'); 
+        fillRR(c, W - 62, 8, 54, 24, 8, S.fast ? '#ff9100' : '#ffffff22'); T(c, S.fast ? '⏩ x2' : '▶ x1', W - 35, 22, 11, '#fff');
+        if(!S.waveOn && S.wave < 12) { fillRR(c, W / 2 - 60, 46, 120, 20, 10, '#000a'); T(c, 'Next wave in ' + Math.ceil(S.gap / 60) + 's · tap to send', W / 2, 56, 9, '#fff'); }
+        c.fillStyle = '#1b3a0f'; c.fillRect(0, PAL_Y - 4, W, H - PAL_Y + 4);
+        PLANTS.forEach((p, i) => { const x = 8 + i * 72; fillRR(c, x, PAL_Y, 66, 48, 10, S.pick === p.id ? '#ffeb3b55' : '#ffffff18'); if(S.sun < p.cost) c.globalAlpha = 0.45; EMO(c, p.e, x + 20, PAL_Y + 17, 22); T(c, p.cost + '☀', x + 46, PAL_Y + 16, 10, '#ffea00'); T(c, p.name, x + 33, PAL_Y + 38, 8, '#fff'); c.globalAlpha = 1; });
+        if(S.sel) { const p = S.sel, up = Math.round(PLANTS.find(q => q.id === p.id).cost * 0.8 * (p.lv + 1)), sell = Math.round(PLANTS.find(q => q.id === p.id).cost * 0.5); fillRR(c, 20, 330, W - 40, 56, 12, '#000d'); T(c, p.lv < 2 ? `⬆ Upgrade ${up}☀` : 'Max level', 90, 358, 12, p.lv < 2 && S.sun >= up ? '#69f0ae' : '#999'); T(c, `💰 Sell +${sell}☀`, 215, 358, 12, '#ffcc80'); T(c, 'tap elsewhere to close', W / 2, 376, 8, '#ffffff77'); }
+        if(S.msgT > 0) T(c, S.msg, W / 2, 190, 12, '#fff');
+    }
+    defGame({
+        dbg: () => S, id: 'garden', name: 'Garden Defense', icon: '🥕', color: '#7cb342', cat: 'action', isNew: true, w: W, h: H, noPause: false,
+        desc: 'Pests are marching on your carrots! Plant sunflowers for sun, pea shooters, chili bursts and frost mint along the path and survive 12 waves, including two giant slug bosses.',
+        tip: 'Pick a plant · tap a grass tile · tap a plant to upgrade', help: ['Tap a plant below, then a grass tile to plant it', 'Sunflowers make sun to buy more plants', 'Tap a planted flower to upgrade or sell it', 'Bosses on waves 6 and 12 · lose 10 carrots and it is over'],
+        best: () => LS.int('gd_hs') ? fmt(LS.int('gd_hs')) : '',
+        init() { S = {f: 0, sun: 140, lives: 10, wave: 0, queue: [], pests: [], plants: [], shots: [], rings: [], score: 0, gap: 220, waveOn: false, spawnT: 0, pick: 'pea', sel: null, fast: false, msg: '', msgT: 0, over: 0}; },
+        update, draw,
+        pdown(x, y) {
+            audio();
+            if(x > W - 66 && y < 36) { S.fast = !S.fast; sfx('click'); return; }
+            if(y >= PAL_Y) { const i = Math.floor((x - 8) / 72); if(PLANTS[i]) { S.pick = PLANTS[i].id; S.sel = null; sfx('select'); } return; }
+            if(S.sel) {
+                const p = S.sel, d = PLANTS.find(q => q.id === p.id), up = Math.round(d.cost * 0.8 * (p.lv + 1));
+                if(y > 330 && y < 386) { if(x < W / 2 && p.lv < 2 && S.sun >= up) { S.sun -= up; p.lv++; sfx('levelup'); FX.ring(OX + p.x * TS + TS / 2, OY + p.y * TS + TS / 2, '#ffea00', 30, 16); } else if(x >= W / 2) { S.sun += Math.round(d.cost * 0.5); S.plants = S.plants.filter(q => q !== p); sfx('coin'); } S.sel = null; return; }
+            }
+            const tx = Math.floor((x - OX) / TS), ty = Math.floor((y - OY) / TS);
+            if(!S.waveOn && S.wave < 12 && y > 44 && y < 70 && S.gap > 20) { S.gap = 10; return; }
+            if(tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) { S.sel = null; return; }
+            const ex = plantAt(tx, ty); if(ex) { S.sel = S.sel === ex ? null : ex; sfx('click'); return; }
+            S.sel = null; if(isPath(tx, ty)) { S.msg = "Pests walk there. Plant on grass!"; S.msgT = 70; return; }
+            const d = PLANTS.find(q => q.id === S.pick); if(S.sun < d.cost) { S.msg = 'Not enough sun!'; S.msgT = 60; sfx('error'); return; }
+            S.sun -= d.cost; S.plants.push({id: d.id, x: tx, y: ty, lv: 0, cd: d.id === 'sun' ? 200 : 30}); sfx('coin'); FX.burst(OX + tx * TS + TS / 2, OY + ty * TS + TS / 2, ['#8bc34a', '#fff'], 6, 1.2);
+        }
+    });
+})();
+
+// ---------- ANGLERS' POND ----------
+(function() {
+    const W = 300, H = 450;
+    const FISH = [
+        {n: 'Minnow', e: '🐟', w: [0.1, 0.4], v: 6, r: 0, d: 0.3}, {n: 'Bluegill', e: '🐠', w: [0.4, 1.2], v: 12, r: 0, d: 0.35}, {n: 'Perch', e: '🐟', w: [0.6, 2], v: 16, r: 0, d: 0.4},
+        {n: 'Carp', e: '🐡', w: [2, 7], v: 28, r: 1, d: 0.5}, {n: 'Catfish', e: '🐟', w: [3, 11], v: 36, r: 1, d: 0.55}, {n: 'Trout', e: '🐠', w: [1.5, 5], v: 30, r: 1, d: 0.5},
+        {n: 'Frog', e: '🐸', w: [0.1, 0.6], v: 20, r: 1, d: 0.4}, {n: 'Pike', e: '🦈', w: [4, 14], v: 55, r: 2, d: 0.65}, {n: 'Golden Koi', e: '🎏', w: [3, 9], v: 80, r: 2, d: 0.6},
+        {n: 'Old Boot', e: '🥾', w: [0.5, 1], v: 2, r: 0, d: 0.15, junk: 1}, {n: 'Sturgeon', e: '🐋', w: [20, 60], v: 140, r: 3, d: 0.8}, {n: 'Moonfin Dragon', e: '🐉', w: [30, 90], v: 300, r: 3, d: 0.9}
+    ];
+    const BAITS = {worm: {e: '🪱', n: 'Worm', cost: 4, mul: [1, 0.9, 0.5, 0.1], info: 'Reliable'}, bread: {e: '🍞', n: 'Bread', cost: 3, mul: [1.4, 0.8, 0.2, 0], info: 'Small fish love it'}, glow: {e: '✨', n: 'Glow Fly', cost: 12, mul: [0.5, 1, 1.4, 0.6], info: 'Better odds on rare'}, lure: {e: '💎', n: 'Gem Lure', cost: 25, mul: [0.1, 0.6, 1.6, 2.5], info: 'Legends bite'}};
+    let S = null;
+    const baits = () => { const b = LS.json('ang_bait', null); return b || {worm: 6, bread: 4, glow: 0, lure: 0}; };
+    const saveBaits = b => LS.set('ang_bait', JSON.stringify(b));
+    const book = () => LS.json('ang_book', {});
+    function rollFish(bait) {
+        const m = BAITS[bait].mul; const tbl = FISH.map(f => ({f, w: (f.junk ? 0.5 : 1) * m[f.r] * (f.r === 0 ? 3 : f.r === 1 ? 2 : 1)})).filter(o => o.w > 0);
+        let t = tbl.reduce((a, o) => a + o.w, 0), r = Math.random() * t; for(const o of tbl) { r -= o.w; if(r <= 0) return o.f; } return tbl[0].f;
+    }
+    function toMenu(msg) { S.phase = 'menu'; S.msg = msg || ''; S.bobY = 0; }
+    function update() {
+        S.f++; S.t++;
+        if(S.phase === 'wait') { S.bob = Math.sin(S.f / 14) * 2; if(S.t > S.biteAt) { S.phase = 'bite'; S.t = 0; sfx('splash'); haptic(40); } }
+        else if(S.phase === 'bite') { S.bob = 8 + Math.sin(S.f / 2) * 4; if(S.t > 55) { toMenu('It got away… (be quicker!)'); } }
+        else if(S.phase === 'reel') {
+            const f = S.fish, dif = f.d;
+            S.ft += S.fv; if(Math.random() < 0.03 + dif * 0.04) S.fv = rnd(-1, 1) * (1.2 + dif * 2.4); S.fy = clamp(S.fy + S.fv, 0.06, 0.94); if(S.fy <= 0.06 || S.fy >= 0.94) S.fv *= -1;
+            S.cv += (S.hold ? -0.0028 : 0.0026); S.cv = clamp(S.cv, -0.04, 0.04); S.cy = clamp(S.cy + S.cv, 0.1, 0.9); if(S.cy <= 0.1 || S.cy >= 0.9) S.cv = 0;
+            const on = Math.abs(S.fy - S.cy) < 0.13 + (S.rod ? 0.03 : 0);
+            S.prog += on ? 0.0042 : -0.0034 - dif * 0.002; if(S.f % 6 === 0 && on) sfx('tick');
+            if(S.prog >= 1) landed(); else if(S.prog <= 0) { toMenu('The line snapped! ' + f.n + ' escaped.'); sfx('error'); }
+        }
+        else if(S.phase === 'show') { if(S.t > 150) next(); }
+    }
+    function landed() {
+        const f = S.fish, wt = +(rnd(f.w[0], f.w[1])).toFixed(1), B = book(), prev = B[f.n] || {n: 0, best: 0}, rec = wt > prev.best; const first = !prev.n;
+        B[f.n] = {n: prev.n + 1, best: Math.max(prev.best, wt)}; LS.set('ang_book', JSON.stringify(B));
+        S.caught = {f, wt, rec, first, val: Math.round(f.v * (0.7 + wt / (f.w[1] || 1) * 0.6))}; S.score += S.caught.val; A.setScore(S.score);
+        if(Object.keys(B).length >= 5) unlock('ang_5'); if(f.r === 3) unlock('ang_rare');
+        S.phase = 'show'; S.t = 0; sfx(f.r >= 2 ? 'levelup' : 'win'); FX.confetti(f.r >= 2 ? 60 : 20); haptic(30);
+    }
+    function next() { S.casts--; if(S.casts <= 0) { A.over({win: S.score > 80, title: 'DAY DONE', score: S.score, hsKey: 'ang_hs', pts: Math.floor(S.score / 40), reason: "Anglers' Pond", sub: `${Object.keys(book()).length}/${FISH.length} species in your book`, sub2: `Day total ${S.score}`}); } else toMenu(); }
+    function draw(c) {
+        c.fillStyle = vgrad(c, 0, 200, ['#ffcc80', '#ffe0b2', '#81d4fa']); c.fillRect(0, 0, W, 200);
+        c.fillStyle = vgrad(c, 200, H, ['#0277bd', '#01579b', '#002f6c']); c.fillRect(0, 200, W, H - 200);
+        for(let i = 0; i < 8; i++) { c.strokeStyle = '#ffffff22'; c.beginPath(); c.arc(40 + i * 38, 230 + (i % 3) * 60 + Math.sin(S.f / 40 + i) * 4, 14, 0, Math.PI); c.stroke(); }
+        EMO(c, '⛰️', 60, 160, 60); EMO(c, '🌲', 250, 170, 44); EMO(c, '🛶', 70, 225, 36);
+        fillRR(c, 6, 6, W - 12, 28, 10, '#000a'); T(c, `Casts ${S.casts}`, 52, 20, 11, '#fff'); T(c, `🪙 ${S.score}`, W / 2, 20, 12, '#ffea00'); T(c, '📖 Book', W - 40, 20, 11, '#fff');
+        if(S.phase === 'menu') drawMenu(c);
+        else if(S.phase === 'wait' || S.phase === 'bite') {
+            const x = S.cx, y = 300 + S.bob; c.strokeStyle = '#ffffffaa'; c.lineWidth = 1; c.beginPath(); c.moveTo(70, 230); c.quadraticCurveTo(x - 20, 150, x, y); c.stroke();
+            c.fillStyle = '#ff1744'; c.beginPath(); c.arc(x, y, 7, Math.PI, TAU); c.fill(); c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, 7, 0, Math.PI); c.fill();
+            if(S.phase === 'bite') { FX.ring(x, y, '#fff', 20, 10, 2); fillRR(c, W / 2 - 80, 360, 160, 46, 14, '#ff1744'); PX(c, 'HOOK IT!', W / 2, 383, 14, '#fff', 'center'); } else T(c, 'Wait for a bite…', W / 2, 380, 14, '#fff');
+        } else if(S.phase === 'reel') {
+            fillRR(c, 112, 60, 76, 330, 18, '#00000066'); const f = S.fish; 
+            const top = 70, hgt = 310, cy = top + S.cy * hgt, fy = top + S.fy * hgt, zh = (0.26 + (S.rod ? 0.06 : 0)) * hgt;
+            fillRR(c, 116, cy - zh / 2, 68, zh, 12, S.hold ? '#69f0ae88' : '#69f0ae55'); EMO(c, f.e, 150, fy, 30);
+            fillRR(c, 196, 70, 12, 310, 6, '#ffffff22'); fillRR(c, 196, 70 + 310 * (1 - S.prog), 12, 310 * S.prog, 6, '#ffea00');
+            T(c, S.hold ? 'Reeling!' : 'HOLD to lift the net', W / 2, 410, 13, '#fff'); T(c, 'Keep the fish in the green', W / 2, 428, 10, '#ffffffaa');
+        } else if(S.phase === 'show') {
+            const k = S.caught; fillRR(c, 30, 130, W - 60, 190, 18, '#000c'); EMO(c, k.f.e, W / 2, 190, 56);
+            PX(c, k.f.n.toUpperCase(), W / 2, 240, 11, k.f.r >= 2 ? '#ffea00' : '#fff', 'center', '#00e5ff'); T(c, `${k.wt} kg · +${k.val} 🪙`, W / 2, 268, 15, '#69f0ae');
+            T(c, k.first ? '✨ NEW IN YOUR BOOK!' : k.rec ? '🏅 New personal best!' : ['Common', 'Uncommon', 'Rare', 'LEGENDARY'][k.f.r], W / 2, 296, 11, k.first || k.rec ? '#ffea00' : '#ffffffaa');
+        } else if(S.phase === 'book') drawBook(c);
+        if(S.phase === 'menu' || S.phase === 'show') {}
+    }
+    function drawMenu(c) {
+        const B = baits();
+        T(c, S.msg || 'Choose a bait, then cast', W / 2, 62, 11, '#fff');
+        Object.keys(BAITS).forEach((k, i) => { const b = BAITS[k], x = 12 + (i % 2) * 140, y = 80 + Math.floor(i / 2) * 88; fillRR(c, x, y, 134, 80, 12, S.bait === k ? '#ffea0044' : '#ffffff18'); EMO(c, b.e, x + 24, y + 26, 28); T(c, `${b.n} ×${B[k] || 0}`, x + 78, y + 22, 11, '#fff'); T(c, b.info, x + 67, y + 42, 8, '#ffffffaa'); fillRR(c, x + 8, y + 54, 118, 20, 8, '#00000066'); T(c, `Buy 1 · ${b.cost}🥈`, x + 67, y + 64, 9, '#ffcc80'); });
+        fillRR(c, 40, 270, W - 80, 56, 16, '#ff6d00'); PX(c, 'CAST LINE', W / 2, 298, 14, '#fff', 'center');
+        T(c, `🥈 ${LS.int('arc_silver')} silver · rod: ${S.rod ? 'Pro' : 'Basic'}`, W / 2, 346, 11, '#fff');
+        fillRR(c, 40, 360, W - 80, 28, 10, S.rod ? '#2e7d32' : '#ffffff22'); T(c, S.rod ? '✅ Pro rod owned (wider net)' : 'Buy Pro rod · 120🥈', W / 2, 374, 11, '#fff');
+    }
+    function drawBook(c) {
+        fillRR(c, 8, 44, W - 16, 360, 14, '#1b0f05ee'); const B = book(); PX(c, "RECORD BOOK", W / 2, 66, 11, '#ffea00', 'center');
+        FISH.forEach((f, i) => { const y = 82 + i * 26, r = B[f.n]; EMO(c, r ? f.e : '❔', 28, y + 11, 18); T(c, r ? f.n : '???', 50, y + 11, 11, r ? '#fff' : '#ffffff55', 'left'); T(c, r ? `×${r.n}  best ${r.best}kg` : ['common', 'uncommon', 'rare', 'legendary'][f.r], W - 20, y + 11, 10, r ? '#69f0ae' : '#ffffff55', 'right'); });
+        T(c, Object.keys(B).length + '/' + FISH.length + ' · tap to close', W / 2, 394, 10, '#fff');
+    }
+    defGame({
+        dbg: () => S, id: 'angler', name: "Anglers' Pond", icon: '🎣', color: '#29b6f6', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
+        desc: 'Pack your bait, cast into the pond and reel in twelve kinds of fish, from minnows to the legendary Moonfin Dragon. Better bait means rarer fish, and every catch goes into your record book.',
+        tip: 'Cast · tap when it bites · hold to reel', help: ['Pick a bait and cast. Different bait attracts different fish', 'When the bobber dips, tap fast to hook it', 'Hold to raise the net and keep the fish in the green', 'Buy bait and a Pro rod with silver · 📖 shows your record book'],
+        best: () => LS.int('ang_hs') ? fmt(LS.int('ang_hs')) : '',
+        init() { S = {f: 0, t: 0, phase: 'menu', score: 0, casts: 8, bait: 'worm', msg: '', bob: 0, hold: false, rod: LS.get('ang_rod') === '1', cx: 150}; },
+        update, draw,
+        pdown(x, y) {
+            audio();
+            if(S.phase === 'book') { S.phase = 'menu'; return; }
+            if(y < 36 && x > W - 80 && (S.phase === 'menu')) { S.phase = 'book'; sfx('click'); return; }
+            if(S.phase === 'menu') {
+                const B = baits(); const ks = Object.keys(BAITS);
+                for(let i = 0; i < 4; i++) { const bx = 12 + (i % 2) * 140, by = 80 + Math.floor(i / 2) * 88; if(x > bx && x < bx + 134 && y > by && y < by + 80) {
+                    if(y > by + 54) { const b = BAITS[ks[i]]; if(LS.int('arc_silver') >= b.cost) { LS.set('arc_silver', LS.int('arc_silver') - b.cost); B[ks[i]] = (B[ks[i]] || 0) + 1; saveBaits(B); refreshWallet(); sfx('coin'); } else sfx('error'); }
+                    else { S.bait = ks[i]; sfx('select'); } return; } }
+                if(y > 270 && y < 326) { if((B[S.bait] || 0) < 1) { S.msg = 'Out of that bait! Buy more or pick another.'; sfx('error'); return; } B[S.bait]--; saveBaits(B); S.cx = rnd(110, 200); S.phase = 'wait'; S.t = 0; S.biteAt = rnd(60, 190); sfx('whoosh'); return; }
+                if(y > 360 && y < 388 && !S.rod) { if(LS.int('arc_silver') >= 120) { LS.set('arc_silver', LS.int('arc_silver') - 120); LS.set('ang_rod', '1'); S.rod = true; refreshWallet(); sfx('levelup'); } else sfx('error'); }
+                return;
+            }
+            if(S.phase === 'wait') { toMenu('Too early! The fish heard you.'); sfx('error'); return; }
+            if(S.phase === 'bite') { S.fish = rollFish(S.bait); S.phase = 'reel'; S.t = 0; S.cy = 0.5; S.cv = 0; S.fy = 0.5; S.fv = 0.01; S.prog = 0.3; S.hold = true; sfx('thud'); return; }
+            if(S.phase === 'reel') S.hold = true;
+            if(S.phase === 'show' && S.t > 20) next();
+        },
+        pup() { if(S && S.phase === 'reel') S.hold = false; }
+    });
+})();
+
+// ---------- SKEE-BALL ----------
+(function() {
+    const W = 300, H = 450;
+    const RINGS = [{r: 0.09, v: 100, c: '#ff1744'}, {r: 0.2, v: 50, c: '#ffea00'}, {r: 0.32, v: 40, c: '#00e676'}, {r: 0.46, v: 30, c: '#29b6f6'}, {r: 0.62, v: 20, c: '#b388ff'}, {r: 0.8, v: 10, c: '#90a4ae'}];
+    let S = null;
+    const px = (lat, d) => { const k = 1 - d * 0.62; return [W / 2 + lat * 110 * k, H - 44 - d * 300]; };
+    function launch(dx, dy, dt) {
+        if(dy > -18 || S.ball) return;
+        const speed = Math.hypot(dx, dy) / Math.max(dt, 40) * 1000; const power = clamp(speed / 1500, 0.25, 1.45), lat = clamp(dx / Math.max(1, -dy) * 1.1, -1.2, 1.2);
+        S.ball = {d: 0, lat: S.lat0, vlat: lat * 0.012, p: power, t: 0, state: 'roll'}; S.balls--; sfx('whoosh');
+    }
+    function score(b) {
+        const lat = b.lat, over = b.p - 0.78; let v = 0, label = '';
+        if(Math.abs(lat) > 0.96 || b.p < 0.38) { label = b.p < 0.38 ? 'ROLLED BACK' : 'GUTTER'; }
+        else if(over > 0.42) label = 'OVER THE TOP';
+        else { const r = Math.hypot(lat * 0.86, over * 1.3); const hit = RINGS.find(g => r < g.r); if(hit) { v = hit.v; label = v + '!'; } else label = 'MISS'; }
+        S.score += v; S.last = {v, label, t: 90}; A.setScore(S.score);
+        if(v === 100) { unlock('skee_100'); FX.confetti(50); sfx('levelup'); } else if(v >= 40) sfx('win'); else if(v) sfx('coin'); else sfx('buzz');
+        S.tickets += Math.round(v / 10);
+    }
+    function update() {
+        S.f++; if(S.last && S.last.t > 0) S.last.t--;
+        if(!S.ball) { S.lat0 = Math.sin(S.f / 90) * 0.6; if(S.balls <= 0 && S.done !== 1) { S.done = 1; S.wait = 60; } if(S.done === 1 && --S.wait <= 0) { S.done = 2; const t = S.score; A.over({win: t >= 250, title: t >= 350 ? 'TICKET JACKPOT' : 'ROUND OVER', score: t, hsKey: 'skee_hs', pts: Math.floor(t / 90), reason: 'Skee-Ball', sub: `${S.tickets} tickets`, sub2: t >= 350 ? 'Bonus prize unlocked!' : 'Score 350+ for a prize'}); if(t >= 350) addSilver(20); } return; }
+        const b = S.ball;
+        if(b.state === 'roll') { b.d += 0.012 + b.p * 0.02; b.lat += b.vlat; if(Math.abs(b.lat) > 1.02) b.state = 'gutter'; if(b.d >= 0.83) { b.state = 'air'; b.t = 0; } }
+        else if(b.state === 'air') { b.t++; if(b.t > 26) { b.state = 'done'; b.t = 0; score(b); } }
+        else if(b.state === 'gutter') { b.d += 0.02; if(b.d > 0.9) { b.state = 'done'; b.t = 0; score(Object.assign({}, b, {lat: 2})); } }
+        else if(b.state === 'done') { if(++b.t > 36) S.ball = null; }
+    }
+    function draw(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#1a0033', '#3d0a6b']); c.fillRect(0, 0, W, H);
+        c.fillStyle = '#5d4037'; c.beginPath(); c.moveTo(px(-1.1, 0)[0], px(0, 0)[1] + 20); c.lineTo(px(-1.1, 1)[0], px(0, 1)[1]); c.lineTo(px(1.1, 1)[0], px(0, 1)[1]); c.lineTo(px(1.1, 0)[0], px(0, 0)[1] + 20); c.fill();
+        c.fillStyle = '#8d6e63'; c.beginPath(); c.moveTo(px(-0.95, 0)[0], px(0, 0)[1] + 20); c.lineTo(px(-0.95, 1)[0], px(0, 1)[1]); c.lineTo(px(0.95, 1)[0], px(0, 1)[1]); c.lineTo(px(0.95, 0)[0], px(0, 0)[1] + 20); c.fill();
+        for(let i = 1; i < 8; i++) { const [, y] = px(0, i / 8); c.strokeStyle = '#ffffff14'; c.beginPath(); c.moveTo(px(-0.95, i / 8)[0], y); c.lineTo(px(0.95, i / 8)[0], y); c.stroke(); }
+        const [cx, cy] = [W / 2, 128]; 
+        for(let i = RINGS.length - 1; i >= 0; i--) { const g = RINGS[i]; c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135, g.r * 62, 0, 0, TAU); c.fill(); c.fillStyle = '#00000044'; c.beginPath(); c.ellipse(cx, cy + 2, g.r * 135 - 5, g.r * 62 - 4, 0, 0, TAU); c.fill(); c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135 - 6, g.r * 62 - 5, 0, 0, TAU); c.fill(); if(g.r > 0.1) T(c, g.v, cx + g.r * 135 - 16, cy + 2, 8, '#000'); }
+        T(c, '100', cx, cy, 11, '#fff');
+        fillRR(c, 0, 0, W, 38, 0, '#000b'); T(c, `Balls ${S.balls}`, 46, 19, 12, '#fff'); PX(c, String(S.score), W / 2, 19, 13, '#ffea00', 'center'); T(c, `🎟️ ${S.tickets}`, W - 40, 19, 12, '#fff');
+        if(S.ball) { const b = S.ball; let d = Math.min(b.d, 0.83), lat = b.lat, [x, y] = px(lat, d), sz = 15 * (1 - d * 0.55), lift = 0;
+            if(b.state === 'air') { const k = b.t / 26; const tgt = [cx + clamp(b.lat * 135 * 0.86, -135, 135) * 0.9, cy + (b.p - 0.78) * 90]; x = lerp(x, tgt[0], k); y = lerp(y, tgt[1], k) - Math.sin(k * Math.PI) * 50; sz = lerp(sz, 9, k); }
+            if(b.state === 'done') { const tgt = [cx + clamp(b.lat * 135 * 0.86, -135, 135) * 0.9, cy + (b.p - 0.78) * 90]; x = tgt[0]; y = tgt[1]; sz = 9; }
+            c.fillStyle = '#0006'; c.beginPath(); c.ellipse(x, y + sz, sz, sz * 0.4, 0, 0, TAU); c.fill(); c.fillStyle = '#ffcc80'; c.beginPath(); c.arc(x, y, sz, 0, TAU); c.fill(); c.fillStyle = '#fff6'; c.beginPath(); c.arc(x - sz * 0.3, y - sz * 0.3, sz * 0.3, 0, TAU); c.fill(); }
+        else if(S.balls > 0) { const [x, y] = px(S.lat0, 0); c.fillStyle = '#ffcc80'; c.beginPath(); c.arc(x, y, 15, 0, TAU); c.fill(); T(c, 'Flick up to roll!', W / 2, H - 14, 12, '#fff'); }
+        if(S.last && S.last.t > 0) { c.globalAlpha = Math.min(1, S.last.t / 25); PX(c, S.last.label, W / 2, 230, S.last.v >= 50 ? 20 : 13, S.last.v ? '#ffea00' : '#ff5252', 'center', '#000'); c.globalAlpha = 1; }
+    }
+    defGame({
+        dbg: () => S, id: 'skee', name: 'Skee-Ball', icon: '🎳', color: '#ff6d00', cat: 'casual', isNew: true, w: W, h: H, cursor: 'grab',
+        desc: 'The boardwalk classic: flick the ball up the ramp and drop it in the rings. Nine balls, a 100-point bullseye and tickets for a bonus prize when you pass 350.',
+        tip: 'Flick up the lane · speed sets distance', help: ['Flick a ball up the ramp', 'A medium-fast flick lands in the middle rings', 'Too hard and it flies over the top', 'Swipe slightly sideways to curve the ball'],
+        best: () => LS.int('skee_hs') ? fmt(LS.int('skee_hs')) : '',
+        init() { S = {f: 0, balls: 9, score: 0, tickets: 0, ball: null, lat0: 0, done: 0}; },
+        update, draw,
+        pdown(x, y) { audio(); S.down = {x, y, t: performance.now()}; },
+        pup(x, y) { if(S.down) { launch(x - S.down.x, y - S.down.y, performance.now() - S.down.t); S.down = null; } }
+    });
+})();
+
+    /* build 21: publish trophies to the Club tab */
+    (function(){ const pub=()=>{ try { if(!window.BCX) return; const got=LS.json('arc_ach',{}); BCX.publish('arcade', ACH.map(a=>[a.id,a.icon,a.name,a.desc,!!got[a.id]])); } catch(e){} }; pub(); setInterval(pub,5000); })();
     setupCanvasInput();
     setupHub();
     $('mute-btn').textContent = muted ? '🔇' : '🔊';
