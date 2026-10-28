@@ -252,6 +252,7 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
         <div class="hl gold" id="link-merchant"><span>🛒</span>Prize Counter</div>
         <div class="hl" id="link-trophies"><span>🏆</span>Trophy Wall</div>
         <div class="hl" id="link-random"><span>🎲</span>Random Game</div>
+        <div class="hl" id="link-duo" onclick="location.href='./duo.html'"><span>💞</span>Play together</div>
         <div class="hl" id="link-skins"><span>🎨</span>Skins &amp; Sounds</div>
         <div class="hl" id="link-stats"><span>📊</span><b id="hub-trocount">0/0</b></div>
         <div class="hl home" id="link-home"><span>🏠</span>Back to Main App</div>
@@ -6069,6 +6070,166 @@ function renderTrophies() {
         return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
     });
     P.cv = $('gc'); P.ctx = P.cv.getContext('2d');
+// ======================================================================
+//  NEW MINI-GAMES: Balloon Pop, Lane Dash, Cup Shuffle
+// ======================================================================
+(function() {
+    const W = 300, H = 450;
+    let S = null;
+    const rnd = (a, b) => a + Math.random() * (b - a);
+    /* ---------- Balloon Pop ---------- */
+    const BCOL = ['#ff5252', '#ffb300', '#66bb6a', '#42a5f5', '#ab47bc', '#ff80ab'];
+    function bUpdate() {
+        S.f++; S.t++;
+        const rate = Math.max(14, 46 - Math.floor(S.t / 240) * 3);
+        if(S.t % rate === 0) {
+            const r = Math.random(), type = r < 0.1 ? 'bomb' : r < 0.17 ? 'gold' : 'norm';
+            S.b.push({x: rnd(30, W - 30), y: H + 40, vy: -(0.9 + Math.min(2.2, S.t / 900) + Math.random() * 0.6), r: type === 'gold' ? 18 : rnd(22, 30), type, col: BCOL[Math.floor(Math.random() * BCOL.length)], sway: Math.random() * 6});
+        }
+        S.b.forEach(b => { b.y += b.vy; b.x += Math.sin((S.f + b.sway * 20) / 28) * 0.5; });
+        S.b = S.b.filter(b => {
+            if(b.y < -40) { if(b.type !== 'bomb') { S.lives--; sfx('error'); FX.text('MISSED', b.x, 24, '#ff5252', 11, {px: true}); } return false; }
+            return true;
+        });
+        S.pops = S.pops.filter(p => ++p.t < 18);
+        if(S.lives <= 0) A.over({score: S.score, hsKey: 'balloon_hs', pts: Math.floor(S.score / 40), reason: 'Balloon Pop', sub: 'Score ' + S.score, sub2: S.popped + ' balloons popped · best streak ' + S.best});
+    }
+    function bTap(x, y) {
+        if(S.lives <= 0) return;
+        for(let i = S.b.length - 1; i >= 0; i--) {
+            const b = S.b[i];
+            if(Math.hypot(x - b.x, y - b.y) < b.r + 8) {
+                S.b.splice(i, 1); S.pops.push({x: b.x, y: b.y, t: 0, col: b.type === 'bomb' ? '#ffea00' : b.col});
+                if(b.type === 'bomb') { S.lives--; S.streak = 0; S.score = Math.max(0, S.score - 20); sfx('boom'); FX.text('BOMB!', b.x, b.y, '#ff1744', 13, {px: true}); }
+                else { S.streak++; S.best = Math.max(S.best, S.streak); const g = (b.type === 'gold' ? 10 : 1) * (1 + Math.floor(S.streak / 8)); S.score += g; S.popped++; sfx(b.type === 'gold' ? 'coin' : 'pop'); if(b.type === 'gold') FX.text('+' + g, b.x, b.y, '#ffea00', 13, {px: true}); }
+                A.setScore(S.score); return;
+            }
+        }
+        S.streak = 0;
+    }
+    function bDraw(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#81d4fa', '#e1f5fe']); c.fillRect(0, 0, W, H);
+        for(let i = 0; i < 4; i++) EMO(c, '☁️', (i * 97 + S.f * 0.15) % (W + 60) - 30, 70 + i * 90, 44);
+        S.b.forEach(b => {
+            c.strokeStyle = '#0006'; c.lineWidth = 1; c.beginPath(); c.moveTo(b.x, b.y + b.r); c.quadraticCurveTo(b.x + 6, b.y + b.r + 14, b.x, b.y + b.r + 28); c.stroke();
+            if(b.type === 'bomb') { circle(c, b.x, b.y, b.r, '#212121'); circle(c, b.x - 7, b.y - 7, 5, '#fff4'); T(c, '💣', b.x, b.y + 1, 22); }
+            else { c.fillStyle = b.type === 'gold' ? '#ffd740' : b.col; c.beginPath(); c.ellipse(b.x, b.y, b.r * 0.85, b.r, 0, 0, TAU); c.fill(); circle(c, b.x - b.r * 0.3, b.y - b.r * 0.4, b.r * 0.2, '#fff6'); if(b.type === 'gold') EMO(c, '⭐', b.x, b.y, 14); }
+        });
+        S.pops.forEach(p => { for(let k = 0; k < 8; k++) { const a = k * TAU / 8, d = p.t * 2.4; circle(c, p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 3 - p.t / 7, p.col); } });
+        PX(c, '❤'.repeat(Math.max(0, S.lives)), 12, 16, 12, '#e53935', 'left');
+        if(S.streak > 2) T(c, '🔥 ' + S.streak, W - 16, 18, 14, '#e65100', 'right');
+    }
+    defGame({
+        dbg: () => S, id: 'balloon', name: 'Balloon Pop', icon: '🎈', color: '#ff5252', cat: 'casual', isNew: true, w: W, h: H,
+        desc: 'Pop the rising balloons before they float away! Gold balloons are worth 10, bombs cost a life, and streaks multiply your score.',
+        tip: 'Tap balloons · skip the bombs', help: ['Tap a balloon to pop it', 'Lose a life when a balloon escapes', 'Bombs cost a life too', 'Streaks of 8 raise your multiplier'],
+        best: () => LS.int('balloon_hs') ? fmt(LS.int('balloon_hs')) : '',
+        init() { S = {f: 0, t: 0, score: 0, lives: 5, b: [], pops: [], streak: 0, best: 0, popped: 0}; A.setScore(0); },
+        update: bUpdate, draw: bDraw, pdown(x, y) { audio(); bTap(x, y); }
+    });
+})();
+(function() {
+    const W = 300, H = 450, LX = [60, 150, 240], PY = H - 90;
+    let S = null;
+    function update() {
+        S.f++; S.sp = 3 + Math.min(6, S.f / 500); S.dist += S.sp;
+        S.px += (LX[S.lane] - S.px) * 0.35;
+        const gap = Math.max(46, 110 - S.f / 30);
+        S.spawn -= S.sp; if(S.spawn <= 0) {
+            S.spawn = gap + Math.random() * 40; const open = Math.floor(Math.random() * 3), coin = Math.floor(Math.random() * 3);
+            for(let l = 0; l < 3; l++) { if(l !== open && (Math.random() < 0.8 || l !== coin)) S.o.push({l, y: -30, t: 'rock'}); }
+            S.o.push({l: open, y: -30, t: 'coin'});
+        }
+        S.o.forEach(o => o.y += S.sp);
+        S.o = S.o.filter(o => {
+            if(o.y > H + 30) return false;
+            if(o.l === S.lane && Math.abs(o.y - PY) < 26) {
+                if(o.t === 'coin') { S.coins++; sfx('coin'); return false; }
+                A.over({score: Math.floor(S.dist / 10) + S.coins * 5, hsKey: 'dash_hs', pts: Math.floor((S.dist / 10 + S.coins * 5) / 60), reason: 'Lane Dash', sub: Math.floor(S.dist / 10) + ' m run', sub2: S.coins + ' coins'}); sfx('thud'); return false;
+            }
+            return true;
+        });
+        A.setScore(Math.floor(S.dist / 10) + S.coins * 5);
+    }
+    function draw(c) {
+        c.fillStyle = '#263238'; c.fillRect(0, 0, W, H);
+        c.fillStyle = '#37474f'; c.fillRect(15, 0, W - 30, H);
+        c.strokeStyle = '#fff5'; c.lineWidth = 3; c.setLineDash([22, 22]); c.lineDashOffset = -S.dist % 44;
+        [105, 195].forEach(x => { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke(); }); c.setLineDash([]);
+        S.o.forEach(o => { if(o.t === 'coin') EMO(c, '🪙', LX[o.l], o.y, 26); else EMO(c, '🪨', LX[o.l], o.y, 34); });
+        EMO(c, '🏃', S.px, PY, 40);
+        T(c, 'Tap left / right to switch lanes', W / 2, H - 14, 11, '#fff8');
+    }
+    defGame({
+        dbg: () => S, id: 'dash', name: 'Lane Dash', icon: '🏃', color: '#26c6da', cat: 'action', isNew: true, w: W, h: H,
+        desc: 'Sprint down a three-lane road. Dodge the rocks, grab coins, and keep up as the road speeds up.',
+        tip: 'Tap left or right to change lanes', help: ['Tap the left side to move left', 'Tap the right side to move right', 'Coins are worth 5 points', 'Rocks end your run'],
+        best: () => LS.int('dash_hs') ? fmt(LS.int('dash_hs')) : '',
+        init() { S = {f: 0, dist: 0, sp: 3, lane: 1, px: LX[1], o: [], spawn: 60, coins: 0}; A.setScore(0); },
+        update, draw,
+        pdown(x) { audio(); if(x < W / 2) S.lane = Math.max(0, S.lane - 1); else S.lane = Math.min(2, S.lane + 1); sfx('move'); }
+    });
+})();
+(function() {
+    const W = 300, H = 450, CX = [60, 150, 240], CY = 250;
+    let S = null;
+    const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    function nextRound() {
+        S.ball = Math.floor(Math.random() * 3); S.pos = [0, 1, 2]; S.phase = 'show'; S.t = 0; S.swaps = 2 + S.round; S.speed = Math.max(10, 30 - S.round * 2.2); S.swp = null; S.msg = 'Watch the ball…';
+    }
+    function update() {
+        S.f++; S.t++;
+        if(S.phase === 'show') { if(S.t > 70) { S.phase = 'shuffle'; S.t = 0; S.msg = 'Follow it!'; } }
+        else if(S.phase === 'shuffle') {
+            if(!S.swp) {
+                if(S.swaps <= 0) { S.phase = 'pick'; S.msg = 'Where is the ball?'; S.t = 0; return; }
+                let a = Math.floor(Math.random() * 3), b = (a + 1 + Math.floor(Math.random() * 2)) % 3; S.swp = {a, b, k: 0}; S.swaps--; sfx('whoosh');
+            } else {
+                S.swp.k += 1 / S.speed;
+                if(S.swp.k >= 1) { const t = S.pos[S.swp.a]; S.pos[S.swp.a] = S.pos[S.swp.b]; S.pos[S.swp.b] = t; S.swp = null; }
+            }
+        } else if(S.phase === 'reveal') {
+            if(S.t > 55) {
+                if(S.ok) { S.round++; S.score += 10 + S.round * 2; A.setScore(S.score); nextRound(); }
+                else A.over({score: S.score, hsKey: 'cups_hs', pts: Math.floor(S.score / 25), reason: 'Cup Shuffle', sub: 'Reached round ' + (S.round + 1), sub2: 'Score ' + S.score});
+            }
+        }
+    }
+    function slotX(i) { /* i = cup id, find its slot position (animated) */
+        const slot = S.pos.indexOf(i); let x = CX[slot];
+        if(S.swp) { const s = S.swp, k = ease(Math.min(1, s.k)); if(slot === s.a) x = CX[s.a] + (CX[s.b] - CX[s.a]) * k; else if(slot === s.b) x = CX[s.b] + (CX[s.a] - CX[s.b]) * k; }
+        return x;
+    }
+    function draw(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#4e342e', '#8d6e63']); c.fillRect(0, 0, W, H);
+        fillRR(c, 10, 200, W - 20, 120, 14, '#6d4c41');
+        T(c, 'Round ' + (S.round + 1), W / 2, 40, 16, '#ffe0b2');
+        T(c, S.msg, W / 2, 80, 15, '#fff');
+        for(let i = 0; i < 3; i++) {
+            const x = slotX(i), lift = (S.phase === 'show' && i === S.ball) || (S.phase === 'reveal' && i === S.ball) || (S.phase === 'reveal' && i === S.pick) ? -46 : 0;
+            if(i === S.ball && lift) EMO(c, '🔴', x, CY + 24, 26);
+            else if(S.phase === 'show' && i === S.ball) EMO(c, '🔴', x, CY + 24, 26);
+            c.fillStyle = '#d32f2f'; c.beginPath(); c.moveTo(x - 30, CY + 40 + lift); c.lineTo(x - 22, CY - 30 + lift); c.lineTo(x + 22, CY - 30 + lift); c.lineTo(x + 30, CY + 40 + lift); c.closePath(); c.fill();
+            c.fillStyle = '#ef5350'; c.fillRect(x - 24, CY - 30 + lift, 48, 8); c.fillStyle = '#fff3'; c.fillRect(x - 14, CY - 18 + lift, 6, 44);
+        }
+        if(S.phase === 'reveal') T(c, S.ok ? '✅ Nice!' : '❌ Nope', W / 2, 370, 22, S.ok ? '#69f0ae' : '#ff5252');
+    }
+    defGame({
+        dbg: () => S, id: 'cups', name: 'Cup Shuffle', icon: '🥤', color: '#ef5350', cat: 'puzzle', isNew: true, w: W, h: H,
+        desc: 'A ball hides under a cup, then the cups are shuffled faster and faster. Keep your eyes on it and pick the right cup!',
+        tip: 'Follow the ball · tap the cup', help: ['Watch which cup hides the ball', 'Follow it through the shuffle', 'Tap the cup you think has it', 'Each round shuffles more and faster'],
+        best: () => LS.int('cups_hs') ? fmt(LS.int('cups_hs')) : '',
+        init() { S = {f: 0, t: 0, round: 0, score: 0, pick: -1, ok: false}; nextRound(); A.setScore(0); },
+        update, draw,
+        pdown(x, y) {
+            audio(); if(S.phase !== 'pick') return;
+            for(let slot = 0; slot < 3; slot++) if(Math.abs(x - CX[slot]) < 36 && y > CY - 50 && y < CY + 50) {
+                S.pick = S.pos[slot]; S.ok = S.pick === S.ball; S.phase = 'reveal'; S.t = 0; sfx(S.ok ? 'win' : 'buzz'); return;
+            }
+        }
+    });
+})();
+
     setupCanvasInput();
     setupHub();
     $('mute-btn').textContent = muted ? '🔇' : '🔊';

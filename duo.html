@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Together Arcade</title>
+<meta name="theme-color" content="#0f0b1e">
+<style>
+:root{--bg:#0f0b1e;--card:#1a1433;--line:#322a5e;--ink:#f3f0ff;--mut:#a79fd6;--a:#ff4d8d;--b:#35c8ff;--ok:#4ade80;--warn:#fbbf24}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:radial-gradient(circle at 20% 0,#2a1b5e 0,var(--bg) 55%) fixed;color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 40px}
+.wrap{max-width:520px;margin:0 auto;padding:12px 14px}
+h1{font-size:20px;margin:6px 0 2px;display:flex;align-items:center;gap:8px}h1 a{color:var(--mut);text-decoration:none;font-size:14px;margin-left:auto}
+.mut{color:var(--mut);font-size:13px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.gc{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;font-weight:800}.gc:active{transform:scale(.97)}.gc .i{font-size:34px;display:block}.gc small{display:block;color:var(--mut);font-weight:600;font-size:11.5px;margin-top:2px}
+button{font:inherit;font-weight:800;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:10px 14px;cursor:pointer}button.pri{background:linear-gradient(90deg,#7c3aed,#ec4899);border-color:transparent}button.ok{background:#15803d;border-color:#4ade80}button.bad{background:#7f1d1d;border-color:#ef4444}button:disabled{opacity:.4}
+.card{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px;margin:10px 0}
+.bar{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.pl{flex:1;border:2px solid var(--line);border-radius:12px;padding:6px 8px;text-align:center;font-weight:800;font-size:13px}.pl.a{border-color:var(--a)}.pl.b{border-color:var(--b)}.pl.turn{background:#ffffff14;box-shadow:0 0 12px currentColor}.pl b{display:block;font-size:20px}
+.code{font-size:34px;letter-spacing:8px;font-weight:900;text-align:center;color:var(--ok)}
+input,select{font:inherit;background:#0c0820;color:var(--ink);border:2px solid var(--line);border-radius:10px;padding:10px;max-width:100%}
+.banner{text-align:center;font-weight:900;font-size:18px;padding:10px;border-radius:12px;background:#ffffff14;margin:8px 0}
+/* boards */
+.c4{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;background:#1d4ed8;padding:6px;border-radius:14px}.c4 i{aspect-ratio:1;border-radius:50%;background:#0c0820;display:block}.c4 i.a{background:var(--a)}.c4 i.b{background:var(--b)}.c4 i.w{outline:3px solid #fff}
+.c4h{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:0 6px;margin-bottom:4px}.c4h button{padding:6px 0;font-size:16px}
+.ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ttt button{aspect-ratio:1;font-size:46px;padding:0}
+.ck{display:grid;grid-template-columns:repeat(8,1fr);border:3px solid #5b3a1a}.ck div{aspect-ratio:1;display:grid;place-items:center;position:relative}.ck .d{background:#7b4a22}.ck .l{background:#e8c99b}.ck .sel{outline:3px solid var(--warn);outline-offset:-3px}.ck .tg::after{content:"";width:34%;height:34%;border-radius:50%;background:#4ade80aa;position:absolute}
+.pc{width:76%;height:76%;border-radius:50%;display:grid;place-items:center;font-size:14px;box-shadow:inset 0 -3px 0 #0006,0 2px 3px #0008}.pc.a{background:var(--a)}.pc.b{background:var(--b)}
+.rv{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#064e3b;padding:3px;border-radius:8px}.rv div{aspect-ratio:1;background:#047857;display:grid;place-items:center;position:relative}.rv .pc{width:80%;height:80%}.rv .tg::after{content:"";width:26%;height:26%;border-radius:50%;background:#ffffff77;position:absolute}
+.bs{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin:6px 0}.bs div{aspect-ratio:1;background:#0b2a4a;border-radius:4px;display:grid;place-items:center;font-size:14px}.bs .sh{background:#1e3a8a}.bs .hit{background:#b91c1c}.bs .miss{background:#334155}.bs .sunk{background:#7f1d1d}.bs.me div.s{background:#475569}
+.mem{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.mem button{aspect-ratio:1;font-size:26px;padding:0}.mem button.up{background:#fff2}.mem button.own-a{border-color:var(--a)}.mem button.own-b{border-color:var(--b)}
+.big{font-size:60px;text-align:center}.ch{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.ch button{font-size:28px;padding:10px 0}
+.opt{display:grid;gap:8px}.opt button{text-align:left;padding:12px}.opt button.right{background:#15803d;border-color:#4ade80}.opt button.wrong{background:#7f1d1d;border-color:#ef4444}.opt button.pick{border-color:var(--warn)}
+.tm{height:8px;background:#ffffff1a;border-radius:6px;overflow:hidden;margin:6px 0}.tm i{display:block;height:100%;background:var(--warn);width:100%}
+.react{height:220px;border-radius:18px;display:grid;place-items:center;font-size:26px;font-weight:900;text-align:center;user-select:none;touch-action:manipulation;cursor:pointer}
+.dab svg{width:100%;height:auto;display:block;background:#0c0820;border-radius:12px}
+.hid{display:none}
+</style></head><body><div class="wrap" id="app"></div>
+<script>
+/* [category, question, RIGHT answer, wrong, wrong, wrong]  (answers are shuffled when asked) */
+window.DUO_TRIVIA = [
+/* ---------- MOVIES ---------- */
+["movies","Which 1994 film features the line \"Life is like a box of chocolates\"?","Forrest Gump","Pulp Fiction","The Shawshank Redemption","Speed"],
+["movies","Who directed Jaws (1975)?","Steven Spielberg","George Lucas","Ridley Scott","Francis Ford Coppola"],
+["movies","In The Matrix, which colour pill does Neo take?","Red","Blue","Green","Yellow"],
+["movies","What is the name of the toy cowboy in Toy Story?","Woody","Buzz","Rex","Slinky"],
+["movies","What is the highest-grossing film of all time without adjusting for inflation (as of 2024)?","Avatar","Avengers: Endgame","Titanic","Star Wars: The Force Awakens"],
+["movies","Who played Jack Sparrow in Pirates of the Caribbean?","Johnny Depp","Orlando Bloom","Brad Pitt","Hugh Jackman"],
+["movies","In which film do you hear \"I'll be back\"?","The Terminator","Predator","Die Hard","RoboCop"],
+["movies","What is the name of the fictional African country in Black Panther?","Wakanda","Zamunda","Genovia","Latveria"],
+["movies","Which film features a shark-hunting trio on the boat Orca?","Jaws","Deep Blue Sea","The Meg","Open Water"],
+["movies","What is the name of Shrek's wife?","Fiona","Elsa","Rapunzel","Belle"],
+["movies","Which actor played the Joker in The Dark Knight?","Heath Ledger","Joaquin Phoenix","Jack Nicholson","Jared Leto"],
+["movies","In Finding Nemo, what kind of fish is Dory?","Regal blue tang","Clownfish","Angelfish","Pufferfish"],
+["movies","What was the first feature-length Pixar film?","Toy Story","A Bug's Life","Monsters, Inc.","Finding Nemo"],
+["movies","Which movie has the quote \"You can't handle the truth!\"?","A Few Good Men","The Firm","Top Gun","Jerry Maguire"],
+["movies","Who plays Iron Man in the Marvel Cinematic Universe?","Robert Downey Jr.","Chris Evans","Mark Ruffalo","Chris Hemsworth"],
+["movies","In The Lion King, what is Simba's father called?","Mufasa","Scar","Rafiki","Zazu"],
+["movies","Which film series features the character Ethan Hunt?","Mission: Impossible","Bourne","John Wick","Fast & Furious"],
+["movies","What is the name of the wizarding school in Harry Potter?","Hogwarts","Beauxbatons","Durmstrang","Ilvermorny"],
+["movies","Which 2010 film is about stealing secrets through dreams?","Inception","Interstellar","Tenet","Shutter Island"],
+["movies","What colour is the Hulk?","Green","Red","Blue","Grey"],
+["movies","Which Studio Ghibli film features a girl who works at a bathhouse for spirits?","Spirited Away","My Neighbor Totoro","Howl's Moving Castle","Princess Mononoke"],
+["movies","In Back to the Future, what speed must the DeLorean reach to time travel?","88 mph","66 mph","99 mph","100 mph"],
+["movies","Who directed Pulp Fiction?","Quentin Tarantino","Martin Scorsese","David Fincher","Guy Ritchie"],
+["movies","What is the name of the snowman in Frozen?","Olaf","Sven","Kristoff","Hans"],
+["movies","Which movie features the song \"Let It Go\"?","Frozen","Tangled","Moana","Brave"],
+["movies","In Star Wars, who is Luke Skywalker's father?","Darth Vader","Obi-Wan Kenobi","Han Solo","Emperor Palpatine"],
+["movies","Which actor voiced Genie in Disney's Aladdin (1992)?","Robin Williams","Eddie Murphy","Jim Carrey","Mike Myers"],
+["movies","Which film won Best Picture at the 2020 Oscars (the first non-English-language winner)?","Parasite","1917","Joker","Once Upon a Time in Hollywood"],
+["movies","What is the name of the villain in The Lion King?","Scar","Jafar","Hades","Ursula"],
+["movies","What is the name of the robot in WALL-E that Wall-E falls for?","EVE","AUTO","M-O","BURN-E"],
+["movies","Which movie includes the line \"Here's looking at you, kid\"?","Casablanca","Gone with the Wind","Citizen Kane","Vertigo"],
+["movies","In Jurassic Park, what insect's DNA preserved in amber was used to clone dinosaurs?","Mosquito","Fly","Wasp","Ant"],
+["movies","Which actress played Katniss Everdeen in The Hunger Games?","Jennifer Lawrence","Emma Watson","Shailene Woodley","Kristen Stewart"],
+["movies","Who is the main villain in the first Avengers movie?","Loki","Thanos","Ultron","Red Skull"],
+["movies","Which director made E.T. the Extra-Terrestrial?","Steven Spielberg","James Cameron","Robert Zemeckis","Tim Burton"],
+["movies","In The Incredibles, what is the family's last name?","Parr","Pine","Powers","Prime"],
+["movies","What is the name of the dog in Up?","Dug","Rex","Bolt","Hooch"],
+["movies","Which movie features a character named Maximus Decimus Meridius?","Gladiator","Troy","300","Ben-Hur"],
+["movies","In Home Alone, which city is the family flying to for Christmas?","Paris","Rome","London","Madrid"],
+["movies","Who composed the music for Star Wars?","John Williams","Hans Zimmer","Danny Elfman","Howard Shore"],
+["movies","Which animated film features Mike Wazowski and Sulley?","Monsters, Inc.","Shrek","Despicable Me","Hotel Transylvania"],
+["movies","What is the name of the lion cub who becomes king in The Lion King?","Simba","Nala","Kovu","Kion"],
+["movies","Which film features a boy who can see dead people?","The Sixth Sense","Poltergeist","Insidious","The Others"],
+["movies","What is the name of the pig who becomes a sheepdog in the 1995 film?","Babe","Wilbur","Porky","Hamm"],
+["movies","Which Marvel film introduced the character Thanos in a post-credits scene?","The Avengers","Iron Man","Thor","Guardians of the Galaxy"],
+["movies","Who voices Elsa in Frozen?","Idina Menzel","Kristen Bell","Amy Adams","Anna Kendrick"],
+["movies","In Ratatouille, what animal wants to be a chef?","A rat","A mouse","A raccoon","A squirrel"],
+["movies","Which movie is set in the fictional town of Hill Valley?","Back to the Future","Footloose","Grease","Twister"],
+["movies","Which film has the tagline \"In space no one can hear you scream\"?","Alien","Event Horizon","The Thing","Gravity"],
+["movies","Who played Rose in Titanic?","Kate Winslet","Cate Blanchett","Emma Stone","Naomi Watts"],
+["movies","Which movie features a talking raccoon named Rocket?","Guardians of the Galaxy","Zootopia","Over the Hedge","Rango"],
+["movies","What is the name of the emotion voiced by Amy Poehler in Inside Out?","Joy","Sadness","Fear","Anger"],
+["movies","In The Princess Bride, what's the famous line Inigo Montoya repeats?","Prepare to die","As you wish","Inconceivable","I'm not left-handed"],
+["movies","What is the name of the sword Frodo carries in The Lord of the Rings films?","Sting","Glamdring","Andúril","Narsil"],
+["movies","Which Disney film features the song \"Circle of Life\"?","The Lion King","Tarzan","Pocahontas","Hercules"],
+["movies","Who directed Titanic and Avatar?","James Cameron","Peter Jackson","Christopher Nolan","Ridley Scott"],
+/* ---------- ANIME ---------- */
+["anime","In Naruto, what is the name of the nine-tailed fox sealed inside Naruto?","Kurama","Shukaku","Matatabi","Gyuki"],
+["anime","What is the name of Luffy's pirate crew in One Piece?","Straw Hat Pirates","Red Hair Pirates","Heart Pirates","Whitebeard Pirates"],
+["anime","In Dragon Ball Z, what is Goku's Saiyan birth name?","Kakarot","Vegeta","Raditz","Bardock"],
+["anime","Which anime features a notebook that kills anyone whose name is written in it?","Death Note","Code Geass","Monster","Tokyo Ghoul"],
+["anime","In Attack on Titan, what is the name of the military branch that explores outside the walls?","Survey Corps","Garrison","Military Police","Marleyan Army"],
+["anime","What is Pikachu's trainer's name in the original Pokémon anime?","Ash Ketchum","Gary Oak","Brock","Misty"],
+["anime","Which studio made Spirited Away?","Studio Ghibli","Kyoto Animation","MAPPA","Madhouse"],
+["anime","In My Hero Academia, what is the name of the number one hero in the early series?","All Might","Endeavor","Hawks","Eraser Head"],
+["anime","In Demon Slayer, what is Tanjiro's sister's name?","Nezuko","Kanao","Shinobu","Mitsuri"],
+["anime","What is the name of the main character in Fullmetal Alchemist?","Edward Elric","Alphonse Elric","Roy Mustang","Van Hohenheim"],
+["anime","In Sailor Moon, what is Usagi's Sailor Senshi name?","Sailor Moon","Sailor Venus","Sailor Mars","Sailor Mercury"],
+["anime","Which anime is about a volleyball club from Karasuno High?","Haikyu!!","Kuroko's Basketball","Slam Dunk","Free!"],
+["anime","In Jujutsu Kaisen, what is the name of the king of curses that Yuji swallows a finger of?","Sukuna","Mahito","Jogo","Geto"],
+["anime","In Cowboy Bebop, what is the name of the ship?","Bebop","Swordfish II","Red Tail","Hammerhead"],
+["anime","In Dragon Ball, what are the seven orbs that grant a wish called?","Dragon Balls","Chaos Emeralds","Triforce Pieces","Infinity Stones"],
+["anime","Which anime follows high schooler Light Yagami?","Death Note","Bleach","Naruto","Hunter x Hunter"],
+["anime","In Bleach, what is the name of Ichigo's sword?","Zangetsu","Senbonzakura","Zabimaru","Hyōrinmaru"],
+["anime","In One Piece, what fruit did Luffy eat?","Gomu Gomu no Mi","Mera Mera no Mi","Hie Hie no Mi","Gura Gura no Mi"],
+["anime","What is the name of the school in My Hero Academia?","U.A. High School","Shiketsu High","Seiai Academy","Hogwarts Japan"],
+["anime","Which anime features Gon Freecss searching for his father?","Hunter x Hunter","Yu Yu Hakusho","Fairy Tail","Black Clover"],
+["anime","In Spy x Family, what is the name of the telepathic daughter?","Anya","Yor","Becky","Damian"],
+["anime","Which Studio Ghibli film features a walking castle?","Howl's Moving Castle","Castle in the Sky","Ponyo","Porco Rosso"],
+["anime","In Neon Genesis Evangelion, what are the giant enemies called?","Angels","Titans","Kaiju","Demons"],
+["anime","What sport is the focus of the anime Haikyu!!?","Volleyball","Basketball","Tennis","Baseball"],
+["anime","In Chainsaw Man, what is the name of the main character?","Denji","Aki","Power","Makima"],
+["anime","In Pokémon, what type is Charmander?","Fire","Water","Grass","Dragon"],
+["anime","Which anime features the Hidden Leaf Village?","Naruto","Bleach","Dragon Ball","One Punch Man"],
+["anime","In One Punch Man, what is Saitama's hero rank when we first meet him?","C-Class","S-Class","A-Class","B-Class"],
+["anime","In Your Name (Kimi no Na wa), what natural object falls toward the town?","A comet","A meteor shower of ice","A satellite","A rainbow"],
+["anime","Which anime features a girl named Violet Evergarden?","Violet Evergarden","Clannad","Your Lie in April","Anohana"],
+["anime","What animal is Tony Tony Chopper in One Piece?","A reindeer","A raccoon dog","A cat","A bear"],
+/* ---------- GAMES ---------- */
+["games","What is the name of the princess Mario usually rescues?","Princess Peach","Princess Zelda","Princess Daisy","Princess Rosalina"],
+["games","In The Legend of Zelda, what is the hero's name?","Link","Zelda","Ganon","Epona"],
+["games","Which game features the phrase \"Would you kindly?\"","BioShock","Fallout 3","Portal","Half-Life 2"],
+["games","What is the best-selling video game of all time (counting all platforms)?","Minecraft","Tetris","GTA V","Wii Sports"],
+["games","In Minecraft, what material do you need to make a Nether portal?","Obsidian","Diamond","Bedrock","Netherite"],
+["games","What is the name of Sonic's two-tailed fox friend?","Tails","Knuckles","Shadow","Amy"],
+["games","Which company developed Pac-Man?","Namco","Atari","Sega","Nintendo"],
+["games","What is the name of the main character in the Halo series?","Master Chief","Marcus Fenix","Gordon Freeman","Samus"],
+["games","In Among Us, what do you call the traitors?","Impostors","Spies","Moles","Killers"],
+["games","In Super Mario Bros., what do you grab to turn Mario big?","Super Mushroom","Fire Flower","Star","1-Up"],
+["games","Which game popularised the battle royale genre with a \"Victory Royale\"?","Fortnite","Overwatch","Rocket League","Apex Legends"],
+["games","In Animal Crossing, who runs the general store (Nook's Cranny)?","Tom Nook","Isabelle","K.K. Slider","Blathers"],
+["games","In Portal, what is the name of the AI that guides you?","GLaDOS","HAL 9000","SHODAN","Cortana"],
+["games","In The Elder Scrolls V: Skyrim, what are you called when you can use dragon shouts?","Dragonborn","Nerevarine","Hero of Kvatch","Champion of Cyrodiil"],
+["games","What do you collect in Sonic the Hedgehog to stay alive?","Rings","Coins","Stars","Orbs"],
+["games","Which game series features Master Hand and Crazy Hand?","Super Smash Bros.","Mario Kart","Kirby","Punch-Out!!"],
+["games","In Overwatch, which hero says \"Cheers, love! The cavalry's here!\"?","Tracer","Mercy","Widowmaker","D.Va"],
+["games","In Mario Kart, which item hits the player in first place?","Blue Shell","Banana","Green Shell","Bob-omb"],
+["games","What is the name of the Hyrule kingdom's villain who is also called the Demon King?","Ganon","Vaati","Zant","Majora"],
+["games","In Stardew Valley, what do you inherit at the start of the game?","A farm","A restaurant","A castle","A shop"],
+["games","Which game has a character named Geralt of Rivia?","The Witcher 3","Dragon Age","Dark Souls","Mass Effect"],
+["games","In League of Legends, what is the game map's most famous one called?","Summoner's Rift","Howling Abyss","Twisted Treeline","Nexus Blitz"],
+["games","In Dark Souls, what do you do at a bonfire?","Rest and refill estus","Buy weapons","Level up weapons only","Fast travel only"],
+["games","Which console was released by Nintendo in 2017 and can be used handheld or on a TV?","Nintendo Switch","Wii U","Nintendo 3DS","GameCube"],
+["games","In Pokémon, which Pokémon evolves from Pichu?","Pikachu","Raichu","Eevee","Togepi"],
+["games","What does \"GG\" stand for in online games?","Good game","Great gear","Go ghost","Game genie"],
+["games","In Splatoon, what do the characters shoot?","Ink","Water","Paint balls","Slime"],
+["games","Which game features the city of Rapture?","BioShock","Fallout","Prey","Dishonored"],
+["games","In Celeste, what are you climbing?","A mountain","A tower","A volcano","A dungeon"],
+["games","In The Sims, what do Sims say? (their made-up language)","Simlish","Elvish","Klingon","Dothraki"],
+["games","In Fall Guys, what are you trying to win?","The crown","The golden egg","The trophy","The star"],
+["games","Which Mario character wears green and is Mario's brother?","Luigi","Wario","Waluigi","Toad"],
+["games","In Hades, what is the name of the protagonist?","Zagreus","Orpheus","Theseus","Perseus"],
+/* ---------- TV & DISNEY ---------- */
+["tv","In Friends, what is the name of the coffee shop?","Central Perk","The Coffee Bean","Java Joe's","Monk's"],
+["tv","Which TV show features the Dunder Mifflin paper company?","The Office","Parks and Recreation","Superstore","Scrubs"],
+["tv","In The Simpsons, what is the name of the family's dog?","Santa's Little Helper","Snowball","Brain","Pluto"],
+["tv","Who lives in a pineapple under the sea?","SpongeBob SquarePants","Patrick Star","Squidward","Mr. Krabs"],
+["tv","In Stranger Things, what is the name of the alternate dimension?","The Upside Down","The Void","The Shadow Realm","The Dark Side"],
+["tv","In Game of Thrones, which house has the sigil of a direwolf?","Stark","Lannister","Targaryen","Baratheon"],
+["tv","Which Disney Channel show starred Miley Cyrus as a pop star with a secret identity?","Hannah Montana","Lizzie McGuire","That's So Raven","Wizards of Waverly Place"],
+["tv","In Breaking Bad, what is Walter White's profession at the start?","High school chemistry teacher","Doctor","Lawyer","Police officer"],
+["tv","Which show features a talking horse named Bojack?","BoJack Horseman","Archer","Rick and Morty","Family Guy"],
+["tv","In Bluey, what kind of dog is Bluey?","Blue Heeler","Border Collie","Labrador","Beagle"],
+["tv","In Avatar: The Last Airbender, which element does Aang NOT start able to bend?","Water, Earth and Fire","Air","Lightning","Metal"],
+["tv","Who is the main character in Parks and Recreation, played by Amy Poehler?","Leslie Knope","April Ludgate","Donna Meagle","Ann Perkins"],
+["tv","In The Mandalorian, what is Grogu commonly called?","Baby Yoda","Little Vader","Jedi Pup","Mini Yoda"],
+["tv","In Adventure Time, what is Finn's dog called?","Jake","Bandit","Marceline","BMO"],
+["tv","In which Disney film does a character say \"Hakuna Matata\"?","The Lion King","Tarzan","Jungle Book","Moana"],
+["tv","Which Disney princess has a pet tiger named Rajah as her friend?","Jasmine","Pocahontas","Mulan","Tiana"],
+["tv","What is the name of Mickey Mouse's dog?","Pluto","Goofy","Bolt","Max"],
+["tv","Which Disney film is based on the Chinese legend of Hua Mulan?","Mulan","Pocahontas","Tangled","Raya"],
+["tv","In Gravity Falls, what are the names of the twin protagonists?","Dipper and Mabel","Ford and Stan","Wendy and Soos","Bill and Gideon"],
+["tv","In Squid Game, what is the first game the players play?","Red Light, Green Light","Tug of War","Marbles","Honeycomb"],
+["tv","In Wednesday, what is the title character's last name?","Addams","Munster","Adams","Frump"],
+["tv","In Rick and Morty, what does Rick turn himself into in a famous episode?","A pickle","A toaster","A cat","A cloud"],
+["tv","Which sitcom is set in the bar \"MacLaren's\"?","How I Met Your Mother","Cheers","New Girl","Seinfeld"],
+["tv","In Cheers, what is the bar's famous slogan about names?","Where everybody knows your name","Pour one for the road","The best seat in town","Last call is never"],
+["tv","In Jeopardy!, answers are phrased in the form of what?","A question","A rhyme","A riddle","A song"],
+["tv","Which Pixar movie has the character Remy?","Ratatouille","Coco","Soul","Onward"],
+["tv","In Doctor Who, what is the Doctor's time machine called?","TARDIS","DeLorean","Bessie","Stargate"],
+["tv","What is the name of Ariel's crab friend in The Little Mermaid?","Sebastian","Flounder","Scuttle","Max"],
+["tv","In Ted Lasso, what sport does Ted coach?","Soccer (football)","American football","Baseball","Rugby"],
+/* ---------- MUSIC ---------- */
+["music","Which band recorded \"Bohemian Rhapsody\"?","Queen","The Beatles","Led Zeppelin","Pink Floyd"],
+["music","Who is known as the \"King of Pop\"?","Michael Jackson","Elvis Presley","Prince","Justin Timberlake"],
+["music","Which singer released the album \"1989\" in 2014?","Taylor Swift","Katy Perry","Adele","Lorde"],
+["music","How many strings does a standard guitar have?","6","4","5","8"],
+["music","Which band had a hit with \"Don't Stop Believin'\"?","Journey","Foreigner","Boston","Toto"],
+["music","Who sang \"Rolling in the Deep\"?","Adele","Beyoncé","Rihanna","Lady Gaga"],
+["music","Which instrument has 88 keys?","Piano","Organ","Accordion","Harp"],
+["music","Which rapper's real name is Marshall Mathers?","Eminem","Jay-Z","Drake","Nas"],
+["music","Which K-pop group sings \"Dynamite\"?","BTS","BLACKPINK","Twice","EXO"],
+["music","Who wrote the opera The Magic Flute?","Mozart","Beethoven","Bach","Verdi"],
+["music","Which singer is famous for the song \"Shake It Off\"?","Taylor Swift","Ariana Grande","Selena Gomez","Miley Cyrus"],
+["music","Which band is Freddie Mercury the lead singer of?","Queen","Aerosmith","The Who","Genesis"],
+["music","Which Beatle was shot and killed in 1980?","John Lennon","George Harrison","Paul McCartney","Ringo Starr"],
+["music","What is the term for playing music very softly?","Piano","Forte","Allegro","Staccato"],
+["music","Who sang \"Hello\" in 2015, the lead single from 25?","Adele","Sia","Lana Del Rey","Sam Smith"],
+["music","Which musical features the song \"Defying Gravity\"?","Wicked","Hamilton","Cats","Les Misérables"],
+["music","Which musical is about Alexander Hamilton?","Hamilton","Evita","Rent","Chicago"],
+["music","Which pop star is nicknamed \"Queen Bey\"?","Beyoncé","Rihanna","Nicki Minaj","Cardi B"],
+["music","What nationality are the band ABBA?","Swedish","Norwegian","Danish","Finnish"],
+/* ---------- GENERAL ---------- */
+["general","How many continents are there?","7","5","6","8"],
+["general","What is the largest planet in our solar system?","Jupiter","Saturn","Neptune","Earth"],
+["general","What is the capital of Australia?","Canberra","Sydney","Melbourne","Perth"],
+["general","Which ocean is the largest?","Pacific","Atlantic","Indian","Arctic"],
+["general","What is the chemical symbol for gold?","Au","Ag","Gd","Go"],
+["general","How many hearts does an octopus have?","3","1","2","8"],
+["general","What is the hardest natural substance?","Diamond","Quartz","Steel","Granite"],
+["general","Which planet is known as the Red Planet?","Mars","Venus","Mercury","Jupiter"],
+["general","What is the tallest mountain above sea level?","Mount Everest","K2","Kilimanjaro","Denali"],
+["general","How many sides does a hexagon have?","6","5","7","8"],
+["general","Which animal is the largest living mammal?","Blue whale","African elephant","Giraffe","Sperm whale"],
+["general","What is the main language spoken in Brazil?","Portuguese","Spanish","French","English"],
+["general","Which gas do plants absorb from the air?","Carbon dioxide","Oxygen","Nitrogen","Helium"],
+["general","Who painted the Mona Lisa?","Leonardo da Vinci","Michelangelo","Raphael","Van Gogh"],
+["general","How many minutes are in a day?","1440","1200","1640","2400"],
+["general","What is the smallest country in the world?","Vatican City","Monaco","San Marino","Liechtenstein"],
+["general","Which country gave the Statue of Liberty to the USA?","France","England","Spain","Italy"],
+["general","What is the freezing point of water in Fahrenheit?","32°F","0°F","100°F","12°F"],
+["general","How many players are on the field for one soccer team?","11","9","10","12"],
+["general","Which fruit is dried to make raisins?","Grapes","Plums","Cherries","Figs"],
+["general","What do bees make?","Honey","Milk","Silk","Wax paper"],
+["general","What is the longest river in the world (commonly cited)?","The Nile","The Amazon","The Yangtze","The Mississippi"],
+["general","Which vitamin do we get from sunlight?","Vitamin D","Vitamin C","Vitamin A","Vitamin B12"],
+["general","What is the currency of Japan?","Yen","Won","Yuan","Baht"],
+["general","What is the square root of 144?","12","14","11","13"],
+["general","How many days are in a leap year?","366","365","364","367"],
+["general","What is the national animal of Scotland? (a mythical one)","Unicorn","Dragon","Griffin","Lion"],
+["general","Which sport uses a shuttlecock?","Badminton","Squash","Tennis","Table tennis"],
+["general","What is the main ingredient of guacamole?","Avocado","Tomato","Pepper","Cucumber"],
+["general","Which is the only mammal capable of true flight?","Bat","Flying squirrel","Sugar glider","Colugo"],
+/* ---------- SCIENCE & GEOGRAPHY ---------- */
+["science","What is the closest star to Earth?","The Sun","Proxima Centauri","Sirius","Betelgeuse"],
+["science","What is H2O commonly known as?","Water","Hydrogen peroxide","Salt","Heavy air"],
+["science","How many bones are in the adult human body?","206","180","212","300"],
+["science","What force keeps us on the ground?","Gravity","Magnetism","Friction","Inertia"],
+["science","What is the powerhouse of the cell?","Mitochondria","Nucleus","Ribosome","Golgi body"],
+["science","Which planet has the most prominent rings?","Saturn","Jupiter","Uranus","Mars"],
+["science","What is the boiling point of water in Celsius at sea level?","100°C","90°C","120°C","80°C"],
+["science","Which blood type is the universal donor?","O negative","AB positive","A positive","B negative"],
+["science","What is the speed of light, roughly?","300,000 km per second","30,000 km per second","3,000 km per second","3 million km per second"],
+["science","Which organ pumps blood around the body?","Heart","Lungs","Liver","Kidney"],
+["geo","Which country has the city of Kyoto?","Japan","China","South Korea","Thailand"],
+["geo","What is the capital of Canada?","Ottawa","Toronto","Vancouver","Montreal"],
+["geo","Which desert is the largest hot desert?","Sahara","Gobi","Kalahari","Arabian"],
+["geo","In which country would you find the Great Pyramid of Giza?","Egypt","Mexico","Sudan","Peru"],
+["geo","What is the capital of Italy?","Rome","Milan","Venice","Naples"],
+["geo","Which US state is known as the Sunshine State?","Florida","California","Arizona","Hawaii"],
+["geo","Which river runs through London?","Thames","Seine","Danube","Rhine"],
+["geo","What is the capital of Japan?","Tokyo","Osaka","Kyoto","Nagoya"],
+["geo","Which country is shaped like a boot?","Italy","Greece","Portugal","Chile"],
+["geo","Which US state has the most people?","California","Texas","Florida","New York"]
+];
+window.DUO_CATS = { all: "🎲 Everything", movies: "🎬 Movies", anime: "🍥 Anime", games: "🎮 Games", tv: "📺 TV & Disney", music: "🎵 Music", general: "🧠 General", science: "🔬 Science", geo: "🌍 Geography" };
+
+</script>
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var ls=function(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
+var lset=function(k,v){try{localStorage.setItem(k,v)}catch(e){}};
+var jget=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+var me=function(){return ls("fx_me","p1")==="p2"?"p2":"p1"};
+var myName=function(){return ls(me()==="p2"?"householdNameP2":"householdNameP1",me()==="p2"?"Player 2":"Player 1")};
+var other=function(s){return s==="a"?"b":"a"};
+var cfg=function(){var c=jget("fx_sync_cfg",null);return c&&c.url&&c.key&&c.hh?c:null};
+function hdr(c){var h={apikey:c.key,"Content-Type":"application/json"};if(/^eyJ/.test(c.key))h.Authorization="Bearer "+c.key;return h}
+function rest(c){return c.url.replace(/\/+$/,"")+"/rest/v1/"}
+function kvGet(key){var c=cfg();if(!c)return Promise.resolve(null);return fetch(rest(c)+"club_kv?select=value&household=eq."+encodeURIComponent(c.hh)+"&key=eq."+encodeURIComponent(key),{headers:hdr(c),cache:"no-store"}).then(function(r){return r.ok?r.json():[]}).then(function(x){if(!x[0])return null;try{return JSON.parse(x[0].value)}catch(e){return null}}).catch(function(){return undefined})}
+function kvSet(key,obj){var c=cfg();if(!c)return Promise.resolve(false);return fetch(rest(c)+"club_kv?on_conflict=household,key",{method:"POST",headers:Object.assign(hdr(c),{Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify([{household:c.hh,key:key,value:JSON.stringify(obj),updated_at:Date.now(),updated_by:me()}])}).then(function(r){return r.ok}).catch(function(){return false})}
+function kvList(prefix){var c=cfg();if(!c)return Promise.resolve([]);return fetch(rest(c)+"club_kv?select=key,value&household=eq."+encodeURIComponent(c.hh)+"&key=like."+encodeURIComponent(prefix+"*"),{headers:hdr(c),cache:"no-store"}).then(function(r){return r.ok?r.json():[]}).catch(function(){return[]})}
+function pushTurn(text,code){var c=cfg();if(!c)return;fetch(rest(c)+"club_events",{method:"POST",headers:Object.assign(hdr(c),{Prefer:"return=minimal"}),body:JSON.stringify({household:c.hh,ts:Date.now(),sender:me(),kind:"turn",body:{__cid:"d"+Date.now().toString(36),data:{text:text,url:"./duo.html#"+code}}})}).catch(function(){})}
+function beep(f,d){try{var A=window.__ac||(window.__ac=new (window.AudioContext||window.webkitAudioContext)()),o=A.createOscillator(),g=A.createGain();o.frequency.value=f;g.gain.value=.05;o.connect(g);g.connect(A.destination);o.start();o.stop(A.currentTime+(d||.1))}catch(e){}}
+var buzz=function(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+
+/* ---------- room framework ---------- */
+var R=null; /* {code,slot,doc,sim:{}, mySim:null, ver} */
+var timers={poll:0,sim:0};
+var GAMES={};
+function mkCode(){var a="ABCDEFGHJKMNPQRSTUVWXYZ",s="";for(var i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
+function seedRng(seed){var s=seed>>>0;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296}}
+function create(g,opts){
+  if(!cfg()){alert("Turn on Sync in the Breakfast Club app first (Settings → Sync with your partner).");return}
+  var code=mkCode(),seed=Math.floor(Math.random()*1e9)+1,doc={g:g,a:{n:myName(),by:me()},b:null,turn:"a",seq:0,st:null,winner:null,wins:{a:0,b:0},round:0,seed:seed,opts:opts||{},ts:Date.now()};
+  doc.st=GAMES[g].init(doc);
+  R={code:code,slot:"a",doc:doc,sim:null,mySim:null,ver:0};
+  var mine=jget("duo_mine",{});mine[code]="a";lset("duo_mine",JSON.stringify(mine));
+  kvSet("duo_"+code,doc).then(function(){pushTurn(myName()+" wants to play "+GAMES[g].title+"!",code);startPoll();render()});
+  render();
+}
+function join(code){
+  kvGet("duo_"+code).then(function(d){
+    if(!d||d.ended){alert("That game isn't open any more.");lobby();return}
+    var mine=jget("duo_mine",{}),slot=mine[code];
+    if(!slot){ if(d.b){alert("That game is full.");return} slot="b";d.b={n:myName(),by:me()};d.seq++;kvSet("duo_"+code,d);mine[code]="b";lset("duo_mine",JSON.stringify(mine)); }
+    R={code:code,slot:slot,doc:d,sim:null,mySim:null,ver:0};startPoll();render();
+  });
+}
+function leave(end){clearTimeout(timers.poll);if(R&&end){R.doc.ended=1;kvSet("duo_"+R.code,R.doc);var m=jget("duo_mine",{});delete m[R.code];lset("duo_mine",JSON.stringify(m))}R=null;location.hash="";lobby()}
+function startPoll(){
+  clearTimeout(timers.poll);
+  (function tick(){
+    if(!R)return;
+    var code=R.code,slot=R.slot;
+    Promise.all([kvGet("duo_"+code),kvGet("duo_"+code+"_"+other(slot))]).then(function(rs){
+      if(!R||R.code!==code)return; var d=rs[0],s=rs[1],ch=false;
+      if(d&&d.ended){alert("Your partner closed this game.");leave(false);return}
+      if(d&&d.seq>=R.doc.seq&&(d.seq!==R.doc.seq||(d.b&&!R.doc.b))){R.doc=d;ch=true}
+      if(s!==undefined&&JSON.stringify(s)!==JSON.stringify(R.sim)){R.sim=s;ch=true}
+      if(ch){var wasMyTurn=R.myTurnPrev;render();}
+    }).then(function(){timers.poll=setTimeout(tick,document.hidden?5000:1200)});
+  })();
+}
+function put(patch){ /* the mover writes the whole doc */
+  Object.assign(R.doc,patch);R.doc.seq++;R.doc.ts=Date.now();
+  return kvSet("duo_"+R.code,R.doc);
+}
+function ctx(){
+  var d=R.doc,s=R.slot;
+  return{doc:d,st:d.st,me:s,opp:other(s),myTurn:d.turn===s&&!d.winner&&!!d.b,names:{a:d.a.n,b:d.b?d.b.n:"…"},sim:R.sim,mySim:R.mySim,
+    rng:seedRng(d.seed+d.round*7919+d.seq),
+    move:function(st,next,win){
+      var p={st:st,turn:next||other(s)};
+      if(win){p.winner=win;var w=Object.assign({},d.wins);if(win!=="draw")w[win]=(w[win]||0)+1;p.wins=w}
+      var notify=!win&&p.turn!==s&&Date.now()-(R.lastPush||0)>45000;
+      put(p);render();
+      if(notify){R.lastPush=Date.now();pushTurn("Your move in "+GAMES[d.g].title+" ("+myName()+")",R.code)}
+    },
+    sendSim:function(o){R.mySim=o;kvSet("duo_"+R.code+"_"+s,o)},
+    rematch:function(){var nr=d.round+1;var dd=Object.assign({},d,{round:nr});var st=GAMES[d.g].init(dd);put({st:st,winner:null,round:nr,turn:nr%2?"b":"a"});R.mySim=null;kvSet("duo_"+R.code+"_"+s,{});render()}
+  };
+}
+
+/* ---------- lobby ---------- */
+function lobby(){
+  var app=$("#app");
+  var gs=Object.keys(GAMES);
+  app.innerHTML='<h1>💞 Together Arcade <a href="arcade.html">← Arcade</a></h1><div class="mut">Play against your partner on your own phones. Pick a game, then they get a notification to join.</div>'+
+   '<div id="open"></div><div class="grid">'+gs.map(function(k){var g=GAMES[k];return'<div class="gc" data-g="'+k+'"><span class="i">'+g.icon+'</span>'+esc(g.title)+'<small>'+esc(g.desc)+'</small></div>'}).join("")+'</div>'+
+   (cfg()?'':'<div class="card">⚠️ Sync is off. Turn it on in the Breakfast Club app (Settings → Sync with your partner) so the two phones can find each other.</div>');
+  app.querySelectorAll("[data-g]").forEach(function(el){el.onclick=function(){
+    var g=el.dataset.g,o={};
+    if(g==="trivia"){var c=prompt("Category? Type one of: "+Object.keys(window.DUO_CATS).join(", "),"all")||"all";o.cat=window.DUO_CATS[c]?c:"all"}
+    create(g,o)}});
+  refreshOpen();
+}
+function refreshOpen(){
+  var box=$("#open");if(!box||R)return;
+  kvList("duo_").then(function(rows){
+    var mine=jget("duo_mine",{}),out=[];
+    rows.forEach(function(r){var m=/^duo_([A-Z]{5})$/.exec(r.key);if(!m)return;var d;try{d=JSON.parse(r.value)}catch(e){return}
+      if(!d||d.ended||!GAMES[d.g]||Date.now()-d.ts>6*3600e3)return;
+      var code=m[1];
+      if(mine[code])out.push('<div class="card bar"><div>▶ <b>'+esc(GAMES[d.g].title)+'</b><div class="mut">'+esc(d.a.n)+(d.b?' vs '+esc(d.b.n):' · waiting for a partner')+'</div></div><button class="ok" data-r="'+code+'">Resume</button></div>');
+      else if(!d.b&&d.a.by!==me())out.push('<div class="card bar" style="border-color:#4ade80"><div>🎉 <b>'+esc(d.a.n)+'</b> started <b>'+esc(GAMES[d.g].title)+'</b></div><button class="ok" data-r="'+code+'">Join</button></div>');
+    });
+    var b=$("#open");if(b&&!R){b.innerHTML=out.join("");b.querySelectorAll("[data-r]").forEach(function(x){x.onclick=function(){join(x.dataset.r)}})}
+  });
+  clearTimeout(timers.lobby);timers.lobby=setTimeout(refreshOpen,4000);
+}
+
+/* ---------- room screen ---------- */
+function render(){
+  if(!R){return}
+  var c=ctx(),d=R.doc,G=GAMES[d.g],app=$("#app");
+  var head='<h1>'+G.icon+' '+esc(G.title)+'<a href="#" id="bk">Leave</a></h1>';
+  if(!d.b){app.innerHTML=head+'<div class="card"><div class="mut" style="text-align:center">Waiting for your partner to join…</div><div class="code">'+R.code+'</div><div class="mut" style="text-align:center">They will see this game in their Together Arcade list and get a notification.</div></div>';$("#bk").onclick=function(e){e.preventDefault();leave(true)};return}
+  var pl=function(s){return'<div class="pl '+s+(c.doc.turn===s&&!d.winner?' turn':'')+'" style="color:var('+(s==="a"?"--a":"--b")+')">'+esc(c.names[s])+(s===R.slot?" (you)":"")+'<b>'+(d.wins[s]||0)+'</b></div>'};
+  var top='<div class="bar">'+pl("a")+pl("b")+'</div>';
+  var banner="";
+  if(d.winner){var t=d.winner==="draw"?"🤝 It's a draw!":(d.winner===R.slot?"🎉 You win!":"😅 "+esc(c.names[d.winner])+" wins")
+    banner='<div class="banner">'+t+'</div><div class="bar"><button class="pri" id="rm" style="flex:1">Play again</button></div>'}
+  else if(G.sim)banner="";
+  else banner='<div class="banner" style="font-size:15px;padding:6px">'+(c.myTurn?"👉 Your turn":"⏳ "+esc(c.names[d.turn])+"'s turn")+'</div>';
+  app.innerHTML=head+top+banner+'<div id="gm" style="margin-top:8px"></div>';
+  $("#bk").onclick=function(e){e.preventDefault();if(confirm("Close this game for both of you? (Cancel just goes back to the list)"))leave(true);else leave(false)};
+  var rm=$("#rm");if(rm)rm.onclick=function(){c.rematch()};
+  if(c.myTurn&&R.turnSeen!==d.seq){R.turnSeen=d.seq;beep(660,.12);buzz([120])}
+  G.render($("#gm"),c);
+}
+
+/* ======================= GAMES ======================= */
+function reg(k,o){GAMES[k]=o}
+function line4(b,W,H,need,idx){ /* returns winning cells or null */
+  var D=[[1,0],[0,1],[1,1],[1,-1]];
+  for(var r=0;r<H;r++)for(var cc=0;cc<W;cc++){var v=b[r*W+cc];if(!v)continue;
+    for(var k=0;k<4;k++){var cells=[r*W+cc],x=cc,y=r;for(var n=1;n<need;n++){x+=D[k][0];y+=D[k][1];if(x<0||y<0||x>=W||y>=H||b[y*W+x]!==v)break;cells.push(y*W+x)}if(cells.length===need)return{who:v,cells:cells}}}
+  return null}
+
+/* ---- Connect 4 ---- */
+reg("connect4",{title:"Connect 4",icon:"🔴",desc:"Four in a row",
+ init:function(){return{b:new Array(42).fill("")}},
+ render:function(el,c){
+  var b=c.st.b,w=line4(b,7,6,4),cells=w?w.cells:[];
+  el.innerHTML='<div class="c4h">'+[0,1,2,3,4,5,6].map(function(i){return'<button data-c="'+i+'"'+(c.myTurn&&!b[i]?"":" disabled")+'>⬇</button>'}).join("")+'</div><div class="c4">'+b.map(function(v,i){return'<i class="'+v+(cells.indexOf(i)>=0?" w":"")+'"></i>'}).join("")+'</div>';
+  el.querySelectorAll("[data-c]").forEach(function(x){x.onclick=function(){var col=+x.dataset.c,nb=b.slice();for(var r=5;r>=0;r--){if(!nb[r*7+col]){nb[r*7+col]=c.me;break}}
+    var ww=line4(nb,7,6,4);c.move({b:nb},c.opp,ww?c.me:nb.every(Boolean)?"draw":null)}});
+ }});
+
+/* ---- Tic-Tac-Toe ---- */
+reg("ttt",{title:"Tic-Tac-Toe",icon:"❌",desc:"Classic, best of many",
+ init:function(){return{b:new Array(9).fill("")}},
+ render:function(el,c){
+  var b=c.st.b;
+  el.innerHTML='<div class="ttt">'+b.map(function(v,i){return'<button data-i="'+i+'"'+(c.myTurn&&!v?"":" disabled")+' style="color:var('+(v==="a"?"--a":"--b")+')">'+(v==="a"?"✕":v==="b"?"◯":"")+'</button>'}).join("")+'</div>';
+  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var nb=b.slice();nb[+x.dataset.i]=c.me;var W=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]].some(function(l){return l.every(function(i){return nb[i]===c.me})});c.move({b:nb},c.opp,W?c.me:nb.every(Boolean)?"draw":null)}});
+ }});
+
+/* ---- Reversi ---- */
+var DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+function rvFlips(b,r,c,p){if(b[r*8+c])return[];var o=p==="a"?"b":"a",out=[];DIRS.forEach(function(d){var x=c+d[1],y=r+d[0],run=[];while(x>=0&&y>=0&&x<8&&y<8&&b[y*8+x]===o){run.push(y*8+x);x+=d[1];y+=d[0]}if(run.length&&x>=0&&y>=0&&x<8&&y<8&&b[y*8+x]===p)out=out.concat(run)});return out}
+function rvMoves(b,p){var m=[];for(var r=0;r<8;r++)for(var c=0;c<8;c++)if(rvFlips(b,r,c,p).length)m.push(r*8+c);return m}
+reg("reversi",{title:"Reversi",icon:"⚫",desc:"Flip your partner's discs",
+ init:function(){var b=new Array(64).fill("");b[27]="b";b[36]="b";b[28]="a";b[35]="a";return{b:b}},
+ render:function(el,c){
+  var b=c.st.b,mv=c.myTurn?rvMoves(b,c.me):[];
+  if(c.myTurn&&!mv.length){ /* no move: pass or finish */
+    var om=rvMoves(b,c.opp);if(!om.length){var ca=b.filter(function(v){return v==="a"}).length,cb=b.filter(function(v){return v==="b"}).length;setTimeout(function(){c.move(c.st,c.opp,ca===cb?"draw":ca>cb?"a":"b")},50)}
+    else{el.innerHTML='<div class="banner">No moves for you. Passing…</div>';setTimeout(function(){c.move(c.st,c.opp)},1200)}return}
+  var ca=b.filter(function(v){return v==="a"}).length,cb=b.filter(function(v){return v==="b"}).length;
+  if(!c.myTurn&&!c.doc.winner&&!rvMoves(b,c.me).length&&!rvMoves(b,c.opp).length&&c.doc.turn===c.opp){}
+  el.innerHTML='<div class="mut" style="text-align:center">'+esc(c.names.a)+' '+ca+' · '+cb+' '+esc(c.names.b)+'</div><div class="rv">'+b.map(function(v,i){return'<div data-i="'+i+'" class="'+(mv.indexOf(i)>=0?"tg":"")+'">'+(v?'<span class="pc '+v+'"></span>':"")+'</div>'}).join("")+'</div>';
+  el.querySelectorAll(".tg").forEach(function(x){x.onclick=function(){var i=+x.dataset.i,fl=rvFlips(b,Math.floor(i/8),i%8,c.me),nb=b.slice();nb[i]=c.me;fl.forEach(function(j){nb[j]=c.me});
+    var oMv=rvMoves(nb,c.opp),next=oMv.length?c.opp:c.me;
+    if(!oMv.length&&!rvMoves(nb,c.me).length){var a2=nb.filter(function(v){return v==="a"}).length,b2=nb.filter(function(v){return v==="b"}).length;c.move({b:nb},c.opp,a2===b2?"draw":a2>b2?"a":"b")}else c.move({b:nb},next)}});
+ }});
+
+/* ---- Checkers ---- */
+function ckMoves(b,p,chain){
+  var out=[],caps=[],dirs=function(v){return v===v.toUpperCase()?[[1,-1],[1,1],[-1,-1],[-1,1]]:(p==="a"?[[1,-1],[1,1]]:[[-1,-1],[-1,1]])};
+  for(var i=0;i<64;i++){var v=b[i];if(!v||v.toLowerCase()!==p)continue;if(chain!=null&&chain!==i)continue;var r=Math.floor(i/8),c=i%8;
+    dirs(v).forEach(function(d){var y=r+d[0],x=c+d[1];if(y<0||x<0||y>7||x>7)return;var t=b[y*8+x];
+      if(!t){if(chain==null)out.push({f:i,t:y*8+x})}
+      else if(t.toLowerCase()!==p){var y2=y+d[0],x2=x+d[1];if(y2>=0&&x2>=0&&y2<8&&x2<8&&!b[y2*8+x2])caps.push({f:i,t:y2*8+x2,x:y*8+x})}})}
+  return caps.length?caps:out}
+reg("checkers",{title:"Checkers",icon:"🏁",desc:"Jump to win",
+ init:function(){var b=new Array(64).fill("");for(var r=0;r<8;r++)for(var c=0;c<8;c++){if((r+c)%2===1){if(r<3)b[r*8+c]="a";if(r>4)b[r*8+c]="b"}}return{b:b,chain:null}},
+ render:function(el,c){
+  var b=c.st.b,flip=c.me==="a"?false:true,all=c.myTurn?ckMoves(b,c.me,c.st.chain):[],selK="sel_"+c.doc.seq;
+  var sel=el._sel!=null&&el._selSeq===c.doc.seq?el._sel:(c.st.chain!=null&&c.myTurn?c.st.chain:null);
+  var draw=function(){
+    var tg=sel!=null?all.filter(function(m){return m.f===sel}):[];
+    var cells=[];for(var k=0;k<64;k++){var i=flip?63-k:k,r=Math.floor(i/8),cc=i%8,v=b[i];
+      cells.push('<div data-i="'+i+'" class="'+((r+cc)%2?"d":"l")+(sel===i?" sel":"")+(tg.some(function(m){return m.t===i})?" tg":"")+'">'+(v?'<span class="pc '+v.toLowerCase()+'">'+(v===v.toUpperCase()?"♛":"")+'</span>':"")+'</div>')}
+    el.innerHTML='<div class="ck">'+cells.join("")+'</div><div class="mut" style="text-align:center;margin-top:6px">Jumps are required. Reach the far side to become a king ♛.</div>';
+    el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i;if(!c.myTurn)return;
+      var m=tg.filter(function(q){return q.t===i})[0];
+      if(m){var nb=b.slice(),pc=nb[m.f];nb[m.f]="";nb[m.t]=pc;var promoted=false;if(m.x!=null)nb[m.x]="";
+        var tr=Math.floor(m.t/8);if(pc===pc.toLowerCase()&&((c.me==="a"&&tr===7)||(c.me==="b"&&tr===0))){nb[m.t]=pc.toUpperCase();promoted=true}
+        var more=m.x!=null&&!promoted?ckMoves(nb,c.me,m.t).filter(function(q){return q.x!=null}):[];
+        if(more.length){c.move({b:nb,chain:m.t},c.me);return}
+        var oppM=ckMoves(nb,c.opp,null),oppLeft=nb.some(function(v){return v&&v.toLowerCase()===c.opp});
+        c.move({b:nb,chain:null},c.opp,(!oppLeft||!oppM.length)?c.me:null)}
+      else if(all.some(function(q){return q.f===i})&&c.st.chain==null){sel=i;el._sel=i;el._selSeq=c.doc.seq;draw()}}});
+  };
+  if(c.myTurn&&!all.length&&!c.doc.winner){setTimeout(function(){c.move(c.st,c.opp,c.opp)},50);return}
+  draw();
+ }});
+
+/* ---- Dots & Boxes ---- */
+reg("dots",{title:"Dots & Boxes",icon:"🔲",desc:"Close the boxes",
+ init:function(){return{h:new Array(20).fill(""),v:new Array(20).fill(""),bx:new Array(16).fill("")}},
+ render:function(el,c){
+  var S=60,P=14,st=c.st,svg='<svg viewBox="0 0 '+(S*4+P*2)+' '+(S*4+P*2)+'">';
+  for(var i=0;i<16;i++){var r=Math.floor(i/4),cc=i%4;if(st.bx[i])svg+='<rect x="'+(P+cc*S+3)+'" y="'+(P+r*S+3)+'" width="'+(S-6)+'" height="'+(S-6)+'" fill="'+(st.bx[i]==="a"?"#ff4d8d55":"#35c8ff55")+'"/>'}
+  for(var r=0;r<5;r++)for(var cc=0;cc<4;cc++){var k=r*4+cc;svg+='<line x1="'+(P+cc*S)+'" y1="'+(P+r*S)+'" x2="'+(P+cc*S+S)+'" y2="'+(P+r*S)+'" stroke="'+(st.h[k]?(st.h[k]==="a"?"#ff4d8d":"#35c8ff"):"#ffffff22")+'" stroke-width="'+(st.h[k]?6:4)+'" stroke-linecap="round"/><line data-h="'+k+'" x1="'+(P+cc*S)+'" y1="'+(P+r*S)+'" x2="'+(P+cc*S+S)+'" y2="'+(P+r*S)+'" stroke="transparent" stroke-width="26"/>'}
+  for(var r=0;r<4;r++)for(var cc=0;cc<5;cc++){var k=r*5+cc;svg+='<line x1="'+(P+cc*S)+'" y1="'+(P+r*S)+'" x2="'+(P+cc*S)+'" y2="'+(P+r*S+S)+'" stroke="'+(st.v[k]?(st.v[k]==="a"?"#ff4d8d":"#35c8ff"):"#ffffff22")+'" stroke-width="'+(st.v[k]?6:4)+'" stroke-linecap="round"/><line data-v="'+k+'" x1="'+(P+cc*S)+'" y1="'+(P+r*S)+'" x2="'+(P+cc*S)+'" y2="'+(P+r*S+S)+'" stroke="transparent" stroke-width="26"/>'}
+  for(var r=0;r<5;r++)for(var cc=0;cc<5;cc++)svg+='<circle cx="'+(P+cc*S)+'" cy="'+(P+r*S)+'" r="5" fill="#f3f0ff"/>';
+  el.innerHTML='<div class="dab">'+svg+'</svg></div><div class="mut" style="text-align:center">Boxes: '+esc(c.names.a)+' '+st.bx.filter(function(x){return x==="a"}).length+' · '+st.bx.filter(function(x){return x==="b"}).length+' '+esc(c.names.b)+'. Close a box to go again.</div>';
+  if(!c.myTurn)return;
+  el.querySelectorAll("[data-h],[data-v]").forEach(function(x){x.onclick=function(){
+    var n={h:st.h.slice(),v:st.v.slice(),bx:st.bx.slice()},isH=x.dataset.h!=null,k=+(isH?x.dataset.h:x.dataset.v);if(n[isH?"h":"v"][k])return;n[isH?"h":"v"][k]=c.me;
+    var got=0;for(var i=0;i<16;i++){if(n.bx[i])continue;var r=Math.floor(i/4),cc=i%4;if(n.h[r*4+cc]&&n.h[(r+1)*4+cc]&&n.v[r*5+cc]&&n.v[r*5+cc+1]){n.bx[i]=c.me;got++}}
+    var full=n.bx.every(Boolean),a=n.bx.filter(function(q){return q==="a"}).length,b=n.bx.filter(function(q){return q==="b"}).length;
+    c.move(n,got?c.me:c.opp,full?(a===b?"draw":a>b?"a":"b"):null)}});
+ }});
+
+/* ---- Memory Match ---- */
+var EMO=["🍕","🐱","🚀","🌈","🍩","🎸","🦄","🌵","🐙","🍉","⚡","🎲"];
+reg("memory",{title:"Memory Match",icon:"🃏",desc:"Find the pairs",
+ init:function(d){var r=seedRng(d.seed+d.round*131),a=[];EMO.forEach(function(_,i){a.push(i,i)});for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return{o:a,own:{},up:[],sc:{a:0,b:0}}},
+ render:function(el,c){
+  var st=c.st,up=st.up;
+  el.innerHTML='<div class="mut" style="text-align:center">Pairs: '+esc(c.names.a)+' '+st.sc.a+' · '+st.sc.b+' '+esc(c.names.b)+'</div><div class="mem">'+st.o.map(function(v,i){var own=st.own[i],show=own||up.indexOf(i)>=0;return'<button data-i="'+i+'" class="'+(show?"up":"")+(own?" own-"+own:"")+'"'+((!c.myTurn||show||up.length>=2)?" disabled":"")+'>'+(show?EMO[v]:"❔")+'</button>'}).join("")+'</div>';
+  if(up.length===2){ /* a miss: flip back after a moment, then pass the turn */
+    var mover=c.doc.turn,delay=c.me===mover?1400:4200;
+    clearTimeout(el._t);el._t=setTimeout(function(){if(R&&R.doc.seq===c.doc.seq&&R.doc.st.up.length===2){var n=JSON.parse(JSON.stringify(R.doc.st));n.up=[];put({st:n,turn:other(R.doc.turn)});render()}},delay);return}
+  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i,n=JSON.parse(JSON.stringify(st));n.up.push(i);
+    if(n.up.length===2){var a=n.up[0],b=n.up[1];if(n.o[a]===n.o[b]){n.own[a]=c.me;n.own[b]=c.me;n.sc[c.me]++;n.up=[];var done=Object.keys(n.own).length===24;c.move(n,c.me,done?(n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"):null)}else c.move(n,c.me)}
+    else c.move(n,c.me)}});
+ }});
+
+/* ---- Battleship ---- */
+var FLEET=[4,3,3,2,2];
+function bsPlace(rng){var cells=[];var occ={};var ships=[];FLEET.forEach(function(len){for(var t=0;t<200;t++){var h=rng()<.5,r=Math.floor(rng()*(h?8:9-len)),c=Math.floor(rng()*(h?9-len:8)),cs=[];for(var k=0;k<len;k++)cs.push((r+(h?0:k))*8+c+(h?k:0));if(cs.every(function(i){return!occ[i]})){cs.forEach(function(i){occ[i]=1});ships.push(cs);break}}});return ships}
+reg("battleship",{title:"Battleship",icon:"🚢",desc:"Sink the fleet",
+ init:function(){return{rd:{a:0,b:0},sh:{a:[],b:[]},pend:null}},
+ render:function(el,c){
+  var st=c.st,key="bs_"+R.code+"_"+c.me,fleet=jget(key,null);
+  if(!fleet){fleet=bsPlace(Math.random);lset(key,JSON.stringify(fleet))}
+  var mine={};fleet.forEach(function(s,si){s.forEach(function(i){mine[i]=si})});
+  if(!st.rd[c.me]){
+    el.innerHTML='<div class="card">Your fleet is placed. Not happy with it?<div class="bs me">'+Array.from({length:64},function(_,i){return'<div class="'+(mine[i]!=null?"s":"")+'"></div>'}).join("")+'</div><div class="bar"><button id="sf">🔀 Shuffle</button><button class="ok" id="rd">Ready!</button></div></div>';
+    $("#sf").onclick=function(){lset(key,JSON.stringify(bsPlace(Math.random)));render()};
+    $("#rd").onclick=function(){this.disabled=true;kvGet("duo_"+R.code).then(function(d){if(d)R.doc=d;var n=JSON.parse(JSON.stringify(R.doc.st));n.rd[c.me]=1;return put({st:n})}).then(function(){render()})};return}
+  if(!st.rd[c.opp]){el.innerHTML='<div class="banner">Waiting for your partner to place their fleet…</div>';return}
+  /* if my board was shot at, resolve it */
+  if(st.pend&&st.pend.at===c.me){
+    var p=st.pend,idx=p.r*8+p.c,hit=mine[idx]!=null,n=JSON.parse(JSON.stringify(st)),res="miss";
+    if(hit){var si=mine[idx],ship=fleet[si],prior=n.sh[c.me].filter(function(s){return s.res!=="miss"}).map(function(s){return s.i});var allHit=ship.every(function(i){return i===idx||prior.indexOf(i)>=0});res=allHit?"sunk":"hit";
+      if(allHit){n.sunkShip=ship}}
+    n.sh[c.me].push({i:idx,res:res,ship:res==="sunk"?fleet[mine[idx]]:undefined});n.pend=null;
+    var hitCells=n.sh[c.me].filter(function(s){return s.res!=="miss"}).length,total=FLEET.reduce(function(a,b){return a+b},0);
+    el.innerHTML='<div class="banner">Resolving shot…</div>';
+    setTimeout(function(){put({st:n,turn:c.me,winner:hitCells>=total?c.opp:null,wins:hitCells>=total?(function(){var w=Object.assign({},c.doc.wins);w[c.opp]++;return w})():c.doc.wins});render()},300);return}
+  var shotsMine=st.sh[c.opp],shotsOn=st.sh[c.me];
+  var mk=function(shots,own){var m={};shots.forEach(function(s){m[s.i]=s.res});return Array.from({length:64},function(_,i){var r=m[i];return'<div data-i="'+i+'" class="'+(r?r:"")+(own&&mine[i]!=null&&!r?" s":"")+'">'+(r==="hit"?"💥":r==="sunk"?"🔥":r==="miss"?"•":"")+'</div>'}).join("")};
+  var sunkMine=shotsMine.filter(function(s){return s.res==="sunk"}).length;
+  el.innerHTML='<div class="mut">🎯 Enemy waters (tap to fire) · ships sunk '+sunkMine+'/'+FLEET.length+'</div><div class="bs" id="en">'+mk(shotsMine,false)+'</div><div class="mut">🛟 Your fleet</div><div class="bs me">'+mk(shotsOn,true)+'</div>'+(st.pend?'<div class="mut" style="text-align:center">Shot fired… waiting for the result</div>':"");
+  if(c.myTurn&&!st.pend)$("#en").querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i;if(shotsMine.some(function(s){return s.i===i}))return;var n=JSON.parse(JSON.stringify(st));n.pend={at:c.opp,r:Math.floor(i/8),c:i%8};
+    c.move(n,c.opp)}});
+ }});
+
+/* ---- Rock Paper Scissors Lizard Spock ---- */
+var RPS=[["🪨","Rock",[1,3]],["📄","Paper",[0,4]],["✂️","Scissors",[1,3]],["🦎","Lizard",[1,4]],["🖖","Spock",[0,2]]];
+/* index i beats RPS[i][2] */
+RPS[0][2]=[2,3];RPS[1][2]=[0,4];RPS[2][2]=[1,3];RPS[3][2]=[1,4];RPS[4][2]=[0,2];
+reg("rps",{title:"Rock Paper Scissors Lizard Spock",icon:"🖖",desc:"First to 3",sim:true,
+ init:function(){return{r:0,sc:{a:0,b:0},hist:[]}},
+ render:function(el,c){
+  var st=c.st,k="r"+st.r+"_"+c.doc.round,my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
+  var last=st.hist[st.hist.length-1];
+  if(my&&op&&!el._done){var mi=my.c,oi=op.c,res=mi===oi?0:RPS[mi][2].indexOf(oi)>=0?1:-1;
+    el.innerHTML='<div class="big">'+RPS[mi][0]+' vs '+RPS[oi][0]+'</div><div class="banner">'+(res===0?"Tie! Go again":res>0?"You win the round!":"You lose the round")+'</div>';
+    if(c.me==="a"){setTimeout(function(){if(R.doc.st.r!==st.r)return;var n=JSON.parse(JSON.stringify(st));var wa=res===0?0:((res>0)===(c.me==="a"))?1:-1;if(res!==0){n.sc[wa>0?"a":"b"]++}
+      if(res!==0)n.r++;else n.r++;n.hist.push([mi,oi]);var win=n.sc.a>=3?"a":n.sc.b>=3?"b":null;
+      var w=win?Object.assign({},c.doc.wins):c.doc.wins;if(win)w[win]++;put({st:n,winner:win,wins:w});render()},2300)}
+    return}
+  el.innerHTML='<div class="mut" style="text-align:center">Round '+(st.r+1)+' · first to 3 · '+esc(c.names.a)+' '+st.sc.a+' – '+st.sc.b+' '+esc(c.names.b)+'</div>'+
+   (my?'<div class="banner">You picked '+RPS[my.c][0]+'. Waiting for '+esc(c.names[c.opp])+'…</div>':'<div class="ch">'+RPS.map(function(r,i){return'<button data-i="'+i+'" title="'+r[1]+'">'+r[0]+'</button>'}).join("")+'</div><div class="mut" style="text-align:center;margin-top:8px">Scissors cut Paper, Paper covers Rock, Rock crushes Lizard, Lizard poisons Spock, Spock smashes Scissors, Scissors decapitate Lizard, Lizard eats Paper, Paper disproves Spock, Spock vaporizes Rock, Rock crushes Scissors.</div>');
+  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){c.sendSim({k:k,c:+x.dataset.i});render()}});
+ }});
+
+/* ---- Reaction Duel ---- */
+reg("reaction",{title:"Reaction Duel",icon:"⚡",desc:"Tap on green. First to 3",sim:true,
+ init:function(d){var r=seedRng(d.seed+d.round);return{r:0,sc:{a:0,b:0},d:[2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200),2200+Math.floor(r()*3200)],last:null}},
+ render:function(el,c){
+  var st=c.st,k="x"+st.r+"_"+c.doc.round,my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
+  var T=el._T&&el._T.k===k?el._T:(el._T={k:k,t0:Date.now(),go:false,cueAt:0});
+  if(my&&op){
+    var mm=my.ms,om=op.ms,iWin=mm<om||(mm===om&&c.me==="a");var fmt=function(x){return x>=99999?"false start":x+" ms"};
+    el.innerHTML='<div class="banner">'+(iWin?"⚡ You were faster!":"🐢 "+esc(c.names[c.opp])+" was faster")+'</div><div class="card mut" style="text-align:center">You: '+fmt(mm)+' · '+esc(c.names[c.opp])+': '+fmt(om)+'</div>';
+    if(c.me==="a"&&!el._adv){el._adv=1;setTimeout(function(){if(R.doc.st.r!==st.r)return;var n=JSON.parse(JSON.stringify(st));var wa=(c.me==="a")?iWin:!iWin;n.sc[wa?"a":"b"]++;n.r++;var win=n.sc.a>=3?"a":n.sc.b>=3?"b":null;var w=Object.assign({},c.doc.wins);if(win)w[win]++;put({st:n,winner:win,wins:win?w:c.doc.wins});render()},2600)}
+    return}
+  el._adv=0;
+  if(my){el.innerHTML='<div class="banner">Waiting for '+esc(c.names[c.opp])+'…</div>';return}
+  var box;
+  el.innerHTML='<div class="mut" style="text-align:center">Round '+(st.r+1)+' · '+esc(c.names.a)+' '+st.sc.a+' – '+st.sc.b+' '+esc(c.names.b)+'</div><div class="react" id="rx"></div>';
+  box=$("#rx",el);
+  var paint=function(){box.style.background=T.go?"#16a34a":"#b91c1c";box.textContent=T.go?"TAP NOW!":"Wait for green…"};paint();
+  if(!T.timer){T.timer=setTimeout(function(){if(!R||el._T!==T)return;T.go=true;T.cueAt=performance.now();var b=$("#rx",el);if(b){b.style.background="#16a34a";b.textContent="TAP NOW!"}beep(880,.12)},st.d[st.r%st.d.length])}
+  var tap=function(e){e.preventDefault();var ms=T.go?Math.round(performance.now()-T.cueAt):99999;clearTimeout(T.timer);c.sendSim({k:k,ms:ms});render()};
+  box.addEventListener("pointerdown",tap);
+ }});
+
+/* ---- Trivia Showdown ---- */
+function triviaPick(d){var cat=(d.opts&&d.opts.cat)||"all",pool=window.DUO_TRIVIA.filter(function(q){return cat==="all"||q[0]===cat}),r=seedRng(d.seed+d.round*977),idx=pool.map(function(_,i){return i});for(var i=idx.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}return idx.slice(0,10).map(function(i){var q=pool[i],o=[q[2],q[3],q[4],q[5]],rr=seedRng(d.seed+i);for(var a=3;a>0;a--){var b=Math.floor(rr()*(a+1)),t2=o[a];o[a]=o[b];o[b]=t2}return{q:q[1],o:o,a:o.indexOf(q[2]),c:q[0]}})}
+reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"Movies, anime, games & more",sim:true,
+ init:function(d){return{qs:triviaPick(d),i:0,sc:{a:0,b:0}}},
+ render:function(el,c){
+  var st=c.st,q=st.qs[st.i],k="q"+st.i+"_"+c.doc.round,my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
+  var T=el._T&&el._T.k===k?el._T:(el._T={k:k,t0:Date.now()});
+  var reveal=my&&op;
+  var pts=function(s){return s&&s.a===q.a?100+Math.max(0,Math.round((15000-s.ms)/150)):0};
+  var head='<div class="mut" style="text-align:center">'+(window.DUO_CATS[q.c]||q.c)+' · Question '+(st.i+1)+'/10 · '+esc(c.names.a)+' '+st.sc.a+' – '+st.sc.b+' '+esc(c.names.b)+'</div>';
+  el.innerHTML=head+'<div class="tm"><i id="tmb"></i></div><div class="card" style="font-weight:800;font-size:17px">'+esc(q.q)+'</div><div class="opt">'+q.o.map(function(o,i){var cl="";if(reveal){if(i===q.a)cl="right";else if(my.a===i||op.a===i)cl="wrong"}else if(my&&my.a===i)cl="pick";return'<button data-i="'+i+'" class="'+cl+'"'+((my||reveal)?" disabled":"")+'>'+esc(o)+(reveal?((my.a===i?" 👈 you":"")+(op.a===i?" ← "+esc(c.names[c.opp]):"")):"")+'</button>'}).join("")+'</div>'+(reveal?'<div class="banner" style="font-size:14px">You +'+pts(my)+' · '+esc(c.names[c.opp])+' +'+pts(op)+'</div>':my?'<div class="mut" style="text-align:center;margin-top:8px">Locked in. Waiting for '+esc(c.names[c.opp])+'…</div>':"");
+  var left=15000-(Date.now()-T.t0),tb=$("#tmb",el);
+  if(!my&&!reveal){clearInterval(T.iv);T.iv=setInterval(function(){var l=15000-(Date.now()-T.t0),b=$("#tmb");if(!b||!R||el._T!==T){clearInterval(T.iv);return}b.style.width=Math.max(0,l/150)+"%";if(l<=0){clearInterval(T.iv);c.sendSim({k:k,a:-1,ms:15000});render()}},100)}
+  else if(tb)tb.style.width="0";
+  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){clearInterval(T.iv);c.sendSim({k:k,a:+x.dataset.i,ms:Date.now()-T.t0});render()}});
+  if(reveal&&c.me==="a"&&!T.adv){T.adv=1;setTimeout(function(){if(R.doc.st.i!==st.i)return;var n=JSON.parse(JSON.stringify(st));n.sc.a+=pts(c.me==="a"?my:op);n.sc.b+=pts(c.me==="a"?op:my);n.i++;
+    var done=n.i>=n.qs.length,win=done?(n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"):null;if(done)n.i=n.qs.length-1;var w=Object.assign({},c.doc.wins);if(win&&win!=="draw")w[win]++;put({st:n,winner:win,wins:w});render()},3200)}
+ }});
+
+/* ---------- boot ---------- */
+window.addEventListener("hashchange",function(){var h=location.hash.slice(1).toUpperCase();if(/^[A-Z]{5}$/.test(h)&&!R)join(h)});
+var h0=location.hash.slice(1).toUpperCase();
+if(/^[A-Z]{5}$/.test(h0))join(h0);else lobby();
+window.DUO={GAMES:GAMES,state:function(){return R}};
+})();
+</script></body></html>

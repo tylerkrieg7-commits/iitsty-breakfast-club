@@ -1115,6 +1115,48 @@ function boot(){load();autoBuild();wxInit();
  setInterval(()=>{if(R()<.55)spawnCar()},1400);spawnCar();setTimeout(spawnCar,900);
  save()}
 function dailyH(s){return `<div class="em">🎁</div><h2>Daily reward</h2><p class="mut">Day ${s} of 7</p><div class="dr">${DR.map((r,i)=>`<div class="${i+1==s?'on':i+1<s?'dn':''}">${i+1}<br>${r[0]?'🪙'+r[0]:''}${r[1]?'<br>💎'+r[1]:''}</div>`).join('')}</div><button class="btn g wide" data-a="dclaim" data-k="${s}">Claim</button>`}
+// ===== Together (shared farm) — additive =====
+(function(){
+const lsg=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const meId=()=>localStorage.getItem('fx_me')==='p2'?'p2':'p1',oth=()=>meId()==='p1'?'p2':'p1';
+const cfgx=()=>{const c=lsg('fx_sync_cfg',null);return c&&c.url&&c.key&&c.hh?c:null};
+const nameOf=p=>localStorage.getItem(p==='p2'?'householdNameP2':'householdNameP1')||(p==='p2'?'Player 2':'Player 1');
+const hd=c=>{const h={apikey:c.key,'Content-Type':'application/json'};if(/^eyJ/.test(c.key))h.Authorization='Bearer '+c.key;return h};
+const rs=c=>c.url.replace(/\/+$/,'')+'/rest/v1/';
+function kget(k){const c=cfgx();if(!c)return Promise.resolve(undefined);return fetch(rs(c)+'club_kv?select=value&household=eq.'+encodeURIComponent(c.hh)+'&key=eq.'+encodeURIComponent(k),{headers:hd(c),cache:'no-store'}).then(r=>r.ok?r.json():[]).then(x=>{if(!x[0])return null;try{return JSON.parse(x[0].value)}catch(e){return null}}).catch(()=>undefined)}
+function kset(k,o){const c=cfgx();if(!c)return Promise.resolve(false);return fetch(rs(c)+'club_kv?on_conflict=household,key',{method:'POST',headers:Object.assign(hd(c),{Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([{household:c.hh,key:k,value:JSON.stringify(o),updated_at:Date.now(),updated_by:meId()}])}).then(r=>r.ok).catch(()=>false)}
+const wk=()=>fl(dayN()/7);
+function P(){if(!G.pt)G.pt={};const p=G.pt;if(p.wk!==wk()){p.wk=wk();p.base=G.st.harv||0;p.sent={day:0,n:0}}if(!p.applied)p.applied=[];if(!p.sent)p.sent={day:0,n:0};if(!p.claimed)p.claimed={};return p}
+let PD=null,loaded=0,lastPush=0;
+const GOAL=240;
+const myWeek=()=>(G.st.harv||0)-P().base;
+function snap(){return{n:nameOf(meId()),lv:G.lv,coins:G.coins,wk:wk(),wkh:myWeek(),harv:G.st.harv||0,ts:Date.now(),pl:G.pl.map(p=>p.s>=2?{s:p.s,c:p.c,e:p.e}:{s:p.s})}}
+function push(){if(!cfgx())return;lastPush=Date.now();kset('pf_snap_'+meId(),snap())}
+function applyHelp(list){let n=0;const p=P();(list||[]).forEach(it=>{if(!it||!it.id||p.applied.includes(it.id))return;p.applied.push(it.id);if(it.k==='water'){const t=now();G.pl.forEach(pl=>{if(pl.s==2&&pl.e>t)pl.e=t+(pl.e-t)*.7});G.coins+=10;n++;toast('💧 '+(PD&&PD.n||'Your partner')+' watered your crops!')}
+ else if(it.k==='gift'){G.coins+=60;n++;toast('🎁 '+(PD&&PD.n||'Your partner')+' sent you 🪙60!')}});
+ if(p.applied.length>60)p.applied=p.applied.slice(-40);if(n){snd('coin');save();if(typeof drawAll==='function')try{drawAll()}catch(e){}hud();upd()}}
+async function poll(first){if(!cfgx())return;const h=await kget('pf_help_'+meId());if(h)applyHelp(h);const s=await kget('pf_snap_'+oth());if(s!==undefined){PD=s;loaded=1;checkGoal();if(S.cur&&S.cur.t==='pt')paint()}if(first||Date.now()-lastPush>30000)push()}
+function checkGoal(){const p=P();if(!PD||PD.wk!==wk())return;const tot=myWeek()+PD.wkh;if(tot>=GOAL&&!p.claimed[wk()]){p.claimed[wk()]=1;G.coins+=300;G.gems+=3;snd('lvl');toast('🏆 Weekly goal reached together! +🪙300 +💎3');save();hud();pushSoon()}}
+let ps=0;function pushSoon(){clearTimeout(ps);ps=setTimeout(push,1500)}
+function eta(p){const t=now();return p.e>t?fmt(p.e-t):'ready'}
+async function help(k){const c=cfgx();if(!c)return toast('Sync is off — turn it on in the main app',1);const p=P(),d=dayN();if(p.sent.day!==d){p.sent={day:d,n:0}}if(p.sent.n>=6)return toast('You helped plenty today — come back tomorrow 💞',1);
+ const cur=(await kget('pf_help_'+oth()))||[];cur.push({id:meId()+Date.now().toString(36),k,ts:Date.now()});if(!(await kset('pf_help_'+oth(),cur.slice(-20))))return toast('Could not reach them — try again',1);
+ p.sent.n++;G.coins+=15;inc('help');G.nb&&0;snd('coin');save();hud();toast(k==='water'?'💧 Watered their crops! +🪙15':'🎁 Gift sent! +🪙15');quests();paint()}
+SH.pt=()=>{const p=P(),o=oth(),on=!!cfgx();if(!on)return['💞 Together',`<p class="mut">Cloud sync is off. Turn it on in the main app (Club → Sync) on both phones to farm together.</p>`];
+ const mine=myWeek(),his=PD&&PD.wk===wk()?PD.wkh:0,tot=mine+his,pc=Math.min(100,tot/GOAL*100);
+ let h=`<div class="cd"><b>🎯 Weekly goal: harvest ${GOAL} crops together</b><div class="pr"><i style="width:${pc}%;background:var(--gold)"></i></div><small>${tot}/${GOAL} · you ${mine} · ${PD&&PD.n||nameOf(o)} ${his}${p.claimed[wk()]?' · ✅ reward claimed':' · reward 🪙300 + 💎3 each'}</small></div>`;
+ if(!loaded)return['💞 Together',h+'<p class="mut">Looking for '+nameOf(o)+'\'s farm…</p>'];
+ if(!PD)return['💞 Together',h+`<p class="mut">${nameOf(o)} hasn't opened Pocket Farm yet. Ask them to!</p>`];
+ const grow=PD.pl.filter(x=>x.s==2).length,rdy=PD.pl.filter(x=>x.s==3).length;
+ h+=`<h3>🌾 ${PD.n}'s farm</h3><div class="cd"><b>Level ${PD.lv}</b> · 🪙${PD.coins}<br><small>${PD.harv} harvested · seen ${fmt((Date.now()-PD.ts)/1000)} ago</small></div>`;
+ h+=`<div class="cd" style="display:flex;flex-wrap:wrap;gap:4px">`+PD.pl.map(x=>x.s==0?'<span class="ch no">🔒</span>':x.s==1?'<span class="ch no">·</span>':`<span class="ch ${x.s==3?'':'no'}">${I[x.c]?I[x.c].e:'🌱'} ${x.s==3?'✓':eta(x)}</span>`).join('')+`</div><small class="mut">${grow} growing · ${rdy} ready</small>`;
+ h+=`<h3>Help ${PD.n}</h3><div class="cd rt"><span class="big">💧</span><div><b>Water their crops</b><br><small>Their growing crops finish 30% sooner.</small></div><button class="btn g" data-a="pth" data-k="water">Water</button></div>`;
+ h+=`<div class="cd rt"><span class="big">🎁</span><div><b>Send a gift</b><br><small>They get 🪙60 (it's free for you!).</small></div><button class="btn g" data-a="pth" data-k="gift">Send</button></div><small class="mut">You earn 🪙15 and count toward "Help a neighbor" each time (up to 6 a day).</small>`;
+ return['💞 Together',h]};
+ACT.pt=()=>{open('pt');poll(1)};ACT.pth=k=>help(k);
+const b=document.createElement('button');b.id='pt-btn';b.dataset.a='pt';b.textContent='💞';b.setAttribute('aria-label','Together');b.style.cssText='position:fixed;right:10px;bottom:150px;z-index:20;width:46px;height:46px;border-radius:50%;border:0;font-size:22px;background:#fff;box-shadow:0 2px 8px #0004';document.body.appendChild(b);
+setTimeout(()=>poll(1),2500);setInterval(()=>poll(0),30000);
+})();
 boot();
 })();
 
