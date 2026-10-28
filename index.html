@@ -17512,13 +17512,13 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         doors.forEach(function (d) {
             var el = document.createElement("div"); el.className = "bcx-door" + (d.id === "front" ? " front" : "") + (deco ? " edit" : ""); el.style.left = d.x + "%"; el.style.top = d.y + "%";
             var tgt = d.to === "front" ? null : roomInfo(d.to) || (/^fh_/.test(d.to) ? { name: "Friend's house" } : null);
-            el.innerHTML = "<i></i><small>" + esc(d.id === "front" ? "Front door" : d.label || (tgt ? tgt.name : "Door")) + "</small>"; scene.appendChild(el);
+            el.innerHTML = "<i></i><small>" + esc(d.id === "front" ? "Visit " + names()[other()] : d.label || (tgt ? tgt.name : "Door")) + "</small>"; scene.appendChild(el);
             var sx = null, mv = false, ox, oy;
             el.addEventListener("pointerdown", function (e) { if (!deco) return; e.preventDefault(); mv = false; sx = e.clientX; var r = scene.getBoundingClientRect(); ox = parseFloat(el.style.left) / 100 * r.width; oy = parseFloat(el.style.top) / 100 * r.height; sy = e.clientY; el.setPointerCapture(e.pointerId); });
             var sy = 0;
             el.addEventListener("pointermove", function (e) { if (sx == null) return; var dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) > 5) mv = true; var r = scene.getBoundingClientRect(); el.style.left = clamp((ox + dx) / r.width * 100, 6, 94) + "%"; el.style.top = clamp((oy + dy) / r.height * 100, 30, 96) + "%"; });
             el.addEventListener("pointerup", function () { if (sx == null) return; sx = null; if (mv) { var Rm = jget("fx3_room", {}); Rm.doors = Rm.doors || []; var x = Rm.doors.filter(function (q) { return q.id === d.id; })[0]; if (!x) { x = { id: d.id, to: d.to, label: d.label }; Rm.doors.push(x); } x.x = parseFloat(el.style.left); x.y = parseFloat(el.style.top); jset("fx3_room", Rm); } else openPanel("rooms"); });
-            el.addEventListener("click", function (e) { if (deco) return; e.stopPropagation(); if (d.to === "front") openPanel("friends", "door"); else goto(d.to); });
+            el.addEventListener("click", function (e) { if (deco) return; e.stopPropagation(); if (d.to === "front") frontDoor(); else goto(d.to); });
         });
         /* toolbar */
         var tb = document.createElement("div"); tb.className = "bcx-tb";
@@ -17577,7 +17577,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var opts = [["home", "🏠 Home"]].concat(rs.list.map(function (x) { return [x.id, (x.e || "🚪") + " " + x.name]; }));
         bd.innerHTML = '<div class="card-desc">You are in <b>' + esc((roomInfo(cur) || {}).name || "Home") + '</b>. Go anywhere, or build onto the house. Tip: switch the room to <b>✏️ Decorate</b> to drag doors around.</div>' +
             '<h3>Go to</h3>' + opts.map(function (o) { return '<div class="r"><span>' + o[1] + '</span>' + (o[0] === cur ? "<small>you are here</small>" : '<button class="b" data-go="' + o[0] + '">Go</button>') + (o[0] !== "home" ? '<button class="b g" data-rn="' + o[0] + '">✏️</button><button class="b g" data-rd="' + o[0] + '">🗑️</button>' : "") + "</div>"; }).join("") +
-            '<h3>Doors in this room</h3>' + (doors.length || cur === "home" ? (cur === "home" ? '<div class="r"><span>🚪 Front door <small>(friends\' houses)</small></span></div>' : "") + doors.map(function (d) { var t = roomInfo(d.to); return '<div class="r"><span>🚪 ' + esc(d.label || (t ? t.name : "Door")) + ' <small>→ ' + esc(d.to === "home" ? "Home" : t ? t.name : "?") + '</small></span><button class="b g" data-dd="' + d.id + '">Remove</button></div>'; }).join("") : '<div class="card-desc">No doors here yet.</div>') +
+            '<h3>Doors in this room</h3>' + (doors.length || cur === "home" ? (cur === "home" ? '<div class="r"><span>🚪 Front door <small>(visit ' + esc(names()[other()]) + '\'s house)</small></span></div>' : "") + doors.map(function (d) { var t = roomInfo(d.to); return '<div class="r"><span>🚪 ' + esc(d.label || (t ? t.name : "Door")) + ' <small>→ ' + esc(d.to === "home" ? "Home" : t ? t.name : "?") + '</small></span><button class="b g" data-dd="' + d.id + '">Remove</button></div>'; }).join("") : '<div class="card-desc">No doors here yet.</div>') +
             '<h3>Add a door</h3><div class="add"><select id="bp-to">' + opts.filter(function (o) { return o[0] !== cur; }).map(function (o) { return '<option value="' + o[0] + '">To ' + esc(o[1]) + "</option>"; }).join("") + '</select><button class="b" id="bp-adoor">Add door</button></div>' +
             '<h3>Build a new room</h3><div class="add"><input id="bp-name" placeholder="Room name (optional)"><select id="bp-type">' + Object.keys(TYPES).map(function (k) { return '<option value="' + k + '">' + TYPES[k].e + " " + TYPES[k].n + "</option>"; }).join("") + '</select></div><div class="add"><button class="b" id="bp-new">🔨 Build it and add a door here</button></div><div class="card-desc">The new room has its own walls, floor and furniture. Decorate it like the main room. Rooms: ' + rs.list.length + "/12.</div>";
         bd.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { close(); goto(b.dataset.go); }; });
@@ -17612,6 +17612,12 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         $("br-add").onclick = function () { var f = document.createElement("input"); f.type = "file"; f.accept = "audio/*"; f.multiple = true; f.onchange = function () { M.addFiles(f.files).then(function (n) { toast("Added " + n + " song" + (n === 1 ? "" : "s")); pRadio(bd); }); }; f.click(); };
     }
 
+    function frontDoor() {
+        var who = other(), nm = names()[who];
+        toast("🚪 Heading over to " + nm + "'s house…");
+        var sc = document.querySelector("#rm-scene"); if (sc) { sc.style.transition = "opacity .35s"; sc.style.opacity = ".15"; setTimeout(function () { sc.style.opacity = ""; }, 700); }
+        setTimeout(function () { openPanel("visit", "door"); }, 450);
+    }
     /* ---------- 34: visiting your partner's pet room ---------- */
     function snapshot() {
         var R = (function () { try { return JSON.parse(localStorage.getItem(RS().cur === "home" ? "fx3_room" : "bcx_room_home") || "null"); } catch (e) { return null; } })() || { wall: "w_plain", floor: "f_wood", items: [] };
@@ -17625,7 +17631,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     setTimeout(publish, 9000);
     function pVisit(bd) {
         var who = other(), s = sget("room_" + who, null), nm = names()[who];
-        if (!s) { bd.innerHTML = '<div class="card-desc">' + esc(nm) + "'s pet room hasn't been shared yet. Turn on sync on both phones, then ask " + esc(nm) + " to open their pet room once.</div>"; return; }
+        if (!s) { bd.innerHTML = '<div class="card-desc">' + esc(nm) + "'s pet house isn't ready to visit yet. Turn on sync on both phones, then ask " + esc(nm) + " to open their pet room once. Until then, your pet's friends can still drop by the front door, and you can visit their houses from the 👫 Friends tab.</div>"; return; }
         bd.innerHTML = '<div class="card-desc">' + esc(nm) + "'s room, as it was " + new Date(s.t).toLocaleString() + '. Leave ' + esc(s.pet) + ' a gift!</div><div class="fx3-room" style="min-height:300px;height:44vh;border-radius:14px;overflow:hidden" id="bv-sc"><div class="fx3-wall" style="background:' + s.wall + '"></div><div class="fx3-floor" style="background:' + s.floor + '"></div>' +
             s.items.map(function (it) { return '<div class="fx3-furn" style="left:' + it.x + "%;top:" + it.y + "%;--s:" + it.s + ";" + (it.fl ? "--fl:-1;" : "") + "z-index:" + (3 + Math.round(it.y)) + '">' + (it.svg || '<span class="fx3-furn-e">' + esc(it.e) + "</span>") + "</div>"; }).join("") + '<div class="fx3-room-pet" id="bv-pet" style="left:50%;top:76%">' + esc(s.glyph) + "</div></div>" +
             '<div class="add" style="justify-content:center">' + [["🦴", "a treat"], ["🌸", "flowers"], ["🏐", "a ball"], ["💌", "a love note"], ["⭐", "a star"]].map(function (g) { return '<button class="b" data-g="' + g[0] + '" data-n="' + g[1] + '" style="font-size:1.3rem">' + g[0] + "</button>"; }).join("") + "</div>";

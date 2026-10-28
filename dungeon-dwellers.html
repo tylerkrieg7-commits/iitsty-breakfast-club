@@ -213,6 +213,10 @@
                 </button>
             </div>
 
+            <button onclick="window.DDCO&&DDCO.open()" id="dd-together-btn" class="w-full bg-gradient-to-r from-pink-950 to-purple-950 border-2 border-pink-500/60 text-pink-200 px-3 py-2.5 rounded-xl flex items-center justify-center space-x-2 active:scale-95 transition text-xs font-bold shadow-lg mb-3">
+                <span>👥 Play Together</span><span class="text-[10px] text-pink-400 font-normal">Co-op · Hero · Dungeons · Cloud Saves</span>
+            </button>
+
             <div class="grid grid-cols-2 gap-2 w-full mb-3">
                 <button onclick="toggleLedger()" class="bg-amber-950/80 border border-amber-700 text-amber-300 px-3 py-2 rounded-xl flex items-center justify-center space-x-2 active:scale-95 transition text-xs font-bold shadow-lg">
                     <i class="fa-solid fa-skull text-amber-400"></i> <span>Tombstones</span>
@@ -519,6 +523,7 @@
                 <span><i class="fa-solid fa-gear text-blue-400 mr-2"></i> Settings & Engine</span>
                 <button onclick="toggleSettingsMenu()" class="text-neutral-500"><i class="fa-solid fa-xmark"></i></button>
             </h3>
+            <button onclick="toggleSettingsMenu();window.DDCO&&DDCO.open()" class="w-full mb-3 bg-pink-950 border border-pink-600 text-pink-200 py-2 rounded-xl text-xs font-bold">👥 Play Together (co-op, hero, dungeons, cloud saves)</button>
             <div class="mb-5 space-y-3 border-b border-neutral-800 pb-4">
                 <h4 class="text-sm font-bold text-amber-500 uppercase tracking-wider"><i class="fa-solid fa-volume-high"></i> Audio & Narrator</h4>
                 <div class="flex items-center justify-between">
@@ -36489,7 +36494,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         }).then(function () { pT = setTimeout(poll, hostActive() && CO.phase === "guest" ? 1500 : 3500); });
     }
     function hb() {
-        var b = $("ddco-hb"); if (!b) { b = document.createElement("div"); b.id = "ddco-hb"; document.body.appendChild(b); }
+        var b = $("ddco-hb"); if (!b) { b = document.createElement("div"); b.id = "ddco-hb"; b.style.cursor = "pointer"; b.onclick = open; document.body.appendChild(b); }
         if (hostActive()) { b.style.display = "block"; var G = CO.g; b.textContent = "👥 " + G.emoji + " " + G.name + " " + (G.down ? "(down)" : G.hp + "/" + G.max + " HP") + " · room " + CO.code; }
         else if (CO.role === "host") { b.style.display = "block"; b.textContent = "👥 Room " + CO.code + " · waiting for your partner to join"; }
         else b.style.display = "none";
@@ -36733,7 +36738,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     function build() {
         ov = document.createElement("div"); ov.id = "ddco"; ov.innerHTML = '<div class="sh" id="ddco-sh"></div>'; document.body.appendChild(ov);
         ov.onclick = function (e) { if (e.target === ov) close(); };
-        var f = document.createElement("button"); f.id = "ddco-fab"; f.textContent = "👥"; f.title = "Co-op, hero, dungeons, cloud saves"; f.onclick = open; document.body.appendChild(f);
+        
     }
     function draw() {
         if (!ov || !ov.classList.contains("show")) return; var sh = $("ddco-sh");
