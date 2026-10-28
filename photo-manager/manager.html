@@ -133,7 +133,7 @@ function groupOfFree(id){const c=cat();const g=c.groups.find(g=>g.free&&id.start
 function toId(val){val=String(val||'').trim();if(!val)return null;const L=slotList(),hit=L.find(s=>s.label.toLowerCase()===val.toLowerCase()||s.id.toLowerCase()===val.toLowerCase());if(hit)return hit;
   const p=PREFIX[APP]||{};for(const k in p){const pre=p[k].trim().replace(':','').toLowerCase(),m=new RegExp('^'+pre+'\\s*:\\s*(.+)$','i').exec(val);if(m){const g=groupOf(k);return{id:k+m[1].trim(),label:p[k]+m[1].trim(),kind:(g&&g.kind)||'image',group:groupOfFree(k)}}}return null}
 function guess(fname,fk){const n=norm(fname);if(!n)return '';const ft=new Set(n.split(' ')),L=slotList().filter(s=>fk==='video'?s.kind==='video':fits(fk||'image',s.kind));let best=null,bs=0;
-  L.forEach(s=>{const names=[s.label,s.id].concat(s.alias).map(norm);names.forEach(x=>{if(!x)return;let sc=0;const tk=x.split(' ').filter(t=>t&&t!=='cutscene'&&t!=='the'&&t!=='of');
+  L.forEach(s=>{const names=[s.label,s.id].concat(s.alias).map(norm);names.forEach(x=>{if(!x)return;let sc=0;const tk=x.split(' ').filter(t=>t&&t!=='cutscene'&&t!=='the'&&t!=='of'&&t!=='cabinet'&&t!=='sound');
     if(x===n)sc=1000;else if(tk.length&&tk.every(t=>ft.has(t)))sc=tk.join('').length*2+tk.length;else if(n.includes(x)&&x.length>=3)sc=x.length*2;else if(x.includes(n)&&n.length>=4)sc=n.length;if(sc>bs){bs=sc;best=s}})});return best?best.label:''}
 async function load(){ST=await (await fetch('/api/state')).json();buildPrefixes();render();renderVoice(ST.voice)}
 function render(){
@@ -177,7 +177,7 @@ function renderLib(){
   Object.keys(groups).forEach(n=>{const g=c.groups.find(x=>x.name===n);const keepNew=g&&g.free&&f!=='filled'&&(!q||norm(g.name+' '+(g.one||'')).includes(q));if(!groups[n].length&&!keepNew)delete groups[n]});
   const notes={},frees={};c.groups.forEach(g=>{notes[g.name]=g.note||'';if(g.free)frees[g.name]=g});
   box.innerHTML=Object.keys(groups).map(g=>'<div class="grp">'+esc(g)+' <span class="pill">'+groups[g].filter(x=>x[1]).length+'/'+groups[g].length+'</span>'+(notes[g]?'<span class="muted">'+esc(notes[g])+'</span>':'')+'</div><div class="grid">'+(frees[g]&&f!=='filled'?'<div class="it new" data-new="'+esc(frees[g].free)+'"><div class="pic"><b>＋</b>New '+esc(frees[g].one||'item')+'</div><div class="cap"><span>Add your own</span></div></div>':'')+groups[g].slice(0,400).map(([s,it])=>{
-    const v=it&&/^video/.test(it.type),au=it&&/^audio/.test(it.type);return '<div class="it'+(it?'':' empty')+'" data-id="'+esc(s.id)+'"><div class="pic">'+(s.info?'<span class="info-dot" title="More about this">i</span>':'')+''+(it?(au?'<div style="display:grid;gap:8px;place-items:center;width:100%"><span style="font-size:34px">🔊</span><audio controls preload="none" src="/files/'+it.hash+'" style="width:100%"></audio></div>':v?'<video src="/files/'+it.hash+'" muted preload="metadata"></video><span class="vid">video</span>':'<img loading="lazy" src="/files/'+it.hash+'">'):(s.kind==='video'?'🎬 empty':s.kind==='audio'?'🔊 empty':'empty'))+'</div><div class="cap"><span title="'+esc(s.label)+'">'+esc(s.label)+'</span>'+(it?'<span class="muted">'+mb(it.size)+'</span>':'')+'</div><div class="acts"><button data-set="'+esc(s.id)+'">'+(it?'Replace':'Add')+'</button>'+(it?'<button class="bad" data-del="'+esc(s.id)+'">Remove</button>':'')+(it&&fieldsFor(s.id)?'<button data-edit="'+esc(s.id)+'" style="flex-basis:100%">✏️ Details</button>':'')+'</div></div>'}).join('')+'</div>').join('')||'<p class="muted">Nothing matches.</p>';
+    const v=it&&/^video/.test(it.type),au=it&&/^audio/.test(it.type);return '<div class="it'+(it?'':' empty')+'" data-id="'+esc(s.id)+'"><div class="pic">'+(s.info?'<span class="info-dot" title="More about this">i</span>':'')+''+(it?(au?'<div style="display:grid;gap:8px;place-items:center;width:100%"><span style="font-size:34px">🔊</span><audio controls preload="none" src="/files/'+it.hash+'" style="width:100%"></audio></div>':v?'<video src="/files/'+it.hash+'" muted preload="metadata"></video><span class="vid">video</span>':'<img loading="lazy" src="/thumb/'+it.hash+'?w=240" onerror="this.onerror=null;this.src=\'/files/'+it.hash+'\'">'):(s.kind==='video'?'🎬 empty':s.kind==='audio'?'🔊 empty':'empty'))+'</div><div class="cap"><span title="'+esc(s.label)+'">'+esc(s.label)+'</span>'+(it?'<span class="muted">'+mb(it.size)+'</span>':'')+'</div><div class="acts"><button data-set="'+esc(s.id)+'">'+(it?'Replace':'Add')+'</button>'+(it?'<button class="bad" data-del="'+esc(s.id)+'">Remove</button>':'')+(it&&fieldsFor(s.id)?'<button data-edit="'+esc(s.id)+'" style="flex-basis:100%">✏️ Details</button>':'')+'</div></div>'}).join('')+'</div>').join('')||'<p class="muted">Nothing matches.</p>';
 }
 $('#lib-q').addEventListener('input',renderLib);$('#lib-f').addEventListener('change',renderLib);
 $('#lib').addEventListener('click',async e=>{
@@ -189,6 +189,7 @@ $('#lib').addEventListener('click',async e=>{
 });
 $('#repl').addEventListener('change',async e=>{let f=e.target.files[0];e.target.value='';if(!f||!REPL)return;f=asFile(f);const s=slotList().find(x=>x.id===REPL),fk=fkind(f.type);if(!fits(fk,s?s.kind:'image')){toast(KIND_MSG[fk]||'That file type can\'t go here');return}toast('Saving…');try{await put(f,APP,REPL);await load();toast('Saved')}catch(err){toast('Could not save: '+err.message)}});
 /* ---------- tap a box: everything about that spot ---------- */
+function loreHTML(it){const m=it&&it.meta;if(!m)return '';const L=[['lore',''],['habitat','📍 Where it lurks: '],['weakness','⚠️ Weakness: '],['taunt','💬 Says: “']];const o=L.filter(([k])=>m[k]).map(([k,p])=>'<div class="txt">'+p+esc(String(m[k]))+(k==='taunt'?'”':'')+'</div>').join('');return o}
 function openInfo(id){
   const s=slotList().find(x=>x.id===id);if(!s)return;const it=ST.items[APP+'|'+id],g=cat().groups.find(x=>x.name===s.group)||{};
   const v=it&&/^video/.test(it.type),au=it&&/^audio/.test(it.type),q=(s.q||s.label.replace(/^[^:]+: /,''));
@@ -197,13 +198,14 @@ function openInfo(id){
   $('#fm').className='dt';
   $('#fm').innerHTML='<div class="grpn">'+esc(s.group)+'</div><h3>'+esc(s.label)+'</h3>'+
     '<div class="big">'+(it?(au?'<audio controls src="/files/'+it.hash+'" style="width:90%"></audio>':v?'<video controls src="/files/'+it.hash+'"></video>':'<img src="/files/'+it.hash+'">'):'<span>Empty. Add a '+kindWord+'.</span>')+'</div>'+
-    (s.info?'<div class="txt">'+esc(s.info)+'</div>':(g.note?'<div class="txt">'+esc(g.note)+'</div>':''))+
+    (s.info?'<div class="txt">'+esc(s.info)+'</div>':(g.note?'<div class="txt">'+esc(g.note)+'</div>':''))+loreHTML(it)+
     (it?'<div class="muted">'+esc(it.name||'')+' · '+mb(it.size)+'</div>':'')+
     '<a class="lnk" href="'+search+'" target="_blank" rel="noopener">🔎 Find '+(s.kind==='audio'?'sounds':'pictures')+' online for “'+esc(q)+'”</a>'+
-    '<div class="btns"><button type="button" class="pri" data-x="set">'+(it?'Replace':'Add a '+kindWord)+'</button>'+(it?'<button type="button" class="bad" data-x="del">Remove</button>':'')+(it&&fieldsFor(id)?'<button type="button" data-x="edit">✏️ Details</button>':'')+'<span style="flex:1"></span><button type="button" data-x="close">Close</button></div>';
+    '<div class="btns"><button type="button" class="pri" data-x="set">'+(it?'Replace':'Add a '+kindWord)+'</button>'+(it?'<button type="button" class="bad" data-x="del">Remove</button>':'')+(it&&fieldsFor(id)?'<button type="button" data-x="edit">✏️ Details</button>':'')+(it&&!au&&!v?'<button type="button" data-x="editpic">✂️ Crop / resize / background</button>':'')+'<span style="flex:1"></span><button type="button" data-x="close">Close</button></div>';
   $('#fm').onclick=async e=>{const b=e.target.closest('[data-x]');if(!b)return;const x=b.dataset.x;
     if(x==='close')$('#dlg').close();
     if(x==='set'){$('#dlg').close();REPL=id;$('#repl').click()}
+    if(x==='editpic'){window.pmEdit(id)}
     if(x==='edit'){$('#fm').onclick=null;$('#fm').className='fm';openForm(null,id)}
     if(x==='del'){if(!confirm('Remove this from the library? Phones drop it at their next sync.'))return;await fetch('/api/file?app='+encodeURIComponent(APP)+'&slot='+encodeURIComponent(id),{method:'DELETE'});$('#dlg').close();await load();toast('Removed')}};
   if(!$('#dlg').open)$('#dlg').showModal();
@@ -218,13 +220,13 @@ function openForm(free,id){
   const nm=id?(g?id.slice(g.free.length):display(id)):'';
   const fld=x=>{const v=m[x.k]==null?'':m[x.k];
     if(x.type==='select')return '<label>'+esc(x.label)+'<select data-k="'+x.k+'">'+x.options.map(o=>'<option value="'+esc(o[0])+'"'+(String(v)===o[0]?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select></label>';
-    if(x.type==='lines')return '<label>'+esc(x.label)+'<textarea data-k="'+x.k+'">'+esc(Array.isArray(v)?v.join('\n'):v)+'</textarea></label>';
+    if(x.type==='lines'||x.type==='long')return '<label>'+esc(x.label)+'<textarea data-k="'+x.k+'">'+esc(Array.isArray(v)?v.join('\n'):v)+'</textarea></label>';
     return '<label>'+esc(x.label)+'<input data-k="'+x.k+'" type="'+(x.type==='number'?'number':'text')+'"'+(x.type==='number'?' step="'+(x.step||1)+'"'+(x.min!=null?' min="'+x.min+'"':'')+(x.max!=null?' max="'+x.max+'"':''):'')+' value="'+esc(v)+'"></label>'};
   const nums=fd.filter(x=>x.type==='number'),rest=fd.filter(x=>x.type!=='number');
   $('#fm').innerHTML='<h3>'+(id?'✏️ '+esc(display(id)):'➕ New '+esc(g.one||'item'))+'</h3>'+(g&&g.note&&!id?'<div class="muted">'+esc(g.note)+'</div>':'')+
     '<label>'+esc((g&&g.nameLabel)||'Name')+'<input id="fm-name" value="'+esc(nm)+'"'+(id?' disabled':'')+' placeholder="Type a name" required></label>'+
     (FORM.kind==='audio'?'<div class="pv"><span style="font-size:40px">🔊</span><div style="display:grid;gap:6px;flex:1"><audio id="fm-aud" controls preload="none" style="width:100%"'+(it?' src="/files/'+it.hash+'"':'')+'></audio><div style="display:flex;gap:8px;align-items:center"><button type="button" id="fm-pick">'+(it?'Change sound':'Choose sound')+'</button><span class="muted" id="fm-fn">'+(it?'':'MP3, M4A, WAV or OGG')+'</span></div></div></div>':'<div class="pv"><img id="fm-img" src="'+(it?'/files/'+it.hash:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88"><text x="44" y="56" font-size="36" text-anchor="middle">🖼️</text></svg>'))+'"><div style="display:grid;gap:6px"><button type="button" id="fm-pick">'+(it?'Change picture':'Choose picture')+'</button><span class="muted" id="fm-fn">'+(it?'':'A picture or GIF')+'</span></div></div>')+
-    rest.filter(x=>x.type!=='lines').map(fld).join('')+(nums.length?'<div class="two">'+nums.map(fld).join('')+'</div>':'')+rest.filter(x=>x.type==='lines').map(fld).join('')+
+    rest.filter(x=>x.type!=='lines'&&x.type!=='long').map(fld).join('')+(nums.length?'<div class="two">'+nums.map(fld).join('')+'</div>':'')+rest.filter(x=>x.type==='lines'||x.type==='long').map(fld).join('')+
     '<div class="muted" id="fm-err" style="color:var(--bad)"></div><div class="btns"><button type="button" id="fm-x">Cancel</button><button type="button" class="pri" id="fm-ok">Save</button></div>';
   fpick.accept=FORM.kind==='audio'?'audio/*':'image/*';$('#fm').className='fm';$('#fm').onclick=null;if(!$('#dlg').open)$('#dlg').showModal();if(!id)$('#fm-name').focus();
 }
@@ -264,4 +266,155 @@ $('#vc-share').addEventListener('change',e=>vAct(e.target.checked?'share-on':'sh
 $('#vc-clear').addEventListener('click',()=>{if(confirm('Forget the lines still waiting to be recorded? Phones send them again when they speak them.'))vAct('clear')});
 $('#vc-play').addEventListener('click',async()=>{const b=$('#vc-play');b.disabled=true;b.textContent='Making…';try{const r=await fetch('/api/voice/test?s='+encodeURIComponent($('#vc-s').value)+'&t='+encodeURIComponent($('#vc-t').value));if(!r.ok)throw new Error((await r.json()).error);$('#vc-a').src=URL.createObjectURL(await r.blob());$('#vc-a').play()}catch(e){toast('Could not play: '+e.message)}b.disabled=false;b.textContent='▶ Play'});
 load();setInterval(()=>{if(!document.hidden&&!STAGE.some(s=>s.state==='Saving…'))fetch('/api/state').then(r=>r.json()).then(s=>{ST.voice=s.voice;renderVoice(s.voice);const t=JSON.stringify(s.tunnel);if(t!==JSON.stringify(ST.tunnel)){ST.tunnel=s.tunnel;ST.supabase=s.supabase;render()}})},4000);
+</script>
+<script>
+/* ===== PC tools layer: folders, bulk, editor, search, duplicates, backups, cloud, phones ===== */
+(function(){
+const j=(u,o)=>fetch(u,o).then(r=>r.json());
+const post=(u,b)=>j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
+const ago=t=>{if(!t)return 'never';const s=Math.round((Date.now()-t)/1000);return s<60?'just now':s<3600?Math.round(s/60)+' min ago':s<86400?Math.round(s/3600)+' h ago':Math.round(s/86400)+' days ago'};
+/* ---------- cards ---------- */
+const host=document.createElement('div');host.className='cards';host.id='pc-tools';
+host.innerHTML=`
+<div class="card"><h2>📱 Phones <span class="pill" id="ph-pill">…</span></h2><div class="muted" id="ph-msg">Waiting…</div><div id="ph-list" class="muted" style="margin-top:6px"></div></div>
+<div class="card"><h2>💾 Library backup <span class="pill" id="bk-pill">…</span></h2><div class="muted" id="bk-msg"></div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><select id="bk-every"><option value="off">Off</option><option value="daily">Every day</option><option value="weekly">Every week</option></select><label class="muted">at <select id="bk-hour"></select></label><label class="muted">keep <input id="bk-keep" type="number" min="1" max="60" style="width:62px"></label><button id="bk-save">Save</button><button class="pri" id="bk-now">Back up now</button></div>
+ <details><summary>Saved backups</summary><div id="bk-list" class="muted" style="margin-top:6px"></div></details></div>
+<div class="card"><h2>☁️ Cloud copy <span class="pill" id="cl-pill">…</span></h2><div class="muted" id="cl-msg"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center"><label class="muted" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="cl-on"> Keep a copy online so phones can sync when this PC is off</label></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="pri" id="cl-push">Upload now</button><button id="cl-restore">Restore missing files from the cloud</button></div>
+ <p class="muted" style="margin:8px 0 0">Uses your Supabase project (set it up above). Files over 45 MB stay PC-only. The PC library is always the master copy.</p></div>
+<div class="card"><h2>🧬 Duplicate finder <span class="pill" id="dp-pill">…</span></h2><div class="muted" id="dp-msg">Finds the same picture saved twice, and pictures that look almost identical.</div>
+ <div style="display:flex;gap:8px;margin-top:8px"><button class="pri" id="dp-scan">Scan the library</button></div><div id="dp-res"></div></div>`;
+$('#vc').after(host);
+for(let h=0;h<24;h++)$('#bk-hour').innerHTML+='<option value="'+h+'">'+(h%12||12)+(h<12?' AM':' PM')+'</option>';
+let BKS=null,CLS=null,DPS=null,bkTouched=false;
+async function poll(){
+  if(document.hidden)return;
+  try{
+   const st=await j('/api/state');ST.phones=st.phones;const P=st.phones||{active:0,today:0,busy:0,list:[]};
+   $('#ph-pill').className='pill '+(P.active?'ok':'');$('#ph-pill').textContent=P.active?P.active+' connected':'none right now';
+   $('#ph-msg').textContent=(P.busy?'⬇ '+P.busy+' phone'+(P.busy>1?'s are':' is')+' downloading right now. ':'')+P.today+' phone'+(P.today===1?'':'s')+' seen today.';
+   $('#ph-list').innerHTML=(P.list||[]).map(p=>'📱 '+esc(String(p.id).slice(0,6))+' · '+ago(p.last)+(p.files?' · '+p.files+' files':'')).join('<br>');
+   BKS=await j('/api/backups');const b=BKS;
+   $('#bk-pill').className='pill '+(b.state==='running'?'wait':b.cfg.every!=='off'?'ok':'');$('#bk-pill').textContent=b.state==='running'?'Working':b.cfg.every==='off'?'Off':b.cfg.every==='daily'?'Daily':'Weekly';
+   $('#bk-msg').textContent=(b.msg||'No backup yet.')+(b.last?' ('+ago(b.last)+')':'')+(b.dir?' Saved in '+b.dir:'');
+   if(!bkTouched&&document.activeElement.closest&&!document.activeElement.closest('#pc-tools')){$('#bk-every').value=b.cfg.every;$('#bk-hour').value=b.cfg.hour;$('#bk-keep').value=b.cfg.keep}
+   $('#bk-list').innerHTML=b.list.length?b.list.map(x=>'<div style="display:flex;gap:8px;align-items:center;margin:4px 0"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis">'+esc(x.name.replace('breakfast-club-photos-','').replace('.bcpack',''))+' · '+mb(x.size)+'</span><a href="/api/backups/file/'+encodeURIComponent(x.name)+'"><button type="button">⬇</button></a><button type="button" data-bkr="'+esc(x.name)+'">Restore</button></div>').join(''):'None yet.';
+   CLS=await j('/api/cloud');const c=CLS;
+   $('#cl-pill').className='pill '+(c.state==='working'||c.state==='running'?'wait':c.state==='error'?'bad':c.on?'ok':'');$('#cl-pill').textContent=c.state==='working'||c.state==='running'?'Working':c.state==='error'?'Problem':c.on?'On':'Off';
+   $('#cl-msg').textContent=!c.hasSupabase?'Set up the Supabase box above first.':(c.msg||(c.on?'Uploads happen a couple of minutes after you change something.':'Off.'))+(c.last?' Last upload '+ago(c.last)+'.':'')+(c.total&&c.state!=='idle'?' '+c.done+'/'+c.total:'');
+   if(document.activeElement.id!=='cl-on')$('#cl-on').checked=!!c.on;
+   DPS=await j('/api/dupes');drawDupes();
+  }catch(e){}
+}
+$('#bk-every').onchange=$('#bk-hour').onchange=$('#bk-keep').oninput=()=>{bkTouched=true};
+$('#bk-save').onclick=async()=>{await post('/api/backups/config',{every:$('#bk-every').value,hour:+$('#bk-hour').value,keep:+$('#bk-keep').value});bkTouched=false;toast('Backup schedule saved');poll()};
+$('#bk-now').onclick=async()=>{await post('/api/backups/now');toast('Backing up…');setTimeout(poll,800)};
+$('#bk-list').onclick=async e=>{const b=e.target.closest('[data-bkr]');if(!b)return;if(!confirm('Restore from this backup? Nothing is deleted: missing or older files are added back.'))return;b.disabled=true;const r=await post('/api/backups/restore?name='+encodeURIComponent(b.dataset.bkr));toast(r.error?'Could not restore: '+r.error:'Restored '+(r.added!=null?r.added+' files':'backup'));load();poll()};
+$('#cl-on').onchange=async e=>{await post('/api/cloud/config',{on:e.target.checked});toast(e.target.checked?'Cloud copy on':'Cloud copy off');poll()};
+$('#cl-push').onclick=async()=>{await post('/api/cloud/push');toast('Uploading…');setTimeout(poll,800)};
+$('#cl-restore').onclick=async()=>{if(!confirm('Download files from the cloud copy that this PC is missing?'))return;const r=await post('/api/cloud/restore');toast(r.error?'Could not restore: '+r.error:'Restored '+(r.added!=null?r.added+' files':'ok'));load()};
+/* duplicates */
+$('#dp-scan').onclick=async()=>{await post('/api/dupes/scan');toast('Scanning…');setTimeout(poll,600)};
+function drawDupes(){
+  const d=DPS;if(!d)return;const pill=$('#dp-pill');
+  pill.className='pill '+(d.state==='scanning'?'wait':d.state==='error'?'bad':d.result?'ok':'');pill.textContent=d.state==='scanning'?'Scanning '+d.done+'/'+d.total:d.state==='error'?'Problem':d.result?'Done':'Ready';
+  if(!d.result){$('#dp-res').innerHTML=d.err?'<div class="muted">⚠ '+esc(d.err)+'</div>':'';return}
+  const R=d.result,gs=R.same.concat(R.similar);
+  $('#dp-msg').textContent='Checked '+R.scanned+' pictures · '+R.same.length+' exact repeat'+(R.same.length===1?'':'s')+' · '+R.similar.length+' look-alike group'+(R.similar.length===1?'':'s')+' ('+ago(d.at)+')';
+  const key=JSON.stringify(gs.map(g=>g.items.map(i=>i.app+i.slot+i.hash)));
+  if($('#dp-res').dataset.k===key)return;$('#dp-res').dataset.k=key;
+  $('#dp-res').innerHTML=gs.slice(0,40).map(g=>'<div style="border:2px solid var(--line);border-radius:12px;padding:8px;margin-top:8px"><b style="font-size:13px">'+(g.kind==='same'?'🟰 Exactly the same file':'👀 Looks almost the same')+'</b><div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(110px,1fr));margin-top:6px">'+g.items.map(i=>{const lab=display(i.slot);return '<div class="it"><div class="pic"><img loading="lazy" src="/thumb/'+i.hash+'?w=160" onerror="this.onerror=null;this.src=\'/files/'+i.hash+'\'"></div><div class="cap" style="font-size:11px"><span>'+esc(i.app.replace('dungeon-dwellers','DD'))+' · '+esc(lab)+'</span></div><div class="acts"><button type="button" data-dpo="'+esc(i.app)+'|'+esc(i.slot)+'">Open</button><button type="button" class="bad" data-dpd="'+esc(i.app)+'|'+esc(i.slot)+'">Remove</button></div></div>'}).join('')+'</div>'+(g.kind==='same'?'<div class="muted" style="font-size:12px">Using the same picture in two spots is fine. Remove one only if it was a mistake.</div>':'')+'</div>').join('')+(gs.length>40?'<div class="muted">…and '+(gs.length-40)+' more groups.</div>':'');
+}
+$('#dp-res').onclick=async e=>{const o=e.target.closest('[data-dpo]'),d=e.target.closest('[data-dpd]');
+  if(o){const [a,s]=o.dataset.dpo.split('|');APP=a;localStorage.setItem('pm_app',a);render();openInfo(s)}
+  if(d){const [a,s]=d.dataset.dpd.split('|');if(!confirm('Remove “'+display(s)+'” from the library?'))return;await fetch('/api/file?app='+encodeURIComponent(a)+'&slot='+encodeURIComponent(s),{method:'DELETE'});await load();$('#dp-res').dataset.k='';toast('Removed. Scan again to refresh.')}};
+poll();setInterval(poll,5000);
+/* ---------- folder drop, bulk tools ---------- */
+async function walk(entry,out,path){
+  if(entry.isFile){await new Promise(ok=>entry.file(f=>{try{Object.defineProperty(f,'_dir',{value:path})}catch(e){}out.push(f);ok()},ok))}
+  else if(entry.isDirectory){const rd=entry.createReader();let all=[];for(;;){const b=await new Promise(ok=>rd.readEntries(ok,()=>ok([])));if(!b.length)break;all=all.concat(b)}for(const c of all)await walk(c,out,path+entry.name+'/')}
+}
+function addWithDir(files){const n0=STAGE.length;addFiles(files);for(let i=n0;i<STAGE.length;i++){const s=STAGE[i],f=files[i-n0],dir=(f._dir||(f.webkitRelativePath||'').replace(/[^/]*$/,'')||'');s.dir=dir;if(!s.slot&&dir){const k=fkind(s.f.type),g=guess(dir.replace(/\/$/,'').split('/').pop()+' '+s.f.name,k);if(g)s.slot=g}}renderStage();bulkBar()}
+dz.addEventListener('drop',async e=>{
+  const items=e.dataTransfer&&e.dataTransfer.items;if(!items||!items.length||!items[0].webkitGetAsEntry)return;
+  e.stopImmediatePropagation();e.preventDefault();dz.classList.remove('over');
+  const ents=[...items].map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean),out=[];toast('Reading folder…');
+  for(const en of ents)await walk(en,out,'');
+  const ok=out.filter(f=>fkind(asFile(f).type));if(!ok.length){toast('No pictures, videos or sounds found');return}
+  addWithDir(ok);toast(ok.length+' files added');
+},true);
+const fol=document.createElement('input');fol.type='file';fol.multiple=true;fol.setAttribute('webkitdirectory','');fol.hidden=true;document.body.appendChild(fol);
+fol.onchange=()=>{const l=[...fol.files].filter(f=>fkind(asFile(f).type));fol.value='';if(l.length){addWithDir(l);toast(l.length+' files added')}else toast('No pictures, videos or sounds in that folder')};
+const fb=document.createElement('button');fb.type='button';fb.textContent='📁 Choose a whole folder';fb.style.margin='8px 0 0';fb.onclick=()=>fol.click();dz.parentNode.insertBefore(fb,dz.nextSibling);
+const bulk=document.createElement('div');bulk.id='bulk';bulk.className='card';bulk.style.cssText='display:none;margin:10px 0';
+bulk.innerHTML=`<h2>🪄 Bulk helper</h2><div class="muted">Fix lots of files at once before saving.</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><input id="bk-find" placeholder="In names, find…" style="width:140px"><input id="bk-rep" placeholder="replace with…" style="width:140px"><button type="button" id="bk-rn">Rename &amp; re-match</button><button type="button" id="bk-re">Re-match all</button></div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center"><span class="muted">Files with no spot become new:</span><select id="bk-grp"></select><button type="button" id="bk-as">Assign</button></div>`;
+$('#staged').before(bulk);
+function bulkBar(){bulk.style.display=STAGE.length>1?'block':'none';const fr=cat().groups.filter(g=>g.free);$('#bk-grp').innerHTML=fr.map(g=>'<option value="'+esc(g.free)+'">'+esc(g.one||g.name)+'</option>').join('');$('#bk-as').disabled=!fr.length}
+const oRS=renderStage;renderStage=function(){oRS();bulkBar()};
+const cleanName=n=>n.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase());
+$('#bk-rn').onclick=()=>{const f=$('#bk-find').value,r=$('#bk-rep').value;if(!f)return toast('Type what to find');let n=0;STAGE.forEach(s=>{const nm=(s.alias||s.f.name);if(nm.includes(f)){s.alias=nm.split(f).join(r);const g=guess(s.alias,fkind(s.f.type));if(g)s.slot=g;n++}});renderStage();toast(n+' renamed')};
+$('#bk-re').onclick=()=>{STAGE.forEach(s=>{if(s.state==='Saved')return;const g=guess((s.dir||'').split('/').filter(Boolean).pop()+' '+(s.alias||s.f.name),fkind(s.f.type))||guess(s.alias||s.f.name,fkind(s.f.type));if(g)s.slot=g});renderStage();toast('Matched again')};
+$('#bk-as').onclick=()=>{const free=$('#bk-grp').value,pre=(PREFIX[APP]||{})[free];if(!pre)return;let n=0;STAGE.forEach(s=>{if(s.slot||s.state==='Saved')return;const g=cat().groups.find(x=>x.free===free);if(g&&g.kind==='audio'&&fkind(s.f.type)!=='audio')return;s.slot=pre+cleanName(s.alias||s.f.name);n++});renderStage();toast(n+' assigned')};
+/* ---------- search every game ---------- */
+const gs=document.createElement('div');gs.id='gs';gs.style.cssText='margin:6px 0';$('#lib').before(gs);
+function textOf(it,s){return norm([s.label,s.group,s.info||'',it&&it.name||'',it&&it.meta?Object.values(it.meta).map(v=>Array.isArray(v)?v.join(' '):v).join(' '):''].join(' '))}
+function globalSearch(){
+  const q=norm($('#lib-q').value);if(q.length<3){gs.innerHTML='';return}
+  const hits=[];ST.catalogs.forEach(c=>{if(c.app===APP)return;const seen=new Set();c.groups.forEach(g=>g.slots.forEach(s=>{seen.add(s.id);const it=ST.items[c.app+'|'+s.id];const t=norm([s.label,g.name,s.info||'',it&&it.name||'',it&&it.meta?Object.values(it.meta).map(v=>Array.isArray(v)?v.join(' '):v).join(' '):''].join(' '));if(t.includes(q))hits.push([c,s.id,s.label,it])}));
+    Object.values(ST.items).filter(i=>i.app===c.app&&!seen.has(i.slot)).forEach(it=>{const t=norm(it.slot+' '+(it.name||'')+' '+Object.values(it.meta||{}).map(v=>Array.isArray(v)?v.join(' '):v).join(' '));if(t.includes(q))hits.push([c,it.slot,it.slot.replace(/^[a-z]+:/,''),it])})});
+  gs.innerHTML=hits.length?'<div class="card"><b>Also found in other games ('+hits.length+')</b><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">'+hits.slice(0,30).map(h=>'<button type="button" data-gs="'+esc(h[0].app)+'|'+esc(h[1])+'">'+esc(h[0].title)+' · '+esc(h[2])+(h[3]?'':' (empty)')+'</button>').join('')+'</div></div>':'';
+}
+$('#lib-q').addEventListener('input',globalSearch);
+gs.onclick=e=>{const b=e.target.closest('[data-gs]');if(!b)return;const [a,s]=b.dataset.gs.split('|');APP=a;localStorage.setItem('pm_app',a);$('#lib-q').value='';render();openInfo(s)};
+/* the box above also searches the words inside details (lore, recipes, notes) */
+const oRL=renderLib;renderLib=function(){const q=$('#lib-q').value;oRL();if(norm(q).length>=3){/* add matches found only through details */
+  const extra=slotList().filter(s=>{const it=ST.items[APP+'|'+s.id];return it&&it.meta&&textOf(it,s).includes(norm(q))&&!norm(s.label+' '+s.group+' '+(s.info||'')).includes(norm(q))});
+  if(extra.length)$('#lib').insertAdjacentHTML('afterbegin','<div class="grp">Found in details <span class="pill">'+extra.length+'</span></div><div class="grid">'+extra.map(s=>{const it=ST.items[APP+'|'+s.id];return '<div class="it" data-id="'+esc(s.id)+'"><div class="pic">'+(it.type.startsWith('image')?'<img loading="lazy" src="/thumb/'+it.hash+'?w=240" onerror="this.onerror=null;this.src=\'/files/'+it.hash+'\'">':'🔊')+'</div><div class="cap"><span>'+esc(s.label)+'</span></div></div>'}).join('')+'</div>')}
+  globalSearch()};
+/* ---------- picture editor ---------- */
+window.pmEdit=function(id){
+  const it=ST.items[APP+'|'+id];if(!it)return;
+  const fm=$('#fm');fm.className='fm';fm.onclick=null;
+  fm.innerHTML='<h3>✂️ '+esc(display(id))+'</h3><div class="muted">Crop by dragging on the picture. Remove a background by tapping it. Saving replaces this spot (details kept) and phones get it at their next sync.</div>'+
+  '<div style="background:repeating-conic-gradient(#ccc 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:12px;overflow:auto;max-height:46vh;text-align:center"><canvas id="ed-cv" style="max-width:100%;touch-action:none;cursor:crosshair"></canvas></div>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button type="button" id="ed-crop">Crop to selection</button><button type="button" id="ed-undo">↩ Undo</button><span class="muted" id="ed-sz"></span></div>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><label class="muted">Resize to width <input id="ed-w" type="number" min="16" max="4096" style="width:90px"></label><button type="button" id="ed-rs">Resize</button></div>'+
+  '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><button type="button" id="ed-auto">🪄 Remove background (auto)</button><button type="button" id="ed-pick">🎯 Tap a colour to remove</button><label class="muted">Strength <input id="ed-tol" type="range" min="4" max="90" value="32"></label></div>'+
+  '<div class="btns"><button type="button" id="ed-x">Cancel</button><button type="button" class="pri" id="ed-ok">Save</button></div>';
+  const cv=$('#ed-cv'),cx=cv.getContext('2d',{willReadFrequently:true}),hist=[];let sel=null,mode='crop',drag=null;
+  const im=new Image();im.onload=()=>{cv.width=im.naturalWidth;cv.height=im.naturalHeight;cx.drawImage(im,0,0);info()};im.onerror=()=>toast('Could not open that picture');im.src='/files/'+it.hash;
+  const info=()=>{$('#ed-sz').textContent=cv.width+' × '+cv.height;$('#ed-w').value=cv.width};
+  const snap=()=>{hist.push(cx.getImageData(0,0,cv.width,cv.height));if(hist.length>12)hist.shift()};
+  const pos=e=>{const r=cv.getBoundingClientRect();return[Math.max(0,Math.min(cv.width,(e.clientX-r.left)*cv.width/r.width)),Math.max(0,Math.min(cv.height,(e.clientY-r.top)*cv.height/r.height))]};
+  function redraw(){if(!sel)return;/* selection outline drawn with CSS box on a copy */cv.style.outline='';}
+  let overlay=null;function drawSel(){if(!overlay){overlay=document.createElement('div');overlay.style.cssText='position:absolute;border:2px dashed #ff2bd6;background:#ff2bd622;pointer-events:none';cv.parentNode.style.position='relative';cv.parentNode.appendChild(overlay)}
+    if(!sel){overlay.style.display='none';return}const r=cv.getBoundingClientRect(),p=cv.parentNode.getBoundingClientRect(),k=r.width/cv.width;overlay.style.display='block';overlay.style.left=(r.left-p.left+cv.parentNode.scrollLeft+sel.x*k)+'px';overlay.style.top=(r.top-p.top+cv.parentNode.scrollTop+sel.y*k)+'px';overlay.style.width=sel.w*k+'px';overlay.style.height=sel.h*k+'px'}
+  cv.onpointerdown=e=>{const [x,y]=pos(e);if(mode==='pick'){snap();floodAt(Math.round(x),Math.round(y),+$('#ed-tol').value);mode='crop';$('#ed-pick').textContent='🎯 Tap a colour to remove';return}drag=[x,y];sel=null;cv.setPointerCapture(e.pointerId)};
+  cv.onpointermove=e=>{if(!drag)return;const [x,y]=pos(e);sel={x:Math.min(drag[0],x),y:Math.min(drag[1],y),w:Math.abs(x-drag[0]),h:Math.abs(y-drag[1])};drawSel()};
+  cv.onpointerup=()=>{drag=null;if(sel&&(sel.w<4||sel.h<4)){sel=null;drawSel()}};
+  $('#ed-crop').onclick=()=>{if(!sel)return toast('Drag on the picture to choose what to keep');snap();const d=cx.getImageData(Math.round(sel.x),Math.round(sel.y),Math.max(1,Math.round(sel.w)),Math.max(1,Math.round(sel.h)));cv.width=d.width;cv.height=d.height;cx.putImageData(d,0,0);sel=null;drawSel();info()};
+  $('#ed-undo').onclick=()=>{const d=hist.pop();if(!d)return;cv.width=d.width;cv.height=d.height;cx.putImageData(d,0,0);sel=null;drawSel();info()};
+  $('#ed-rs').onclick=()=>{const w=Math.max(16,Math.min(4096,+$('#ed-w').value|0));if(!w||w===cv.width)return;snap();const h=Math.max(1,Math.round(cv.height*w/cv.width)),t=document.createElement('canvas');t.width=cv.width;t.height=cv.height;t.getContext('2d').drawImage(cv,0,0);cv.width=w;cv.height=h;cx.imageSmoothingQuality='high';cx.drawImage(t,0,0,w,h);info()};
+  function floodFrom(starts,tol){
+    const W=cv.width,H=cv.height,d=cx.getImageData(0,0,W,H),a=d.data,seen=new Uint8Array(W*H),stack=[];
+    const ref=starts.map(([x,y])=>{const i=(y*W+x)*4;return[a[i],a[i+1],a[i+2]]});
+    const near=(i,c)=>Math.abs(a[i]-c[0])+Math.abs(a[i+1]-c[1])+Math.abs(a[i+2]-c[2])<=tol*3;
+    starts.forEach(([x,y],k)=>{stack.push([x,y,k])});
+    while(stack.length){const [x,y,k]=stack.pop();if(x<0||y<0||x>=W||y>=H)continue;const p=y*W+x;if(seen[p])continue;const i=p*4;if(a[i+3]===0){seen[p]=1;continue}if(!near(i,ref[k]))continue;seen[p]=1;a[i+3]=0;stack.push([x+1,y,k],[x-1,y,k],[x,y+1,k],[x,y-1,k])}
+    /* soften the edge: pixels touching a removed pixel get half see-through */
+    for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){const p=y*W+x,i=p*4;if(a[i+3]===255&&(a[i-4+3]===0||a[i+4+3]===0||a[i-W*4+3]===0||a[i+W*4+3]===0))a[i+3]=170}
+    cx.putImageData(d,0,0);
+  }
+  function floodAt(x,y,tol){floodFrom([[Math.min(cv.width-1,x),Math.min(cv.height-1,y)]],tol)}
+  $('#ed-auto').onclick=()=>{snap();const W=cv.width,H=cv.height;floodFrom([[0,0],[W-1,0],[0,H-1],[W-1,H-1],[W>>1,0],[W>>1,H-1],[0,H>>1],[W-1,H>>1]],+$('#ed-tol').value);toast('Background removed. Not right? Undo and change Strength.')};
+  $('#ed-pick').onclick=()=>{mode='pick';sel=null;drawSel();$('#ed-pick').textContent='👆 Now tap the picture…'};
+  $('#ed-x').onclick=()=>openInfo(id);
+  $('#ed-ok').onclick=async()=>{const b=$('#ed-ok');b.disabled=true;b.textContent='Saving…';try{const blob=await new Promise(ok=>cv.toBlob(ok,'image/png'));const nm=(it.name||id).replace(/\.[^.]+$/,'')+'.png';await put(new File([blob],nm,{type:'image/png'}),APP,id);$('#dlg').close();await load();toast('Saved. Phones get it at their next sync.')}catch(e){toast('Could not save: '+e.message);b.disabled=false;b.textContent='Save'}};
+  if(!$('#dlg').open)$('#dlg').showModal();
+};
+})();
 </script></body></html>

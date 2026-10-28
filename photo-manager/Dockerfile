@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
  && apt-get purge -y curl && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 ENV PIPER_BIN=/opt/piper/piper
 WORKDIR /app
-COPY server.js voice.js manager.html ./
+COPY server.js voice.js tools.js manager.html ./
 COPY catalog ./catalog
 ENV DATA_DIR=/data
 VOLUME /data

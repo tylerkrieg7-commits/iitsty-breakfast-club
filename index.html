@@ -17734,5 +17734,82 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
 })();
 
 </script>
+<script id="bcx-f-rewards">
+/* ===== cross-game rewards (270): arcade, Dungeon Dwellers and Loot & Ledger progress unlocks pet-room items ===== */
+(function () {
+    "use strict";
+    if (window.__bcxRewards) return; window.__bcxRewards = 1;
+    var F = window.FX3; if (!F || !F.onClubRender) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var R0 = window.FX3_ROOM;
+
+    function num(k) { try { return parseFloat(localStorage.getItem(k)) || 0; } catch (e) { return 0; } }
+    function pj(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+    var M = {   /* every game reports one or more numbers; the games themselves are never touched */
+        gold: { n: "Arcade gold coins", e: "🥇", app: "Arcade", get: function () { return num("arc_gold"); } },
+        axp: { n: "Arcade XP", e: "🕹️", app: "Arcade", get: function () { return num("arc_xp"); } },
+        echo: { n: "Dungeon Dweller echoes (best ever)", e: "🗡️", app: "Dungeon Dwellers", get: function () { var m = pj("dwellerMetaV9"), v = m && +m.echoes || 0, k = "bcx_gr_echo", mx = Math.max(v, num(k)); if (mx > num(k)) lsSet(k, String(mx)); return mx; } },
+        vault: { n: "Loot & Ledger vault gold", e: "💰", app: "Loot & Ledger", get: function () { var s = pj("lootLedgerV11"); return s && +s.vaultGold || 0; } },
+        lxp: { n: "Loot & Ledger XP", e: "📜", app: "Loot & Ledger", get: function () { var s = pj("lootLedgerV11"); return s && +s.xp || 0; } },
+        streak: { n: "Loot & Ledger login streak", e: "🔥", app: "Loot & Ledger", get: function () { var s = pj("lootLedgerV11"); return s && +s.streak || 0; } }
+    };
+    window.BCX_GAME_METRICS = M;   /* later games add their own numbers here */
+    var MS = window.BCX_GAME_REWARDS = [
+        ["gold", 5, "furn", "fu_gr_cabinet", "Mini Arcade Cabinet", "🕹️"],
+        ["gold", 25, "furn", "fu_gr_trophy", "Golden Trophy", "🏆"],
+        ["gold", 100, "wall", "w_gr_neon", "Neon Arcade Wall", "linear-gradient(135deg,#1a0033,#3d0a6b 50%,#ff2bd6 120%),repeating-linear-gradient(0deg,rgba(255,255,255,.08) 0 2px,transparent 2px 14px)"],
+        ["axp", 2500, "floor", "f_gr_checker", "Arcade Checker Floor", "repeating-conic-gradient(#222 0 25%,#ff2bd6 0 50%) 0 0/36px 36px"],
+        ["echo", 5, "furn", "fu_gr_sword", "Toy Sword", "🗡️"],
+        ["echo", 25, "furn", "fu_gr_shield", "Wooden Shield", "🛡️"],
+        ["echo", 60, "wall", "w_gr_dungeon", "Dungeon Stone Wall", "linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.55)),repeating-linear-gradient(0deg,#5c5470 0 30px,#3b3550 30px 33px),repeating-linear-gradient(90deg,transparent 0 58px,#2a2540 58px 61px)"],
+        ["lxp", 500, "furn", "fu_gr_chest", "Treasure Chest", "🧰"],
+        ["vault", 1000, "furn", "fu_gr_coins", "Pile of Gold", "🪙"],
+        ["streak", 7, "furn", "fu_gr_crown", "Little Crown", "👑"],
+        ["streak", 30, "floor", "f_gr_gold", "Golden Floor", "linear-gradient(135deg,#f9d976,#c8961b 50%,#f9d976)"]
+    ];
+    function reg() {
+        if (!R0) return;
+        MS.forEach(function (m) {
+            var id = m[3], list = m[2] === "wall" ? R0.WALLS : m[2] === "floor" ? R0.FLOORS : R0.FURN;
+            if (list.some(function (x) { return x.id === id; })) return;
+            if (m[2] === "furn") list.push({ id: id, n: m[4], e: m[5], cost: 99999, cat: "decor", how: "game" });
+            else list.push({ id: id, n: m[4], css: m[5], cost: 99999, how: "game" });
+        });
+    }
+    reg();
+    function owned() { return jget("fx3_owned", []); }
+    function claim(m) {
+        var o = owned(); if (o.indexOf(m[3]) < 0) { o.push(m[3]); jset("fx3_owned", o); }
+        try { F.sfx && F.sfx("achieve"); F.confetti && F.confetti(); } catch (e) {}
+        toast("🎁 Unlocked for the pet room: " + m[4]);
+    }
+    var st = document.createElement("style");
+    st.textContent = "#bcx-gr .r{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(128,128,128,.25);font-size:14px}#bcx-gr .r:last-child{border:0}#bcx-gr .bar{height:7px;border-radius:5px;background:rgba(128,128,128,.25);overflow:hidden;margin-top:4px}#bcx-gr .bar i{display:block;height:100%;background:var(--accent-color,#00adb5)}#bcx-gr .b{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:10px;padding:8px 12px;background:var(--accent-color,#00adb5);color:#fff;cursor:pointer}#bcx-gr .sw{flex:none;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:20px;border:1.5px solid rgba(128,128,128,.4)}";
+    document.head.appendChild(st);
+    function paint(c) {
+        var o = owned(), vals = {}; Object.keys(M).forEach(function (k) { vals[k] = M[k].get(); });
+        var ready = MS.filter(function (m) { return vals[m[0]] >= m[1] && o.indexOf(m[3]) < 0; }).length;
+        c.querySelector("#bcx-grn").textContent = ready ? ready + " ready to claim!" : o.filter(function (x) { return /_gr_/.test(x); }).length + " of " + MS.length + " unlocked";
+        c.querySelector("#bcx-grl").innerHTML = MS.map(function (m, i) {
+            var v = vals[m[0]], got = o.indexOf(m[3]) >= 0, ok = v >= m[1], pc = Math.min(100, Math.round(v / m[1] * 100));
+            var sw = m[2] === "furn" ? m[5] : "";
+            return '<div class="r"><div class="sw" style="' + (m[2] !== "furn" ? "background:" + m[5] : "") + '">' + sw + '</div><div style="flex:1;min-width:0"><b>' + esc(m[4]) + '</b><div style="font-size:12px;opacity:.75">' + M[m[0]].e + " " + esc(M[m[0]].app) + ": " + esc(M[m[0]].n) + " " + Math.min(Math.floor(v), m[1]) + " / " + m[1] + '</div><div class="bar"><i style="width:' + pc + '%"></i></div></div>' +
+                (got ? '<span style="font-weight:800;opacity:.7">✓ In your shop</span>' : ok ? '<button class="b" data-c="' + i + '">Claim</button>' : "") + "</div>";
+        }).join("");
+    }
+    function build(v) {
+        if (!v.classList.contains("active") || v.querySelector("#bcx-gr")) return;
+        var c = document.createElement("div"); c.className = "card"; c.id = "bcx-gr";
+        c.innerHTML = '<div class="card-header"><span class="card-title">🎮 Game rewards</span><small id="bcx-grn"></small></div><div class="card-desc" style="font-size:13px;opacity:.8;margin-bottom:4px">What you earn in the Arcade, Dungeon Dwellers and Loot &amp; Ledger unlocks things for the pet room.</div><div id="bcx-grl"></div>';
+        var anchor = v.querySelector("#bcx-tg") || v.querySelector(":scope > .card"); if (anchor) anchor.insertAdjacentElement("afterend", c); else v.appendChild(c);
+        c.onclick = function (e) { var b = e.target.closest("[data-c]"); if (!b) return; claim(MS[+b.dataset.c]); paint(c); };
+        paint(c);
+    }
+    F.onClubRender(build);
+    document.addEventListener("visibilitychange", function () { var c = $("bcx-gr"); if (c && !document.hidden) paint(c); });
+    window.addEventListener("focus", function () { var c = $("bcx-gr"); if (c) paint(c); });
+})();
+
+</script>
 </body>
 </html>

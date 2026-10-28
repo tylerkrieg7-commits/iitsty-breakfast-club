@@ -6,4 +6,5 @@ services:
       - "127.0.0.1:8787:8787"   # the manager, only reachable from this PC
     volumes:
       - ./library:/data          # your photos live in the "library" folder next to this file
+      - ./backups:/backups       # scheduled backups go here (point this at a Google Drive / OneDrive folder for a cloud copy)
     restart: unless-stopped

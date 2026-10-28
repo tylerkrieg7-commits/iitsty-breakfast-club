@@ -18,21 +18,32 @@ const writeJSON = (f, v) => { const t = f + '.tmp'; fs.writeFileSync(t, JSON.str
 let LIB = readJSON(LIB_FILE, { version: 0, items: {} });          /* items["app|slot"] = {app,slot,hash,type,size,name,updated} */
 let CFG = readJSON(CFG_FILE, {});
 if (!CFG.token) { CFG.token = crypto.randomBytes(12).toString('hex'); writeJSON(CFG_FILE, CFG); }
-const saveLib = () => { LIB.version = (LIB.version || 0) + 1; LIB.updated = Date.now(); writeJSON(LIB_FILE, LIB); };
+const changedCbs = [];
+const saveLib = () => { LIB.version = (LIB.version || 0) + 1; LIB.updated = Date.now(); writeJSON(LIB_FILE, LIB); changedCbs.forEach(f => { try { f(); } catch (e) { } }); };
 const saveCfg = () => writeJSON(CFG_FILE, CFG);
 const CATALOGS = fs.readdirSync(path.join(APP_DIR, 'catalog')).filter(f => f.endsWith('.json')).map(f => readJSON(path.join(APP_DIR, 'catalog', f), null)).filter(Boolean);
-const ORDER = ['dungeon-dwellers', 'index', 'loot-ledger']; CATALOGS.sort((a, b) => ORDER.indexOf(a.app) - ORDER.indexOf(b.app));
+const ORDER = ['dungeon-dwellers', 'index', 'loot-ledger', 'arcade']; CATALOGS.sort((a, b) => ORDER.indexOf(a.app) - ORDER.indexOf(b.app));
 
 /* ---------------- helpers ---------------- */
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.webp': 'image/webp', '.avif': 'image/avif', '.svg': 'image/svg+xml', '.bmp': 'image/bmp', '.mp4': 'video/mp4', '.webm': 'video/webm', '.mov': 'video/quicktime', '.m4v': 'video/mp4', '.ogv': 'video/ogg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.json': 'application/json' };
 function send(res, code, body, headers) { res.writeHead(code, Object.assign({ 'Cache-Control': 'no-store' }, headers || {})); res.end(body); }
 function json(res, code, obj, headers) { send(res, code, JSON.stringify(obj), Object.assign({ 'Content-Type': 'application/json' }, headers || {})); }
 function readBody(req, limit) { return new Promise((ok, no) => { const ch = []; let n = 0; req.on('data', d => { n += d.length; if (n > (limit || 2e6)) { no(new Error('too big')); req.destroy(); } else ch.push(d); }); req.on('end', () => ok(Buffer.concat(ch))); req.on('error', no); }); }
-function sendFile(res, file, type, extra) {
+function sendFile(res, file, type, extra, req) {
   fs.stat(file, (err, st) => {
     if (err) return send(res, 404, 'not found');
-    res.writeHead(200, Object.assign({ 'Content-Type': type || 'application/octet-stream', 'Content-Length': st.size }, extra || {}));
-    fs.createReadStream(file).pipe(res);
+    let start = 0, end = st.size - 1, code = 200;
+    const h = { 'Content-Type': type || 'application/octet-stream', 'Accept-Ranges': 'bytes' };
+    const rg = req && req.headers.range && /^bytes=(\d*)-(\d*)$/.exec(req.headers.range);   /* phones resume interrupted downloads with this */
+    if (rg && st.size) {
+      if (rg[1] === '') start = Math.max(0, st.size - (+rg[2] || 0)); else { start = +rg[1]; if (rg[2] !== '') end = Math.min(end, +rg[2]); }
+      if (start > end || start >= st.size) { res.writeHead(416, { 'Content-Range': 'bytes */' + st.size }); return res.end(); }
+      code = 206; h['Content-Range'] = 'bytes ' + start + '-' + end + '/' + st.size;
+    }
+    h['Content-Length'] = st.size ? end - start + 1 : 0;
+    res.writeHead(code, Object.assign(h, extra || {}));
+    if (!st.size) return res.end();
+    fs.createReadStream(file, { start, end }).pipe(res);
   });
 }
 let HIDX = { v: -1, m: null };
@@ -116,15 +127,17 @@ function gc() { const used = new Set(Object.values(LIB.items).map(i => i.hash));
 let pubT = 0;
 const VOICE = require('./voice.js')({ DATA, FILES, TMP, lib: () => LIB, saveLib, cfg: () => CFG, saveCfg, changed: () => { clearTimeout(pubT); pubT = setTimeout(() => { if (TUN.url) publish(); }, 20000); } });
 
+const TOOLS = require('./tools.js')({ DATA, FILES, lib: () => LIB, saveLib, cfg: () => CFG, saveCfg, byHash, manifest, gc, send, json, sendFile, readBody, onChanged: f => changedCbs.push(f), phoneLink: () => phoneLink() });
+
 /* ---------------- manager (this PC only) ---------------- */
 http.createServer(async (req, res) => {
   try {
     const u = new URL(req.url, 'http://x'), p = u.pathname;
-    if (p === '/' || p === '/index.html') return sendFile(res, path.join(APP_DIR, 'manager.html'), MIME['.html']);
-    if (p === '/api/state') return json(res, 200, { catalogs: CATALOGS, items: shownItems(), version: LIB.version, tunnel: { status: TUN.status, link: phoneLink(), log: TUN.log.slice(-12), publish: TUN.publish }, voice: VOICE.status(), supabase: CFG.supabase ? { url: CFG.supabase.url, hh: CFG.supabase.hh, hasKey: !!CFG.supabase.key } : null, bytes: Object.values(LIB.items).reduce((a, i) => a + i.size, 0) });
+    if (p === '/' || p === '/index.html') return sendFile(res, path.join(APP_DIR, 'manager.html'), MIME['.html'], null, req);
+    if (p === '/api/state') return json(res, 200, { catalogs: CATALOGS, items: shownItems(), version: LIB.version, tunnel: { status: TUN.status, link: phoneLink(), log: TUN.log.slice(-12), publish: TUN.publish }, voice: VOICE.status(), phones: TOOLS.phones(), supabase: CFG.supabase ? { url: CFG.supabase.url, hh: CFG.supabase.hh, hasKey: !!CFG.supabase.key } : null, bytes: Object.values(LIB.items).reduce((a, i) => a + i.size, 0) });
     if (p === '/api/file' && req.method === 'PUT') return upload(req, res, u.searchParams);
     if (p === '/api/file' && req.method === 'DELETE') { delete LIB.items[u.searchParams.get('app') + '|' + u.searchParams.get('slot')]; saveLib(); gc(); if (TUN.url) publish(); return json(res, 200, { ok: true }); }
-    if (p.startsWith('/files/')) { const h = p.slice(7).replace(/[^a-f0-9]/g, ''), it = byHash(h); return sendFile(res, path.join(FILES, h), it ? it.type : undefined, { 'Cache-Control': 'max-age=31536000' }); }
+    if (p.startsWith('/files/')) { const h = p.slice(7).replace(/[^a-f0-9]/g, ''), it = byHash(h); return sendFile(res, path.join(FILES, h), it ? it.type : undefined, { 'Cache-Control': 'max-age=31536000' }, req); }
     if (p === '/api/bundle') return sendBundle(res);
     if (p === '/api/voice' && req.method === 'POST') { const b = JSON.parse((await readBody(req, 1e6)).toString() || '{}'); if (b.lines) return json(res, 200, VOICE.want(b.lines)); return json(res, 200, VOICE.action(b.action)); }
     if (p === '/api/voice/test') { try { const wav = await VOICE.test(u.searchParams.get('m'), u.searchParams.get('s'), u.searchParams.get('t')); return send(res, 200, wav, { 'Content-Type': 'audio/wav' }); } catch (e) { return json(res, 500, { error: e.message }); } }
@@ -135,12 +148,13 @@ http.createServer(async (req, res) => {
     }
     if (p === '/api/supabase' && req.method === 'POST') { const b = JSON.parse((await readBody(req)).toString() || '{}'); CFG.supabase = b.clear ? null : { url: String(b.url || '').trim(), key: String(b.key || '').trim() || (CFG.supabase && CFG.supabase.key) || '', hh: String(b.hh || '').trim() }; saveCfg(); await publish(); return json(res, 200, { ok: true, publish: TUN.publish }); }
     if (p === '/api/newlink' && req.method === 'POST') { CFG.token = crypto.randomBytes(12).toString('hex'); saveCfg(); await publish(); return json(res, 200, { ok: true }); }
+    if (await TOOLS.manager(req, res, u)) return;
     send(res, 404, 'not found');
   } catch (e) { json(res, 500, { error: e.message }); }
 }).listen(MANAGER_PORT, '0.0.0.0', () => console.log('Asset Manager: http://localhost:' + MANAGER_PORT));
 
 /* ---------------- phone link: read only, needs the secret token ---------------- */
-const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': '*', 'Access-Control-Max-Age': '86400' };
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': '*', 'Access-Control-Max-Age': '86400', 'Access-Control-Expose-Headers': 'Content-Range, Accept-Ranges, Content-Length' };
 http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') return send(res, 204, '', CORS);
   const vm = /^\/t\/([a-f0-9]+)\/voice$/.exec(new URL(req.url, 'http://x').pathname);
@@ -163,15 +177,16 @@ http.createServer(async (req, res) => {
       if (LIB.items[key]) return json(res, 200, { ok: true, status: 'exists' }, CORS);
       if (!fs.existsSync(dest)) fs.writeFileSync(dest, body);
       LIB.items[key] = { app, slot, hash, type: ctype, size: body.length, name: String(q.get('name') || slot.replace(/^[a-z]+:/, '')).slice(0, 120), meta: parseMeta(q.get('meta')) || {}, updated: Date.now(), from: 'phone' };
-      saveLib(); if (TUN.url) publish();
+      saveLib(); if (TUN.url) publish(); TOOLS.seen(req, 'photo');
       return json(res, 200, { ok: true, status: 'added' }, CORS);
     } catch (e) { return json(res, 400, { error: 'bad request' }, CORS); }
   }
   const m = /^\/t\/([a-f0-9]+)\/(manifest\.json|f\/([a-f0-9]{40}))$/.exec(new URL(req.url, 'http://x').pathname);
   if (!m || m[1] !== CFG.token) return send(res, 404, 'not found', CORS);
-  if (m[2] === 'manifest.json') return json(res, 200, manifest(), CORS);
+  if (m[2] === 'manifest.json') { TOOLS.seen(req, 'manifest'); return json(res, 200, manifest(), CORS); }
   const it = byHash(m[3]); if (!it) return send(res, 404, 'not found', CORS);
-  sendFile(res, path.join(FILES, m[3]), it.type, Object.assign({ 'Cache-Control': 'max-age=31536000, immutable' }, CORS));
+  TOOLS.seen(req, 'file');
+  sendFile(res, path.join(FILES, m[3]), it.type, Object.assign({ 'Cache-Control': 'max-age=31536000, immutable' }, CORS), req);
 }).listen(PUBLIC_PORT, '0.0.0.0', () => console.log('Phone link server on ' + PUBLIC_PORT));
 
 startTunnel();

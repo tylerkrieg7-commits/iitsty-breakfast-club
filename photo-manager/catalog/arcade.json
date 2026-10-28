@@ -1,0 +1,415 @@
+{
+ "app": "arcade",
+ "title": "Arcade",
+ "groups": [
+  {
+   "name": "Sound effects (replace the built-in beeps)",
+   "kind": "audio",
+   "slots": [
+    {
+     "id": "sfx:click",
+     "label": "Sound: Button click",
+     "kind": "audio",
+     "info": "Menu taps. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:select",
+     "label": "Sound: Select",
+     "kind": "audio",
+     "info": "Moving between choices. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:move",
+     "label": "Sound: Move",
+     "kind": "audio",
+     "info": "Small step or slide. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:eat",
+     "label": "Sound: Eat",
+     "kind": "audio",
+     "info": "Eating a dot or pellet. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:chomp",
+     "label": "Sound: Chomp",
+     "kind": "audio",
+     "info": "Big bite. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:error",
+     "label": "Sound: Error / can't do that",
+     "kind": "audio",
+     "info": "A blocked or wrong move. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:lose",
+     "label": "Sound: Game over (lose)",
+     "kind": "audio",
+     "info": "When you lose. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:win",
+     "label": "Sound: Win",
+     "kind": "audio",
+     "info": "When you win. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:jump",
+     "label": "Sound: Jump",
+     "kind": "audio",
+     "info": "Jumping. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:coin",
+     "label": "Sound: Coin / points",
+     "kind": "audio",
+     "info": "Points added to your wallet. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:power",
+     "label": "Sound: Power-up",
+     "kind": "audio",
+     "info": "Picking up a power-up. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:hit",
+     "label": "Sound: Hit",
+     "kind": "audio",
+     "info": "Hitting something. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:smash",
+     "label": "Sound: Smash",
+     "kind": "audio",
+     "info": "Something breaks. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:bounce",
+     "label": "Sound: Bounce",
+     "kind": "audio",
+     "info": "A ball or block bounces. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:levelup",
+     "label": "Sound: Level up / new high score",
+     "kind": "audio",
+     "info": "Big celebration. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:shoot",
+     "label": "Sound: Shoot",
+     "kind": "audio",
+     "info": "Firing a shot. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:laser",
+     "label": "Sound: Laser",
+     "kind": "audio",
+     "info": "Laser beam. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:boom",
+     "label": "Sound: Explosion",
+     "kind": "audio",
+     "info": "Big explosion. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:pop",
+     "label": "Sound: Pop",
+     "kind": "audio",
+     "info": "Small pop or burst. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:bang",
+     "label": "Sound: Bang",
+     "kind": "audio",
+     "info": "Gun shot. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:quack",
+     "label": "Sound: Quack",
+     "kind": "audio",
+     "info": "Duck call. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:splash",
+     "label": "Sound: Splash",
+     "kind": "audio",
+     "info": "Water splash. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:thud",
+     "label": "Sound: Thud",
+     "kind": "audio",
+     "info": "Heavy landing or hit. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:clack",
+     "label": "Sound: Clack",
+     "kind": "audio",
+     "info": "Pieces clicking on a board. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:whistle",
+     "label": "Sound: Whistle",
+     "kind": "audio",
+     "info": "Referee whistle. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:tick",
+     "label": "Sound: Tick",
+     "kind": "audio",
+     "info": "Timer tick. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:flag",
+     "label": "Sound: Flag",
+     "kind": "audio",
+     "info": "Placing a flag. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:thrust",
+     "label": "Sound: Thrust",
+     "kind": "audio",
+     "info": "Rocket engine. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:march",
+     "label": "Sound: March",
+     "kind": "audio",
+     "info": "Enemies marching. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:ufo",
+     "label": "Sound: UFO",
+     "kind": "audio",
+     "info": "Flying saucer. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:note",
+     "label": "Sound: Musical note",
+     "kind": "audio",
+     "info": "A piano-like note. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:buzz",
+     "label": "Sound: Buzzer",
+     "kind": "audio",
+     "info": "Wrong-answer buzzer. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:whoosh",
+     "label": "Sound: Whoosh",
+     "kind": "audio",
+     "info": "Fast swipe. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:stamp",
+     "label": "Sound: Stamp",
+     "kind": "audio",
+     "info": "Heavy stamp. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    },
+    {
+     "id": "sfx:ding",
+     "label": "Sound: Ding",
+     "kind": "audio",
+     "info": "Bell. Replaces the built-in sound everywhere in the Arcade. Short sounds (under 2 seconds) work best."
+    }
+   ]
+  },
+  {
+   "name": "Music",
+   "kind": "audio",
+   "slots": [
+    {
+     "id": "music:hub",
+     "label": "Music: Game picker",
+     "kind": "audio",
+     "info": "Loops while you choose a game."
+    },
+    {
+     "id": "music:game",
+     "label": "Music: Any game",
+     "kind": "audio",
+     "info": "Loops during every game that has no music of its own."
+    }
+   ]
+  },
+  {
+   "name": "Music for one game",
+   "free": "gamemusic:",
+   "kind": "audio",
+   "one": "game music",
+   "nameLabel": "Game (e.g. duck, pong, snake, connect4)",
+   "note": "Use the game's short name: duck, battle, connect4, pong, hockey, rocks, frog, missile, mines, simon, mole, stack, lander, invaders, blocks, shooter, hop, breaker, merge, memory, checkers, treats, snake, chomp, dk",
+   "slots": [],
+   "fields": []
+  },
+  {
+   "name": "Game cabinet pictures",
+   "slots": [
+    {
+     "id": "tile:duck",
+     "label": "Cabinet: Duck Shoot",
+     "info": "Shown on Duck Shoot's arcade cabinet in the game picker instead of the emoji 🦆."
+    },
+    {
+     "id": "tile:battle",
+     "label": "Cabinet: Battleship",
+     "info": "Shown on Battleship's arcade cabinet in the game picker instead of the emoji 🚢."
+    },
+    {
+     "id": "tile:connect4",
+     "label": "Cabinet: Connect 4",
+     "info": "Shown on Connect 4's arcade cabinet in the game picker instead of the emoji 🔴."
+    },
+    {
+     "id": "tile:pong",
+     "label": "Cabinet: Neon Pong",
+     "info": "Shown on Neon Pong's arcade cabinet in the game picker instead of the emoji 🏓."
+    },
+    {
+     "id": "tile:hockey",
+     "label": "Cabinet: Air Hockey",
+     "info": "Shown on Air Hockey's arcade cabinet in the game picker instead of the emoji 🏒."
+    },
+    {
+     "id": "tile:rocks",
+     "label": "Cabinet: Rock Blaster",
+     "info": "Shown on Rock Blaster's arcade cabinet in the game picker instead of the emoji ☄️."
+    },
+    {
+     "id": "tile:frog",
+     "label": "Cabinet: Road Hopper",
+     "info": "Shown on Road Hopper's arcade cabinet in the game picker instead of the emoji 🐸."
+    },
+    {
+     "id": "tile:missile",
+     "label": "Cabinet: City Defender",
+     "info": "Shown on City Defender's arcade cabinet in the game picker instead of the emoji 🏙️."
+    },
+    {
+     "id": "tile:mines",
+     "label": "Cabinet: Mine Sweeper",
+     "info": "Shown on Mine Sweeper's arcade cabinet in the game picker instead of the emoji 💣."
+    },
+    {
+     "id": "tile:simon",
+     "label": "Cabinet: Color Echo",
+     "info": "Shown on Color Echo's arcade cabinet in the game picker instead of the emoji 🎵."
+    },
+    {
+     "id": "tile:mole",
+     "label": "Cabinet: Mole Bash",
+     "info": "Shown on Mole Bash's arcade cabinet in the game picker instead of the emoji 🔨."
+    },
+    {
+     "id": "tile:stack",
+     "label": "Cabinet: Tower Stack",
+     "info": "Shown on Tower Stack's arcade cabinet in the game picker instead of the emoji 🏗️."
+    },
+    {
+     "id": "tile:lander",
+     "label": "Cabinet: Moon Lander",
+     "info": "Shown on Moon Lander's arcade cabinet in the game picker instead of the emoji 🌙."
+    },
+    {
+     "id": "tile:invaders",
+     "label": "Cabinet: Alien Invasion",
+     "info": "Shown on Alien Invasion's arcade cabinet in the game picker instead of the emoji 👾."
+    },
+    {
+     "id": "tile:blocks",
+     "label": "Cabinet: Block Drop",
+     "info": "Shown on Block Drop's arcade cabinet in the game picker instead of the emoji 🧩."
+    },
+    {
+     "id": "tile:shooter",
+     "label": "Cabinet: Star Blaster",
+     "info": "Shown on Star Blaster's arcade cabinet in the game picker instead of the emoji 🚀."
+    },
+    {
+     "id": "tile:hop",
+     "label": "Cabinet: Sky Hop",
+     "info": "Shown on Sky Hop's arcade cabinet in the game picker instead of the emoji 🐤."
+    },
+    {
+     "id": "tile:breaker",
+     "label": "Cabinet: Neon Breaker",
+     "info": "Shown on Neon Breaker's arcade cabinet in the game picker instead of the emoji 🧱."
+    },
+    {
+     "id": "tile:merge",
+     "label": "Cabinet: Tile Merge",
+     "info": "Shown on Tile Merge's arcade cabinet in the game picker instead of the emoji 🔢."
+    },
+    {
+     "id": "tile:memory",
+     "label": "Cabinet: Memory Match",
+     "info": "Shown on Memory Match's arcade cabinet in the game picker instead of the emoji 🃏."
+    },
+    {
+     "id": "tile:checkers",
+     "label": "Cabinet: Checkers",
+     "info": "Shown on Checkers's arcade cabinet in the game picker instead of the emoji 🏁."
+    },
+    {
+     "id": "tile:treats",
+     "label": "Cabinet: Treat Factory",
+     "info": "Shown on Treat Factory's arcade cabinet in the game picker instead of the emoji 🦴."
+    },
+    {
+     "id": "tile:snake",
+     "label": "Cabinet: Neon Snake",
+     "info": "Shown on Neon Snake's arcade cabinet in the game picker instead of the emoji 🐍."
+    },
+    {
+     "id": "tile:chomp",
+     "label": "Cabinet: Dot Chomper",
+     "info": "Shown on Dot Chomper's arcade cabinet in the game picker instead of the emoji 👻."
+    },
+    {
+     "id": "tile:dk",
+     "label": "Cabinet: Donkey Kong",
+     "info": "Shown on Donkey Kong's arcade cabinet in the game picker instead of the emoji 🦍."
+    }
+   ]
+  },
+  {
+   "name": "Skins (picker backgrounds)",
+   "free": "skin:",
+   "one": "skin",
+   "nameLabel": "Skin name",
+   "note": "Pick one in the Arcade under 🎨 Skins. A price above 0 is paid with club points.",
+   "slots": [],
+   "fields": [
+    {
+     "k": "cost",
+     "label": "Price in club points (0 = free)",
+     "type": "number",
+     "def": 0,
+     "min": 0,
+     "max": null,
+     "step": 1
+    },
+    {
+     "k": "fit",
+     "label": "Look",
+     "type": "select",
+     "options": [
+      [
+       "cover",
+       "Fill the screen"
+      ],
+      [
+       "tile",
+       "Repeat as a pattern"
+      ]
+     ],
+     "def": "cover"
+    }
+   ]
+  }
+ ]
+}

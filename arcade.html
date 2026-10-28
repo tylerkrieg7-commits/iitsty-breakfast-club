@@ -252,6 +252,7 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
         <div class="hl gold" id="link-merchant"><span>🛒</span>Prize Counter</div>
         <div class="hl" id="link-trophies"><span>🏆</span>Trophy Wall</div>
         <div class="hl" id="link-random"><span>🎲</span>Random Game</div>
+        <div class="hl" id="link-skins"><span>🎨</span>Skins &amp; Sounds</div>
         <div class="hl" id="link-stats"><span>📊</span><b id="hub-trocount">0/0</b></div>
         <div class="hl home" id="link-home"><span>🏠</span>Back to Main App</div>
       </div>
@@ -424,6 +425,7 @@ function noise(dur = 0.2, vol = 0.2, freq = 1200, delay = 0, type = 'lowpass', s
 }
 function sfx(n, p) {
     if(muted) return;
+    if(window.__bcxArcSfx && window.__bcxArcSfx(n)) return;
     switch(n) {
         case 'click': tone(620, 'sine', 0.045, 0.06, 900); break;
         case 'select': tone(520, 'square', 0.05, 0.035, 760); break;
@@ -1073,7 +1075,7 @@ function cabHTML(g, i) {
     return `<div class="slot"><div class="cab dim" data-i="${i}" style="--c:${g.color};--c2:${shade(g.color, -70)};--cg:${hexA(g.color, 0.4)}">
         ${g.isNew ? '<div class="new-tag">NEW</div>' : ''}
         <div class="cab-marq">${g.name.toUpperCase()}</div>
-        <div class="cab-bez"><div class="cab-scr"><div class="cab-ico">${g.icon}</div><div class="cab-hi">${best ? 'HI ' + best : 'NEW GAME!'}</div><div class="cab-press">PRESS START</div></div></div>
+        <div class="cab-bez"><div class="cab-scr"><div class="cab-ico">${(window.__bcxArcTile && window.__bcxArcTile(g.id)) || g.icon}</div><div class="cab-hi">${best ? 'HI ' + best : 'NEW GAME!'}</div><div class="cab-press">PRESS START</div></div></div>
         <div class="cab-panel"><div class="stick"></div><div class="pb" style="--pc:${pc[i % 3]}"></div><div class="pb" style="--pc:${g.color}"></div><div class="pb" style="--pc:${pc[(i + 1) % 3]}"></div></div>
         <div class="cab-coin"><div class="slotc"><i></i>25¢</div><div class="slotc"><i></i>25¢</div></div>
     </div></div>`;
@@ -6079,6 +6081,88 @@ function renderTrophies() {
     const h = (location.hash || '').slice(1);
     if(h && GMAP[h]) setTimeout(() => openGame(h), 50);
     window.ARCADE = {GAMES, GMAP, P, A, openGame, openHub};
+})();
+</script>
+<script src="bc-assets.js"></script>
+<script id="bc-assets-arcade">
+(function(){
+  "use strict"; var BA=window.BCAssets; if(!BA) return; var APP="arcade";
+  function ls(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}}
+  function lset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  var cache={};            /* name -> HTMLAudioElement-less url */
+  var players=[];
+  function refresh(){cache={};}
+  BA.load().then(function(ok){if(ok){refresh();rebuild();}});
+  BA.onChange(function(){refresh();rebuild();applySkin();});
+  /* sound effects */
+  window.__bcxArcSfx=function(n){
+    var u=BA.url(APP,"sfx:"+n); if(!u) return false;
+    try{var a=new Audio(u);a.volume=.8;a.play().catch(function(){});setTimeout(function(){try{a.pause()}catch(e){}},4000);}catch(e){return false}
+    return true;
+  };
+  /* cabinet pictures */
+  window.__bcxArcTile=function(id){var u=BA.url(APP,"tile:"+id);return u?'<img src="'+u+'" alt="" style="width:64px;height:64px;object-fit:contain;border-radius:8px">':"";};
+  function rebuild(){try{var A=window.ARCADE;if(A&&A.GAMES){document.querySelectorAll(".cab-ico").forEach(function(el){var cab=el.closest(".cab");if(!cab)return;var g=A.GAMES[+cab.dataset.i];}); }}catch(e){}
+    /* re-render the carousel by nudging the category chip that is on */
+    try{var on=document.querySelector("#cats .cat.on");if(on&&!(window.ARCADE&&window.ARCADE.P&&window.ARCADE.P.g))on.click();}catch(e){}}
+  /* skins */
+  function skins(){var o=[];BA.all(APP).forEach(function(r){if(r.slot&&r.slot.indexOf("skin:")===0)o.push(r);});return o;}
+  function owned(){try{return JSON.parse(ls("arc_skins_owned","[]"))}catch(e){return[]}}
+  function applySkin(){
+    var cur=ls("arc_skin",""),st=document.getElementById("bcx-arc-skin");if(!st){st=document.createElement("style");st.id="bcx-arc-skin";document.head.appendChild(st);}
+    if(!cur){st.textContent="";return;}
+    var u=BA.url(APP,"skin:"+cur),m=BA.meta(APP,"skin:"+cur)||{};
+    if(!u){st.textContent="";return;}
+    st.textContent="body{background-image:linear-gradient(#07060ecc,#07060ecc),url('"+u+"')!important;background-size:"+(m.fit==="tile"?"auto":"cover")+"!important;background-attachment:fixed!important}";
+  }
+  /* music */
+  var mus=null,musKey="";
+  function want(){
+    var A=window.ARCADE,g=A&&A.P&&A.P.g; var id=g&&g.id;
+    if(ls("arc_muted")==="1") return "";
+    if(id){return BA.url(APP,"gamemusic:"+id)?"gamemusic:"+id:(BA.url(APP,"music:game")?"music:game":"");}
+    return BA.url(APP,"music:hub")?"music:hub":"";
+  }
+  function tickMusic(){
+    var k=want();
+    if(k===musKey) return; musKey=k;
+    if(mus){try{mus.pause()}catch(e){}mus=null;}
+    if(!k) return;
+    try{mus=new Audio(BA.url(APP,k));mus.loop=true;mus.volume=.45;mus.play().catch(function(){musKey="";});}catch(e){}
+  }
+  setInterval(tickMusic,800);
+  document.addEventListener("pointerdown",function(){if(!mus&&!musKey)tickMusic();},{once:false,passive:true});
+  /* the Skins & Sounds sheet */
+  function sheet(){
+    var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:99999;background:#000c;display:flex;align-items:flex-end;justify-content:center";
+    var b=document.createElement("div");b.style.cssText="background:#151226;color:#f4f2ff;border:1px solid #2d2850;border-radius:18px 18px 0 0;width:100%;max-width:520px;max-height:86vh;overflow:auto;padding:16px;font-family:system-ui,sans-serif";
+    ov.appendChild(b);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+    function draw(){
+      b.innerHTML="";
+      var h=document.createElement("div");h.innerHTML='<b style="font-size:1.1rem">🎨 Skins &amp; Sounds</b> <button id="x" style="float:right;background:#2d2850;color:#fff;border:0;border-radius:8px;padding:6px 12px">Close</button>';b.appendChild(h);h.querySelector("#x").onclick=function(){ov.remove()};
+      var pts=parseInt(ls("clubPoints","0"))||0;
+      var p=document.createElement("div");p.style.cssText="margin:8px 0;color:#9b95bd;font-size:.85rem";p.textContent="You have "+pts+" club points. Skins and sounds come from your PC's Photo Manager (Arcade tab).";b.appendChild(p);
+      var sk=skins();
+      var row=document.createElement("div");row.style.cssText="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px";
+      var none=document.createElement("div");none.style.cssText="border:2px solid "+(ls("arc_skin","")?"#2d2850":"#ff2bd6")+";border-radius:12px;padding:10px;text-align:center;cursor:pointer;font-size:.8rem";none.innerHTML="🌌<br>Default";none.onclick=function(){lset("arc_skin","");applySkin();draw();};row.appendChild(none);
+      sk.forEach(function(r){
+        var name=r.slot.slice(5),m=BA.meta(APP,r.slot)||{},cost=+m.cost||0,own=cost<=0||owned().indexOf(name)>=0,on=ls("arc_skin","")===name;
+        var c=document.createElement("div");c.style.cssText="border:2px solid "+(on?"#ff2bd6":"#2d2850")+";border-radius:12px;padding:6px;text-align:center;cursor:pointer;font-size:.8rem";
+        c.innerHTML='<div style="height:70px;border-radius:8px;background:url('+BA.url(APP,r.slot)+') center/cover"></div><div style="margin-top:4px;font-weight:700">'+name.replace(/[<>&]/g,"")+'</div><div style="color:#9b95bd">'+(on?"✓ Using":own?"Tap to use":"🪙 "+cost)+'</div>';
+        c.onclick=function(){
+          if(!own){var cur=parseInt(ls("clubPoints","0"))||0;if(cur<cost){alert("Not enough club points ("+cur+"/"+cost+")");return;}
+            lset("clubPoints",String(cur-cost));var o=owned();o.push(name);lset("arc_skins_owned",JSON.stringify(o));if(window.ARCADE)try{document.getElementById("wallet")&&0}catch(e){}}
+          lset("arc_skin",name);applySkin();draw();};
+        row.appendChild(c);
+      });
+      b.appendChild(row);
+      if(!sk.length){var e=document.createElement("div");e.style.cssText="margin:10px 0;color:#9b95bd;font-size:.85rem";e.textContent="No skins yet. Add some in the Photo Manager under Arcade, then tap Sync below.";b.appendChild(e);}
+      var pn=document.createElement("div");pn.style.marginTop="14px";pn.appendChild(BA.panel({app:APP,style:"margin:0"}));b.appendChild(pn);
+    }
+    draw();document.body.appendChild(ov);
+  }
+  function mount(){var l=document.getElementById("link-skins");if(l)l.onclick=sheet;applySkin();}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",mount);else mount();
 })();
 </script>
 </body>

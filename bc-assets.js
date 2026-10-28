@@ -95,8 +95,13 @@
       .then(function (rows) { try { var v = rows && rows[0] && JSON.parse(rows[0].value); return v && cleanLink(v.url) || null; } catch (e) { return null; } })
       .catch(function () { return null; });
   }
+  function devId() { try { var d = localStorage.getItem("bc_dev"); if (!d) { d = Math.random().toString(36).slice(2, 10); localStorage.setItem("bc_dev", d); } return d; } catch (e) { return "x"; } }
+  /* the cloud copy (Supabase Storage) needs the project key; the PC link needs nothing */
+  function hdrFor(link) { var h = {}; if (/\/storage\/v1\//.test(link)) { var c = supaCfg(); if (c) { h.apikey = c.key; if (/^eyJ/.test(c.key)) h.Authorization = "Bearer " + c.key; } } return h; }
+  function cloudLink() { var c = supaCfg(); return c ? c.url.replace(/\/+$/, "") + "/storage/v1/object/club-library/" + c.hh + "/" : null; }
+  function q(link) { return /\/storage\/v1\//.test(link) ? "" : "?d=" + devId(); }
   function getManifest(link) {
-    return fetch(link + "manifest.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error("bad link"); return r.json(); })
+    return fetch(link + "manifest.json" + q(link), { cache: "no-store", headers: hdrFor(link) }).then(function (r) { if (!r.ok) throw new Error("bad link"); return r.json(); })
       .then(function (m) { if (!m || !Array.isArray(m.files)) throw new Error("bad link"); return m; });
   }
   /* tries the link shared through Supabase first (it is always the newest), then the one you pasted */
@@ -104,6 +109,7 @@
     return fromSupabase().then(function (sl) {
       var tries = [], pasted = cleanLink(localStorage.getItem(LINK_KEY));
       if (sl) tries.push(sl); if (pasted && pasted !== sl) tries.push(pasted);
+      var cl = cloudLink(); if (cl) tries.push(cl);
       if (!tries.length) throw new Error(supaCfg() ? "Your PC hasn't shared a link yet. Start the Photo Manager on the PC (or paste its link here)." : "Paste the phone link from the Photo Manager on your PC first.");
       var i = 0;
       function next() {
@@ -154,10 +160,29 @@
         function report() { onProg({ phase: "get", done: done, total: todo.length, bytes: doneB, totalBytes: need, text: "Downloading " + done + " of " + todo.length + " · " + mb(doneB) + " of " + mb(need) }); }
         report();
         function one(f, tries) {
-          return fetch(found.link + "f/" + f.hash, { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); })
-            .then(function (b) { if (f.size && b.size !== f.size) throw new Error("incomplete"); return putRec({ k: f.app + "|" + f.slot, app: f.app, slot: f.slot, hash: f.hash, meta: f.meta || {}, type: f.type || b.type, size: b.size, blob: b.type === f.type ? b : new Blob([b], { type: f.type }), t: Date.now() }); })
-            .then(function () { done++; doneB += f.size || 0; report(); },
-              function (e) { if (tries < 2) return one(f, tries + 1); failed++; done++; report(); });
+          var pk = "part|" + f.hash, part = recs.get(pk), have = part && part.blob ? part.blob.size : 0;
+          if (f.size && have >= f.size) { have = 0; part = null; }
+          var hd = Object.assign({}, hdrFor(found.link)); if (have > 0) hd.Range = "bytes=" + have + "-";
+          var chunks = [], got = 0, resumed = false;
+          return fetch(found.link + "f/" + f.hash + q(found.link), { cache: "no-store", headers: hd }).then(function (r) {
+            if (!r.ok) throw new Error(r.status);
+            resumed = have > 0 && r.status === 206; if (!resumed) have = 0;
+            if (resumed) chunks.push(part.blob);
+            if (!r.body || !r.body.getReader) return r.blob().then(function (b) { chunks.push(b); });
+            var rd = r.body.getReader();
+            function pump() { return rd.read().then(function (x) { if (x.done) return; chunks.push(new Blob([x.value])); got += x.value.length; return pump(); }); }
+            return pump();
+          }).catch(function (e) {
+            /* keep what arrived so the next try (or next sync) carries on from there */
+            var sz = chunks.reduce(function (a, c) { return a + c.size; }, 0);
+            if (sz > 1024 * 64) return putRec({ k: pk, app: "_part", slot: f.hash, hash: f.hash, local: true, type: f.type, size: sz, blob: new Blob(chunks, { type: f.type }), t: Date.now(), meta: {} }).then(function () { throw e; }, function () { throw e; });
+            throw e;
+          }).then(function () {
+            var b = new Blob(chunks, { type: f.type });
+            if (f.size && b.size !== f.size) { return delRec(pk).then(function () { throw new Error("incomplete"); }); }
+            return putRec({ k: f.app + "|" + f.slot, app: f.app, slot: f.slot, hash: f.hash, meta: f.meta || {}, type: f.type || b.type, size: b.size, blob: b, t: Date.now() }).then(function () { return recs.has(pk) ? delRec(pk) : null; });
+          }).then(function () { done++; doneB += f.size || 0; report(); },
+              function (e) { if (tries < 4) return new Promise(function (ok) { setTimeout(ok, 600 * (tries + 1)); }).then(function () { return one(f, tries + 1); }); failed++; done++; report(); });
         }
         function worker() { if (idx >= todo.length) return Promise.resolve(); return one(todo[idx++], 0).then(worker); }
         return Promise.all([worker(), worker(), worker()]).then(function () {
@@ -247,7 +272,7 @@
     function lock(on) { el.querySelectorAll("button").forEach(function (b) { b.disabled = on; }); }
     function status() {
       var s = stats(), m = s.meta, mine = opts.app ? (s.apps[opts.app] || 0) : null;
-      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 15";
+      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 16";
       q('[data-a=clear]').style.display = s.count ? "" : "none";
       q('[data-a=push]').style.display = typeof window.BCPushLocal === "function" ? "" : "none";
     }

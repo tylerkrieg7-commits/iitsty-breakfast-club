@@ -87,3 +87,33 @@ OTHER NEW PICTURE SPOTS FROM THE LATEST GAME UPDATE
   Wren, Collector Harrow, Gray Hand Tallyman, the 24 Death Cards (Death Card: Ashes ...),
   Hidden Sigil, Mat: Seasoned Wood, Mat: Cloth Scraps
 Cutscenes can be set in the in-game Photo Studio too, and switched off in the game settings (Data tab).
+
+
+NEW IN THIS VERSION
+- Thumbnails: the library grid loads small previews, so big libraries open fast.
+- Whole folders: drop a folder on the box (or "Choose a whole folder"). Every picture, video and sound
+  inside is matched to a spot by its name and its folder name. The Bulk helper lets you find/replace words
+  in the names, re-match everything, or turn unmatched files into new items of one kind.
+- Picture editor: open a spot, then "Crop / resize / background". Drag to crop, set a width to resize,
+  remove a background automatically or tap a colour to remove. Saving keeps the spot's details.
+- Search looks in the details too (lore, recipes, notes) and lists matches from the other games.
+- Dungeon Dwellers: new enemies and bosses have Lore, Where it lurks, Weakness and a taunt. They show in
+  the click-through details here.
+- Arcade tab: your own sound for every Arcade effect, music for the game picker and each game, pictures for
+  the game cabinets, and skins (with an optional price in club points).
+- Duplicate finder: finds the exact same picture saved twice and pictures that look almost identical.
+- Library backup: pick off / daily / weekly. Backups go to the "backups" folder next to this file. You can
+  download one or restore it (restoring only adds back; it never deletes).
+- Cloud copy (optional, needs the Supabase box filled in): keeps a copy online so phones can sync even when
+  this PC is off. Files over 45 MB stay on the PC only. The PC library is always the master copy.
+- Phones card: how many phones are connected and syncing right now.
+- Interrupted phone downloads carry on where they stopped instead of starting over.
+
+TRAY HELPER (optional, Windows)
+Double-click "Start Tray Helper.bat". A small icon appears by the clock showing how many phones are
+connected. Right-click it to open the manager, copy the phone link or start a backup. To have it start with
+Windows, press Win+R, type shell:startup, and put a shortcut to "Start Tray Helper.bat" in that folder.
+
+UPDATING FROM AN OLDER VERSION
+Unzip over the old folder (keep the "library" folder), then double-click "Start Photo Manager.bat" again so
+Docker rebuilds.
