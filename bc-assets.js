@@ -247,7 +247,7 @@
     function lock(on) { el.querySelectorAll("button").forEach(function (b) { b.disabled = on; }); }
     function status() {
       var s = stats(), m = s.meta, mine = opts.app ? (s.apps[opts.app] || 0) : null;
-      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 14";
+      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 15";
       q('[data-a=clear]').style.display = s.count ? "" : "none";
       q('[data-a=push]').style.display = typeof window.BCPushLocal === "function" ? "" : "none";
     }

@@ -1,7 +1,7 @@
 /* Iitstys Breakfast Club: offline support.
    Bump CACHE_VERSION whenever you upload new files so phones refresh their saved copy.
    (Synced photos and videos are not kept here; they live in the app's own photo storage.) */
-const CACHE_VERSION = "v14";
+const CACHE_VERSION = "v15";
 const CACHE = "breakfast-club-" + CACHE_VERSION;
 const CORE = [
   "./",
@@ -72,7 +72,8 @@ self.addEventListener("push", (event) => {
     tag: d.tag || "club",
     icon: "icon-192.png",
     badge: "icon-192.png",
-    data: { url: d.url || "./index.html#mail" }
+    vibrate: Array.isArray(d.vibrate) ? d.vibrate : undefined,
+    data: { url: d.url || "./index.html#mail", kind: d.kind || "" }
   }));
 });
 

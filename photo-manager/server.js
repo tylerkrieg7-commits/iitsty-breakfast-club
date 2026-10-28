@@ -89,7 +89,7 @@ function slotKind(app, slot) {
   for (const g of c.groups) { const s = g.slots.find(x => x.id === slot); if (s) return s.kind || g.kind || 'image'; }
   const g = c.groups.find(x => x.free && slot.startsWith(x.free)); return (g && g.kind) || 'image';
 }
-const PHONE_OK = { index: ['recipe:', 'exercise:', 'companion:', 'accessory:', 'toy:'] };
+const PHONE_OK = { index: ['recipe:', 'exercise:', 'companion:', 'accessory:', 'toy:', 'friend:'] };
 function parseMeta(v) { if (!v) return null; try { const o = JSON.parse(v); return o && typeof o === 'object' && !Array.isArray(o) && v.length < 60000 ? o : null; } catch (e) { return null; } }
 function upload(req, res, q) {
   const app = q.get('app'), slot = q.get('slot'), name = q.get('name') || 'file', meta = parseMeta(q.get('meta')), type = (req.headers['content-type'] || 'application/octet-stream').split(';')[0];

@@ -4634,6 +4634,7 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
         [["customAccessories", "accessory:"], ["customToys", "toy:"]].forEach(function (g) {
             (jraw(g[0], []) || []).forEach(function (c) { if (c && !c.bcsync && c.name && okSrc(c.data)) { var m = {}; if (c.cost != null) m.cost = +c.cost || 0; if (c.unlockLvl != null) m.unlockLvl = +c.unlockLvl || 1; if (g[1] === "toy:" && c.effect) m.effect = c.effect; out.push({ slot: g[1] + c.name, name: c.name, data: c.data, meta: m }); } });
         });
+        try { (window.__bcxExtraPics ? window.__bcxExtraPics() : []).forEach(function (x) { if (okSrc(x.data)) out.push(x); }); } catch (e) {}
         return out;
     }
     var pushing = null;
@@ -17257,6 +17258,479 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             ["diwali", "Diwali Lights", "🪔", 1101, 1107, "Festival of lights and sweets.", ["cooks", 2]], ["blackfri", "Black Friday Week", "🛍️", 1124, 1130, "Save money, save the grocery budget.", ["meals", 10]], ["hanukkah", "Hanukkah Lights", "🕎", 1210, 1220, "Eight nights of light.", ["cooks", 2]], ["solstice", "Winter Solstice", "🌅", 1219, 1223, "Longest night. Cozy meals, early bed.", ["water", 15]], ["friday13", "Friday the 13th Spooks", "🔪", 1013, 1013, "Lucky for some.", ["workouts", 1]]
         ].forEach(function (x) { EV.push({ id: x[0], n: x[1], e: x[2], f: x[3], t: x[4], d: x[5], goal: x[6] }); });
     }
+})();
+
+</script>
+<script id="bcx-c-music">
+/* ===== Music: your own songs on this phone + PC library music, playlists, workout player, pet-room radio ===== */
+(function () {
+    "use strict";
+    if (window.BCMusic) return;
+    var F = window.FX3; if (!F) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+    var A = "index";
+
+    /* ---- songs kept on this phone (IndexedDB) ---- */
+    var DB = null;
+    function db() { return DB || (DB = new Promise(function (ok, no) { var r = indexedDB.open("bcx_music", 1); r.onupgradeneeded = function () { r.result.createObjectStore("songs", { keyPath: "id" }); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; })); }
+    function tx(mode, fn) { return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction("songs", mode), s = t.objectStore("songs"), rq = fn(s); t.oncomplete = function () { ok(rq && rq.result); }; t.onerror = t.onabort = function () { no(t.error || new Error("storage error")); }; }); }); }
+    var LOC = [];
+    function loadLocal() { return tx("readonly", function (s) { return s.getAll(); }).then(function (all) { LOC = (all || []).map(function (x) { return { id: "loc:" + x.id, name: x.name, size: x.size, local: 1 }; }).sort(function (a, b) { return a.name.localeCompare(b.name); }); change(); }, function () { LOC = []; }); }
+    function addFiles(files) {
+        var list = [].slice.call(files).filter(function (f) { return /^audio\//.test(f.type) || /\.(mp3|m4a|aac|wav|ogg|opus|flac)$/i.test(f.name); });
+        if (!list.length) { toast("Pick audio files (mp3, m4a, wav…)"); return Promise.resolve(0); }
+        try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+        return list.reduce(function (p, f) { return p.then(function () { return tx("readwrite", function (s) { return s.put({ id: uid(), name: f.name.replace(/\.[^.]+$/, ""), size: f.size, type: f.type || "audio/mpeg", blob: f }); }); }); }, Promise.resolve()).then(loadLocal).then(function () { return list.length; });
+    }
+    function delLocal(id) { return tx("readwrite", function (s) { return s.delete(id.slice(4)); }).then(function () { var P = pls(); P.forEach(function (p) { p.ids = p.ids.filter(function (x) { return x !== id; }); }); jset("bcx_pl", P); return loadLocal(); }); }
+
+    /* ---- PC library music (named music:… in the Photo Manager) ---- */
+    function pcTracks() { try { return BCAssets.all(A).filter(function (x) { return x.slot.indexOf("music:") === 0 && x.url && /^audio/.test(x.type); }).map(function (x) { return { id: "pc:" + x.slot, name: x.slot.slice(6), url: x.url, pc: 1 }; }); } catch (e) { return []; } }
+    var tracks = function () { return pcTracks().concat(LOC); };
+    var pls = function () { var P = jget("bcx_pl", []); return Array.isArray(P) ? P : []; };
+
+    /* ---- the player ---- */
+    var au = new Audio(); au.preload = "none"; au.volume = Math.min(1, Math.max(0, +ls("bcx_music_vol", "0.7")));
+    var S = { ctx: null, q: [], i: 0, pl: "all", shuffle: ls("bcx_shuffle", "0") === "1", url: null };
+    var subs = []; function change() { subs.forEach(function (f) { try { f(); } catch (e) {} }); }
+    function resolve(plId) {
+        var all = tracks(), ids = plId === "all" ? all.map(function (t) { return t.id; }) : ((pls().filter(function (p) { return p.id === plId; })[0] || { ids: [] }).ids);
+        var by = {}; all.forEach(function (t) { by[t.id] = t; }); return ids.map(function (i) { return by[i]; }).filter(Boolean);
+    }
+    function shuffled(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function src(t) {
+        if (S.url) { URL.revokeObjectURL(S.url); S.url = null; }
+        if (t.url) return Promise.resolve(t.url);
+        return tx("readonly", function (s) { return s.get(t.id.slice(4)); }).then(function (r) { if (!r) throw new Error("missing"); S.url = URL.createObjectURL(r.blob); return S.url; });
+    }
+    function playAt(i) {
+        if (!S.q.length) return Promise.resolve(false);
+        S.i = (i + S.q.length) % S.q.length; var t = S.q[S.i];
+        return src(t).then(function (u) { au.src = u; return au.play(); }).then(function () {
+            try { if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: t.name, artist: "Breakfast Club" }); } catch (e) {}
+            change(); return true;
+        }, function (e) { toast("Couldn't play “" + t.name + "”"); S.i++; change(); return false; });
+    }
+    var M = window.BCMusic = {
+        tracks: tracks, playlists: pls, state: function () { return { playing: !au.paused && !!au.src, ctx: S.ctx, pl: S.pl, now: S.q[S.i] || null, shuffle: S.shuffle, n: S.q.length }; },
+        onChange: function (f) { subs.push(f); },
+        play: function (plId, ctx) {
+            var q = resolve(plId || "all"); if (!q.length) { toast("No songs there yet. Add some in the 🎧 Workout music card."); return Promise.resolve(false); }
+            S.ctx = ctx || "workout"; S.pl = plId || "all"; S.q = S.shuffle ? shuffled(q) : q; return playAt(0);
+        },
+        toggle: function () { if (au.paused && au.src) { au.play(); } else au.pause(); change(); },
+        next: function () { return playAt(S.i + 1); }, prev: function () { return playAt(S.i - 1); },
+        stop: function (ctx) { if (ctx && S.ctx !== ctx) return; au.pause(); change(); },
+        setShuffle: function (v) { S.shuffle = !!v; lsSet("bcx_shuffle", v ? "1" : "0"); },
+        setVol: function (v) { au.volume = v; lsSet("bcx_music_vol", String(v)); },
+        addFiles: addFiles, delLocal: delLocal, reload: loadLocal
+    };
+    au.addEventListener("ended", function () { playAt(S.i + 1); });
+    au.addEventListener("pause", change); au.addEventListener("play", change);
+    try { if ("mediaSession" in navigator) { navigator.mediaSession.setActionHandler("nexttrack", function () { M.next(); }); navigator.mediaSession.setActionHandler("previoustrack", function () { M.prev(); }); } } catch (e) {}
+    loadLocal();
+    try { BCAssets.onChange(function (d) { if (d.type === "change") change(); }); } catch (e) {}
+
+    /* ---- the workout music card ---- */
+    var st = document.createElement("style");
+    st.textContent = "#bcx-music .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}#bcx-music button{font:inherit;font-size:14px;font-weight:800;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;background:var(--accent-color,#00adb5);color:#fff}#bcx-music button.g{background:rgba(128,128,128,.3);color:inherit}#bcx-music select,#bcx-music input[type=text]{font:inherit;padding:9px;border-radius:10px;border:1.5px solid var(--border,#555);background:rgba(0,0,0,.15);color:inherit;max-width:100%}#bcx-music .trk{display:flex;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid rgba(128,128,128,.2);font-size:13.5px}#bcx-music .trk span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#bcx-music .now{font-weight:800;padding:8px 10px;border-radius:12px;background:rgba(128,128,128,.18)}";
+    document.head.appendChild(st);
+    var view = $("view-workout"), curPl = "all";
+    function paint() {
+        var c = $("bcx-music"); if (!c) return; var s = M.state(), P = pls(), T = tracks();
+        var sel = '<option value="all">All songs (' + T.length + ")</option>" + P.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + " (" + resolve(p.id).length + ")</option>"; }).join("");
+        var open = c.querySelector("details").open;
+        c.querySelector(".body").innerHTML = '<div class="now">' + (s.now && s.playing ? "🎵 " + esc(s.now.name) : s.now ? "⏸ " + esc(s.now.name) : "Nothing playing") + '</div>' +
+            '<div class="row"><button class="g" id="bm-prev">⏮</button><button id="bm-tog">' + (s.playing ? "⏸ Pause" : "▶ Play") + '</button><button class="g" id="bm-next">⏭</button><button class="g" id="bm-sh">' + (S.shuffle ? "🔀 Shuffle on" : "🔀 Shuffle off") + '</button></div>' +
+            '<div class="row"><select id="bm-pl">' + sel + '</select><input type="range" id="bm-vol" min="0" max="1" step="0.05" value="' + au.volume + '" style="flex:1;min-width:90px"></div>' +
+            '<div class="row"><button class="g" id="bm-add">➕ Add songs from this phone</button><button class="g" id="bm-new">New playlist</button>' + (curPl !== "all" ? '<button class="g" id="bm-ren">Rename</button><button class="g" id="bm-del">Delete list</button>' : "") + '</div>' +
+            '<div class="card-desc">' + (T.length ? "Tick songs to put them in the chosen playlist." : "Add songs from your phone's storage, or put music in the Photo Manager's “Music” section (they sync to every phone).") + '</div>' +
+            T.map(function (t) { var inP = curPl !== "all" && (P.filter(function (p) { return p.id === curPl; })[0] || { ids: [] }).ids.indexOf(t.id) >= 0; return '<div class="trk">' + (curPl !== "all" ? '<input type="checkbox" data-t="' + esc(t.id) + '" ' + (inP ? "checked" : "") + ">" : "") + "<span>" + (t.pc ? "🖥 " : "📱 ") + esc(t.name) + "</span>" + (t.local ? '<button class="g" data-d="' + esc(t.id) + '" style="padding:4px 8px">✕</button>' : "") + "</div>"; }).join("");
+        $("bm-pl").value = curPl; if (!open) return;
+        $("bm-pl").onchange = function (e) { curPl = e.target.value; paint(); };
+        $("bm-tog").onclick = function () { var st2 = M.state(); if (st2.now && st2.ctx === "workout" && st2.pl === curPl) M.toggle(); else M.play(curPl, "workout"); };
+        $("bm-next").onclick = function () { M.state().now ? M.next() : M.play(curPl, "workout"); }; $("bm-prev").onclick = function () { M.state().now ? M.prev() : M.play(curPl, "workout"); };
+        $("bm-sh").onclick = function () { M.setShuffle(!S.shuffle); paint(); };
+        $("bm-vol").oninput = function (e) { M.setVol(+e.target.value); };
+        $("bm-add").onclick = function () { var f = document.createElement("input"); f.type = "file"; f.accept = "audio/*"; f.multiple = true; f.onchange = function () { M.addFiles(f.files).then(function (n) { if (n) toast("Added " + n + " song" + (n > 1 ? "s" : "")); paint(); }); }; f.click(); };
+        $("bm-new").onclick = function () { var n = prompt("Playlist name?", "Leg day"); if (!n) return; var Q = pls(); var id = uid(); Q.push({ id: id, name: n.trim().slice(0, 40), ids: [] }); jset("bcx_pl", Q); curPl = id; paint(); };
+        if ($("bm-ren")) $("bm-ren").onclick = function () { var Q = pls(), p = Q.filter(function (x) { return x.id === curPl; })[0]; var n = prompt("New name?", p.name); if (!n) return; p.name = n.trim().slice(0, 40); jset("bcx_pl", Q); paint(); };
+        if ($("bm-del")) $("bm-del").onclick = function () { if (!confirm("Delete this playlist? (The songs stay.)")) return; jset("bcx_pl", pls().filter(function (x) { return x.id !== curPl; })); curPl = "all"; paint(); };
+        c.querySelectorAll("[data-t]").forEach(function (b) { b.onchange = function () { var Q = pls(), p = Q.filter(function (x) { return x.id === curPl; })[0]; if (!p) return; p.ids = p.ids.filter(function (x) { return x !== b.dataset.t; }); if (b.checked) p.ids.push(b.dataset.t); jset("bcx_pl", Q); }; });
+        c.querySelectorAll("[data-d]").forEach(function (b) { b.onclick = function () { if (confirm("Remove this song from the phone?")) M.delLocal(b.dataset.d).then(paint); }; });
+    }
+    if (view && !$("bcx-music")) {
+        var c = document.createElement("div"); c.className = "card"; c.id = "bcx-music";
+        c.innerHTML = '<details' + (ls("bcx_music_open", "0") === "1" ? " open" : "") + '><summary style="cursor:pointer;font-weight:800">🎧 Workout music</summary><div class="body" style="margin-top:8px"></div></details>';
+        view.insertBefore(c, view.firstChild);
+        c.querySelector("details").addEventListener("toggle", function (e) { lsSet("bcx_music_open", e.target.open ? "1" : "0"); paint(); });
+        M.onChange(function () { if ($("bcx-music") && !document.activeElement.matches("input[type=range]")) paint(); });
+        paint();
+    }
+    window.BCMusic.playlistOptions = function (sel) { return '<option value="all">All songs</option>' + pls().map(function (p) { return '<option value="' + p.id + '"' + (p.id === sel ? " selected" : "") + ">" + esc(p.name) + "</option>"; }).join(""); };
+})();
+
+</script>
+<script id="bcx-d-pethome">
+/* ===== Pet home: front door + friends (183/185), extra rooms with doors and an editor (185), radio (187), partner visits (34) ===== */
+(function () {
+    "use strict";
+    if (window.__bcxPet) return; window.__bcxPet = 1;
+    var F = window.FX3; if (!F) return;
+    var R0 = window.FX3_ROOM; if (!R0) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); };
+    var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
+    var names = function () { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Person 1", p2: "Person 2" }; };
+    var petName = function () { return ls("companionName", "Buddy"); };
+    var slug = function (s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, ""); };
+    var hash = function (s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return Math.abs(h); };
+    var clamp = function (v, a, b) { return Math.max(a, Math.min(b, v)); };
+    var sget = function (k, d) { return jget("bcx_s_" + k, d); }, sset = function (k, v) { jset("bcx_s_" + k, v); };
+    var tell = function (kind, body) { try { window.fxAddEvent && window.fxAddEvent(kind, body); } catch (e) {} };
+
+    /* ---------- new walls, floors and furniture for the extra rooms (all free) ---------- */
+    [["w_bcx_tile", "Bath Tiles", "linear-gradient(90deg,rgba(0,0,0,.12) 2px,transparent 2px) 0 0/34px 34px,linear-gradient(rgba(0,0,0,.12) 2px,transparent 2px) 0 0/34px 34px,#b3e5fc"], ["w_bcx_sky", "Open Sky", "radial-gradient(ellipse at 20% 30%,#fff 0 8%,transparent 9%),radial-gradient(ellipse at 70% 20%,#fff 0 6%,transparent 7%),linear-gradient(#4fc3f7,#e1f5fe)"], ["w_bcx_kitchen", "Kitchen Check", "repeating-conic-gradient(#fff3e0 0 25%,#ffe0b2 0 50%) 0 0/30px 30px"], ["w_bcx_night", "Night Sky", "radial-gradient(#fff 1px,transparent 1.5px) 0 0/38px 38px,radial-gradient(#ffd54f 1px,transparent 1.5px) 17px 21px/52px 52px,linear-gradient(#0d1b3d,#283593)"], ["w_bcx_brick", "Brick", "repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 44px),#a65a43"], ["w_bcx_wood", "Cabin Wood", "repeating-linear-gradient(0deg,#8d6e63 0 38px,#6d4c41 38px 40px)"], ["w_bcx_garden", "Garden Hedge", "radial-gradient(circle,#2e7d32 40%,transparent 42%) 0 0/20px 20px,#66bb6a"], ["w_bcx_lav", "Lavender", "#d1c4e9"]].forEach(function (w) { R0.WALLS.push({ id: w[0], n: w[1], css: w[2], how: "free" }); });
+    [["f_bcx_tile", "Bath Floor", "repeating-conic-gradient(#e0f7fa 0 25%,#b2ebf2 0 50%) 0 0/32px 32px"], ["f_bcx_lawn", "Lawn", "repeating-linear-gradient(80deg,#66bb6a 0 3px,#4caf50 3px 6px)"], ["f_bcx_deck", "Wood Deck", "repeating-linear-gradient(90deg,#a1887f 0 36px,#8d6e63 36px 38px)"], ["f_bcx_stone", "Stone", "repeating-conic-gradient(#9e9e9e 0 25%,#757575 0 50%) 0 0/46px 46px"], ["f_bcx_rug", "Soft Rug", "#e1bee7"], ["f_bcx_sand", "Sand", "radial-gradient(#d7b977 1px,transparent 1.5px) 0 0/9px 9px,#ecd9a0"]].forEach(function (f) { R0.FLOORS.push({ id: f[0], n: f[1], css: f[2], how: "free" }); });
+    var FUR = [["tub", "Bathtub", "🛁", "furn"], ["shower", "Shower", "🚿", "furn"], ["sink", "Sink", "🚰", "furn"], ["mirror", "Mirror", "🪞", "decor"], ["tree", "Big Tree", "🌳", "furn"], ["flowers", "Flowers", "🌻", "furn"], ["fence", "Fence", "🚧", "furn"], ["grill", "Grill", "🍖", "furn"], ["bench", "Bench", "🪑", "furn"], ["pool", "Pond", "🏞️", "furn"], ["stove", "Stove", "🍳", "furn"], ["fridge", "Fridge", "🧊", "furn"], ["shelf", "Bookshelf", "📚", "furn"], ["candle", "Candles", "🕯️", "decor"], ["tent", "Tent", "⛺", "furn"], ["swing", "Swing", "🎠", "furn"], ["slide", "Slide", "🛝", "furn"], ["telescope", "Telescope", "🔭", "furn"], ["piano", "Piano", "🎹", "furn"], ["tv", "TV", "📺", "furn"], ["plant", "House Plant", "🪴", "furn"], ["clock", "Clock", "🕰️", "decor"], ["stars", "Star Garland", "✨", "decor"], ["bush", "Bush", "🌿", "furn"], ["doghouse", "Dog House", "🏠", "furn"], ["sprinkler", "Sprinkler", "💦", "furn"], ["towels", "Towels", "🧺", "furn"], ["window", "Window", "🪟", "decor"]];
+    FUR.forEach(function (f) { R0.FURN.push({ id: "fu_bcx_" + f[0], n: f[1], e: f[2], cost: 0, cat: f[3], how: "free" }); });
+    R0.FURN.push({ id: "fu_bcx_radio", n: "Radio", e: "📻", cost: 80, cat: "furn", radio: 1 });   /* the Room Shop sells this one */
+
+    var TYPES = {
+        bathroom: { n: "Bathroom", e: "🛁", wall: "w_bcx_tile", floor: "f_bcx_tile", items: [["tub", 62, 68, 1.3], ["sink", 18, 66, 1], ["mirror", 18, 24, 1], ["towels", 86, 70, 0.9]] },
+        backyard: { n: "Backyard", e: "🌳", wall: "w_bcx_sky", floor: "f_bcx_lawn", items: [["tree", 14, 64, 1.7], ["fence", 55, 44, 2.2], ["flowers", 72, 72, 1], ["doghouse", 88, 66, 1.1]] },
+        kitchen: { n: "Kitchen", e: "🍳", wall: "w_bcx_kitchen", floor: "f_wood", items: [["stove", 30, 62, 1.2], ["fridge", 78, 60, 1.3], ["window", 52, 24, 1]] },
+        bedroom: { n: "Bedroom", e: "🛏️", wall: "w_bcx_lav", floor: "f_bcx_rug", items: [["window", 60, 24, 1], ["plant", 90, 66, 1], ["clock", 30, 22, 1]] },
+        playroom: { n: "Play room", e: "🎠", wall: "w_plain", floor: "f_bcx_rug", items: [["slide", 30, 66, 1.4], ["swing", 70, 66, 1.3], ["stars", 50, 18, 1.6]] },
+        garden: { n: "Garden", e: "🌻", wall: "w_bcx_garden", floor: "f_bcx_lawn", items: [["flowers", 20, 68, 1.3], ["bush", 50, 62, 1.3], ["pool", 78, 70, 1.3], ["bench", 52, 78, 1]] },
+        library: { n: "Library", e: "📚", wall: "w_bcx_wood", floor: "f_bcx_rug", items: [["shelf", 20, 58, 1.5], ["shelf", 52, 58, 1.5], ["candle", 84, 24, 1], ["bench", 80, 74, 1]] },
+        attic: { n: "Attic", e: "🕸️", wall: "w_bcx_wood", floor: "f_bcx_deck", items: [["telescope", 70, 62, 1.3], ["window", 40, 24, 1.1], ["candle", 18, 62, 1]] },
+        basement: { n: "Basement", e: "🧱", wall: "w_bcx_brick", floor: "f_bcx_stone", items: [["piano", 30, 64, 1.3], ["tv", 72, 60, 1.1]] },
+        cinema: { n: "Movie room", e: "🍿", wall: "w_bcx_night", floor: "f_bcx_rug", items: [["tv", 50, 40, 2.4], ["candle", 14, 30, 1]] },
+        beach: { n: "Beach", e: "🏖️", wall: "w_bcx_sky", floor: "f_bcx_sand", items: [["tent", 25, 66, 1.3], ["pool", 78, 72, 1.5]] },
+        custom: { n: "Empty room", e: "🚪", wall: "w_plain", floor: "f_wood", items: [] }
+    };
+    var FRIEND_STYLES = ["bedroom", "backyard", "kitchen", "playroom", "garden", "library", "beach", "attic"];
+    var EMOJIS = ["🐶", "🐱", "🐰", "🦊", "🐻", "🐼", "🐨", "🐯", "🦁", "🐸", "🐵", "🐧", "🐦", "🦆", "🐢", "🐹", "🦔", "🦝", "🐺", "🦄", "🐲", "🐙", "🦖", "🐷", "🐮", "🐴", "🦉", "🐝", "🦋", "🐌"];
+
+    var st = document.createElement("style");
+    st.textContent = ".bcx-door{position:absolute;width:58px;height:84px;transform:translate(-50%,-100%);cursor:pointer;z-index:2;touch-action:none}.bcx-door i{position:absolute;inset:0;border-radius:10px 10px 2px 2px;background:linear-gradient(90deg,#6d4c41,#8d6e63 50%,#6d4c41);border:3px solid #4e342e;box-shadow:inset 0 0 0 4px rgba(255,255,255,.08),0 3px 8px rgba(0,0,0,.35)}.bcx-door i::before{content:'';position:absolute;left:9px;right:9px;top:9px;height:26px;border-radius:5px;background:rgba(255,255,255,.25);border:2px solid #4e342e}.bcx-door i::after{content:'';position:absolute;right:7px;top:50%;width:8px;height:8px;border-radius:50%;background:#ffd54f}.bcx-door.front i{background:linear-gradient(90deg,#c62828,#e53935 50%,#c62828);border-color:#7f0000}.bcx-door.edit{outline:2px dashed #ffd54f;outline-offset:3px}.bcx-door small{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);white-space:nowrap;font-size:.65rem;font-weight:800;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:1px 6px}" +
+        ".bcx-fr{position:absolute;transform:translate(-50%,-85%);font-size:2.3rem;line-height:1;transition:left 3s linear,top 3s linear;cursor:pointer;z-index:40;user-select:none}.bcx-fr img{width:58px;height:58px;object-fit:contain;display:block}.bcx-fr small{position:absolute;left:50%;top:100%;transform:translateX(-50%);font-size:.6rem;font-weight:800;background:rgba(0,0,0,.55);color:#fff;border-radius:7px;padding:0 5px;white-space:nowrap}.bcx-fr.hop{animation:fx3Hop .5s ease 2}" +
+        ".bcx-tb{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:6px;z-index:300}.bcx-tb button{width:42px;height:42px;border-radius:50%;border:0;font-size:1.15rem;background:rgba(0,0,0,.55);color:#fff;cursor:pointer}.bcx-tb button.on{background:var(--accent-color,#00adb5)}.bcx-notes{position:absolute;pointer-events:none;z-index:310;font-size:1.2rem;animation:bcxNote 2.2s ease-out forwards}@keyframes bcxNote{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-46px) rotate(18deg)}}.bcx-gift{position:absolute;font-size:1.6rem;cursor:pointer;z-index:45;animation:fx3Hop 1.4s ease infinite}" +
+        ".bcx-panel{position:fixed;inset:0;z-index:12600;background:var(--bg-color,#121212);color:var(--text-color,#eee);display:flex;flex-direction:column}.bcx-panel .hd{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-weight:900;border-bottom:1px solid rgba(128,128,128,.3)}.bcx-panel .bd{flex:1;overflow:auto;padding:10px 14px 40px}.bcx-panel .tabs{display:flex;gap:6px;padding:8px 14px;overflow-x:auto}.bcx-panel .tabs button{flex:none;font:inherit;font-weight:800;font-size:13px;border:1.5px solid rgba(128,128,128,.5);background:transparent;color:inherit;border-radius:18px;padding:7px 12px}.bcx-panel .tabs button.on{background:var(--accent-color,#00adb5);border-color:transparent;color:#fff}.bcx-panel .r{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(128,128,128,.2)}.bcx-panel .r>span{flex:1;min-width:0}.bcx-panel .b{font:inherit;font-size:13px;font-weight:800;border:0;border-radius:10px;padding:9px 12px;background:var(--accent-color,#00adb5);color:#fff;cursor:pointer}.bcx-panel .b.g{background:rgba(128,128,128,.3);color:inherit}.bcx-panel input,.bcx-panel select{font:inherit;box-sizing:border-box;padding:9px;border-radius:10px;border:1.5px solid rgba(128,128,128,.5);background:rgba(0,0,0,.15);color:inherit;max-width:100%}.bcx-panel .add{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.bcx-panel .emo{display:flex;gap:4px;flex-wrap:wrap;margin:6px 0}.bcx-panel .emo button{font-size:1.4rem;border:2px solid transparent;background:rgba(128,128,128,.15);border-radius:10px;padding:2px 6px}.bcx-panel .emo button.on{border-color:var(--accent-color,#00adb5)}.bcx-panel small{opacity:.75}";
+    document.head.appendChild(st);
+
+    /* ---------- rooms: the active room always lives in fx3_room, so the existing room screen keeps working ---------- */
+    var RK = "bcx_rooms";
+    var RS = function () { var r = jget(RK, null) || { cur: "home", list: [] }; r.list = r.list || []; return r; };
+    var saveRS = function (r) { jset(RK, r); };
+    var rawRoom = function () { return localStorage.getItem("fx3_room"); };
+    var defRoom = function () { return JSON.stringify({ wall: "w_plain", floor: "f_wood", items: [] }); };
+    (function restoreHome() {   /* if the app was closed while away from home, put the main room back */
+        var r = RS(); if (r.cur === "home") return;
+        localStorage.setItem("bcx_room_" + r.cur, rawRoom() || defRoom());
+        localStorage.setItem("fx3_room", localStorage.getItem("bcx_room_home") || defRoom()); r.cur = "home"; saveRS(r);
+    })();
+    var roomInfo = function (id) { if (id === "home") return { id: "home", name: "Home", type: "home", e: "🏠" }; if (/^fh_/.test(id)) { var f = allFriends().filter(function (x) { return x.id === id.slice(3); })[0]; return { id: id, name: (f ? f.name : "Friend") + "'s house", type: "friend", e: "🏡" }; } return RS().list.filter(function (x) { return x.id === id; })[0]; };
+    function makeRoom(type, name, backTo, backName) {
+        var T = TYPES[type] || TYPES.custom, id = "r" + uid(), data = { wall: T.wall, floor: T.floor, items: [], doors: [] };
+        T.items.forEach(function (it, n) { data.items.push({ id: "fu_bcx_" + it[0], x: it[1], y: it[2], s: it[3] }); });
+        if (backTo) data.doors.push({ id: "back", to: backTo, x: 10, y: 72, label: "Back to " + (backName || "Home") });
+        localStorage.setItem("bcx_room_" + id, JSON.stringify(data));
+        var r = RS(); r.list.push({ id: id, name: name || T.n, type: type, e: T.e }); saveRS(r); return id;
+    }
+    var nav = 0;
+    function goto(id) {
+        var r = RS(); if (id === r.cur) return; nav = 1;
+        localStorage.setItem("bcx_room_" + r.cur, rawRoom() || defRoom());
+        var d = localStorage.getItem("bcx_room_" + id);
+        if (!d) { if (id === "home") d = defRoom(); else if (/^fh_/.test(id)) d = friendHouse(id.slice(3)); else return; }
+        localStorage.setItem("fx3_room", d); r.cur = id; saveRS(r);
+        try { window.__fx3CloseRoom && window.__fx3CloseRoom(); } catch (e) {} setTimeout(function () { window.fx3OpenRoom && window.fx3OpenRoom(); }, 40);
+    }
+    function addDoor(toId, label) {
+        var R = jget("fx3_room", {}); R.doors = R.doors || [];
+        var n = R.doors.filter(function (d) { return d.id !== "front"; }).length;
+        R.doors.push({ id: "d" + uid(), to: toId, x: clamp(30 + n * 22, 14, 84), y: 60, label: label });
+        jset("fx3_room", R);
+    }
+    function delRoom(id) {
+        var r = RS(); r.list = r.list.filter(function (x) { return x.id !== id; }); saveRS(r); localStorage.removeItem("bcx_room_" + id);
+        ["home"].concat(r.list.map(function (x) { return x.id; })).forEach(function (rid) {
+            var key = rid === r.cur ? "fx3_room" : "bcx_room_" + rid, d; try { d = JSON.parse(localStorage.getItem(key) || "null"); } catch (e) {} if (!d || !d.doors) return;
+            var n = d.doors.length; d.doors = d.doors.filter(function (x) { return x.to !== id; }); if (d.doors.length !== n) localStorage.setItem(key, JSON.stringify(d));
+        });
+    }
+
+    /* ---------- friends ---------- */
+    var friends = function () { return jget("bcx_friends", []); };
+    function pcFriends() {
+        try { return BCAssets.all("index").filter(function (x) { return x.slot.indexOf("friend:") === 0 && x.url && /^image/.test(x.type); }).map(function (x) { return { id: "pc_" + slug(x.slot.slice(7)), name: x.slot.slice(7), photo: x.url, trait: (x.meta || {}).trait || "playful", pc: 1 }; }); } catch (e) { return []; }
+    }
+    var allFriends = function () { var mine = friends(), have = {}; mine.forEach(function (f) { have[f.name.toLowerCase()] = 1; }); return mine.concat(pcFriends().filter(function (f) { return !have[f.name.toLowerCase()]; })); };
+    window.__bcxExtraPics = function () { return friends().filter(function (f) { return f.photo && /^data:image/.test(f.photo); }).map(function (f) { return { slot: "friend:" + f.name, name: f.name, data: f.photo, meta: { trait: f.trait || "playful" } }; }); };
+    function shrink(file, max) {
+        return new Promise(function (res, rej) {
+            var img = new Image(), u = URL.createObjectURL(file);
+            img.onload = function () { var s = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); res(c.toDataURL("image/png")); };
+            img.onerror = function () { rej(new Error("not a picture")); }; img.src = u;
+        });
+    }
+    function friendHouse(fid) {
+        var f = allFriends().filter(function (x) { return x.id === fid; })[0] || { name: "Friend", id: fid };
+        var T = TYPES[FRIEND_STYLES[hash(fid) % FRIEND_STYLES.length]], data = { wall: T.wall, floor: T.floor, items: [], doors: [{ id: "back", to: "home", x: 10, y: 72, label: "Back home" }], friendHouse: fid };
+        T.items.forEach(function (it) { data.items.push({ id: "fu_bcx_" + it[0], x: it[1], y: it[2], s: it[3] }); });
+        return JSON.stringify(data);
+    }
+
+    /* ---------- the radio ---------- */
+    var radioOn = false;
+    function radioToggle(ov) {
+        var M = window.BCMusic; if (!M) { toast("Music isn't ready yet"); return; }
+        var s = M.state();
+        if (s.playing && s.ctx === "radio") { M.stop("radio"); radioOn = false; toast("📻 Radio off"); return; }
+        M.play(ls("bcx_radio_pl", "all"), "radio").then(function (ok) { radioOn = ok; if (ok) toast("📻 Radio on"); });
+    }
+    setInterval(function () {   /* little notes float above the radio while it plays */
+        var ov = document.querySelector(".fx3-room-ov"); if (!ov || !window.BCMusic) return; var s = BCMusic.state();
+        var scene = ov.querySelector("#rm-scene"); if (!scene || !s.playing || s.ctx !== "radio") return;
+        var R = jget("fx3_room", {}), r = (R.items || []).filter(function (i) { return i.id === "fu_bcx_radio"; })[0]; if (!r) return;
+        var n = document.createElement("div"); n.className = "bcx-notes"; n.textContent = ["🎵", "🎶", "♪"][Math.floor(Math.random() * 3)]; n.style.left = r.x + (Math.random() * 6 - 3) + "%"; n.style.top = (r.y - 12) + "%"; scene.appendChild(n); setTimeout(function () { n.remove(); }, 2300);
+    }, 900);
+
+    /* ---------- decorating the room screen every time it is (re)drawn ---------- */
+    var wander = {};
+    function decorate(ov) {
+        if (!ov.isConnected) return;
+        var scene = ov.querySelector("#rm-scene"); if (!scene || scene.querySelector(".bcx-tb")) return;
+        var R = jget("fx3_room", {}), cur = RS().cur, info = roomInfo(cur) || { name: "Room", e: "🏠" }, deco = !!ov.querySelector(".fx3-room-tools");
+        var head = ov.querySelector(".fx3-full-head b"); if (head && cur !== "home") head.textContent = (info.e || "🚪") + " " + (cur.indexOf("fh_") === 0 ? "" : petName() + " · ") + info.name;
+        /* doors */
+        var doors = (R.doors || []).slice();
+        if (cur === "home" && !doors.some(function (d) { return d.id === "front"; })) doors.unshift({ id: "front", to: "front", x: 90, y: 62, label: "Front door" });
+        doors.forEach(function (d) {
+            var el = document.createElement("div"); el.className = "bcx-door" + (d.id === "front" ? " front" : "") + (deco ? " edit" : ""); el.style.left = d.x + "%"; el.style.top = d.y + "%";
+            var tgt = d.to === "front" ? null : roomInfo(d.to) || (/^fh_/.test(d.to) ? { name: "Friend's house" } : null);
+            el.innerHTML = "<i></i><small>" + esc(d.id === "front" ? "Front door" : d.label || (tgt ? tgt.name : "Door")) + "</small>"; scene.appendChild(el);
+            var sx = null, mv = false, ox, oy;
+            el.addEventListener("pointerdown", function (e) { if (!deco) return; e.preventDefault(); mv = false; sx = e.clientX; var r = scene.getBoundingClientRect(); ox = parseFloat(el.style.left) / 100 * r.width; oy = parseFloat(el.style.top) / 100 * r.height; sy = e.clientY; el.setPointerCapture(e.pointerId); });
+            var sy = 0;
+            el.addEventListener("pointermove", function (e) { if (sx == null) return; var dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) > 5) mv = true; var r = scene.getBoundingClientRect(); el.style.left = clamp((ox + dx) / r.width * 100, 6, 94) + "%"; el.style.top = clamp((oy + dy) / r.height * 100, 30, 96) + "%"; });
+            el.addEventListener("pointerup", function () { if (sx == null) return; sx = null; if (mv) { var Rm = jget("fx3_room", {}); Rm.doors = Rm.doors || []; var x = Rm.doors.filter(function (q) { return q.id === d.id; })[0]; if (!x) { x = { id: d.id, to: d.to, label: d.label }; Rm.doors.push(x); } x.x = parseFloat(el.style.left); x.y = parseFloat(el.style.top); jset("fx3_room", Rm); } else openPanel("rooms"); });
+            el.addEventListener("click", function (e) { if (deco) return; e.stopPropagation(); if (d.to === "front") openPanel("friends", "door"); else goto(d.to); });
+        });
+        /* toolbar */
+        var tb = document.createElement("div"); tb.className = "bcx-tb";
+        tb.innerHTML = '<button data-p="rooms" title="Rooms & doors">🗺️</button><button data-p="friends" title="Friends">👫</button><button data-p="radio" title="Radio">📻</button><button data-p="visit" title="Visit ' + esc(names()[other()]) + '\'s room">👀</button>';
+        tb.addEventListener("click", function (e) { var b = e.target.closest("[data-p]"); if (b) { e.stopPropagation(); openPanel(b.dataset.p); } }); tb.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
+        scene.appendChild(tb);
+        /* gifts your partner left */
+        giftsInto(scene, cur);
+        /* friends */
+        friendsInto(scene, cur, R);
+    }
+    function friendsInto(scene, cur, R) {
+        var F2 = allFriends(); if (!F2.length) return;
+        var host = cur.indexOf("fh_") === 0 ? F2.filter(function (f) { return f.id === cur.slice(3); }) : F2.filter(function (f) { return hash(f.id + new Date().toDateString()) % 3 === 0; }).slice(0, 2);
+        var front = (R.doors || []).filter(function (d) { return d.id === "front"; })[0] || { x: 90, y: 62 };
+        host.forEach(function (f) {
+            var el = document.createElement("div"); el.className = "bcx-fr"; el.innerHTML = (f.photo ? '<img alt="" src="' + esc(f.photo) + '">' : (f.emoji || "🐾")) + "<small>" + esc(f.name) + "</small>";
+            var w = wander[f.id]; var arrive = !w || w.room !== cur; if (arrive) w = wander[f.id] = { room: cur, x: cur === "home" ? front.x : 30 + hash(f.id) % 40, y: cur === "home" ? front.y : 72 };
+            el.style.left = w.x + "%"; el.style.top = w.y + "%"; scene.appendChild(el);
+            if (arrive && cur === "home") { toast("🚪 " + f.name + " dropped by!"); setTimeout(function () { move(); }, 400); }
+            function move() { if (!el.isConnected) return; w.x = 10 + Math.random() * 78; w.y = 62 + Math.random() * 28; el.style.left = w.x + "%"; el.style.top = w.y + "%"; setTimeout(move, 3500 + Math.random() * 3500); }
+            if (!arrive) setTimeout(move, 800);
+            el.addEventListener("click", function (e) {
+                e.stopPropagation(); el.classList.remove("hop"); void el.offsetWidth; el.classList.add("hop");
+                var lines = { playful: ["Wanna play?!", "Tag, you're it!"], shy: ["Oh! H-hi…", "…hello"], sleepy: ["Yaaawn… hi", "Five more minutes…"], foodie: ["Got any snacks?", "Something smells good!"] };
+                var L = lines[f.trait] || lines.playful, say = scene.parentNode.querySelector("#rm-say"); if (say) { say.textContent = f.name + ": " + L[Math.floor(Math.random() * L.length)]; say.classList.add("on"); setTimeout(function () { say.classList.remove("on"); }, 1700); }
+                var h = document.createElement("div"); h.className = "floating-heart"; h.textContent = "💞"; h.style.cssText = "position:absolute;left:" + w.x + "%;top:" + (w.y - 10) + "%"; scene.appendChild(h); setTimeout(function () { h.remove(); }, 1200);
+                var B = jget("bcx_fr_bond", {}), k = new Date().toDateString() + f.id; if (!B[k]) { B[k] = 1; B[f.id] = (B[f.id] || 0) + 1; jset("bcx_fr_bond", B); try { window.addHappiness && window.addHappiness(3); } catch (x) {} }
+            });
+        });
+    }
+    function giftsInto(scene, cur) {
+        if (cur !== "home") return;
+        var o = me(), inn = sget("rg_" + o + "_in", []), got = sget("rg_" + o + "_got", []);
+        inn.filter(function (g) { return got.indexOf(g.id) < 0; }).slice(0, 6).forEach(function (g, i) {
+            var el = document.createElement("div"); el.className = "bcx-gift"; el.textContent = g.e; el.title = "From " + (names()[g.from] || "your partner"); el.style.left = (18 + i * 13) + "%"; el.style.top = (80 + (i % 2) * 6) + "%"; scene.appendChild(el);
+            el.addEventListener("click", function (e) { e.stopPropagation(); var G = sget("rg_" + o + "_got", []); G.push(g.id); sset("rg_" + o + "_got", G.slice(-60)); el.remove(); try { window.addPoints && window.addPoints(5); window.addHappiness && window.addHappiness(5); } catch (x) {} toast(g.e + " Gift from " + (names()[g.from] || "your partner") + "! +5 pts"); });
+        });
+    }
+
+    /* ---------- panels: rooms / friends / radio / visit ---------- */
+    var panel = null;
+    function openPanel(tab, mode) {
+        if (panel) panel.remove();
+        panel = document.createElement("div"); panel.className = "bcx-panel";
+        panel.innerHTML = '<div class="hd"><span>🏡 Pet home</span><button class="b g" id="bp-x">Close</button></div><div class="tabs"></div><div class="bd"></div>';
+        document.body.appendChild(panel); panel.querySelector("#bp-x").onclick = function () { panel.remove(); panel = null; };
+        var TABS = [["rooms", "🗺️ Rooms & doors"], ["friends", "👫 Friends"], ["radio", "📻 Radio"], ["visit", "👀 Visit"]], cur = tab, bd = panel.querySelector(".bd");
+        var paint = function () { panel.querySelector(".tabs").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".tabs button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
+        paint();
+    }
+    function close() { if (panel) { panel.remove(); panel = null; } }
+
+    function pRooms(bd, repaint) {
+        var rs = RS(), cur = rs.cur, R = jget("fx3_room", {}), doors = R.doors || [];
+        var opts = [["home", "🏠 Home"]].concat(rs.list.map(function (x) { return [x.id, (x.e || "🚪") + " " + x.name]; }));
+        bd.innerHTML = '<div class="card-desc">You are in <b>' + esc((roomInfo(cur) || {}).name || "Home") + '</b>. Go anywhere, or build onto the house. Tip: switch the room to <b>✏️ Decorate</b> to drag doors around.</div>' +
+            '<h3>Go to</h3>' + opts.map(function (o) { return '<div class="r"><span>' + o[1] + '</span>' + (o[0] === cur ? "<small>you are here</small>" : '<button class="b" data-go="' + o[0] + '">Go</button>') + (o[0] !== "home" ? '<button class="b g" data-rn="' + o[0] + '">✏️</button><button class="b g" data-rd="' + o[0] + '">🗑️</button>' : "") + "</div>"; }).join("") +
+            '<h3>Doors in this room</h3>' + (doors.length || cur === "home" ? (cur === "home" ? '<div class="r"><span>🚪 Front door <small>(friends\' houses)</small></span></div>' : "") + doors.map(function (d) { var t = roomInfo(d.to); return '<div class="r"><span>🚪 ' + esc(d.label || (t ? t.name : "Door")) + ' <small>→ ' + esc(d.to === "home" ? "Home" : t ? t.name : "?") + '</small></span><button class="b g" data-dd="' + d.id + '">Remove</button></div>'; }).join("") : '<div class="card-desc">No doors here yet.</div>') +
+            '<h3>Add a door</h3><div class="add"><select id="bp-to">' + opts.filter(function (o) { return o[0] !== cur; }).map(function (o) { return '<option value="' + o[0] + '">To ' + esc(o[1]) + "</option>"; }).join("") + '</select><button class="b" id="bp-adoor">Add door</button></div>' +
+            '<h3>Build a new room</h3><div class="add"><input id="bp-name" placeholder="Room name (optional)"><select id="bp-type">' + Object.keys(TYPES).map(function (k) { return '<option value="' + k + '">' + TYPES[k].e + " " + TYPES[k].n + "</option>"; }).join("") + '</select></div><div class="add"><button class="b" id="bp-new">🔨 Build it and add a door here</button></div><div class="card-desc">The new room has its own walls, floor and furniture. Decorate it like the main room. Rooms: ' + rs.list.length + "/12.</div>";
+        bd.querySelectorAll("[data-go]").forEach(function (b) { b.onclick = function () { close(); goto(b.dataset.go); }; });
+        bd.querySelectorAll("[data-rn]").forEach(function (b) { b.onclick = function () { var r = RS(), x = r.list.filter(function (q) { return q.id === b.dataset.rn; })[0], n = prompt("Room name?", x.name); if (!n) return; x.name = n.trim().slice(0, 30); saveRS(r); repaint(); }; });
+        bd.querySelectorAll("[data-rd]").forEach(function (b) { b.onclick = function () { if (!confirm("Delete this room and everything in it?")) return; if (RS().cur === b.dataset.rd) { toast("Walk out of the room first."); return; } delRoom(b.dataset.rd); repaint(); }; });
+        bd.querySelectorAll("[data-dd]").forEach(function (b) { b.onclick = function () { var Rm = jget("fx3_room", {}); Rm.doors = (Rm.doors || []).filter(function (d) { return d.id !== b.dataset.dd; }); jset("fx3_room", Rm); close(); try { window.__fx3CloseRoom(); window.fx3OpenRoom(); } catch (e) {} }; });
+        if ($("bp-adoor") && $("bp-to").value) $("bp-adoor").onclick = function () { var to = $("bp-to").value, t = roomInfo(to); addDoor(to, t ? t.name : "Home"); close(); try { window.__fx3CloseRoom(); window.fx3OpenRoom(); } catch (e) {} };
+        $("bp-new").onclick = function () {
+            if (RS().list.length >= 12) { toast("That's the maximum of 12 extra rooms."); return; }
+            var type = $("bp-type").value, name = $("bp-name").value.trim() || TYPES[type].n, here = roomInfo(RS().cur);
+            var id = makeRoom(type, name, RS().cur, here && here.name); addDoor(id, name); toast("🔨 " + name + " built!"); close(); try { window.__fx3CloseRoom(); window.fx3OpenRoom(); } catch (e) {}
+        };
+    }
+
+    function pFriends(bd, repaint, mode) {
+        var L = allFriends(), emo = EMOJIS[0], photo = "";
+        bd.innerHTML = (mode === "door" ? '<div class="card-desc">🚪 Who do you want to visit?</div>' : '<div class="card-desc">Your pet\'s friends. They drop by the front door now and then, and only show up inside the pet room.</div>') +
+            (L.length ? L.map(function (f) { var b = (jget("bcx_fr_bond", {}) || {})[f.id] || 0; return '<div class="r"><span style="font-size:1.6rem;flex:none;width:44px;text-align:center">' + (f.photo ? '<img alt="" src="' + esc(f.photo) + '" style="width:40px;height:40px;object-fit:contain">' : f.emoji || "🐾") + "</span><span><b>" + esc(f.name) + "</b><br><small>" + esc(f.trait || "playful") + " · bond " + b + (f.pc ? " · from your PC" : "") + '</small></span><button class="b" data-v="' + f.id + '">Visit 🏡</button>' + (f.pc ? "" : '<button class="b g" data-x="' + f.id + '">✕</button>') + "</div>"; }).join("") : '<div class="card-desc">No friends yet. Add one below, or add pictures in the Photo Manager under “Pet friends”.</div>') +
+            '<h3>Add a friend</h3><div class="add"><input id="bf-n" placeholder="Name"><select id="bf-t"><option value="playful">Playful</option><option value="shy">Shy</option><option value="sleepy">Sleepy</option><option value="foodie">Foodie</option></select></div><div class="emo" id="bf-e">' + EMOJIS.map(function (e, i) { return '<button data-e="' + e + '" class="' + (i ? "" : "on") + '">' + e + "</button>"; }).join("") + '</div><div class="add"><button class="b g" id="bf-p">📷 Use a picture instead</button><span id="bf-pv"></span><button class="b" id="bf-a">Add friend</button></div>';
+        bd.querySelectorAll("[data-v]").forEach(function (b) { b.onclick = function () { close(); goto("fh_" + b.dataset.v); }; });
+        bd.querySelectorAll("[data-x]").forEach(function (b) { b.onclick = function () { if (!confirm("Remove this friend?")) return; jset("bcx_friends", friends().filter(function (f) { return f.id !== b.dataset.x; })); repaint(); }; });
+        bd.querySelectorAll("#bf-e button").forEach(function (b) { b.onclick = function () { emo = b.dataset.e; photo = ""; $("bf-pv").textContent = ""; bd.querySelectorAll("#bf-e button").forEach(function (x) { x.classList.toggle("on", x === b); }); }; });
+        $("bf-p").onclick = function () { var f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = function () { if (f.files[0]) shrink(f.files[0], 200).then(function (u) { photo = u; $("bf-pv").innerHTML = '<img alt="" src="' + u + '" style="height:38px">'; }, function () { toast("Couldn't read that picture"); }); }; f.click(); };
+        $("bf-a").onclick = function () { var n = $("bf-n").value.trim(); if (!n) { toast("Give your friend a name."); return; } var A = friends(); if (A.some(function (f) { return f.name.toLowerCase() === n.toLowerCase(); })) { toast("You already have a friend with that name."); return; } A.push({ id: "f" + uid(), name: n.slice(0, 20), emoji: emo, photo: photo, trait: $("bf-t").value }); jset("bcx_friends", A); toast("🎉 " + n + " is your pet's new friend!"); repaint(); try { window.BCPushLocal && window.BCPushLocal(false); } catch (e) {} };
+    }
+
+    function pRadio(bd) {
+        var M = window.BCMusic, s = M ? M.state() : {}, T = M ? M.tracks().length : 0;
+        bd.innerHTML = '<div class="card-desc">Buy the <b>📻 Radio</b> in the Room Shop (Furniture), place it in the room, then tap it to turn the music on and off.</div><h3>Radio playlist</h3><div class="add"><select id="br-pl">' + (M ? M.playlistOptions(ls("bcx_radio_pl", "all")) : "") + '</select><button class="b" id="br-play">' + (s.playing && s.ctx === "radio" ? "⏸ Stop" : "▶ Play now") + '</button></div><div class="add"><button class="b g" id="br-add">➕ Add songs from this phone</button></div><div class="card-desc">' + T + " song" + (T === 1 ? "" : "s") + " available. Make playlists in the 🎧 Workout music card (Workout tab). Songs you put in the Photo Manager's Music section show up here too.</div>";
+        $("br-pl").onchange = function (e) { lsSet("bcx_radio_pl", e.target.value); };
+        $("br-play").onclick = function () { if (!M) return; if (M.state().playing && M.state().ctx === "radio") { M.stop("radio"); } else M.play(ls("bcx_radio_pl", "all"), "radio"); setTimeout(function () { pRadio(bd); }, 300); };
+        $("br-add").onclick = function () { var f = document.createElement("input"); f.type = "file"; f.accept = "audio/*"; f.multiple = true; f.onchange = function () { M.addFiles(f.files).then(function (n) { toast("Added " + n + " song" + (n === 1 ? "" : "s")); pRadio(bd); }); }; f.click(); };
+    }
+
+    /* ---------- 34: visiting your partner's pet room ---------- */
+    function snapshot() {
+        var R = (function () { try { return JSON.parse(localStorage.getItem(RS().cur === "home" ? "fx3_room" : "bcx_room_home") || "null"); } catch (e) { return null; } })() || { wall: "w_plain", floor: "f_wood", items: [] };
+        var W = R0.WALLS.filter(function (w) { return w.id === R.wall; })[0] || R0.WALLS[0], Fl = R0.FLOORS.filter(function (f) { return f.id === R.floor; })[0] || R0.FLOORS[0];
+        var items = (R.items || []).slice(0, 60).map(function (it) { var f = R0.FURN.filter(function (x) { return x.id === it.id; })[0] || {}; var svg = f.svg && f.svg.length < 2500 && f.svg.indexOf("blob:") < 0 ? f.svg : ""; return { x: it.x, y: it.y, s: it.s || 1, e: f.e || (svg ? "" : "🪑"), svg: svg, fl: it.flip ? 1 : 0 }; });
+        var t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+        return { t: Date.now(), pet: petName(), glyph: icons[t] || "🐾", wall: W.css, floor: Fl.css, items: items };
+    }
+    var pubT = 0;
+    function publish() { clearTimeout(pubT); pubT = setTimeout(function () { try { var s = snapshot(), old = sget("room_" + me(), null); if (old && JSON.stringify(Object.assign({}, old, { t: 0 })) === JSON.stringify(Object.assign({}, s, { t: 0 }))) return; sset("room_" + me(), s); } catch (e) {} }, 800); }
+    setTimeout(publish, 9000);
+    function pVisit(bd) {
+        var who = other(), s = sget("room_" + who, null), nm = names()[who];
+        if (!s) { bd.innerHTML = '<div class="card-desc">' + esc(nm) + "'s pet room hasn't been shared yet. Turn on sync on both phones, then ask " + esc(nm) + " to open their pet room once.</div>"; return; }
+        bd.innerHTML = '<div class="card-desc">' + esc(nm) + "'s room, as it was " + new Date(s.t).toLocaleString() + '. Leave ' + esc(s.pet) + ' a gift!</div><div class="fx3-room" style="min-height:300px;height:44vh;border-radius:14px;overflow:hidden" id="bv-sc"><div class="fx3-wall" style="background:' + s.wall + '"></div><div class="fx3-floor" style="background:' + s.floor + '"></div>' +
+            s.items.map(function (it) { return '<div class="fx3-furn" style="left:' + it.x + "%;top:" + it.y + "%;--s:" + it.s + ";" + (it.fl ? "--fl:-1;" : "") + "z-index:" + (3 + Math.round(it.y)) + '">' + (it.svg || '<span class="fx3-furn-e">' + esc(it.e) + "</span>") + "</div>"; }).join("") + '<div class="fx3-room-pet" id="bv-pet" style="left:50%;top:76%">' + esc(s.glyph) + "</div></div>" +
+            '<div class="add" style="justify-content:center">' + [["🦴", "a treat"], ["🌸", "flowers"], ["🏐", "a ball"], ["💌", "a love note"], ["⭐", "a star"]].map(function (g) { return '<button class="b" data-g="' + g[0] + '" data-n="' + g[1] + '" style="font-size:1.3rem">' + g[0] + "</button>"; }).join("") + "</div>";
+        var pet = $("bv-pet"), t = setInterval(function () { if (!pet.isConnected) { clearInterval(t); return; } pet.style.left = 12 + Math.random() * 76 + "%"; pet.style.top = 64 + Math.random() * 26 + "%"; }, 2500); pet.style.transition = "left 2.4s linear, top 2.4s linear";
+        bd.querySelectorAll("[data-g]").forEach(function (b) { b.onclick = function () {
+            var k = "rg_" + who + "_in", G = sget(k, []); G.push({ id: uid(), e: b.dataset.g, from: me(), ts: Date.now() }); sset(k, G.slice(-30));
+            tell("cheer", { emoji: b.dataset.g, text: names()[me()] + " left " + b.dataset.n + " in " + s.pet + "'s room!" }); toast(b.dataset.g + " Gift left in " + s.pet + "'s room"); }; });
+    }
+
+    /* ---------- hooks ---------- */
+    var prevSync = window.__bcxSynced; window.__bcxSynced = function () { try { prevSync && prevSync(); } catch (e) {} };
+    function hook(ov) {
+        if (ov.__bcx) return; ov.__bcx = 1; var tm = 0;
+        var run = function () { clearTimeout(tm); tm = setTimeout(function () { decorate(ov); }, 0); };
+        new MutationObserver(run).observe(ov, { childList: true }); run();
+        ov.addEventListener("click", function (e) {   /* tap the radio to turn the music on and off */
+            if (ov.querySelector(".fx3-room-tools")) return; var el = e.target.closest(".fx3-furn[data-i]"); if (!el) return;
+            var it = (jget("fx3_room", {}).items || [])[+el.dataset.i]; if (it && it.id === "fu_bcx_radio") { e.stopPropagation(); radioToggle(ov); }
+        }, true);
+        var gone = new MutationObserver(function () { if (!ov.isConnected) { gone.disconnect(); try { window.BCMusic && BCMusic.stop("radio"); } catch (e) {} if (nav) nav = 0; else if (RS().cur !== "home") goHomeQuiet(); publish(); } }); gone.observe(document.body, { childList: true });
+    }
+    function goHomeQuiet() { var r = RS(); localStorage.setItem("bcx_room_" + r.cur, rawRoom() || defRoom()); localStorage.setItem("fx3_room", localStorage.getItem("bcx_room_home") || defRoom()); r.cur = "home"; saveRS(r); }
+    new MutationObserver(function () { var ov = document.querySelector(".fx3-room-ov"); if (ov) hook(ov); }).observe(document.body, { childList: true });
+    window.bcxPet = { goto: goto, makeRoom: makeRoom, rooms: RS, friends: allFriends, snapshot: snapshot, publish: publish };
+})();
+
+</script>
+<script id="bcx-e-extras">
+/* ===== per-message sounds & buzz (273), badge gallery (42), seasonal badges (188) ===== */
+(function () {
+    "use strict";
+    if (window.__bcxExtras) return; window.__bcxExtras = 1;
+    var F = window.FX3; if (!F) return;
+    var $ = F.$, ls = F.ls, lsSet = F.lsSet, jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast;
+    var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; };
+    var names = function () { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Person 1", p2: "Person 2" }; };
+    var st = document.createElement("style");
+    st.textContent = ".bcx-ns .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(128,128,128,.25)}.bcx-ns .r b{min-width:74px}.bcx-ns select{font:inherit;padding:8px;border-radius:10px;border:1.5px solid var(--border,#555);background:rgba(0,0,0,.15);color:inherit;max-width:100%}.bcx-ns button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:8px 10px;background:rgba(128,128,128,.3);color:inherit}" +
+        ".bcx-bg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}.bcx-bg div{text-align:center;padding:8px 4px;border-radius:12px;background:rgba(128,128,128,.15);font-size:.7rem;cursor:pointer;border:2px solid transparent}.bcx-bg div span{display:block;font-size:1.7rem;line-height:1.2}.bcx-bg div img{width:36px;height:36px;object-fit:contain}.bcx-bg div.off{opacity:.4;filter:grayscale(1)}.bcx-bg div.t-bronze.on{border-color:#cd7f32}.bcx-bg div.t-silver.on{border-color:#c0c0c0}.bcx-bg div.t-gold.on{border-color:#ffd700}.bcx-bg div.t-platinum.on{border-color:#7fe3ff}.bcx-chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.bcx-chips button{font:inherit;font-size:12px;font-weight:800;border:1.5px solid rgba(128,128,128,.5);background:transparent;color:inherit;border-radius:16px;padding:5px 10px}.bcx-chips button.on{background:var(--accent-color,#00adb5);border-color:transparent;color:#fff}.bcx-bd{padding:10px;border-radius:12px;background:rgba(128,128,128,.18);margin-top:8px;font-size:13.5px}";
+    document.head.appendChild(st);
+
+    /* ---------- 273 ---------- */
+    var KINDS = [["note", "💌 Love notes", "quest", [200, 100, 200]], ["cheer", "🎉 Cheers", "coin", [120]], ["swap", "🔁 Chore swaps", "undo", [300, 100, 300, 100, 300]], ["gift", "🎁 Gifts", "levelup", [100, 60, 100, 60, 400]]];
+    var BUILT = [["quest", "Quest"], ["coin", "Coin"], ["complete", "Chime"], ["achieve", "Achievement"], ["levelup", "Level up"], ["pr", "Fanfare"], ["click", "Tap"], ["evolve", "Rising"], ["error", "Buzzer"], ["none", "Silent"]];
+    var BUZZ = { none: null, short: [90], double: [100, 80, 100], long: [450], tri: [150, 90, 150, 90, 150], sos: [100, 60, 100, 60, 100, 200, 300, 60, 300, 60, 300, 200, 100, 60, 100, 60, 100] };
+    var pcSound = function (k) { try { return BCAssets.url("index", "notify:" + k); } catch (e) { return null; } };
+    function play(kind, preview) {
+        var snd = ls("bcx_ns_" + kind, "d"), def = KINDS.filter(function (k) { return k[0] === kind; })[0];
+        if (snd === "d") snd = pcSound(kind) ? "pc" : def[2];
+        if (snd === "pc") { var u = pcSound(kind); if (u) { var a = new Audio(u); a.volume = Math.min(1, +ls("fx_vol", "70") / 100); a.play().catch(function () {}); } else window.fxSfx && window.fxSfx(def[2]); }
+        else if (snd !== "none") window.fxSfx && window.fxSfx(snd);
+        var vb = ls("bcx_nv_" + kind, "d"), pat = vb === "d" ? def[3] : BUZZ[vb];
+        try { if (pat && navigator.vibrate) navigator.vibrate(pat); } catch (e) {}
+    }
+    window.addEventListener("fx:remote-events", function (ev) { (ev.detail || []).forEach(function (e) { if (e.sender !== me() && /^(note|cheer|swap|gift)$/.test(e.kind)) play(e.kind); }); });
+    function nsCard() {
+        var host = $("settings-data"); if (!host) return; var old = $("bcx-ns"); if (old) old.remove();
+        var c = document.createElement("div"); c.className = "card bcx-ns"; c.id = "bcx-ns"; c.dataset.fxGroup = "sync";
+        c.innerHTML = '<div class="card-title">🔔 Notification sounds</div><div class="card-desc">Pick a different sound and buzz for each kind of message. These play while the app is open. When the app is closed, Android uses its own notification sound (websites can\'t change that) but the buzz pattern still follows the message type. Add your own sounds in the Photo Manager under “Notification sounds”.</div>' +
+            KINDS.map(function (k) { var s = ls("bcx_ns_" + k[0], "d"), v = ls("bcx_nv_" + k[0], "d"); return '<div class="r"><b>' + k[1] + '</b><select data-s="' + k[0] + '"><option value="d">Default' + (pcSound(k[0]) ? " (your PC sound)" : "") + "</option>" + (pcSound(k[0]) ? '<option value="pc">My PC sound</option>' : "") + BUILT.map(function (b) { return '<option value="' + b[0] + '">' + b[1] + "</option>"; }).join("") + '</select><select data-v="' + k[0] + '"><option value="d">Default buzz</option><option value="none">No buzz</option><option value="short">Short</option><option value="double">Double</option><option value="long">Long</option><option value="tri">Triple</option><option value="sos">SOS</option></select><button data-p="' + k[0] + '">▶</button></div>'; }).join("");
+        host.appendChild(c);
+        KINDS.forEach(function (k) { c.querySelector('[data-s="' + k[0] + '"]').value = ls("bcx_ns_" + k[0], "d"); c.querySelector('[data-v="' + k[0] + '"]').value = ls("bcx_nv_" + k[0], "d"); });
+        c.onchange = function (e) { var s = e.target.dataset.s, v = e.target.dataset.v; if (s) lsSet("bcx_ns_" + s, e.target.value); if (v) lsSet("bcx_nv_" + v, e.target.value); };
+        c.onclick = function (e) { var b = e.target.closest("[data-p]"); if (b) play(b.dataset.p, 1); };
+    }
+    nsCard(); try { BCAssets.onChange(function (d) { if (d.type === "change") nsCard(); }); } catch (e) {}
+
+    /* ---------- 42: badge gallery ---------- */
+    var FILTERS = [["all", "All"], ["got", "Earned"], ["lock", "Locked"], ["bronze", "🥉"], ["silver", "🥈"], ["gold", "🥇"], ["platinum", "💎"]];
+    var flt = "all";
+    function art(a) { try { var all = BCAssets.all("index"); var hit = all.filter(function (x) { return x.slot.toLowerCase() === "badge:" + a.id.toLowerCase() || x.slot.toLowerCase() === "badge:" + String(a.n || "").toLowerCase(); })[0]; return hit && hit.url; } catch (e) { return null; } }
+    function gallery(v) {
+        if (!v.classList.contains("active") || v.querySelector("#bcx-badges")) return;
+        var grid = v.querySelector(".fx-achgrid"), X = window.__fxCore; if (!grid || !X || !X.ACH) return;
+        var U = jget("fx_ach", {}) || {};
+        var list = [].slice.call(grid.querySelectorAll(".fx-ach[data-ach]")).map(function (b) { var id = b.dataset.ach, a = X.ACH.filter(function (x) { return x.id === id; })[0]; if (!a) return null; var t = (b.className.match(/tier-(\w+)/) || [0, "bronze"])[1]; return { a: a, t: t, got: !!U[id], hid: !!b.dataset.hidden }; }).filter(Boolean);
+        var c = document.createElement("div"); c.className = "card"; c.id = "bcx-badges";
+        var draw = function () {
+            var show = list.filter(function (x) { return flt === "all" || (flt === "got" ? x.got : flt === "lock" ? !x.got : x.t === flt); });
+            var tc = function (t) { var n = list.filter(function (x) { return x.t === t; }); return n.filter(function (x) { return x.got; }).length + "/" + n.length; };
+            c.innerHTML = '<div class="card-header"><span class="card-title">🎖️ Badge gallery</span><small>' + list.filter(function (x) { return x.got; }).length + "/" + list.length + '</small></div><div class="card-desc">🥉 ' + tc("bronze") + " · 🥈 " + tc("silver") + " · 🥇 " + tc("gold") + " · 💎 " + tc("platinum") + '</div><div class="bcx-chips">' + FILTERS.map(function (f) { return '<button data-f="' + f[0] + '" class="' + (f[0] === flt ? "on" : "") + '">' + f[1] + "</button>"; }).join("") + '</div><div class="bcx-bg">' + show.map(function (x) { var u = art(x.a); return '<div class="t-' + x.t + (x.got ? " on" : " off") + '" data-b="' + esc(x.a.id) + '">' + (u ? '<img alt="" src="' + esc(u) + '">' : "<span>" + (x.hid && !x.got ? "❓" : esc(x.a.i)) + "</span>") + (x.hid && !x.got ? "???" : esc(x.a.n)) + "</div>"; }).join("") + '</div><div id="bcx-bdi"></div>';
+            c.querySelectorAll("[data-f]").forEach(function (b) { b.onclick = function () { flt = b.dataset.f; draw(); }; });
+            c.querySelectorAll("[data-b]").forEach(function (b) { b.onclick = function () {
+                var x = list.filter(function (q) { return q.a.id === b.dataset.b; })[0], i = $("bcx-bdi"); if (!x) return;
+                var when = U[x.a.id] && U[x.a.id] > 1e12 ? " on " + new Date(U[x.a.id]).toLocaleDateString() : "";
+                i.className = "bcx-bd"; i.innerHTML = "<b>" + (x.hid && !x.got ? "Hidden badge" : esc(x.a.i + " " + x.a.n)) + "</b> · " + x.t + "<br>" + (x.hid && !x.got ? "Keep exploring the app to find this one." : esc(x.a.d || "")) + (x.a.pts ? "<br><small>Worth " + x.a.pts + " pts</small>" : "") + (x.got ? "<br>✅ Earned" + when + '<br><button class="btn-action" id="bcx-bsh" style="margin-top:6px">💌 Show ' + esc(names()[me() === "p1" ? "p2" : "p1"]) + "</button>" : "");
+                var sh = $("bcx-bsh"); if (sh) sh.onclick = function () { try { window.fxAddEvent("cheer", { emoji: x.a.i, text: names()[me()] + " earned “" + x.a.n + "”!" }); toast("Sent 🎉"); } catch (e) {} };
+            }; });
+        };
+        draw(); grid.closest(".card").insertAdjacentElement("afterend", c);
+    }
+    F.onClubRender(gallery);
+
+    /* ---------- 188: seasonal badge collection (earned by finishing seasonal event goals) ---------- */
+    function seasons(v) {
+        if (!v.classList.contains("active") || v.querySelector("#bcx-seasons")) return;
+        var EV = window.FX3_EVENTS || [], claims = jget("fx3_ev_claim", []) || [], y = new Date().getFullYear(), md = (function () { var d = new Date(); return (d.getMonth() + 1) * 100 + d.getDate(); })();
+        var got = {}; claims.forEach(function (k) { var m = /^(.*?)(\d{4})$/.exec(String(k)); if (m) (got[m[1]] = got[m[1]] || []).push(+m[2]); });
+        var n = EV.filter(function (e) { return got[e.id]; }).length;
+        var c = document.createElement("div"); c.className = "card"; c.id = "bcx-seasons";
+        c.innerHTML = '<div class="card-header"><span class="card-title">🍂 Seasonal badges</span><small>' + n + "/" + EV.length + '</small></div><div class="card-desc">Finish a seasonal event goal and claim its reward to earn its badge. Collect them every year.</div><div class="bcx-bg">' + EV.map(function (e) { var g = got[e.id], live = md >= e.f && md <= e.t, u = (function () { try { var h = BCAssets.all("index").filter(function (x) { return x.slot.toLowerCase() === "badge:season:" + e.id; })[0]; return h && h.url; } catch (x) { return null; } })(); return '<div class="t-gold ' + (g ? "on" : "off") + '" title="' + esc(e.n) + '" data-e="' + esc(e.id) + '">' + (u ? '<img alt="" src="' + esc(u) + '">' : "<span>" + e.e + "</span>") + esc(e.n) + (g ? "<br>✅ ×" + g.length : live ? "<br>🔥 now!" : "") + "</div>"; }).join("") + '</div><div id="bcx-sdi"></div>';
+        c.querySelectorAll("[data-e]").forEach(function (b) { b.onclick = function () { var e = EV.filter(function (q) { return q.id === b.dataset.e; })[0], g = got[e.id], i = $("bcx-sdi"); i.className = "bcx-bd"; var fmt = function (m) { return new Date(2000, Math.floor(m / 100) - 1, m % 100).toLocaleDateString(undefined, { month: "short", day: "numeric" }); }; i.innerHTML = "<b>" + e.e + " " + esc(e.n) + "</b><br>" + fmt(e.f) + " – " + fmt(e.t) + (e.d ? "<br>" + esc(e.d) : "") + "<br>" + (g ? "✅ Earned in " + g.sort().join(", ") : "Not earned yet" + (e.goal ? " · goal: " + e.goal[1] + " " + e.goal[0] : "")); }; });
+        var anchor = v.querySelector("#bcx-badges") || (v.querySelector(".fx-achgrid") || {}).parentNode; if (anchor && anchor.insertAdjacentElement) anchor.insertAdjacentElement("afterend", c); else v.appendChild(c);
+    }
+    F.onClubRender(seasons);
 })();
 
 </script>
