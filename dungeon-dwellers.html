@@ -213,9 +213,13 @@
                 </button>
             </div>
 
-            <button onclick="window.DDCO&&DDCO.open()" id="dd-together-btn" class="w-full bg-gradient-to-r from-pink-950 to-purple-950 border-2 border-pink-500/60 text-pink-200 px-3 py-2.5 rounded-xl flex items-center justify-center space-x-2 active:scale-95 transition text-xs font-bold shadow-lg mb-3">
-                <span>👥 Play Together</span><span class="text-[10px] text-pink-400 font-normal">Co-op · Hero · Dungeons · Cloud Saves</span>
+            <button onclick="window.DDCO&&DDCO.openTab('co')" id="dd-together-btn" class="w-full bg-gradient-to-r from-red-950 via-red-900 to-red-950 border-2 border-amber-500/60 text-amber-200 px-3 py-3 rounded-xl flex items-center justify-center gap-3 active:scale-95 transition shadow-[0_0_18px_rgba(180,83,9,0.45)] mb-2 title-font tracking-widest text-sm font-bold">
+                <span class="text-lg">⚔️</span><span>PLAY TOGETHER</span><span class="text-lg">🛡️</span>
             </button>
+            <div class="grid grid-cols-2 gap-2 w-full mb-3">
+                <button onclick="window.DDCO&&DDCO.openTab('dng')" id="dd-dungeon-btn" class="bg-neutral-950 border border-red-800 text-red-300 px-3 py-2 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition text-xs font-bold shadow-lg title-font tracking-wider"><span>🗝️</span><span>Dungeon Creator</span></button>
+                <button onclick="window.DDCO&&DDCO.openTab('hero')" id="dd-hero-btn" class="bg-neutral-950 border border-amber-700 text-amber-300 px-3 py-2 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition text-xs font-bold shadow-lg title-font tracking-wider"><span>🧙</span><span>Hero Creator</span></button>
+            </div>
 
             <div class="grid grid-cols-2 gap-2 w-full mb-3">
                 <button onclick="toggleLedger()" class="bg-amber-950/80 border border-amber-700 text-amber-300 px-3 py-2 rounded-xl flex items-center justify-center space-x-2 active:scale-95 transition text-xs font-bold shadow-lg">
@@ -523,7 +527,7 @@
                 <span><i class="fa-solid fa-gear text-blue-400 mr-2"></i> Settings & Engine</span>
                 <button onclick="toggleSettingsMenu()" class="text-neutral-500"><i class="fa-solid fa-xmark"></i></button>
             </h3>
-            <button onclick="toggleSettingsMenu();window.DDCO&&DDCO.open()" class="w-full mb-3 bg-pink-950 border border-pink-600 text-pink-200 py-2 rounded-xl text-xs font-bold">👥 Play Together (co-op, hero, dungeons, cloud saves)</button>
+            <button onclick="toggleSettingsMenu();window.DDCO&&DDCO.openTab('cloud')" class="w-full mb-3 bg-sky-950 border border-sky-600 text-sky-200 py-2 rounded-xl text-xs font-bold">☁️ Cloud Saves (save and load on any phone)</button>
             <div class="mb-5 space-y-3 border-b border-neutral-800 pb-4">
                 <h4 class="text-sm font-bold text-amber-500 uppercase tracking-wider"><i class="fa-solid fa-volume-high"></i> Audio & Narrator</h4>
                 <div class="flex items-center justify-between">
@@ -36416,8 +36420,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     var st = document.createElement("style");
     st.textContent = "#ddco-fab{position:fixed;left:10px;bottom:84px;z-index:9990;width:44px;height:44px;border-radius:50%;border:2px solid #b45309;background:#1c1917;color:#fbbf24;font-size:20px;box-shadow:0 4px 12px #000a;cursor:pointer}#ddco-fab.on{border-color:#4ade80;box-shadow:0 0 12px #4ade80}" +
         "#ddco{position:fixed;inset:0;z-index:99990;background:#000d;display:none;align-items:flex-end;justify-content:center;font-family:system-ui,sans-serif}#ddco.show{display:flex}" +
-        "#ddco .sh{background:#14110f;color:#e7e5e4;border:1px solid #44403c;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:14px}" +
-        "#ddco h3{margin:0 0 6px;font-size:17px;color:#fbbf24}#ddco .tb{display:flex;gap:6px;margin:8px 0;overflow-x:auto}#ddco .tb button{flex:none}" +
+        "#ddco .sh{background:linear-gradient(#1a0f0d,#0f0b0a);color:#e7e5e4;border:1px solid #7f1d1d;border-bottom:0;box-shadow:0 -6px 30px #7f1d1d55;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;overflow:auto;padding:14px}" +
+        "#ddco h3{margin:0 0 6px;font-size:19px;color:#fbbf24;letter-spacing:.12em;text-transform:uppercase}#ddco .tb{display:flex;gap:6px;margin:8px 0;overflow-x:auto}#ddco .tb button{flex:none}" +
         "#ddco button,#ddgv button{font:inherit;font-size:13px;font-weight:800;border:1px solid #57534e;background:#292524;color:#e7e5e4;border-radius:10px;padding:9px 12px;cursor:pointer}#ddco button.on{background:#b45309;border-color:#f59e0b;color:#fff}#ddco button.go,#ddgv button.go{background:#15803d;border-color:#4ade80;color:#fff}#ddco button.bad,#ddgv button.bad{background:#7f1d1d;border-color:#ef4444}#ddco button:disabled,#ddgv button:disabled{opacity:.4}" +
         "#ddco input,#ddco select,#ddco textarea{font:inherit;font-size:14px;background:#0c0a09;color:#e7e5e4;border:1px solid #57534e;border-radius:9px;padding:8px;max-width:100%;box-sizing:border-box}#ddco label{display:block;font-size:12px;color:#a8a29e;margin:6px 0 2px}" +
         "#ddco .m{color:#a8a29e;font-size:12.5px}#ddco .r{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}#ddco .card{border:1px solid #44403c;border-radius:12px;padding:10px;margin:8px 0;background:#1c1917}" +
@@ -36438,11 +36442,46 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         Berserker: { e: "🪓", sp: "Reckless Strike", d: "Triple damage, costs you 10 HP", hp: 30 }
     };
     var PORT = ["🧙", "🧝", "🧛", "🥷", "🦸", "🤺", "🧑‍🚀", "👸", "🤴", "🐺", "🦊", "🐉", "🐸", "🦉", "🧌", "💀"];
-    function heroDef() { return { name: "", emoji: "🧙", cls: "Paladin", pts: { atk: 2, def: 2, hp: 2, luck: 2 }, quote: "For the snacks!" }; }
-    function hero() { return Object.assign(heroDef(), jget("ddco_hero", {})); }
+    var RACES = {
+        Human: { e: "🧑", d: "Adaptable and stubborn. A little extra health and attack.", hp: 5, atk: 1 },
+        Elf: { e: "🧝", d: "Keen eyes: +6% crit, a bit frail.", crit: 0.06, hp: -5 },
+        Dwarf: { e: "⛏️", d: "Stout: +10 health, +1 armor.", hp: 10, def: 1 },
+        Orc: { e: "👹", d: "Brutal: +3 attack, +5 health.", atk: 3, hp: 5 },
+        Halfling: { e: "🍀", d: "Lucky and well fed: +4% crit, +1 potion.", crit: 0.04, pots: 1 },
+        Tiefling: { e: "😈", d: "Infernal blood: +2 attack, +3% crit.", atk: 2, crit: 0.03 },
+        Dragonborn: { e: "🐲", d: "Scaled: +8 health, +1 attack, +1 armor.", hp: 8, atk: 1, def: 1 },
+        Revenant: { e: "💀", d: "Back from the grave: +2 armor, -10 health.", def: 2, hp: -10 }
+    };
+    var BACKS = {
+        Soldier: { e: "⚔️", d: "Drilled for war: +1 armor, +5 health.", def: 1, hp: 5, t: "Marched with a company that no longer exists." },
+        Noble: { e: "👑", d: "Raised with the best: +1 potion, +1 attack.", pots: 1, atk: 1, t: "Walked away from a title and a very large house." },
+        Orphan: { e: "🧣", d: "Street smart: +2 potions.", pots: 2, t: "Grew up with nothing, so every scrap matters." },
+        Scholar: { e: "📜", d: "Knows weak spots: +3% crit, +1 potion.", crit: 0.03, pots: 1, t: "Read about monsters. Now meeting them." },
+        Thief: { e: "🗝️", d: "Quick hands: +4% crit, +1 attack.", crit: 0.04, atk: 1, t: "Stole something that should have stayed buried." },
+        Hermit: { e: "🏔️", d: "Hardened by silence: +10 health.", hp: 10, t: "Spent years alone and learned what the dark says." },
+        Exile: { e: "🔥", d: "Nothing to lose: +2 attack.", atk: 2, t: "Cast out. Coming back for answers." },
+        Healer: { e: "🌿", d: "Steady hands: +2 potions, +5 health.", pots: 2, hp: 5, t: "Patched up too many who never came back." },
+        Cursed: { e: "☠️", d: "Marked by something old: +3 attack, -10 health.", atk: 3, hp: -10, t: "Something follows them. It only comes out at night." }
+    };
+    var ALIGN = ["Heroic", "Honest", "Mischievous", "Ruthless", "Haunted"];
+    var FEARS = ["The dark", "Spiders", "Ghosts", "Fire", "Deep water", "Being alone", "Clowns", "Nothing at all"];
+    var AURA = ["#f59e0b", "#ef4444", "#22c55e", "#38bdf8", "#a855f7", "#ec4899", "#e5e7eb"];
+    function heroDef() { return { name: "", emoji: "🧙", photo: "", cls: "Paladin", race: "Human", back: "Soldier", align: "Heroic", fear: "The dark", aura: "#f59e0b", title: "", story: "", pts: { atk: 2, def: 2, hp: 2, luck: 2 }, quote: "For the snacks!" }; }
+    function hero() { var h = Object.assign(heroDef(), jget("ddco_hero", {})); h.pts = Object.assign({ atk: 2, def: 2, hp: 2, luck: 2 }, h.pts || {}); return h; }
     function heroStats(h) {
-        var c = CL[h.cls] || CL.Paladin;
-        return { max: 80 + c.hp + h.pts.hp * 10, atk: 6 + h.pts.atk * 2, def: h.pts.def, crit: 0.05 + h.pts.luck * 0.03 };
+        var c = CL[h.cls] || CL.Paladin, r = RACES[h.race] || {}, b = BACKS[h.back] || {};
+        return { max: Math.max(40, 80 + c.hp + h.pts.hp * 10 + (r.hp || 0) + (b.hp || 0)), atk: 6 + h.pts.atk * 2 + (r.atk || 0) + (b.atk || 0), def: h.pts.def + (r.def || 0) + (b.def || 0), crit: Math.min(0.6, 0.05 + h.pts.luck * 0.03 + (r.crit || 0) + (b.crit || 0)), pots: 3 + (r.pots || 0) + (b.pots || 0) };
+    }
+    function av(h, px) {   /* a hero's face: uploaded photo, or the emoji portrait */
+        px = px || 40; var ring = "border:2px solid " + esc(h.aura || "#f59e0b") + ";";
+        return h.photo ? '<img alt="" src="' + esc(h.photo) + '" style="width:' + px + "px;height:" + px + "px;border-radius:50%;object-fit:cover;vertical-align:middle;" + ring + '">' : '<span style="display:inline-flex;align-items:center;justify-content:center;width:' + px + "px;height:" + px + "px;border-radius:50%;background:#0c0a09;font-size:" + Math.round(px * .6) + "px;vertical-align:middle;" + ring + '">' + esc(h.emoji) + "</span>";
+    }
+    function shrinkPhoto(file) {
+        return new Promise(function (res, rej) {
+            var img = new Image(), u = URL.createObjectURL(file);
+            img.onload = function () { var side = Math.min(img.width, img.height), c = document.createElement("canvas"); c.width = c.height = 112; c.getContext("2d").drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, 112, 112); URL.revokeObjectURL(u); res(c.toDataURL("image/jpeg", 0.78)); };
+            img.onerror = function () { rej(new Error("not a picture")); }; img.src = u;
+        });
     }
 
     /* ---------- state ---------- */
@@ -36461,7 +36500,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             host: { name: names()[me()] || "Host", hp: gameState.hp, max: gameState.maxHp, lvl: gameState.level, cls: gameState.playerClass },
             guest: G ? { name: G.name, emoji: G.emoji, cls: G.cls, hp: G.hp, max: G.max, down: !!G.down, shield: !!G.shield, cd: G.cd, pots: G.pots, hcd: G.hcd } : null,
             allies: comp, foes: foes.filter(function (f) { return f.hp > 0; }).map(function (f) { return { n: f.name, hp: Math.max(0, f.hp), max: f.maxHp }; }),
-            log: CO.log.slice(-12), warn: CO.warn || "", dungeon: DNG.active ? { n: DNG.d.name, i: DNG.i + 1, of: DNG.d.rooms.length } : null };
+            log: CO.log.slice(-12), warn: CO.warn || "", ev: CO.ev || null, scene: CO.scene || null, dungeon: DNG.active ? { n: DNG.d.name, i: DNG.i + 1, of: DNG.d.rooms.length } : null };
     }
     var wT = 0;
     function writeRoom(phase) { if (phase) CO.phase = phase; clearTimeout(wT); wT = setTimeout(function () { if (CO.role === "host") kvSet("dd_room_" + CO.code, roomDoc()); }, 250); }
@@ -36486,15 +36525,17 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             if (CO.role !== "host") return;
             if (g && g.hero && g.joined && (!CO.g || CO.g.joinedAt !== g.joined)) {
                 var h = g.hero, s = heroStats(h);
-                CO.g = { joined: true, joinedAt: g.joined, name: h.name || "Guest", emoji: h.emoji, cls: h.cls, max: s.max, hp: s.max, atk: s.atk, def: s.def, crit: s.crit, quote: h.quote, cd: 0, hcd: 0, pots: 3, down: false, shield: false };
+                CO.g = { joined: true, joinedAt: g.joined, name: h.name || "Guest", emoji: h.emoji, photo: h.photo || "", aura: h.aura, race: h.race, back: h.back, fear: h.fear, align: h.align, title: h.title, story: h.story, cls: h.cls, max: s.max, hp: s.max, atk: s.atk, def: s.def, crit: s.crit, quote: h.quote, cd: 0, hcd: 0, pots: s.pots, down: false, shield: false };
                 addLog("🎉 " + CO.g.name + " joined the party!"); banner("👥 " + CO.g.name + " joined your party!"); writeNow("idle"); draw(); hb(); fab();
             }
             if (g && g.left && CO.g) { addLog(CO.g.name + " left."); CO.g = null; hb(); draw(); fab(); writeNow("idle"); }
             if (g && CO.waiting && g.seq === CO.seq && g.act) CO.waiting(g);
-        }).then(function () { pT = setTimeout(poll, hostActive() && CO.phase === "guest" ? 1500 : 3500); });
+            if (g && g.ev && CO.ev && CO.evWait && g.ev.id === CO.ev.id) CO.evWait(g.ev);
+            if (g && g.vote && CO.scene && CO.voteWait) CO.voteWait(g.vote);
+        }).then(function () { pT = setTimeout(poll, hostActive() && (CO.phase === "guest" || CO.ev || CO.scene) ? 1100 : 3500); });
     }
     function hb() {
-        var b = $("ddco-hb"); if (!b) { b = document.createElement("div"); b.id = "ddco-hb"; b.style.cursor = "pointer"; b.onclick = open; document.body.appendChild(b); }
+        var b = $("ddco-hb"); if (!b) { b = document.createElement("div"); b.id = "ddco-hb"; b.style.cursor = "pointer"; b.onclick = function () { open("co", true); }; document.body.appendChild(b); }
         if (hostActive()) { b.style.display = "block"; var G = CO.g; b.textContent = "👥 " + G.emoji + " " + G.name + " " + (G.down ? "(down)" : G.hp + "/" + G.max + " HP") + " · room " + CO.code; }
         else if (CO.role === "host") { b.style.display = "block"; b.textContent = "👥 Room " + CO.code + " · waiting for your partner to join"; }
         else b.style.display = "none";
@@ -36633,7 +36674,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     function guestJoin(code) {
         code = String(code || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); if (!code) return;
         if (!cfg()) { toast("Turn on Sync in the Breakfast Club app first."); return; }
-        var h = hero(); if (!h.name) { toast("Create your hero first (Hero tab)."); setTab("hero"); return; }
+        var h = hero(); if (!h.name) { toast("Create your hero first (Hero Creator)."); open("hero", true); return; }
         kvGet("dd_room_" + code).then(function (r) {
             if (!r || r.ended) { toast("No open room with that code."); return; }
             CO.role = "guest"; CO.code = code; CO.sent = -1; CO.joinedAt = Date.now(); lset("ddco_room", JSON.stringify({ role: "guest", code: code, jt: CO.joinedAt }));
@@ -36652,6 +36693,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
             if (CO.role !== "guest") return;
             if (r && r.ended) { toast("The host closed the room."); guestLeave(); return; }
             if (r) gDraw(r);
+            try { window.__ddceGuest && window.__ddceGuest(r); } catch (e) { console.warn(e); }
         }).then(function () { gT = setTimeout(gPoll, document.hidden ? 6000 : 1800); });
     }
     function gDraw(r) {
@@ -36661,7 +36703,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         gv.innerHTML = '<div style="display:flex;align-items:center;gap:8px"><b style="color:#fbbf24;flex:1">👥 Room ' + esc(CO.code) + (r.dungeon ? " · " + esc(r.dungeon.n) + " (" + r.dungeon.i + "/" + r.dungeon.of + ")" : "") + '</b><button id="gv-x" class="bad">Leave</button></div>' +
             (r.warn ? '<div class="warn">' + esc(r.warn) + '</div>' : "") +
             '<div class="c"><b>Your party</b><div style="margin:6px 0">' + esc(r.host.name) + ' (host, lvl ' + r.host.lvl + ') ' + r.host.hp + '/' + r.host.max + bar(r.host.hp, r.host.max, "a") + '</div>' +
-            '<div style="margin:6px 0">' + esc(G.emoji) + " " + esc(G.name) + (G.down ? " 💫 DOWN" : "") + ' ' + G.hp + '/' + G.max + bar(G.hp, G.max, "a") + '</div>' +
+            '<div style="margin:6px 0">' + av(G, 28) + " " + esc(G.name) + (G.down ? " 💫 DOWN" : "") + ' ' + G.hp + '/' + G.max + bar(G.hp, G.max, "a") + '</div>' +
             ((r.allies || []).length ? '<div class="m" style="font-size:12px;color:#a8a29e">With you: ' + r.allies.map(esc).join(", ") + '</div>' : "") + '</div>' +
             '<div class="c"><b>Enemies</b>' + ((r.foes || []).length ? r.foes.map(function (f) { return '<div style="margin:6px 0">' + esc(f.n) + ' ' + f.hp + '/' + f.max + bar(f.hp, f.max) + '</div>'; }).join("") : '<div style="color:#a8a29e;font-size:13px;margin-top:4px">No fight right now. The host is exploring.</div>') + '</div>' +
             '<div class="c lg">' + (r.log || []).map(esc).join("<br>") + '</div>' +
@@ -36689,7 +36731,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
 
     /* ---------- custom dungeons (244) ---------- */
     var DNG = { active: false, d: null, i: -1 };
-    var RT = { story: "📖 Story", battle: "⚔️ Battle", boss: "👑 Boss", treasure: "💰 Treasure", rest: "⛺ Rest", trap: "🪤 Trap" };
+    var RT = { story: "📖 Story", battle: "⚔️ Battle", boss: "👑 Boss", treasure: "💰 Treasure", rest: "⛺ Rest", trap: "🪤 Trap", haunted: "👂 Haunted Walls", riddle: "❓ Trap Riddle", lockbox: "🗝️ Twin-Lock Chest", puzzle: "🧩 Puzzle for Two", wares: "🕯️ Cursed Peddler", fishing: "🎣 Fishing Pool" };
     function enemyList() { var l = ["Slime", "Goblin", "Orc", "Wraith", "Drake", "Mimic"]; try { (CustomAssets.enemies || []).forEach(function (e) { if (l.indexOf(e.name) < 0) l.push(e.name); }); } catch (e) {} return l; }
     function imgFor(n) { try { var c = (CustomAssets.enemies || []).filter(function (e) { return e.name === n; })[0]; if (c) return c.url; return getAsset(n); } catch (e) { return ""; } }
     function bgNow() { try { return CustomAssets.backgrounds.length ? CustomAssets.backgrounds[Math.floor(Math.random() * CustomAssets.backgrounds.length)].url : getAsset("cave"); } catch (e) { return ""; } }
@@ -36708,6 +36750,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         }
         var r = d.rooms[DNG.i], head = "Room " + (DNG.i + 1) + "/" + d.rooms.length, bg = bgNow(), cont = function () { renderChoices([{ text: "Continue", action: nextRoom }]); };
         writeRoom();
+        if (window.__ddRoomExt && window.__ddRoomExt(r, head, bg, cont)) return;
         if (r.type === "battle" || r.type === "boss") {
             var boss = r.type === "boss";
             executeCustomNode(bg, imgFor(r.enemy), r.enemy || "Foe", head, r.text || (boss ? "A great presence fills the chamber." : "Something lurks here."), function () {
@@ -36733,7 +36776,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     /* ---------- the panel ---------- */
     var tab = "co", ov;
     function setTab(t) { tab = t; draw(); }
-    function open() { if (!ov) build(); ov.classList.add("show"); draw(); }
+    var ONLY = false;
+    function open(t, only) { if (!ov) build(); if (typeof t === "string" && t) { tab = t; ONLY = !!only; } else if (t && t.type) { tab = "co"; ONLY = true; } ov.classList.add("show"); draw(); }
     function close() { if (ov) ov.classList.remove("show"); }
     function build() {
         ov = document.createElement("div"); ov.id = "ddco"; ov.innerHTML = '<div class="sh" id="ddco-sh"></div>'; document.body.appendChild(ov);
@@ -36742,8 +36786,8 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
     }
     function draw() {
         if (!ov || !ov.classList.contains("show")) return; var sh = $("ddco-sh");
-        var T = [["co", "👥 Co-op"], ["hero", "🧙 Hero"], ["dng", "🗺️ Dungeons"], ["cloud", "☁️ Saves"]];
-        sh.innerHTML = '<div class="r"><h3 style="flex:1">Dungeon Dwellers together</h3><button id="dd-x">Close</button></div><div class="tb">' + T.map(function (t) { return '<button data-t="' + t[0] + '"' + (tab === t[0] ? ' class="on"' : "") + ">" + t[1] + "</button>"; }).join("") + '</div><div id="dd-body"></div>';
+        var T = [["co", "👥 Co-op"], ["hero", "🧙 Hero"], ["dng", "🗺️ Dungeons"], ["cloud", "☁️ Saves"]], TT = { co: "Play Together", hero: "Hero Creator", dng: "Dungeon Creator", cloud: "Cloud Saves" };
+        sh.innerHTML = '<div class="r"><h3 class="title-font" style="flex:1">' + TT[tab] + '</h3><button id="dd-x">Close</button></div><div class="tb"' + (ONLY ? ' style="display:none"' : "") + ">" + T.map(function (t) { return '<button data-t="' + t[0] + '"' + (tab === t[0] ? ' class="on"' : "") + ">" + t[1] + "</button>"; }).join("") + '</div><div id="dd-body"></div>';
         $("dd-x").onclick = close; sh.querySelectorAll("[data-t]").forEach(function (b) { b.onclick = function () { setTab(b.dataset.t); }; });
         var body = $("dd-body"); ({ co: pCo, hero: pHero, dng: pDng, cloud: pCloud })[tab](body);
     }
@@ -36752,7 +36796,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         if (CO.role === "host") {
             var G = CO.g;
             b.innerHTML = '<div class="card"><div class="m">Tell your partner to open Dungeon Dwellers → 👥 → Join, and type this code:</div><div class="code">' + esc(CO.code) + '</div>' +
-                (G ? '<div>' + esc(G.emoji) + " <b>" + esc(G.name) + '</b> (' + esc((CL[G.cls] || {}).e || "") + " " + esc(G.cls) + ') is in your party. HP ' + G.hp + '/' + G.max + '</div>' : '<div class="m">⏳ Waiting for your partner to join…</div>') +
+                (G ? '<div>' + av(G, 34) + " <b>" + esc(G.name) + '</b> (' + esc((CL[G.cls] || {}).e || "") + " " + esc(G.cls) + ') is in your party. HP ' + G.hp + '/' + G.max + '</div>' : '<div class="m">⏳ Waiting for your partner to join…</div>') +
                 '<div class="m" style="margin-top:8px">Play like normal. When a fight starts, your partner joins it: 2 heroes (plus your companions, pet and mercenary) against ' + "up to 3 foes. Every round goes allies first, then all the enemies. Your partner gets a “your turn” alert when it's their move.</div>" +
                 '<div class="r"><button class="bad" id="dd-stop">Close the room</button></div></div>';
             $("dd-stop").onclick = function () { if (confirm("Close the co-op room?")) hostStop(); };
@@ -36762,23 +36806,41 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         } else {
             var h = hero();
             b.innerHTML = '<div class="card"><b>Host a room</b><div class="m">You play the main game. Your partner joins your battles from their phone.</div><div class="r"><button class="go" id="dd-host">Host a room</button></div></div>' +
-                '<div class="card"><b>Join your partner</b><div class="m">Your hero: ' + (h.name ? esc(h.emoji + " " + h.name) : "not made yet (Hero tab)") + '</div><div class="r"><input id="dd-code" placeholder="Room code" maxlength="6" style="width:130px;text-transform:uppercase"><button class="go" id="dd-join">Join</button></div></div>';
+                '<div class="card"><b>Join your partner</b><div class="m">Your hero: ' + (h.name ? esc(h.emoji + " " + h.name) : "not made yet (Hero Creator on the main menu)") + '</div><div class="r"><input id="dd-code" placeholder="Room code" maxlength="6" style="width:130px;text-transform:uppercase"><button class="go" id="dd-join">Join</button></div></div>';
             $("dd-host").onclick = hostStart; $("dd-join").onclick = function () { guestJoin($("dd-code").value); };
         }
     }
     function pHero(b) {
-        var h = hero(), left = 8 - (h.pts.atk + h.pts.def + h.pts.hp + h.pts.luck), s = heroStats(h);
-        b.innerHTML = '<div class="m">Make the hero you use when you join your partner\'s game.</div>' +
-            '<label>Name</label><input id="hh-n" value="' + esc(h.name) + '" maxlength="16" placeholder="Hero name">' +
-            '<label>Portrait</label><div class="r">' + PORT.map(function (p) { return '<button data-e="' + p + '"' + (h.emoji === p ? ' class="on"' : "") + ' style="font-size:20px;padding:6px 9px">' + p + "</button>"; }).join("") + '</div>' +
+        var h = hero(), left = 8 - (h.pts.atk + h.pts.def + h.pts.hp + h.pts.luck), s = heroStats(h), R = RACES[h.race] || {}, BK = BACKS[h.back] || {};
+        var chips = function (obj, key, val, extra) { return Object.keys(obj).map(function (k) { return '<button data-' + key + '="' + k + '"' + (val === k ? ' class="on"' : "") + ">" + (obj[k].e ? obj[k].e + " " : "") + k + "</button>"; }).join(""); };
+        var plain = function (arr, key, val) { return arr.map(function (k) { return '<button data-' + key + '="' + esc(k) + '"' + (val === k ? ' class="on"' : "") + ">" + esc(k) + "</button>"; }).join(""); };
+        b.innerHTML = '<div class="m">Make the hero you use when you join your partner\'s game. Everything here shows up in the party.</div>' +
+            '<div class="r" style="justify-content:center;margin:10px 0">' + av(h, 84) + '</div><div style="text-align:center" class="m">' + esc(h.title ? h.title + " " : "") + esc(h.name || "Unnamed hero") + " · " + esc(h.race) + " " + esc(h.cls) + '</div>' +
+            '<label>Name</label><input id="hh-n" value="' + esc(h.name) + '" maxlength="16" placeholder="Hero name"><label>Title (optional)</label><input id="hh-t" value="' + esc(h.title) + '" maxlength="22" placeholder="the Brave, Ghostbane, Snackmaster…">' +
+            '<label>Face</label><div class="r"><button id="hh-photo" class="go">📷 Upload a photo</button>' + (h.photo ? '<button id="hh-nophoto">Use an emoji instead</button>' : "") + '</div><div class="r">' + PORT.map(function (p) { return '<button data-e="' + p + '"' + (!h.photo && h.emoji === p ? ' class="on"' : "") + ' style="font-size:20px;padding:6px 9px">' + p + "</button>"; }).join("") + '</div>' +
+            '<label>Aura colour (the ring around your face)</label><div class="r">' + AURA.map(function (c) { return '<button data-a="' + c + '" style="background:' + c + ';width:34px;height:34px;padding:0;border-radius:50%;' + (h.aura === c ? "outline:3px solid #fff" : "") + '"></button>'; }).join("") + '</div>' +
             '<label>Class</label><div class="r">' + Object.keys(CL).map(function (c) { return '<button data-c="' + c + '"' + (h.cls === c ? ' class="on"' : "") + ">" + CL[c].e + " " + c + "</button>"; }).join("") + '</div><div class="m">' + esc(CL[h.cls].sp) + ": " + esc(CL[h.cls].d) + '</div>' +
+            '<label>Race</label><div class="r">' + chips(RACES, "r", h.race) + '</div><div class="m">' + esc(R.d || "") + '</div>' +
+            '<label>Backstory</label><div class="r">' + chips(BACKS, "b", h.back) + '</div><div class="m">' + esc(BK.d || "") + " <i>" + esc(BK.t || "") + '</i></div>' +
+            '<label>Nature</label><div class="r">' + plain(ALIGN, "al", h.align) + '</div>' +
+            '<label>What do they fear most? (the game remembers…)</label><div class="r">' + plain(FEARS, "f", h.fear) + '</div>' +
+            '<label>Your own backstory (optional)</label><textarea id="hh-s" rows="3" style="width:100%" maxlength="300" placeholder="Where they come from, who they lost, why they descend…">' + esc(h.story) + '</textarea>' +
             '<label>Stat points to spend: <b>' + left + '</b> (8 total)</label>' + [["atk", "⚔️ Attack"], ["def", "🛡️ Armor"], ["hp", "❤️ Health"], ["luck", "🍀 Crit luck"]].map(function (x) { return '<div class="r"><span style="width:100px">' + x[1] + '</span><button data-p="' + x[0] + '-">−</button><b style="width:24px;text-align:center">' + h.pts[x[0]] + '</b><button data-p="' + x[0] + '+">+</button></div>'; }).join("") +
-            '<div class="card m">HP ' + s.max + " · Attack " + s.atk + " · Armor " + s.def + " · Crit " + Math.round(s.crit * 100) + "%</div>" +
+            '<div class="card m">HP ' + s.max + " · Attack " + s.atk + " · Armor " + s.def + " · Crit " + Math.round(s.crit * 100) + "% · Potions " + s.pots + "</div>" +
             '<label>Battle cry</label><input id="hh-q" value="' + esc(h.quote) + '" maxlength="40"><div class="r"><button class="go" id="hh-save">Save hero</button></div>';
-        var save = function () { h.name = $("hh-n").value.trim(); h.quote = $("hh-q").value; lset("ddco_hero", JSON.stringify(h)); };
-        b.querySelectorAll("[data-e]").forEach(function (x) { x.onclick = function () { save(); h.emoji = x.dataset.e; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
-        b.querySelectorAll("[data-c]").forEach(function (x) { x.onclick = function () { save(); h.cls = x.dataset.c; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
-        b.querySelectorAll("[data-p]").forEach(function (x) { x.onclick = function () { save(); var k = x.dataset.p.slice(0, -1), up = x.dataset.p.slice(-1) === "+"; if (up && left > 0) h.pts[k]++; if (!up && h.pts[k] > 0) h.pts[k]--; lset("ddco_hero", JSON.stringify(h)); draw(); }; });
+        var put = function () { lset("ddco_hero", JSON.stringify(h)); };
+        var save = function () { h.name = $("hh-n").value.trim(); h.title = $("hh-t").value.trim(); h.quote = $("hh-q").value; h.story = $("hh-s").value; put(); };
+        var tap = function (sel, fn) { b.querySelectorAll(sel).forEach(function (x) { x.onclick = function () { save(); fn(x); put(); draw(); }; }); };
+        tap("[data-e]", function (x) { h.emoji = x.dataset.e; h.photo = ""; });
+        tap("[data-c]", function (x) { h.cls = x.dataset.c; });
+        tap("[data-r]", function (x) { h.race = x.dataset.r; });
+        tap("[data-b]", function (x) { h.back = x.dataset.b; });
+        tap("[data-al]", function (x) { h.align = x.dataset.al; });
+        tap("[data-f]", function (x) { h.fear = x.dataset.f; });
+        tap("[data-a]", function (x) { h.aura = x.dataset.a; });
+        tap("[data-p]", function (x) { var k = x.dataset.p.slice(0, -1), up = x.dataset.p.slice(-1) === "+"; if (up && left > 0) h.pts[k]++; if (!up && h.pts[k] > 0) h.pts[k]--; });
+        if ($("hh-nophoto")) $("hh-nophoto").onclick = function () { save(); h.photo = ""; put(); draw(); };
+        $("hh-photo").onclick = function () { save(); var f = document.createElement("input"); f.type = "file"; f.accept = "image/*"; f.onchange = function () { if (!f.files[0]) return; shrinkPhoto(f.files[0]).then(function (u) { h.photo = u; put(); draw(); }, function () { toast("Couldn't read that picture."); }); }; f.click(); };
         $("hh-save").onclick = function () { save(); if (!h.name) { toast("Give your hero a name."); return; } kvSet("dd_hero_" + me(), h); toast("Hero saved: " + h.name); };
     }
     function pCloud(b) {
@@ -36816,8 +36878,10 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         b.innerHTML = '<label>Dungeon name</label><input id="de-n" value="' + esc(E.name) + '" maxlength="30"><label>Opening line</label><input id="de-i" value="' + esc(E.intro) + '" style="width:100%"><label>Ending line</label><input id="de-o" value="' + esc(E.outro) + '" style="width:100%">' +
             E.rooms.map(function (r, i) {
                 return '<div class="card" data-i="' + i + '"><div class="r"><b>Room ' + (i + 1) + '</b><select data-f="type">' + Object.keys(RT).map(function (k) { return '<option value="' + k + '"' + (r.type === k ? " selected" : "") + ">" + RT[k] + "</option>"; }).join("") + '</select><button data-m="up">▲</button><button data-m="dn">▼</button><button class="bad" data-m="rm">✖</button></div>' +
-                    ((r.type === "battle" || r.type === "boss") ? '<div class="r"><select data-f="enemy">' + en.map(function (e) { return "<option" + (r.enemy === e ? " selected" : "") + ">" + esc(e) + "</option>"; }).join("") + '</select><label style="margin:0">Level</label><input data-f="lvl" type="number" min="1" max="99" value="' + (r.lvl || 1) + '" style="width:64px"></div>' : "") +
-                    ((r.type === "treasure" || r.type === "trap") ? '<div class="r"><label style="margin:0">' + (r.type === "trap" ? "Damage" : "Gold") + '</label><input data-f="amt" type="number" min="1" value="' + (r.amt || 20) + '" style="width:80px"></div>' : "") +
+                    ((r.type === "battle" || r.type === "boss" || r.type === "haunted") ? '<div class="r"><select data-f="enemy">' + en.map(function (e) { return "<option" + (r.enemy === e ? " selected" : "") + ">" + esc(e) + "</option>"; }).join("") + '</select><label style="margin:0">Level</label><input data-f="lvl" type="number" min="1" max="99" value="' + (r.lvl || 1) + '" style="width:64px"></div>' : "") +
+                    (r.type === "riddle" ? '<input data-f="q" placeholder="The riddle" value="' + esc(r.q || "") + '" style="width:100%">' + [1,2,3,4].map(function (n) { return '<input data-f="o' + n + '" placeholder="Answer ' + n + '" value="' + esc(r["o" + n] || "") + '" style="width:100%">'; }).join("") + '<div class="r"><label style="margin:0">Right answer #</label><input data-f="right" type="number" min="1" max="4" value="' + (r.right || 1) + '" style="width:60px"></div>' : "") +
+                    ((r.type === "puzzle") ? '<div class="r"><label style="margin:0">Puzzle # (1-8)</label><input data-f="lvl" type="number" min="1" max="8" value="' + (r.lvl || 1) + '" style="width:60px"></div>' : "") +
+                    ((r.type === "treasure" || r.type === "trap" || r.type === "riddle" || r.type === "lockbox") ? '<div class="r"><label style="margin:0">' + (r.type === "trap" || r.type === "riddle" ? "Damage" : "Gold") + '</label><input data-f="amt" type="number" min="1" value="' + (r.amt || 20) + '" style="width:80px"></div>' : "") +
                     '<textarea data-f="text" rows="2" style="width:100%" placeholder="What the room looks like (optional)">' + esc(r.text || "") + "</textarea></div>";
             }).join("") + '<div class="r"><button id="de-add">＋ Add room</button></div><div class="r"><button class="go" id="de-save">Save</button><button id="de-cancel">Cancel</button></div>';
         var grab = function () { E.name = $("de-n").value.trim() || "My Dungeon"; E.intro = $("de-i").value; E.outro = $("de-o").value; b.querySelectorAll(".card[data-i]").forEach(function (c) { var r = E.rooms[+c.dataset.i]; c.querySelectorAll("[data-f]").forEach(function (f) { r[f.dataset.f] = f.type === "number" ? +f.value : f.value; }); }); };
@@ -36839,8 +36903,724 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         if (/coop/.test(location.hash)) { if (CO.role === "guest") { gvShow(); } else open(); }
         setInterval(function () { if (CO.role === "host" && !CO.busy) { if (typeof Battle === "undefined" || !Battle) { if (CO.phase !== "idle") writeNow("idle"); else if (Date.now() - (CO.hbT || 0) > 20000) { CO.hbT = Date.now(); writeNow("idle"); } } } }, 4000);
     }
-    window.DDCO = { open: open, state: CO, runDungeon: runDungeon, cloudSave: cloudSave };
+    window.DDCO = { api: { CO: CO, kvGet: kvGet, kvSet: kvSet, cfg: cfg, hostActive: hostActive, addLog: addLog, writeNow: writeNow, writeRoom: writeRoom, banner: banner, esc: esc, av: av, hero: hero, heroStats: heroStats, sleep: sleep, me: me, names: names, hb: hb, rng: rng, imgFor: imgFor, bgNow: bgNow, enemyList: enemyList, RT: RT, DNG: function () { return DNG; }, nextRoom: function () { return nextRoom(); }, pushTurn: pushTurn, RACES: RACES, BACKS: BACKS, wrap: wrap }, open: open, openTab: function (t) { open(t, true); }, state: CO, runDungeon: runDungeon, cloudSave: cloudSave };
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
+})();
+
+</script>
+<script id="ddce">
+/* ===== Dungeon Dwellers: Co-op events (puzzles, 2-player QTEs, shared votes), revive, co-op chests, angling upgrade ===== */
+(function () {
+    "use strict";
+    if (window.__ddce) return; window.__ddce = 1;
+    (function boot() { if (!window.DDCO || !DDCO.api) return setTimeout(boot, 250); try { init(DDCO.api); } catch (e) { console.error("[ddce]", e); } })();
+
+    function init(A) {
+        var CO = A.CO, esc = A.esc, $ = function (id) { return document.getElementById(id); };
+        var sleep = A.sleep, banner = A.banner, rnd = Math.random;
+        var ls = function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+        var jget = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+        var jset = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+        var wrap2 = function (name, fn) { var o = window[name]; if (typeof o !== "function") return; var n = fn(o); n.__dd2 = 1; window[name] = n; };
+
+        /* ---------- styles ---------- */
+        var st = document.createElement("style");
+        st.textContent = ".ddce{position:fixed;inset:0;z-index:99996;background:radial-gradient(ellipse at 50% 20%,#2a0a0a,#0a0606 70%);color:#e7e5e4;display:none;flex-direction:column;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif;overflow:auto;text-align:center}" +
+            ".ddce h2{font-family:Cinzel,serif;color:#fbbf24;letter-spacing:.12em;margin:0 0 6px;font-size:22px;text-transform:uppercase}.ddce .tx{max-width:460px;font-size:14.5px;line-height:1.55;color:#d6d3d1;margin:6px 0 12px;white-space:pre-line}" +
+            ".ddce .who{font-size:11px;color:#a8a29e;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}.ddce .clue{max-width:460px;background:#1c1917;border:1px solid #7f1d1d;border-radius:12px;padding:10px 12px;margin:6px 0;font-size:13.5px;font-style:italic;color:#fca5a5}" +
+            ".ddce .opts{display:flex;flex-direction:column;gap:8px;width:100%;max-width:460px;margin-top:8px}.ddce button{font:inherit;font-size:15px;font-weight:800;border:1px solid #7f1d1d;background:linear-gradient(#2a1210,#1a0b0a);color:#fde68a;border-radius:12px;padding:12px 14px;cursor:pointer}" +
+            ".ddce button.sel{background:#b45309;border-color:#f59e0b;color:#fff}.ddce button:disabled{opacity:.55}.ddce .wait{margin-top:12px;color:#a8a29e;font-size:13px}.ddce .res{margin-top:10px;font-size:16px;font-weight:800;color:#86efac}.ddce .res.bad{color:#fca5a5}" +
+            ".ddce .bar{position:relative;width:100%;max-width:420px;height:26px;border-radius:13px;background:#171717;border:1px solid #525252;overflow:hidden;margin:10px 0}.ddce .zone{position:absolute;top:0;bottom:0;background:rgba(34,197,94,.4)}.ddce .needle{position:absolute;top:-2px;bottom:-2px;width:6px;background:#fbbf24;border-radius:3px}" +
+            ".ddce .ringbox{position:relative;width:200px;height:200px;margin:10px auto}.ddce .tgt{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;border:3px solid #fbbf24;display:flex;align-items:center;justify-content:center;font-size:34px}.ddce .ring{position:absolute;left:50%;top:50%;border-radius:50%;border:4px solid #ef4444;transform:translate(-50%,-50%)}" +
+            ".ddce .big{font-size:20px;padding:16px 28px}.ddce .meter{position:relative;width:46px;height:200px;border-radius:12px;background:#171717;border:1px solid #525252;margin:8px auto;overflow:hidden}.ddce .meter .zone{left:0;right:0;top:auto;bottom:auto}.ddce .meter .needle{left:-2px;right:-2px;width:auto;height:6px;top:auto;bottom:auto}" +
+            "#ddsc{position:fixed;left:8px;right:8px;top:8px;z-index:99994;background:#0c0a09f2;border:1px solid #7f1d1d;border-radius:14px;padding:10px 12px;color:#e7e5e4;font-family:system-ui,sans-serif;display:none;max-height:46vh;overflow:auto;box-shadow:0 8px 30px #000a}#ddsc.on{display:block}#ddsc b.sp{font-family:Cinzel,serif;color:#fbbf24;letter-spacing:.1em;text-transform:uppercase;font-size:13px}#ddsc .tx{font-size:13.5px;line-height:1.5;white-space:pre-line;margin:4px 0}" +
+            "#ddsc button{font:inherit;font-size:13px;font-weight:800;border:1px solid #7f1d1d;background:#241010;color:#fde68a;border-radius:10px;padding:8px 10px;margin:3px 3px 0 0}#ddsc button.sel{background:#b45309;color:#fff}";
+        document.head.appendChild(st);
+
+        /* ---------- local mini-games used by events (each phone plays its own, results are combined by the host) ---------- */
+        var K = {};
+        K.choice = function (box, ev, done, ctl) {
+            var d = ev.d || {};
+            box.innerHTML = (d.clue ? '<div class="clue">' + esc(d.clue) + "</div>" : "") + (d.q ? '<div class="tx" style="font-weight:700;color:#fde68a">' + esc(d.q) + "</div>" : "") + '<div class="opts">' + (d.opts || []).map(function (o, i) { return '<button data-i="' + i + '">' + esc(o) + "</button>"; }).join("") + '</div><div class="wait" id="ce-w"></div>';
+            var locked = false;
+            box.querySelectorAll("[data-i]").forEach(function (b) { b.onclick = function () { if (locked) return; locked = true; b.classList.add("sel"); box.querySelectorAll("[data-i]").forEach(function (x) { x.disabled = true; }); $("ce-w").textContent = "Locked in. Waiting for your partner…"; done({ pick: +b.dataset.i }); }; });
+        };
+        K.riddle = K.choice;
+        K.keys = function (box, ev, done, ctl) {
+            var d = ev.d || {}, tries = 2, raf = 0, t0 = performance.now(), zone = [0.38 + rnd() * 0.2], over = false;
+            box.innerHTML = '<div class="tx">' + esc(d.label || "Turn your key when the needle is in the green.") + '</div><div class="bar"><div class="zone" id="ce-z"></div><div class="needle" id="ce-n"></div></div><div id="ce-t" class="wait">Tries left: 2</div><button class="big" id="ce-b">🗝️ TURN</button><div class="wait" id="ce-w"></div>';
+            var z = $("ce-z"), n = $("ce-n"), setZ = function () { zone = [0.3 + rnd() * 0.4]; z.style.left = zone[0] * 100 + "%"; z.style.width = "16%"; }; setZ();
+            var spd = d.speed || 1.7;
+            var loop = function (ts) { if (over) return; var x = (Math.sin((ts - t0) / 1000 * spd * Math.PI) + 1) / 2; n.style.left = "calc(" + x * 100 + "% - 3px)"; n.__x = x; raf = requestAnimationFrame(loop); }; raf = requestAnimationFrame(loop);
+            $("ce-b").onclick = function () {
+                if (over) return; var x = n.__x || 0, hit = x >= zone[0] && x <= zone[0] + 0.16;
+                if (hit) { over = true; cancelAnimationFrame(raf); $("ce-w").textContent = "Click! Your key turns. Waiting for your partner…"; $("ce-b").disabled = true; done({ hit: true }); }
+                else { tries--; $("ce-t").textContent = "Missed! Tries left: " + tries; if (tries <= 0) { over = true; cancelAnimationFrame(raf); $("ce-b").disabled = true; $("ce-w").textContent = "Your key jams. Waiting for your partner…"; done({ hit: false }); } else setZ(); }
+            };
+            ctl.stop = function () { over = true; cancelAnimationFrame(raf); };
+        };
+        K.rhythm = function (box, ev, done, ctl) {
+            var d = ev.d || {}, beats = d.beats || 6, per = 60000 / (d.bpm || 64), t0 = performance.now() + 1200, hits = 0, n = 0, lastBeat = -1, over = false, raf = 0, tapped = {};
+            box.innerHTML = '<div class="tx">' + esc(d.label || "Tap when the red ring closes on the circle.") + '</div><div class="ringbox"><div class="tgt">' + (d.icon || "💗") + '</div><div class="ring" id="ce-r"></div></div><div id="ce-f" class="wait">Get ready…</div><button class="big" id="ce-b">TAP</button>';
+            var ring = $("ce-r"), fb = $("ce-f");
+            var loop = function (ts) { if (over) return; var el = ts - t0; if (el >= 0) { var b = Math.floor(el / per), ph = (el % per) / per; var sz = 200 - ph * 116; ring.style.width = ring.style.height = sz + "px"; ring.style.opacity = 1;
+                    if (b !== lastBeat) { if (lastBeat >= 0 && !tapped[lastBeat]) { fb.textContent = "Missed"; } lastBeat = b; n = b; if (b >= beats) { over = true; $("ce-b").disabled = true; fb.textContent = "Done. Waiting for your partner…"; done({ hits: hits, total: beats }); return; } } } else { ring.style.opacity = 0; }
+                raf = requestAnimationFrame(loop); }; raf = requestAnimationFrame(loop);
+            $("ce-b").onclick = function () { if (over) return; var el = performance.now() - t0; if (el < 0) return; var b = Math.floor(el / per), ph = (el % per) / per, near = ph > 0.86 || ph < 0.1, bb = ph > 0.86 ? b : b - (ph < 0.1 ? 1 : 0); if (ph < 0.1) bb = b - 1 + 0; var target = ph > 0.5 ? b : b - 1; if (target < 0 || tapped[target]) { return; } tapped[target] = 1; if (near) { hits++; fb.textContent = "💥 In time! " + hits + "/" + beats; try { navigator.vibrate && navigator.vibrate(30); } catch (e) {} } else { fb.textContent = "Off beat"; } };
+            ctl.stop = function () { over = true; cancelAnimationFrame(raf); };
+        };
+        K.hold = function (box, ev, done, ctl) {
+            var d = ev.d || {}, secs = d.secs || 8, v = 0.5, inZ = 0, t = 0, last = performance.now(), holding = false, over = false, raf = 0, drift = 0, nd = 0.6;
+            box.innerHTML = '<div class="tx">' + esc(d.label || "Hold to push the marker up, let go to let it fall. Keep it in the green.") + '</div><div class="meter"><div class="zone" id="ce-z" style="bottom:35%;height:32%"></div><div class="needle" id="ce-n"></div></div><div class="wait" id="ce-t">' + secs + 's</div><button class="big" id="ce-b">HOLD</button>';
+            var n = $("ce-n"), b = $("ce-b"), tt = $("ce-t");
+            var on = function (e) { e.preventDefault(); holding = true; }, offf = function () { holding = false; };
+            b.addEventListener("pointerdown", on); b.addEventListener("pointerup", offf); b.addEventListener("pointerleave", offf); b.addEventListener("pointercancel", offf);
+            var loop = function (ts) { if (over) return; var dt = Math.min(0.05, (ts - last) / 1000); last = ts; t += dt; nd -= dt; if (nd <= 0) { drift = (rnd() - 0.5) * 0.9; nd = 0.5 + rnd() * 0.9; }
+                v += ((holding ? 0.55 : -0.42) + drift) * dt; v = Math.max(0, Math.min(1, v)); if (v >= 0.35 && v <= 0.67) inZ += dt; n.style.bottom = "calc(" + v * 100 + "% - 3px)"; tt.textContent = Math.max(0, Math.ceil(secs - t)) + "s";
+                if (t >= secs) { over = true; b.disabled = true; var f = inZ / secs; tt.textContent = "Done. Waiting for your partner…"; done({ frac: f }); return; } raf = requestAnimationFrame(loop); }; raf = requestAnimationFrame(loop);
+            ctl.stop = function () { over = true; cancelAnimationFrame(raf); };
+        };
+
+        function mount(box, ev, done) {
+            var ctl = {}; (K[ev.kind] || K.choice)(box, ev, done, ctl); return ctl;
+        }
+        function frame(o, ev, role) {
+            o.innerHTML = '<div class="who">' + (role === "solo" ? "Solo" : role === "host" ? "You and your partner" : "You and the host") + '</div><h2>' + esc(ev.title || "") + '</h2><div class="tx">' + esc(ev.text || "") + '</div><div id="ce-body" style="width:100%;display:flex;flex-direction:column;align-items:center"></div><div id="ce-res"></div>';
+            return $("ce-body");
+        }
+        function showRes(res) { var r = $("ce-res"); if (r) r.innerHTML = '<div class="res' + (res.ok ? "" : " bad") + '">' + esc(res.line || (res.ok ? "Success!" : "It didn't work.")) + "</div>"; }
+
+        /* ---------- judging ---------- */
+        function judge(spec, h, g, co) {
+            var res = { ok: false, line: "", h: h, g: g, co: co };
+            switch (spec.kind) {
+                case "riddle": var hr = h && h.pick === spec.right, gr = g && g.pick === spec.right; res.hr = hr; res.gr = gr;
+                    res.level = co ? (hr && gr ? 2 : (hr || gr) ? 1 : 0) : (hr ? 2 : 0); res.ok = res.level >= (co ? 1 : 2) && (co ? (hr && gr) || res.level === 1 : hr);
+                    res.full = co ? hr && gr : hr; res.line = co ? (hr && gr ? "You both got it. Brilliant!" : hr || gr ? "Only one of you saw the answer…" : "Neither of you saw it.") : (hr ? "Correct!" : "Wrong."); break;
+                case "choice": res.pick = h ? h.pick : 0; res.gpick = g ? g.pick : null; res.agree = g != null && g.pick === res.pick; res.ok = true; res.line = co ? (res.agree ? "You agree." : "You disagree. The host decides.") : ""; break;
+                case "keys": res.ok = !!(h && h.hit) && (!co || !!(g && g.hit)); res.line = res.ok ? "Both keys turn. The lock gives way!" : (co && h && h.hit && !(g && g.hit)) ? "Your partner's key jammed." : "The lock won't give."; break;
+                case "rhythm": var tot = (h ? h.hits : 0) + (g ? g.hits : 0), mx = ((h ? h.total : 0) + (g ? g.total : 0)) || 1; res.score = tot / mx; res.ok = res.score >= (spec.need || 0.6); res.line = res.ok ? "In perfect time." : "Out of step."; break;
+                case "hold": var f = spec.guestOnly ? (g ? g.frac : 0) : ((h ? h.frac : 0) + (g ? g.frac : 0)) / (co ? 2 : 1); res.score = f; res.ok = f >= (spec.need || 0.55); res.line = res.ok ? "Steady hands, both of you." : "It slipped."; break;
+            }
+            return res;
+        }
+
+        /* ---------- host: run an event ---------- */
+        var host = null;
+        function run(spec) {
+            var co = A.hostActive() && !spec.soloOnly, id = "e" + Date.now().toString(36) + Math.floor(rnd() * 99);
+            var hd = spec.host || spec.data || {}, gd = spec.guest || spec.data || {};
+            var ho = document.getElementById("ddce-h"); if (!ho) { ho = document.createElement("div"); ho.id = "ddce-h"; ho.className = "ddce"; document.body.appendChild(ho); }
+            if (!spec.guestOnly) ho.style.display = "flex"; var body = frame(ho, { title: spec.title, text: spec.text }, co ? "host" : "solo");
+            var hAns = null, gAns = null, gDone = !co, ctl;
+            var hostP = spec.guestOnly ? Promise.resolve(null) : new Promise(function (res) { ctl = mount(body, { kind: spec.kind, d: hd }, function (a) { hAns = a; res(a); }); });
+            if (spec.guestOnly) ho.style.display = "none";
+            var guestP = !co ? Promise.resolve(null) : new Promise(function (res) {
+                CO.ev = { id: id, kind: spec.kind, title: spec.title, text: spec.text, d: gd };
+                CO.evWait = function (g) { if (g && g.ans) { gAns = g.ans; CO.evWait = null; res(g.ans); } };
+                if (!spec.quiet) A.pushTurn((A.names()[A.me()] || "Your partner") + " needs you: " + spec.title);
+                A.writeNow(); setTimeout(function () { if (!gAns) { CO.evWait = null; res(null); } }, (spec.timeout || 120) * 1000);
+            });
+            return Promise.all([hostP, guestP]).then(function (r) {
+                var res = judge(spec, r[0], r[1], co); if (co && !r[1]) res.line += " (Your partner didn't answer in time.)";
+                if (ctl && ctl.stop) ctl.stop(); if (!spec.guestOnly) showRes(res);
+                if (co) { CO.ev = { id: id, kind: spec.kind, title: spec.title, res: { ok: res.ok, line: res.line } }; A.writeNow(); }
+                return sleep(spec.guestOnly ? 2500 : co ? 3300 : 2200).then(function () { CO.ev = null; CO.evWait = null; if (co) A.writeNow(); ho.style.display = "none"; return res; });
+            });
+        }
+
+        /* ---------- guest: show whatever the host is running ---------- */
+        var gShown = null, gCtl = null, gSceneId = null;
+        window.__ddceGuest = function (r) {
+            if (!r) return; var ev = r.ev, sc = r.scene, go = $("ddce-g");
+            if (ev && ev.id !== gShown) {
+                gShown = ev.id; if (gCtl && gCtl.stop) gCtl.stop();
+                if (!go) { go = document.createElement("div"); go.id = "ddce-g"; go.className = "ddce"; document.body.appendChild(go); }
+                go.style.display = "flex"; var body = frame(go, ev, "guest");
+                gCtl = mount(body, ev, function (ans) { A.kvSet("dd_room_" + CO.code + "_g", { joined: CO.joinedAt || undefined, hero: A.hero(), seq: CO.sent, ev: { id: ev.id, ans: ans }, t: Date.now() }); });
+                if (ev.res) showRes(ev.res);
+            } else if (ev && ev.res && go && !go.__shown) { go.__shown = ev.id; if (gCtl && gCtl.stop) gCtl.stop(); showRes(ev.res); }
+            else if (!ev && go && go.style.display !== "none") { if (gCtl && gCtl.stop) gCtl.stop(); go.style.display = "none"; go.__shown = null; gShown = null; }
+            var so = $("ddsc");
+            if (sc && !ev) {
+                if (!so) { so = document.createElement("div"); so.id = "ddsc"; document.body.appendChild(so); }
+                if (so.__id !== sc.id) { so.__id = sc.id; so.innerHTML = '<b class="sp">' + esc(sc.speaker || sc.title || "") + "</b>" + (sc.title && sc.speaker ? ' <span style="color:#a8a29e;font-size:11px">· ' + esc(sc.title) + "</span>" : "") + '<div class="tx">' + esc(sc.text || "") + "</div>" + ((sc.opts || []).length ? '<div style="font-size:11px;color:#a8a29e">Tell the host what you think:</div>' + sc.opts.map(function (o, i) { return '<button data-v="' + i + '">' + esc(o) + "</button>"; }).join("") : "");
+                    so.querySelectorAll("[data-v]").forEach(function (b) { b.onclick = function () { so.querySelectorAll("[data-v]").forEach(function (x) { x.classList.remove("sel"); }); b.classList.add("sel"); A.kvSet("dd_room_" + CO.code + "_g", { joined: CO.joinedAt || undefined, hero: A.hero(), seq: CO.sent, vote: { id: sc.id, pick: +b.dataset.v, name: A.hero().name }, t: Date.now() }); }; }); }
+                so.classList.add("on");
+            } else if (so) { so.classList.remove("on"); }
+        };
+
+        /* ---------- host: broadcast a story scene to the partner, collect their lean ---------- */
+        function scene(sp) {
+            if (!A.hostActive()) return;
+            CO.scene = { id: "s" + Date.now().toString(36), speaker: sp.speaker, title: sp.title, text: sp.text, opts: sp.opts || null };
+            CO.voteWait = function (v) { if (!CO.scene || v.id !== CO.scene.id) return; var o = (CO.scene.opts || [])[v.pick]; if (o && CO.scene.lean !== v.pick) { CO.scene.lean = v.pick; banner("💬 " + (v.name || "Your partner") + " leans toward: " + o); } };
+            A.writeNow();
+        }
+        function clearScene() { if (CO.scene) { CO.scene = null; CO.voteWait = null; if (A.hostActive()) A.writeNow(); } }
+
+        /* ---------- 42: revive the downed partner with a heartbeat rhythm ---------- */
+        wrap2("enemyTurn", function (o) { return function () {
+            var self = this, args = arguments;
+            try {
+                if (A.hostActive() && CO.g && CO.g.down && typeof Battle !== "undefined" && Battle && Battle.hp > 0 && !CO.reviving) {
+                    if ((CO.revCd || 0) > 0) { CO.revCd--; } else {
+                        CO.reviving = true; CO.revCd = 2; var nm = CO.g.name;
+                        run({ kind: "rhythm", title: "Revive " + nm, text: "Both of you tap in time with the heartbeat to pull " + nm + " back from the edge!", data: { beats: 6, bpm: 60, icon: "💗" }, need: 0.6 }).then(function (res) {
+                            CO.reviving = false;
+                            if (res.ok) { CO.g.down = false; CO.g.hp = Math.max(1, Math.round(CO.g.max * 0.35)); A.addLog("💗 " + nm + " is dragged back from the dark!"); banner("💗 " + nm + " is back on their feet!"); }
+                            else A.addLog("💔 The heartbeat fades. " + nm + " stays down.");
+                            A.hb(); A.writeNow(); return o.apply(self, args);
+                        }, function () { CO.reviving = false; return o.apply(self, args); });
+                        return;
+                    }
+                }
+            } catch (e) { console.warn(e); }
+            return o.apply(self, args);
+        }; });
+
+        /* ---------- 54: chests that two people open together ---------- */
+        var chestCtx = null;
+        wrap2("handleChestEncounter", function (o) { return function (bgUrl) { chestCtx = { bg: bgUrl }; return o.apply(this, arguments); }; });
+        wrap2("walkToNextNode", function (o) { return function () { chestCtx = null; return o.apply(this, arguments); }; });
+        wrap2("renderChoices", function (o) { return function (arr) {
+            try {
+                if (chestCtx && Array.isArray(arr) && arr.some(function (c) { return /Ignore Chest/.test(c.text || ""); })) {
+                    if (!A.hostActive()) { chestCtx = null; } else {
+                    var ctx = chestCtx; chestCtx = null;
+                    arr = arr.concat([{ text: "🤝 Open it together (both of you turn a key at once)", action: function () {
+                        run({ kind: "keys", title: "The Sealed Chest", text: "Two locks. Two keys. Both of you must turn yours at the very same time.", data: { label: "Turn your key when the needle is in the green." } }).then(function (res) {
+                            if (res.ok) { try { AudioEngine.playUnlock(); } catch (e) {} var b0 = gameState.gold; triggerChestPayout(ctx.bg, getAsset("chest")); var extra = 40 + gameState.level * 6; gameState.gold += extra; if (CO.g) CO.g.pots = Math.min(9, (CO.g.pots || 0) + 1); A.addLog("🤝 The chest opens! +" + extra + " bonus gold and a potion for " + (CO.g ? CO.g.name : "your partner")); try { updateUI(); } catch (e) {} A.writeNow(); }
+                            else executeCustomNode(ctx.bg, null, "Result", "The locks seize", "The mechanism jams. The chest stays sealed.", function () { renderChoices([{ text: "Try again", action: function () { handleChestEncounter(ctx.bg); } }, { text: "Leave it", action: walkToNextNode }]); });
+                        });
+                    } }]);
+                    }
+                }
+            } catch (e) { console.warn(e); }
+            return o.apply(this, arguments);
+        }; });
+
+        /* ====================================================================================
+           55: ANGLER'S JOURNAL: bait, rod upgrades, records, and a partner who steadies the boat
+           ==================================================================================== */
+        var FK = "ddfish";
+        var fishData = function () { var f = jget(FK, null) || {}; f.rod = f.rod || 1; f.bait = f.bait || { worm: 0, moth: 0, pepper: 0, candy: 0 }; f.log = f.log || {}; f.total = f.total || 0; f.coop = f.coop || 0; return f; };
+        var fishSave = function (f) { jset(FK, f); };
+        var BAITS = { worm: ["🪱", "Cave worm", "+25% food from the catch", 8], moth: ["🦋", "Glow-moth", "+25% chance of a gem in the belly", 14], pepper: ["🌶️", "Ghost pepper", "+60% food, but it bites back (-4 HP)", 12], candy: ["🍬", "Candy cane (seasonal)", "A few extra coins in every catch", 0] };
+        var RODS = { 1: ["Bent twig rod", 0], 2: ["Ash-wood rod", 150], 3: ["Sinew & steel rod", 400] };
+        function overlayPanel(id, html, wire) {
+            var o = document.getElementById(id); if (!o) { o = document.createElement("div"); o.id = id; o.className = "ddce"; document.body.appendChild(o); }
+            o.style.display = "flex"; o.innerHTML = html + '<div class="opts"><button id="' + id + '-x">Close</button></div>'; document.getElementById(id + "-x").onclick = function () { o.style.display = "none"; }; if (wire) wire(o); return o;
+        }
+        function openJournal() {
+            var F = fishData(), g = gameState, species = Object.keys(F.log).sort();
+            var html = '<h2>🎣 Angler\'s Journal</h2><div class="tx">Rod: <b>' + RODS[F.rod][0] + "</b> (tier " + F.rod + ") · " + F.total + " fish landed" + (F.coop ? " · " + F.coop + " with a partner steadying the boat" : "") + "\nYou have " + g.gold + " gold and " + (g.silver || 0) + " silver.</div>" +
+                '<div class="opts">' + (F.rod < 3 ? '<button data-up="1">⬆️ Upgrade to ' + RODS[F.rod + 1][0] + " (" + RODS[F.rod + 1][1] + " gold): bigger catches, better odds</button>" : '<div class="tx">Your rod cannot get any better.</div>') +
+                Object.keys(BAITS).filter(function (k) { return BAITS[k][3] > 0; }).map(function (k) { return '<button data-buy="' + k + '">' + BAITS[k][0] + " Buy " + BAITS[k][1] + " (" + BAITS[k][3] + " silver) · you have " + F.bait[k] + "<br><small>" + BAITS[k][2] + "</small></button>"; }).join("") + "</div>" +
+                '<div class="tx" style="margin-top:12px"><b>Catch log</b>\n' + (species.length ? species.map(function (n) { return esc(n) + " ×" + F.log[n].n + " (best " + F.log[n].best + ")"; }).join("\n") : "Nothing yet. Go to camp and cast a line.") + "</div>";
+            overlayPanel("ddj", html, function (o) {
+                o.querySelectorAll("[data-up]").forEach(function (b) { b.onclick = function () { var c = RODS[F.rod + 1][1]; if (g.gold < c) { banner("Not enough gold."); return; } g.gold -= c; F.rod++; fishSave(F); try { updateUI(); saveGame(); } catch (e) {} banner("🎣 Rod upgraded!"); openJournal(); }; });
+                o.querySelectorAll("[data-buy]").forEach(function (b) { b.onclick = function () { var k = b.dataset.buy, c = BAITS[k][3]; if ((g.silver || 0) < c) { banner("Not enough silver."); return; } g.silver -= c; F.bait[k]++; fishSave(F); try { updateUI(); saveGame(); } catch (e) {} openJournal(); }; });
+            });
+        }
+        function chooseBait(F) {
+            var have = Object.keys(BAITS).filter(function (k) { return F.bait[k] > 0; }); if (!have.length) return Promise.resolve(null);
+            return new Promise(function (res) {
+                var o = overlayPanel("ddj-b", '<h2>🎣 Bait?</h2><div class="tx">Use a bait on this cast?</div><div class="opts">' + have.map(function (k) { return '<button data-b="' + k + '">' + BAITS[k][0] + " " + BAITS[k][1] + " (" + F.bait[k] + ")<br><small>" + BAITS[k][2] + "</small></button>"; }).join("") + '<button data-b="">No bait</button></div>', function (o) {
+                    o.querySelectorAll("[data-b]").forEach(function (b) { b.onclick = function () { o.style.display = "none"; res(b.dataset.b || null); }; });
+                }); o.querySelector("#ddj-b-x").style.display = "none";
+            });
+        }
+        var MGo = window.DDC && DDC.b10 && DDC.b10.MG;
+        if (MGo && MGo.fish && !MGo.fish.__dd2) {
+            var origFish = MGo.fish;
+            MGo.fish = function (cfg) {
+                cfg = cfg || {}; var F = fishData(), bait = null, co = A.hostActive() && !cfg.practice;
+                return chooseBait(F).then(function (b) {
+                    bait = b; if (b) { F.bait[b]--; fishSave(F); cfg.bait = true; }
+                    var net = co ? run({ kind: "hold", guestOnly: true, title: "Steady the boat", text: "Your partner is fishing! Keep the line steady for them.", data: { secs: 14, label: "Hold to steady the boat. Keep the marker in the green!" }, need: 0.5, timeout: 70 }) : null;
+                    return origFish.call(MGo, cfg).then(function (r) {
+                        return (net ? Promise.race([net, sleep(25000).then(function () { return null; })]) : Promise.resolve(null)).then(function (nr) {
+                            try {
+                                if (r && r.ok && !r.pale) {
+                                    var rod = F.rod, mul = 1 + (rod - 1) * 0.18 + (bait === "worm" ? 0.25 : 0) + (bait === "pepper" ? 0.6 : 0);
+                                    r.food = Math.round((r.food || 0) * mul);
+                                    if (bait === "moth" && !r.rare && rnd() < 0.25) r.rare = true;
+                                    if (rod >= 2 && !r.rare && rnd() < 0.06 * rod) r.rare = true;
+                                    if (bait === "candy") { gameState.gold += 12; }
+                                    if (bait === "pepper") { try { damagePlayer(4); } catch (e) {} }
+                                    F.total++; var L = F.log[r.catchName] || (F.log[r.catchName] = { n: 0, best: 0 }); L.n++; L.best = Math.max(L.best, r.food || 0);
+                                    if (rnd() < 0.35) { var k = rnd() < 0.6 ? "worm" : rnd() < 0.75 ? "moth" : "pepper"; F.bait[k]++; banner("Found a " + BAITS[k][1] + " in the mud " + BAITS[k][0]); }
+                                    if (nr && nr.ok) { F.coop++; r.food += 10; gameState.gold += 20; if (CO.g) { CO.g.hp = Math.min(CO.g.max, CO.g.hp + 12); CO.g.pots = Math.min(9, (CO.g.pots || 0) + 1); } A.addLog("🤝 " + (CO.g ? CO.g.name : "Your partner") + " steadied the boat: a bigger catch (+10 food, +20 gold) and a potion!"); banner("🤝 Partner steadied the boat: bonus catch!"); A.writeNow(); }
+                                    else if (nr && !nr.ok) A.addLog("🌊 The boat rocked too much for a bonus catch.");
+                                    fishSave(F); try { updateUI(); } catch (e) {}
+                                }
+                            } catch (e) { console.warn(e); }
+                            return r;
+                        });
+                    });
+                });
+            };
+            MGo.fish.__dd2 = 1;
+        }
+
+        /* ====================================================================================
+           PUZZLES FOR TWO: each phone sees half of the clue. Talk to each other!
+           ==================================================================================== */
+        var PUZ = [
+            { t: "The Two Statues", text: "Two stone statues guard two levers. One statue always lies and one always tells the truth. Only one lever opens the door.", h: "The LION statue says: \"The raven statue tells the truth, and the LEFT lever is the safe one.\"", g: "The RAVEN statue says: \"The lion statue lies, and the RIGHT lever is the safe one.\"", q: "Which lever opens the door?", o: ["The left lever", "The right lever", "Both together", "Neither, they are traps"], right: 1 },
+            { t: "The Moon Dial", text: "A dial of runes must be set to the right hour. The two halves of the riddle are carved on opposite walls.", h: "\"When the moon is full, the key is three steps after midnight.\"", g: "\"Midnight is the number twelve. The key hour is the one that comes after three more.\"", q: "What hour opens the dial?", o: ["Twelve", "Three", "Fifteen", "One"], right: 1 },
+            { t: "The Bridge of Colours", text: "Three glowing tiles cross the pit: red, blue and green. Stepping on the wrong one drops you.", h: "\"Never step first on the colour of blood. Never step last on the colour of the sea.\"", g: "\"The middle tile is neither the colour of the sea nor the colour of blood.\"", q: "What is the crossing order?", o: ["Red, blue, green", "Blue, green, red", "Green, red, blue", "Green, blue, red"], right: 3 },
+            { t: "The Candle Door", text: "Four candles, one door. Light the wrong one and the room fills with smoke.", h: "\"The tallest candle is next to the ghost-white one. The red candle is the shortest.\"", g: "\"The door opens for the candle that is neither the tallest nor the shortest, and is not white.\"", q: "Which candle do you light?", o: ["The tallest", "The white one", "The red one", "The blue one (middle height)"], right: 3 },
+            { t: "The Hungry Chest", text: "A chest demands a name. Each of you can read one line of the lid.", h: "\"I am taken from a mine and shut up in a wooden case, from which I am never released.\"", g: "\"And yet I am used by almost every person. I am the pencil's heart.\"", q: "What is the answer?", o: ["Gold", "Graphite (pencil lead)", "Iron", "A key"], right: 1 },
+            { t: "The Mirror Maze", text: "In the maze, two mirrors show you different halves of the truth.", h: "\"There are three doors: north, east and west. The exit is never next to the trap.\"", g: "\"The trap is the east door. The exit is next to the north door.\"", q: "Which door is the exit?", o: ["North", "East", "West", "All of them"], right: 2 },
+            { t: "The Weighing Altar", text: "An altar scale holds three offerings. One is cursed and heavier than it looks.", h: "\"The skull is heavier than the coin. The coin is heavier than the ring.\"", g: "\"The cursed one is the heaviest.\"", q: "Which is the cursed offering?", o: ["The ring", "The coin", "The skull", "None of them"], right: 2 },
+            { t: "The Whispering Well", text: "Two voices call from the well, each telling half of a number.", h: "\"I am the first number you count with, doubled.\"", g: "\"Add the number of fingers on one hand to what the first voice said.\"", q: "What is the number?", o: ["Two", "Five", "Seven", "Ten"], right: 2 }
+        ];
+        function runPuzzle(p) {
+            var co = A.hostActive();
+            return run({ kind: "riddle", title: p.t, text: p.text + (co ? "\n\nYou can each only read your own wall. TALK to each other!" : "\n\nYou read both walls."), host: { clue: co ? p.h : p.h + "\n\n" + p.g, q: p.q, opts: p.o }, guest: { clue: p.g, q: p.q, opts: p.o }, right: p.right, timeout: 150 });
+        }
+
+        /* ====================================================================================
+           NEW ROOM TYPES for custom dungeons and the seasonal stories
+           ==================================================================================== */
+        var WEAK = [[/slime|ooze|spider|ghoul/i, "fire", "Fire"], [/wraith|skeleton|ghost|lich|wight|specter|spectre|revenant|banshee/i, "holy", "Holy light"], [/drake|dragon|frost|ice|yeti/i, "ice", "Ice"], [/golem|construct|statue|gargoyle/i, "arcane", "Arcane magic"]];
+        function weakOf(n) { for (var i = 0; i < WEAK.length; i++) if (WEAK[i][0].test(n || "")) return WEAK[i]; return [null, "brute", "Brute force"]; }
+        var WHISP = { fire: ["The walls smell of old smoke, and something hates the warmth.", "Scorch marks, but only where it fled from the flame.", "It never touches the torches. It crosses the room in the dark."], holy: ["The cold gets worse where the old chapel light once fell.", "Cold hands drew its shape here, and light kept them away.", "Something old and sorry is down there. Bright things hurt it."], ice: ["Everything down there steams. It burns and cannot bear the cold.", "Frost heals the stone it cracked, and it keeps well away.", "Its breath is a furnace. Cold water scalds it."], arcane: ["Cracks in the wall glow faintly: a shaped thing, not born.", "Stone that remembers being a hand, held together by a spell.", "Unravel the spell and the body is only rubble."], brute: ["Nothing clever. It is only a great deal of body.", "It is hurt by what hurts everyone. Hit hard and hit often.", "No tricks. A strong arm will do."] };
+        var DNGi = function () { try { return A.DNG().i; } catch (e) { return 0; } };
+        function toneRoom(r, head, bg, cont) {
+            var type = r.type, co = A.hostActive();
+            var story = function (sp, title, text, next) { if (co) scene({ speaker: sp, title: title, text: text }); executeCustomNode(bg, null, sp, title, text, function () { clearScene(); next(); }); };
+            if (type === "haunted") {
+                var w = weakOf(r.enemy), lines = WHISP[w[1]].slice(); var hl = lines.slice(0, 2), gl = lines.slice(1, 3);
+                var names = ["fire", "holy", "ice", "arcane", "brute"], oo = ["Fire", "Holy light", "Ice", "Arcane magic", "Nothing. Brute force."];
+                story("The Walls", head, (r.text || "The corridor goes quiet. Then the walls begin to whisper.") + "\n\n" + (co ? "Each of you hears different whispers." : "You hear every word."), function () {
+                    run({ kind: "choice", title: "The Walls Whisper", text: "Whatever waits in the next room, the walls know its weakness. Compare what you heard.", host: { clue: "You hear: \"" + (co ? hl : lines).join(" ... ") + "\"", q: "What is the next foe weak to?", opts: oo }, guest: { clue: "You hear: \"" + gl.join(" ... ") + "\"", q: "What is the next foe weak to?", opts: oo } }).then(function (res) {
+                        if (names[res.pick] === w[1]) { window.__ddHaunt = { n: r.enemy || "", pct: 0.25 }; A.addLog("👂 The walls' secret is learned: the next foe is weak to " + w[2] + "."); story("The Walls", "Heard", "You understand. The next foe is weak to " + w[2] + ". You feel ready.\n\n(The next foe starts with 25% less health.)", cont); }
+                        else story("The Walls", "Misheard", "You cannot be sure. The whispers fade. (It was " + w[2] + ".)", cont);
+                    });
+                }); return true;
+            }
+            if (type === "riddle") {
+                var opts = [r.o1, r.o2, r.o3, r.o4].filter(function (x) { return x && String(x).trim(); }); if (opts.length < 2) opts = ["Yes", "No"]; var right = Math.max(0, Math.min(opts.length - 1, (+r.right || 1) - 1)), dm = Math.max(1, +r.amt || 15);
+                run({ kind: "riddle", title: "Trap Riddle", text: (r.text || "The door will only open for the right answer. The wrong one springs the trap."), data: { q: r.q || "What walks on four legs in the morning, two at noon, and three in the evening?", opts: opts }, right: right }).then(function (res) {
+                    var hurt = function (who) { if (who === "h") { try { spawnDamageNumber(dm, "red", true); damagePlayer(dm); } catch (e) {} } else if (CO.g && !CO.g.down) { CO.g.hp = Math.max(1, CO.g.hp - dm); A.hb(); } };
+                    if (co) { if (!res.hr) hurt("h"); if (!res.gr) hurt("g"); } else if (!res.hr) hurt("h");
+                    if (gameState.hp <= 0) return; story("Trap Riddle", res.full ? "Door opens" : "Click!", res.full ? "The door swings open." : "The trap springs on whoever was wrong (" + dm + " damage). The door opens anyway, grudgingly.", cont);
+                }); return true;
+            }
+            if (type === "lockbox") {
+                var g2 = Math.max(10, +r.amt || 40);
+                run({ kind: "keys", title: "The Twin-Lock Chest", text: r.text || "Two locks. Two keys. Both turned at once.", data: { label: "Turn your key when the needle is in the green." } }).then(function (res) {
+                    if (res.ok) { var amt = co ? Math.round(g2 * 1.5) : g2; gameState.gold += amt; try { updateUI(); } catch (e) {} A.addLog("💰 Twin-lock chest: +" + amt + " gold"); story("Treasure", "Opened", "The chest opens.\n\n+" + amt + " Gold" + (co ? " (bonus for opening together)" : ""), cont); }
+                    else story("Treasure", "Jammed", "The locks jam. You get nothing but splinters.", cont);
+                }); return true;
+            }
+            if (type === "puzzle") {
+                var p = PUZ[(((+r.lvl) || 0) > 0 ? (+r.lvl - 1) : (DNGi() * 3 + 1)) % PUZ.length]; var dm2 = 12;
+                runPuzzle(p).then(function (res) {
+                    var good = co ? res.hr && res.gr : res.hr;
+                    if (good) { var g3 = 30 + gameState.level * 4; gameState.gold += g3; try { updateUI(); } catch (e) {} story(p.t, "Solved", "Click. The mechanism turns and a hidden compartment slides open.\n\n+" + g3 + " Gold", cont); }
+                    else { try { damagePlayer(dm2); } catch (e) {} if (CO.g && !CO.g.down) CO.g.hp = Math.max(1, CO.g.hp - dm2); A.hb(); if (gameState.hp > 0) story(p.t, "Wrong", "Wrong answer. The room shudders (-" + dm2 + " HP each). The way opens anyway.", cont); }
+                }); return true;
+            }
+            if (type === "wares") { waresRoom(r, head, bg, cont); return true; }
+            if (type === "fishing") {
+                story("The Black Pool", head, r.text || "A still black pool. Something moves under the surface. Perfect fishing water.", function () {
+                    renderChoices([{ text: "🎣 Fish", action: function () { var mg = DDC.b10.MG; mg.run(function () { return mg.fish({}); }).then(function (rr) { if (rr && rr.ok) { var h2 = Math.min(40, rr.food || 12); gameState.hp = Math.min(gameState.maxHp, gameState.hp + h2); if (CO.g) CO.g.hp = Math.min(CO.g.max, CO.g.hp + h2); try { updateUI(); } catch (e) {} story("The Black Pool", "A catch", "You land a " + rr.catchName + " and eat well. (+" + h2 + " HP for the party)", cont); } else story("The Black Pool", "Nothing", "The pool keeps its secrets.", cont); }); } }, { text: "Move on", action: cont }]);
+                }); return true;
+            }
+            return false;
+        }
+
+        /* ---------- cursed wares (48) ---------- */
+        var CURSED = [
+            { n: "Blood-Red Whetstone", price: 80, gain: "+4 weapon attack for the rest of the run", curse: "Lose 15 max HP", on: function () { try { gameState.gear.weapon.atk += 4; } catch (e) {} }, bad: function (sh) { gameState.maxHp = Math.max(30, gameState.maxHp - (sh ? 8 : 15)); gameState.hp = Math.min(gameState.hp, gameState.maxHp); } },
+            { n: "Ever-Burning Lantern", price: 60, gain: "Fully heals you and your partner", curse: "Your next battle starts with you at half HP", on: function () { gameState.hp = gameState.maxHp; if (CO.g) { CO.g.hp = CO.g.max; CO.g.down = false; } }, bad: function (sh) { window.__ddCurseHalf = sh ? 0.75 : 0.5; } },
+            { n: "Ring of the Hungry Dead", price: 100, gain: "+250 gold, now", curse: "The next three victories give no gold", on: function () { gameState.gold += 250; }, bad: function (sh) { window.__ddNoGold = sh ? 2 : 3; } },
+            { n: "Whispering Doll", price: 50, gain: "+3 potions for your partner (or 2 Dwarven Stouts for you)", curse: "Foes in the next battle hit harder (+30%)", on: function () { if (CO.g) CO.g.pots = Math.min(9, (CO.g.pots || 0) + 3); else { try { addItem("Dwarven Stout 🍺 (+2 ATK)", "fa-beer-mug-empty text-amber-500"); addItem("Dwarven Stout 🍺 (+2 ATK)", "fa-beer-mug-empty text-amber-500"); } catch (e) {} } }, bad: function (sh) { window.__ddFoeBoost = sh ? 1.15 : 1.3; } }
+        ];
+        function waresRoom(r, head, bg, cont, pool0) {
+            var co = A.hostActive(), pool = pool0 || CURSED.slice().sort(function () { return rnd() - 0.5; }).slice(0, 3);
+            var list = pool.map(function (c) { return c.n + " (" + c.price + "g): " + c.gain + ". CURSE: " + c.curse; });
+            var text = (r.text || "A hooded peddler lays out a blanket of things that should not be sold. \"Everything has a price,\" he says, \"and some prices are not in gold.\"") + "\n\n" + list.join("\n");
+            if (co) scene({ speaker: "The Peddler", title: head, text: text, opts: pool.map(function (c) { return "Buy " + c.n; }).concat(["Refuse all"]) });
+            executeCustomNode(bg, null, "The Peddler", head, text, function () {
+                var ch = pool.map(function (c) { return { text: "Buy: " + c.n + " (" + c.price + " gold)", action: function () {
+                    if (gameState.gold < c.price) { banner("Not enough gold."); return waresRoom(r, head, bg, cont, pool); }
+                    gameState.gold -= c.price; try { updateUI(); } catch (e) {} clearScene();
+                    var finish = function (shared) { c.on(); c.bad(shared); try { updateUI(); } catch (e) {} executeCustomNode(bg, null, "The Peddler", "Sold", "\"Pleasure doing business.\"\n\nYou gain: " + c.gain + ".\nYou pay: " + c.curse + (shared ? " (halved: shared with your partner)" : "") + ".", cont); };
+                    if (co) run({ kind: "choice", title: "Share the Curse?", text: "The host bought " + c.n + ". Curse: " + c.curse + ". If you both take a share of it, it hurts the host only half as much (and costs you 8 HP).", data: { opts: ["Yes, share the curse", "No, the host bears it alone"] } }).then(function (res) { var sh = res.g && res.gpick === 0; if (sh && CO.g) { CO.g.hp = Math.max(1, CO.g.hp - 8); A.hb(); } finish(sh); });
+                    else finish(false);
+                } }; });
+                ch.push({ text: "Refuse them all", action: function () { clearScene(); cont(); } });
+                renderChoices(ch);
+            });
+        }
+        /* curse effects: applied through small wrappers */
+        wrap2("startBattle", function (o) { return function () {
+            var r = o.apply(this, arguments);
+            try { if (typeof Battle !== "undefined" && Battle) {
+                if (window.__ddHaunt) { Battle.hp = Math.max(1, Math.floor(Battle.hp * (1 - window.__ddHaunt.pct))); window.__ddHaunt = null; banner("👂 The walls' secret weakens the foe!"); }
+                if (window.__ddCurseHalf) { gameState.hp = Math.max(1, Math.floor(gameState.hp * window.__ddCurseHalf)); window.__ddCurseHalf = 0; banner("🕯️ The lantern's curse chills you…"); try { updateUI(); } catch (e) {} }
+                if (window.__ddFoeBoost) { Battle.atk = Math.round(Battle.atk * window.__ddFoeBoost); window.__ddFoeBoost = 0; banner("🪆 The doll's curse sharpens the foe!"); }
+            } } catch (e) { console.warn(e); }
+            return r; }; });
+        wrap2("endBattle", function (o) { return function (won) {
+            var g0 = gameState.gold, r = o.apply(this, arguments);
+            try { if (won && window.__ddNoGold > 0) { window.__ddNoGold--; gameState.gold = g0; try { updateUI(); } catch (e) {} banner("💀 The ring's curse takes your gold."); } } catch (e) { console.warn(e); }
+            return r; }; });
+
+        window.__ddRoomExt = function (r, head, bg, cont) { try { return toneRoom(r, head, bg, cont); } catch (e) { console.warn(e); return false; } };
+        (function () { var m = document.getElementById("settings-modal"); if (!m || document.getElementById("dd-journal-btn")) return; var b = document.createElement("button"); b.id = "dd-journal-btn"; b.className = "w-full mb-3 bg-teal-950 border border-teal-600 text-teal-200 py-2 rounded-xl text-xs font-bold"; b.textContent = "🎣 Angler's Journal (rod, bait, catch log)"; b.onclick = function () { try { toggleSettingsMenu(); } catch (e) {} openJournal(); }; var anchor = m.querySelector("button[onclick*=\"openTab('cloud')\"]"); if (anchor) anchor.parentNode.insertBefore(b, anchor.nextSibling); })();
+        window.DDJ = { open: openJournal, fishData: fishData };
+
+        window.DDCE = { puzzle: runPuzzle, PUZ: PUZ, toneRoom: toneRoom, openJournal: openJournal, CURSED: CURSED, waresRoom: waresRoom, weakOf: weakOf, run: run, scene: scene, clearScene: clearScene, judge: judge, K: K, A: A, wrap2: wrap2, jget: jget, jset: jset, ls: ls };
+        document.dispatchEvent(new Event("ddce-ready"));
+    }
+})();
+
+</script>
+<script id="ddse">
+/* ===== Dungeon Dwellers: Seasonal Tales. The Hollow Night (Halloween) and The Long Winter's Night (Christmas).
+   Branching stories with bosses, dialogue, several endings. Plays solo, or with a partner (they follow every scene, lean on choices and take part in the QTEs). ===== */
+(function () {
+    "use strict";
+    if (window.__ddse) return; window.__ddse = 1;
+    (function boot() { if (!window.DDCE || !window.DDCO || !DDCO.api || !window.startBattle) return setTimeout(boot, 300); try { init(DDCO.api, window.DDCE); } catch (e) { console.warn("ddse", e); } })();
+
+    function init(A, E) {
+        var CO = A.CO, esc = A.esc, banner = A.banner, sleep = A.sleep, wrap2 = E.wrap2, jget = E.jget, jset = E.jset;
+        var $ = function (i) { return document.getElementById(i); };
+        var co = function () { return A.hostActive(); };
+
+        /* ---------- art: generated pictures (Photo Manager pictures replace them by name) ---------- */
+        function svg(emoji, c1, c2, label) {
+            var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><defs><radialGradient id="g" cx="50%" cy="42%" r="70%"><stop offset="0" stop-color="' + c1 + '"/><stop offset="1" stop-color="' + c2 + '"/></radialGradient></defs><rect width="400" height="400" fill="url(#g)"/><text x="200" y="250" font-size="190" text-anchor="middle">' + emoji + '</text><text x="200" y="372" font-size="25" font-family="Georgia,serif" text-anchor="middle" fill="#fde68a" stroke="#000" stroke-width="1">' + label + "</text></svg>";
+            return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(s);
+        }
+        var ART = {
+            "Ghost Lyra": ["👻", "#6366f1", "#0f172a"], "Skeleton Bror": ["💀", "#65a30d", "#0a0a0a"], "Old Crowmaw": ["🎃", "#c2410c", "#1c0a02"], "The Hollow Bride": ["👰", "#e5e7eb", "#1e1b4b"], "Hollow Jack": ["🏮", "#f59e0b", "#1c0505"],
+            "Jolly Lyra": ["🤶", "#dc2626", "#052e16"], "Helper Bror": ["🧝", "#16a34a", "#450a0a"], "General Frostbite": ["⛄", "#7dd3fc", "#0c1a2e"], "Gift Mimic": ["🎁", "#ef4444", "#14532d"], "Krampus": ["👹", "#7f1d1d", "#0c0a09"], "Old Man Winter": ["🥶", "#bae6fd", "#1e293b"], "Gravewick": ["🪦", "#4c1d95", "#0a0a0a"], "Frostmere": ["🎄", "#0e7490", "#082f49"]
+        };
+        function art(name) {
+            try {
+                var l = (CustomAssets.bosses || []).concat(CustomAssets.enemies || []); for (var i = 0; i < l.length; i++) if (l[i].name === name && l[i].url) return l[i].url;
+                if (typeof DefaultDB !== "undefined" && DefaultDB[name] && DefaultDB[name] !== DefaultDB.cave) return DefaultDB[name];
+            } catch (e) {}
+            var a = ART[name]; return a ? svg(a[0], a[1], a[2], name) : null;
+        }
+
+        /* ---------- run state ---------- */
+        var SE = { active: false, tale: null, id: null, f: {}, next: null, boss: null, turn: 0, p2: false, stamp: 0, mono: null };
+        var RUNK = "ddse_run", ENDK = "ddse_endings";
+        var save = function () { jset(RUNK, { tale: SE.tale && SE.tale.id, id: SE.id, f: SE.f }); };
+        var hero = function () { try { return A.hero(); } catch (e) { return { name: "", fear: "The dark", back: "Soldier" }; } };
+        var meName = function () { return (hero().name || "Traveler"); };
+        var palName = function () { return CO.g ? CO.g.name : "your shadow"; };
+        var FEARLINE = { "The dark": "The dark. Of course it had to be the dark.", "Spiders": "Spiders. You check every corner for webs before you check anything else.", "Ghosts": "Ghosts. Well. At least this one is polite.", "Fire": "Fire. Every lantern here makes your hands shake.", "Deep water": "Deep water. You keep well away from the well.", "Being alone": "Being alone. You stay close enough to hear the others breathe, or rattle.", "Clowns": "Clowns. You are praying there are no clowns.", "Nothing at all": "Nothing at all. That is almost worse, here." };
+        var T = function (s) { return String(s || "").replace(/\{me\}/g, meName()).replace(/\{pal\}/g, palName()).replace(/\{fear\}/g, (hero().fear || "The dark").toLowerCase()).replace(/\{fearline\}/g, FEARLINE[hero().fear] || FEARLINE["The dark"]); };
+        var F = function (k) { return SE.f[k]; };
+        var party = function () { return co() && CO.g; };
+
+        /* ---------- effects ---------- */
+        function hurtGuest(n) { if (CO.g && !CO.g.down) { CO.g.hp = Math.max(0, CO.g.hp - n); if (CO.g.hp <= 0) { CO.g.down = true; CO.g.hp = 0; } A.hb(); } }
+        function applyFx(fx) {
+            if (!fx) return true;
+            if (fx.gold) gameState.gold += fx.gold; if (fx.silver) gameState.silver = (gameState.silver || 0) + fx.silver;
+            if (fx.heal) { gameState.hp = gameState.maxHp; if (CO.g) { CO.g.hp = CO.g.max; CO.g.down = false; } }
+            if (fx.hp > 0) { gameState.hp = Math.min(gameState.maxHp, gameState.hp + fx.hp); if (CO.g && !CO.g.down) CO.g.hp = Math.min(CO.g.max, CO.g.hp + fx.hp); }
+            if (fx.item) { try { addItem(fx.item[0], fx.item[1] || "fa-flask text-red-500"); } catch (e) {} }
+            if (fx.pot && CO.g) CO.g.pots = Math.min(9, (CO.g.pots || 0) + fx.pot);
+            if (fx.f) Object.keys(fx.f).forEach(function (k) { var v = fx.f[k]; SE.f[k] = (v === "+1") ? ((SE.f[k] || 0) + 1) : v; });
+            try { updateUI(); } catch (e) {}
+            if (fx.hp < 0) { var d = -fx.hp; try { spawnDamageNumber(d, "red", true); damagePlayer(d); } catch (e) {} hurtGuest(d); if (gameState.hp <= 0) return false; }
+            A.hb(); return true;
+        }
+
+        /* ---------- engine ---------- */
+        function head(n) { return n.title || (SE.tale ? SE.tale.name : "Seasonal Tale"); }
+        function show(n, then) {
+            var txt = T(n.text) + (co() && n.co ? "\n\n" + T(n.co) : "");
+            if (co()) E.scene({ speaker: n.who, title: head(n), text: txt, opts: n.choices ? n.choices.map(function (c) { return T(c.t); }) : null });
+            executeCustomNode(A.bgNow(), art(n.img || ({"👻 Lyra": "Ghost Lyra", "💀 Bror": "Skeleton Bror", "🤶 Lyra": "Jolly Lyra", "🧝 Bror": "Helper Bror"})[n.who] || n.who), n.who || "", head(n), txt, then);
+        }
+        var cont = function (n, label) { return function () { renderChoices([{ text: label || "Continue", action: function () { E.clearScene(); go(n); } }]); }; };
+        function go(id) {
+            var n = SE.tale.nodes[id]; if (!n) { console.warn("missing node", id); return endRun(); }
+            SE.id = id; save();
+            if (n.fx && !applyFx(typeof n.fx === "function" ? n.fx() : n.fx)) return;
+            if (n.when && !n.when()) { return go(n.skip); }
+            var t = n.t || "scene";
+            if (t === "route") return go(n.fn());
+            if (t === "fight") return doFight(n);
+            if (t === "ev") return doEv(n);
+            if (t === "room") return doRoom(n);
+            if (t === "fish") return doFish(n);
+            if (t === "end") return doEnd(n);
+            show(n, function () {
+                if (n.choices) {
+                    var arr = n.choices.filter(function (c) { return !c.req || c.req(); }).map(function (c) {
+                        return { text: T(c.t), action: function () {
+                            if (c.cost && gameState.gold < c.cost) { banner("Not enough gold."); return; }
+                            E.clearScene(); if (c.cost) gameState.gold -= c.cost; if (c.fx && !applyFx(c.fx)) return; go(c.go);
+                        } };
+                    });
+                    renderChoices(arr);
+                } else cont(n.next, n.btn)();
+            });
+        }
+        function doEv(n) {
+            show(n, function () {
+                renderChoices([{ text: n.btn || "Do it!", action: function () {
+                    E.clearScene();
+                    E.run({ kind: n.kind, title: n.evTitle || n.title, text: T(n.evText || ""), data: n.data || {}, need: n.need, timeout: 100 }).then(function (res) {
+                        var ok = !!res.ok; if (!applyFx(ok ? n.okFx : n.badFx)) return;
+                        var line = T(ok ? n.okText : n.badText);
+                        executeCustomNode(A.bgNow(), art(n.img || n.who), n.who || "", ok ? "Success" : "Failure", line, cont(ok ? n.ok : (n.bad || n.ok)));
+                    });
+                } }]);
+            });
+        }
+        function doRoom(n) {
+            var r = Object.assign({}, n.room, { text: T(n.room.text || "") });
+            var next = cont(n.next, n.btn);
+            if (n.pool) { E.waresRoom(r, head(n), A.bgNow(), next, n.pool()); return; }
+            var done = E.toneRoom(r, head(n), A.bgNow(), next); if (!done) next();
+        }
+        function doFish(n) {
+            show(n, function () {
+                renderChoices([{ text: "🎣 Cast a line", action: function () {
+                    var mg = DDC.b10.MG; E.clearScene();
+                    mg.run(function () { return mg.fish({}); }).then(function (rr) {
+                        var ok = rr && rr.ok; if (ok) { var h2 = Math.min(40, rr.food || 12); gameState.hp = Math.min(gameState.maxHp, gameState.hp + h2); if (CO.g) CO.g.hp = Math.min(CO.g.max, CO.g.hp + h2); try { updateUI(); } catch (e) {} }
+                        if (ok && n.flag) SE.f[n.flag] = 1;
+                        executeCustomNode(A.bgNow(), art(n.img || n.who), n.who || "", ok ? "A catch" : "Nothing", T(ok ? n.okText.replace("{fish}", rr.catchName || "fish") : n.badText), cont(n.next));
+                    });
+                } }, { text: "Leave it", action: function () { E.clearScene(); go(n.next); } }]);
+            });
+        }
+
+        /* ---------- fights: story bosses with specials and a mid-fight QTE ---------- */
+        function doFight(n) {
+            show({ who: n.boss, title: n.title || (n.minor ? "Ambush" : "Boss"), text: n.text, img: n.boss, co: n.co }, function () {
+                renderChoices([{ text: n.btn || (n.minor ? "⚔️ Fight!" : "👑 Face " + n.boss), action: function () { E.clearScene(); beginFight(n); } }]);
+            });
+        }
+        function beginFight(n) {
+            SE.next = n.win; SE.boss = n; SE.turn = 0; SE.p2 = false; SE.stamp = gameState.enemiesSlain || 0; SE.mono = n.taunt ? T(n.taunt) : null;
+            startBattle({ name: n.boss, url: art(n.boss) }, Math.max(1, gameState.level + (n.lvl || 0)), !n.minor);
+            try {
+                if (Battle) {
+                    var m = n.mult || 1; Battle.maxHp = Math.round(Battle.maxHp * m); Battle.hp = Battle.maxHp; Battle.atk = Math.round(Battle.atk * (n.atkm || 1));
+                    if (n.edge && n.edge()) { Battle.hp = Math.floor(Battle.hp * 0.85); banner("✨ Your preparation weakens it!"); }
+                    updateBattleUI();
+                }
+            } catch (e) { console.warn(e); }
+        }
+        wrap2("executeCustomNode", function (o) { return function () { if (SE.active && SE.mono && arguments[3] === "Monologue") { arguments[4] = SE.mono; SE.mono = null; } return o.apply(this, arguments); }; });
+        wrap2("walkToNextNode", function (o) { return function () {
+            if (SE.active && SE.next && (gameState.enemiesSlain || 0) > SE.stamp) { var nx = SE.next; SE.next = null; SE.boss = null; return go(nx); }
+            return o.apply(this, arguments);
+        }; });
+        function special(b) {
+            var lv = gameState.level, sp = b.sp || "drain", base = 5 + Math.round(lv * 1.2);
+            if (sp === "drain") { try { Battle.hp = Math.min(Battle.maxHp, Battle.hp + Math.round(Battle.maxHp * 0.07)); spawnDamageNumber(base, "red", true); damagePlayer(base); } catch (e) {} hurtGuest(Math.round(base * 0.8)); banner("🩸 " + Battle.name + " drains your life!"); }
+            else if (sp === "scream") { try { spawnDamageNumber(base + 3, "red", true); damagePlayer(base + 3); } catch (e) {} hurtGuest(base + 3); banner("📣 A shriek tears through the party!"); }
+            else if (sp === "chill") { try { spawnDamageNumber(base, "red", true); damagePlayer(base); } catch (e) {} hurtGuest(base); gameState.gold = Math.max(0, gameState.gold - 8); banner("❄️ The cold bites. Your purse freezes (-8 gold)."); }
+            else if (sp === "steal") { var st = Math.min(gameState.gold, 25); gameState.gold -= st; try { damagePlayer(Math.round(base * 0.7)); } catch (e) {} banner("🎒 " + Battle.name + " bags " + st + " of your gold!"); }
+            else if (sp === "enrage") { Battle.atk = Math.round(Battle.atk * 1.12); banner("🔥 " + Battle.name + " grows stronger!"); }
+            try { updateUI(); updateBattleUI(); } catch (e) {} A.addLog("⚠️ " + (b.spTxt || "A boss special strikes!"));
+        }
+        wrap2("enemyTurn", function (o) { return function () {
+            var self = this, args = arguments;
+            try {
+                if (SE.active && SE.boss && typeof Battle !== "undefined" && Battle && Battle.hp > 0 && Battle.name === SE.boss.boss) {
+                    var b = SE.boss; SE.turn++;
+                    if (!SE.p2 && b.phase && Battle.hp <= Battle.maxHp * 0.5) {
+                        SE.p2 = true; var ph = b.phase;
+                        return E.run({ kind: ph.kind, title: T(ph.title), text: T(ph.text), data: ph.data || {}, need: ph.need, timeout: 90 }).then(function (res) {
+                            if (res.ok) { Battle.hp = Math.max(1, Math.floor(Battle.hp * (1 - (ph.cut || 0.2)))); banner(T(ph.okTxt || "It reels!")); A.addLog("✨ " + T(ph.okTxt || "It reels!")); }
+                            else { try { damagePlayer(ph.dmg || 12); } catch (e) {} hurtGuest(ph.dmg || 12); banner(T(ph.badTxt || "It strikes back!")); }
+                            try { updateBattleUI(); updateUI(); } catch (e) {}
+                            if (gameState.hp > 0 && Battle && Battle.hp > 0) return o.apply(self, args);
+                        });
+                    }
+                    if (SE.turn % (b.every || 3) === 0) { special(b); if (gameState.hp <= 0) return; }
+                }
+            } catch (e) { console.warn(e); }
+            return o.apply(self, args);
+        }; });
+        /* companion forms: small perks after each victory */
+        wrap2("endBattle", function (o) { return function (won) {
+            var r = o.apply(this, arguments);
+            try { if (won && SE.active && SE.tale && SE.tale.perk) SE.tale.perk(); } catch (e) { console.warn(e); }
+            return r; }; });
+
+        /* ---------- endings ---------- */
+        function endRun() { SE.active = false; SE.next = null; SE.boss = null; jset(RUNK, null); }
+        function doEnd(n) {
+            var seen = jget(ENDK, {}); var first = !seen[n.id]; seen[n.id] = 1; jset(ENDK, seen);
+            if (n.fx) applyFx(n.fx); var rw = SE.tale.reward || {}; gameState.gold += rw.gold || 0; gameState.silver = (gameState.silver || 0) + (rw.silver || 0);
+            var got = Object.keys(seen).filter(function (k) { return k.indexOf(SE.tale.id) === 0; }).length;
+            show({ who: n.who, title: "ENDING: " + n.name, text: n.text + "\n\n— " + n.name + " —\n+" + ((rw.gold || 0)) + " gold, +" + (rw.silver || 0) + " silver\nEndings found: " + got + "/" + SE.tale.endings.length + (first ? " (new!)" : "") }, function () {
+                endRun(); A.addLog("🎭 " + SE.tale.name + ": " + n.name);
+                renderChoices([{ text: "Return to the dungeon", action: function () { E.clearScene(); walkToNextNode(); } }, { text: "🔁 Play this tale again", action: function () { E.clearScene(); start(SE.tale.id); } }]);
+            });
+        }
+        window.__ddseEndings = function () { return jget(ENDK, {}); };
+
+        /* ---------- tale data ---------- */
+        var L1 = "👻 Lyra", B1 = "💀 Bror", L2 = "🤶 Lyra", B2 = "🧝 Bror";
+        var themed = function (i, n, g, c) { return Object.assign({}, E.CURSED[i], { n: n, gain: g || E.CURSED[i].gain, curse: c || E.CURSED[i].curse }); };
+
+        var HALLOWEEN = {
+            id: "halloween", name: "The Hollow Night", emoji: "🎃", tag: "Samhain in Gravewick. Ghost Lyra, Skeleton Bror and a king who keeps souls in lanterns.", window: "Oct 15 – Nov 2",
+            reward: { gold: 160, silver: 25 },
+            endings: ["h_dawn", "h_wake", "h_candle", "h_crown"],
+            perk: function () { var h = Math.min(7, Math.max(1, gameState.maxHp - gameState.hp)); gameState.hp += h; if (CO.g && !CO.g.down) CO.g.hp = Math.min(CO.g.max, CO.g.hp + 5); gameState.gold += 6; try { updateUI(); } catch (e) {} banner("👻 Lyra drifts through you (+" + h + " HP) · 💀 Bror rattles up a few coins (+6 gold)"); },
+            nodes: {
+                h0: { who: "Gravewick Gate", text: `The road ends at a gate of black iron, and the gate is smiling.\n\nEvery lantern in Gravewick is lit, and not one of them holds a flame. Somewhere a bell tolls thirteen times. Hollow Night: the one night a year the dead are allowed to walk, and they are very, very eager.\n\nA figure steps out of the fog: a woman in a traveller's cloak, translucent to the bone, trailing smoke where her hand moves.\n\n${L1}: "Oh. Oh, you can SEE me. A whole year of shouting at moths, and finally. Don't scream, I'm an extremely polite ghost."\n\nBehind her something clatters. A skeleton in a patched leather coat folds itself into a bow, and his jaw stays a moment too long.\n\n${B1}: "Don't mind the bones. Long story. Short version: we lost."`, fx: { heal: true }, next: "h1" },
+                h1: { who: "Gravewick Gate", text: `${L1}: "Last Hollow Night, three of us walked through that gate. We were going to put out the Lantern King like a candle."\n\n${B1}: "I was the third. Look at the lantern, not the ribs."\n\nA tiny green lantern hangs from his breastbone, where a heart should be. The wick is nearly gone.\n\n${L1}: "That's Bror's soul, half of it. Hollow Jack keeps the other half in his keep. When dawn drinks the last of the oil, Bror stops being Bror."\n\n${B1}: "I become furniture. Bone furniture. The worst kind. Please do not let me become a chair."\n\n${L1}: "So. Will you help us?"`, choices: [{ t: "\"We end it. Before dawn.\"", go: "h2", fx: { f: { vow: 1 } } }, { t: "\"Tell me about this Lantern King.\"", go: "h1b" }, { t: "{fearline} Swallow it and nod.", go: "h1c", fx: { f: { afraid: 1 } } }] },
+                h1b: { who: "Gravewick Gate", text: `${L1}: "Jack Hollowhart. Gravewick's lamplighter, a hundred years ago. When the plague came he promised the dying a light to find their way. He kept the promise a little too well."\n\n${B1}: "Every soul that dies in Gravewick goes into a lantern. He hangs them in rows. They glow brighter when they scream, and he likes them bright."\n\n${L1}: "He's not evil, exactly. He's lonely, and he has a lot of ways to make a person stay."`, co: `${B1}: "Two of you, though. Two is good. Two is how you carry a coffin."`, next: "h2" },
+                h1c: { who: "Gravewick Gate", text: `${L1}: "Hey. Hey. Fear is the only honest thing in Gravewick. Keep it close, it'll tell you when to run."\n\n${B1}: "And you'll like me better when I'm not the scariest thing in the room. Which is a low bar, but I'm clearing it."\n\nSomething in your chest unclenches, just a little.`, fx: { hp: 10 }, next: "h2" },
+                h2: { who: "Gravewick Square", text: `The square. A gallows-tree hung with lanterns, each one with a tiny face pressed against the glass. Cottage doors stand open. A well, a bucket knocking softly against stone far below.\n\nBeyond the rooftops lies a field of corn, and in the corn, something tall and stitched turns its head to look at you.\n\n${B1}: "Field's the way to the chapel. The crows know you're here, so let's not dawdle."`, choices: [{ t: "🏚️ Search the cottages first", go: "h_cot" }, { t: "🕳️ Lean over the well and listen", go: "h_well" }, { t: "🌽 Straight into the corn", go: "h_f0" }] },
+                h_cot: { t: "room", who: "Cottages", room: { type: "lockbox", amt: 60, text: `Under a floorboard: a miser's strongbox with two keyholes. Whoever hid it wanted two people to die before it ever opened.` }, next: "h_f0" },
+                h_well: { t: "room", who: "The Well", room: { type: "haunted", enemy: "Ghoul", text: `The bucket knocks again. Then it knocks in a pattern, as if something at the bottom has learned how to talk and is trying very hard.` }, next: "h_f0" },
+                h_f0: { who: "Old Crowmaw", img: "Old Crowmaw", text: `The corn parts without wind. A scarecrow on a rotted cross hangs in the middle of the field, a grinning pumpkin for a head, sacking stitched with something that is not thread. Crows crouch on every stalk. All of them are looking at you.\n\n🎃 Crowmaw: "THE HARVEST IS IN. THE HARVEST IS ALWAYS IN. Come, little stuffing. There is room in the straw."\n\n${B1}: "Oh. He's grown."`, next: "h_f1" },
+                h_f1: { t: "ev", who: "Old Crowmaw", img: "Old Crowmaw", title: "The Crows", text: `The scarecrow lifts one arm, and a thousand crows leave the field at once, a black sound with wings.`, evText: "The crows come in waves. Tap in time with the wingbeats to beat them back!", kind: "rhythm", data: { beats: 8, bpm: 84, icon: "🪶" }, need: 0.55, btn: "Raise your weapon!", okText: `You beat them back, and the sky tears open on a hundred small black pieces. Crowmaw tilts his pumpkin head, almost impressed.`, badText: `They get through, a storm of beaks. You are bleeding when the last of them lifts away.`, badFx: { hp: -14 }, ok: "h_fight1", bad: "h_fight1" },
+                h_fight1: { t: "fight", boss: "Old Crowmaw", text: `Crowmaw tears himself off his cross, straw spilling, a rusted scythe dragging a furrow behind him.\n\n🎃 Crowmaw: "I WAS A MAN ONCE. A HUNGRY ONE. THEY TIED ME HERE TO SCARE THE BIRDS. THE BIRDS WERE KINDER."`, taunt: `"Come then. Be the last harvest. I'll sew a bow on you."`, lvl: 0, mult: 1.0, sp: "scream", spTxt: "The crows scream through the party", phase: { kind: "keys", title: "Cut the Stitches!", text: "His chest is splitting. Slash at the seam, both of you, together!", cut: 0.25, dmg: 12, okTxt: "The stitches burst! Straw and seeds everywhere!", badTxt: "The scythe rakes across you!" }, win: "h3", edge: function () { return !!(F("ghoulok")); } },
+                h3: { who: "The Field", text: `Crowmaw comes apart in a rain of straw. From the straw falls a small brass key, and one ordinary, wonderful red apple.\n\n${L1}: "He kept them for the others. The ones who didn't make it. Take them."\n\n${B1}: "I was hoping for treasure. This is... also treasure. Hm. I'm being told by my own skull that this is better."`, fx: { gold: 40, item: ["Health Potion", "fa-flask text-red-500"], pot: 1 }, next: "h4" },
+                h4: { who: "The Crossroads", text: `A crossroads of three bone-white paths. A bell tolls somewhere on the left, a black pool glints on the right, and ahead the chapel glows like a bad tooth.\n\n${L1}: "We have until dawn, but dawn comes earlier here. Fish if you want to, shop if you dare. Nobody ever regrets a full pocket."`, choices: [{ t: "🔔 Follow the bell (a hooded peddler)", go: "h_cart", req: function () { return !F("v_cart"); } }, { t: "🕳️ Visit the Black Pool", go: "h_pool", req: function () { return !F("v_pool"); } }, { t: "🔥 Rest by the dying bonfire (heal)", go: "h4r", req: function () { return !F("v_rest"); } }, { t: "⛪ To the chapel", go: "h_ch0" }] },
+                h4r: { who: "Bonfire", text: `Bror sits on a stump with his boots to the embers, which is hilarious and does nothing, as he has no feet to warm.\n\n${B1}: "You know what I miss? Hunger. Weird, right? The ache of wanting a sandwich."\n\n${L1}: "I miss being cold. Like, properly cold."\n\nThe fire is warm for you. They watch it as people watch a thing they can no longer have.`, fx: { heal: true, f: { v_rest: 1 } }, next: "h4" },
+                h_cart: { t: "room", who: "The Peddler", room: { type: "wares", text: `A hooded peddler lays a blanket of things that should not be sold. "Everything has a price," he says, "and some prices are not in gold." His hands, you notice, are lanterns.` }, pool: function () { return [themed(0, "Gravedigger's Whetstone"), themed(1, "Lantern of the Drowned"), themed(2, "Ring of the Hungry Dead")]; }, next: "h4b" },
+                h4b: { who: "The Crossroads", text: `The peddler and his cart are gone, as if the fog had folded them away. A single cold fingerprint on the path.`, fx: { f: { v_cart: 1 } }, next: "h4" },
+                h_pool: { t: "fish", who: "The Black Pool", text: `A perfectly still pool, black as a closed eye. Things move under the surface, small and lit from within like drowned lanterns.\n\n${B1}: "Lantern-eels. Their oil burns green and it never goes out. If a person were to... oh. If a person were to put a wick in a jar of it. And hold it up to something that eats lanterns."`, okText: `You land a {fish}, and the thing it was swallowing: a jar of cold green oil that does not stop burning. You tuck it into your coat.`, badText: `The pool keeps its secrets, and a little of your patience.`, flag: "oil", next: "h4c" },
+                h4c: { who: "The Crossroads", text: `You wipe your hands. Whatever happened at the pool, it's behind you now.`, fx: { f: { v_pool: 1 } }, next: "h4" },
+                h_ch0: { who: "The Hollow Chapel", img: "The Hollow Bride", text: `The chapel roof is open to the stars. Under it a woman in a rotted wedding gown kneels at an altar of melted candles, a hundred lanterns hanging over her like a held breath. She hums the wedding march, wrong, again and again.\n\n👰 The Bride: "He promised he'd come back for me before dawn. Every year, he promises. Every year I wait."\n\n${L1}: "Hollow Jack's bride. He lit her lantern and then he never came back for the rest of her."\n\nShe turns. Her face is a veil, and under the veil, nothing.\n\n👰 The Bride: "A riddle, darling. A traveller must pay at the door."`, next: "h_ch1" },
+                h_ch1: { t: "room", who: "The Hollow Bride", img: "The Hollow Bride", room: { type: "riddle", q: "I am not alive, but I grow. I have no lungs, but I need air. I have no mouth, and water kills me. What am I?", o1: "Fire", o2: "A ghost", o3: "A seed", o4: "The wind", right: 1, amt: 14, text: `The Bride's voice is a pressed flower, dry and sweet.` }, next: "h_ch2" },
+                h_ch2: { who: "The Hollow Bride", img: "The Hollow Bride", text: `She lifts her veil an inch. Beneath it a locket gleams, a locket sealed shut with black wax.\n\n👰 The Bride: "I'll let you pass. Only... will you do one thing? He gave it to me and I have never been able to open it. I think there's a picture inside. I think it's of me, back when I had a face."\n\n${B1}: "She means it. Or she means to wear your face next."\n\n${L1}: "I'd open it. But I'm the dead one. It takes living hands."`, choices: [{ t: "🔓 Open the locket. Help her.", go: "h_ch3" }, { t: "⚔️ \"I'm sorry. I don't trust it.\"", go: "h_fight2" }] },
+                h_ch3: { t: "ev", who: "The Hollow Bride", img: "The Hollow Bride", title: "The Locket", text: `The wax is old and hard, and the clasp is stiffer than a promise. You will need steady hands, and good timing.`, evText: "Turn the clasp when the needle hits the green. Gently!", kind: "keys", data: { label: "Open the locket without breaking it!", speed: 1.5 }, btn: "Open it…", okText: `Click. Inside, a faded drawing of a girl laughing at someone off the page. The Bride makes a sound that has been waiting a hundred years.\n\n👰 The Bride: "That's... he was looking at me when he drew it. He WAS looking at me."\n\nHer veil falls away, and there's a face. Tired. Kind. Free.`, okFx: { f: { bride: "freed" }, heal: true, gold: 30 }, badText: `The clasp snaps. The wax cracks. And the Bride's face, which was never a face, comes apart like wet paper.\n\n👰 The Bride: "Oh. You did it too. They ALL do it."`, ok: "h_free", bad: "h_fight2" },
+                h_free: { who: "The Hollow Bride", img: "The Hollow Bride", text: `She presses something into your hand: a tiny lantern with a real, living flame inside.\n\n👰 The Bride: "That's mine. The only flame in Gravewick that's still mine. Jack can't snuff it. Go on."\n\n${L1}: "He'll see it from across the keep. He won't be able to stop looking."\n\n${B1}: "Bold of you. I like it."`, fx: { item: ["Bride's Flame 🕯️ (+3 ATK)", "fa-fire text-amber-400"], f: { bride: "freed" } }, next: "h_cr0" },
+                h_fight2: { t: "fight", boss: "The Hollow Bride", text: `The Bride rises, the wedding dress opening like a mouth. A hundred lanterns hiss on, and the chapel fills with a bright wrong light.\n\n👰 The Bride: "THEN YOU CAN STAY, LIKE THE REST OF THEM. I'LL KEEP YOU VERY, VERY WARM."`, taunt: `"I waited a hundred years. I can wait a hundred more. You can't."`, lvl: 1, mult: 1.1, sp: "drain", spTxt: "The Bride's veil drinks life", phase: { kind: "hold", title: "Don't Look at the Veil!", text: "Her veil lifts. Steady your gaze and your hands. Hold the line and DON'T LOOK!", data: { secs: 10, label: "Keep the marker in the green. Do not look at the veil." }, need: 0.5, cut: 0.25, dmg: 14, okTxt: "You look away. She shrieks, empty!", badTxt: "You looked. It was not a face." }, win: "h_bsl" },
+                h_bsl: { who: "The Hollow Bride", img: "The Hollow Bride", text: `She folds up like a letter. The lanterns above her gutter and go out one by one, and each one sighs.\n\n${L1}: "We didn't have to..."\n\n${B1}: "Lyra. We did. It's done."\n\nThe locket lies in the ashes, still shut.`, fx: { f: { bride: "slain" }, gold: 20 }, next: "h_cr0" },
+                h_cr0: { who: "The Crypt Stair", text: `Beneath the chapel, a stair spirals down into the hill the keep stands on. At the bottom, a door of fitted stone with no handle, and two walls covered in runes, one on each side.\n\n${L1}: "Gravewick crypts are built so that one traveller can never open them alone. They want company. The dead like company."`, next: "h_cr1" },
+                h_cr1: { t: "room", who: "The Crypt Door", room: { type: "puzzle", lvl: 3, text: `The door will only open when the two halves of the riddle meet.` }, next: "h_k0" },
+                h_k0: { who: "Hollow Jack", img: "Hollow Jack", text: `The keep is a cathedral of lanterns, thousands, up to a roof you cannot see. In each one a face, in each face a mouth, and all the mouths are whispering. In the middle sits a tall, thin man in a lamplighter's coat, a hook in one hand, a tiny golden lantern in the other.\n\n🏮 Jack: "Welcome, welcome! Mind the souls. They bruise."\n\nHe holds up the small gold lantern. Inside it, a green flame the twin of Bror's.\n\n🏮 Jack: "Ah. The skeleton's other half. Do you know, he used to cry when he lit it? I think that's what I loved most. Him, quietly. It made me feel so very warm."\n\n${B1}: "...I'm going to kill you twice."\n\n🏮 Jack: "Now now. Let's be civil. I have an offer."`, next: "h_k1" },
+                h_k1: { who: "Hollow Jack", img: "Hollow Jack", text: `🏮 Jack: "Give me the skeleton's wick. The little green lantern at his chest. Let me hold both halves of him, and I'll let you walk out. Alive. With gold, even. The ghost-girl may keep her sheet."\n\n${B1}: "Hey. Hey! Don't. Don't do the math."\n\n${L1}: "...Don't listen. Please."\n\nJack smiles the smile of a man who has made this offer a thousand times and has been taken up on it a hundred and one.`, choices: [{ t: "🖤 \"Take it. We walk out.\"", go: "h_took", fx: { f: { bargain: "took" } } }, { t: "🔥 \"No. We burn your lanterns.\"", go: "h_fight3", fx: { f: { bargain: "refused" } } }, { t: "🧪 \"Look. The eel-oil. It burns green, and never out.\"", go: "h_trick", req: function () { return !!F("oil"); }, fx: { f: { bargain: "refused", trick: 1 } } }] },
+                h_trick: { who: "Hollow Jack", img: "Hollow Jack", text: `You hold up the jar of lantern-eel oil, and the green fire inside it is the same green as every flame in the keep.\n\n🏮 Jack: "That. That's from the Pool. That's... how did you..."\n\nA thousand lanterns lean toward the jar. The whispering rises.\n\n${B1}: "Oh, they WANT it."\n\n${L1}: "He's been feeding them half-dead fire for a century. Give them real oil and they won't stay in the glass."`, next: "h_fight3" },
+                h_fight3: { t: "fight", boss: "Hollow Jack", text: `Jack's coat unfolds, and under it is a cage of black iron where his ribs should be, with a single stub of candle burning inside. He raises the hook.\n\n🏮 Jack: "THEN BE LIT. LET ME SEE YOUR FACES WHILE THEY GO."`, taunt: `"A hundred and one. You will be a hundred and two."`, lvl: 2, mult: 1.3, atkm: 1.05, sp: "drain", every: 3, spTxt: "Jack drinks the party's light", phase: { kind: "rhythm", title: "Break the Lanterns!", text: "Smash the lanterns in time, one beat at a time. Each one that breaks frees a soul!", data: { beats: 9, bpm: 78, icon: "🏮" }, need: 0.6, cut: 0.3, dmg: 16, okTxt: "The lanterns shatter! Souls pour out, and they are FURIOUS!", badTxt: "Out of time! Jack's hook finds you." }, win: "h_r", edge: function () { return !!F("trick") || F("bride") === "freed"; } },
+                h_took: { who: "Hollow Jack", img: "Hollow Jack", text: `You say it. You don't mean to say it, but you say it.\n\nBror's lantern comes off his sternum with a sound like a cough, and the skeleton folds into a heap of bones on the stone.\n\n${L1}: "No. No no no. Bror. BROR."\n\nJack catches the wick as it falls, and puts the two halves together. The green flame leaps. The keep rings with a glad, terrible sound.\n\n🏮 Jack: "That's the thing, you see. They always say yes eventually. Now. About the walking out..."`, next: "h_r" },
+                h_r: { t: "route", fn: function () { if (F("bargain") === "took") return "e_crown"; if (F("bride") === "freed" && F("oil")) return "e_wake"; if (F("bride") === "freed") return "e_dawn"; return "e_candle"; } },
+                e_dawn: { t: "end", id: "halloween:h_dawn", name: "Dawn Breaks", who: "Gravewick", text: `Jack goes out the way a candle goes out: not with a bang, but with a long, tired breath.\n\nThe lanterns tip over one by one, and each one opens, and each one lets out a small bright sound. Thousands of souls pour up through the roof like sparks. They wake the sun.\n\nDawn comes through the keep's windows, the first real light in a hundred years. Bror stands in it, looking at his hands.\n\n${B1}: "Huh. Those are... hands."\n\n${L1}: "You're warm. Bror! You're WARM!"\n\n${B1}: "I'm a very handsome skeleton, thank you. Wait. Oh. Oh no, that's skin."\n\nThey stay a morning, and a day, flesh and blood, laughing until they cry. Then, as the Bride's last lantern flickers, they take your hands one last time.\n\n${L1}: "Thank you for the one morning."\n\nThe village of Gravewick rings its bells, and for the first time in a hundred years, the bells ring thirteen times, and then twelve, and then eleven, counting down to a sunrise.` },
+                e_wake: { t: "end", id: "halloween:h_wake", name: "The Wake (Secret)", who: "Gravewick", text: `The eel-oil takes the keep in a green flash. Every lantern opens at once, and the souls of Gravewick pour out, thousands of them. Not screaming. Singing.\n\nThe Bride is among them, face and all, drifting through the roof arm in arm with a man in a lamplighter's coat, who is no longer Jack at all, only a lonely old fool who finally got to keep a promise.\n\nAnd then the dead of Gravewick do a thing the living of Gravewick forgot how to do. They hold a wake. They set a table in the square, and they invite you, and everyone talks about everyone they ever loved.\n\n${B1}: "I don't have a stomach, but I would absolutely like to try the pie."\n\n${L1}: "You can't taste it, Bror."\n\n${B1}: "I can smell it. I can SMELL it, Lyra. Oh, this is the best night of my death."\n\nYou stay until the sun comes up. The dead do not mind being left behind; they only ever wanted to be remembered.` },
+                e_candle: { t: "end", id: "halloween:h_candle", name: "Bone and Candlelight", who: "Gravewick", text: `Jack falls, and the lanterns go dark one by one. But the Bride is ash, and the oil is a story nobody told, and the souls have nowhere to go but out of the glass and into the night, thin and scattered.\n\nBror's green wick has been burning low for a long time. You hold the other half of it up to the dawn, and watch the two lights find each other.\n\n${B1}: "It'll do. I think it'll do."\n\n${L1}: "Bror?"\n\n${B1}: "I'm still a skeleton. But I'm one with a lantern, and a friend, and nothing in the whole of the world is hunting me. That's more than I had last night."\n\nLyra fades gently as the sun climbs, smiling, a little relieved.\n\n${L1}: "Come back next Hollow Night. I'll have the kettle on. Bring bread. Bror likes to hold it."\n\nYou will. You already know you will.` },
+                e_crown: { t: "end", id: "halloween:h_crown", name: "The Lantern Passed", who: "Gravewick", text: `You walk out of the keep with gold in your pockets and a shape behind you that should not be walking.\n\nBehind you, Jack's coat falls from his shoulders and settles onto yours. The hook is warm in your hand. You do not remember picking it up.\n\n${L1}: "...What are you wearing?"\n\nYou open your mouth to answer and a light comes up out of it. A cold, kind, patient light.\n\nThe lamplighter's coat has always needed a lamplighter. And Gravewick has always, always been so very hungry for company.\n\nThe next traveller to find the gate will see a figure in a long black coat with a lantern, smiling, and they will hear a voice that says: "Welcome, welcome. Mind the souls. They bruise."` }
+            }
+        };
+
+        var CHRISTMAS = {
+            id: "christmas", name: "The Long Winter's Night", emoji: "🎄", tag: "Frostmere, where Christmas is stolen. Jolly Lyra, Santa's-helper Bror, a frozen Father Christmas and the Gift-Taker.", window: "Dec 1 – Jan 2",
+            reward: { gold: 180, silver: 30 },
+            endings: ["c_silent", "c_table", "c_last", "c_coal"],
+            perk: function () { var h = Math.min(8, Math.max(1, gameState.maxHp - gameState.hp)); gameState.hp += h; if (CO.g && !CO.g.down) CO.g.hp = Math.min(CO.g.max, CO.g.hp + 6); gameState.gold += 10; if (Math.random() < 0.3) { try { addItem("Health Potion", "fa-flask text-red-500"); } catch (e) {} if (CO.g) CO.g.pots = Math.min(9, (CO.g.pots || 0) + 1); } try { updateUI(); } catch (e) {} banner("🤶 Lyra sings, you heal (+" + h + " HP) · 🧝 Bror unwraps a gift (+10 gold)"); },
+            nodes: {
+                c0: { who: "Frostmere", text: `Christmas Eve, and it will not become Christmas.\n\nFrostmere's carollers stand frozen mid-song in the square, mouths open on a note that never finishes. The clock on the church says midnight. It has said midnight for nineteen days. Icicles hang from every roof like teeth.\n\nA figure in red velvet and wild silver tinsel comes bounding out of the snow, jingling.\n\n${L2}: "MERRY CHRISTMAS! It isn't, actually. But I'm committed to the bit. Hi! I'm Lyra. This is Bror."\n\nA small, furious man in green felt and pointed shoes, every step ringing, glares at nothing.\n\n${B2}: "Santa's head helper. A hundred and twelve years. These bells are cursed. I can't take them off. The bells are the least of our problems. Don't say anything. Don't."`, fx: { heal: true }, next: "c1" },
+                c1: { who: "Frostmere", text: `${L2}: "Okay, here's the thing, and I need you to stay jolly for it. The Long Night came on the twenty-fourth. Old Man Winter froze the sun. He froze Father Christmas in the Ice Hall, still holding the sack. And the Gift-Taker is loose in the Black Forest, deciding who's naughty."\n\n${B2}: "The Gift-Taker puts the naughty in his sack. We call him Krampus. It's not a pun. It's a warning."\n\n${L2}: "We have until the Long Night breaks, maybe three days. The sleigh is in the stable. The reindeer won't wake. Santa's in the ice. And I am, as you can tell, handling it very well."\n\nHer smile does not move. Only her eyes.`, choices: [{ t: "\"I'll wake the sun. Let's go.\"", go: "c2", fx: { f: { vow: 1 } } }, { t: "\"What is Old Man Winter, exactly?\"", go: "c1b" }, { t: "{fearline} Take a breath, and nod.", go: "c1c", fx: { f: { afraid: 1 } } }] },
+                c1b: { who: "Frostmere", text: `${B2}: "Winter's Tithe. Every year the Long Night takes a share of the warmth the world makes. Every year Father Christmas gives it back."\n\n${L2}: "Last year, Santa was late. Just one house. A little girl in a cold flat, with a handful of nothing to give anybody. He sat with her till morning. The Tithe waited, and waited, and learned how it feels to be left."\n\n${B2}: "So this year he took Santa instead. To sit with. Forever."`, next: "c2" },
+                c1c: { who: "Frostmere", text: `${L2}: "Awww. Come here. Fear's a good sign. It means you're listening to the world."\n\n${B2}: "It also means you'll live. Statistically."\n\nShe hugs you, smelling of nutmeg and woodsmoke and, faintly, of the cold. You feel braver and, oddly, warmer.`, fx: { hp: 10 }, next: "c2" },
+                c2: { who: "The Frozen Square", text: `The frozen carollers surround you, wide-eyed, tuneless. One holds a lantern. One holds a cup of cider, frozen in the act of being offered. A child is caught mid-laugh.\n\n${L2}: "They're not dead, just stopped. It's the worst kind of stopped. If you warm them... a little... they might thaw. Or you could check their pockets, I won't tell."`, choices: [{ t: "🧤 Warm their hands (kind)", go: "c2a", fx: { f: { nice: "+1" } } }, { t: "🪙 Check their pockets", go: "c2b", fx: { gold: 45, f: { naughty: "+1" } } }, { t: "➡️ Move on", go: "c3" }] },
+                c2a: { who: "The Frozen Square", text: `You cup the child's hands in yours and breathe on them. Frost melts. For one second the laugh finishes.\n\n🧒 Child: "...Is it Christmas?"\n\nThen they freeze again, but the ice on their cheek is thinner. You feel it. Something in the world turns, one notch warmer.\n\n${B2}: "Huh. That's not nothing."`, fx: { hp: 8 }, next: "c3" },
+                c2b: { who: "The Frozen Square", text: `You find forty-five coins and a toy soldier. The toy soldier's face is worn from being held.\n\n${L2}: "Oh. Okay. That's fine. It's fine! Totally fine."\n\nHer voice is very bright and very careful. Bror looks away.\n\nSomewhere in the Black Forest, something large turns its head toward the sound of coins.`, next: "c3" },
+                c3: { who: "Present Alley", text: `A lane of beautiful boxes in bright paper, stacked under a dead tree. One is much larger than the rest, and it is breathing.\n\n${B2}: "Mimic. Don't open the big one."\n\n${L2}: "But it's SO pretty!"\n\n${B2}: "Lyra."\n\nThe ribbon on the box tightens, like a smile.`, choices: [{ t: "🎁 Open the big present anyway", go: "c3f" }, { t: "🧨 Poke it with a stick first", go: "c3f", fx: { f: { edge1: 1 } } }] },
+                c3f: { t: "fight", boss: "Gift Mimic", minor: true, text: `The lid flips open. Teeth. A great many teeth, red and gold, and a tongue of curled ribbon.\n\n🎁 Mimic: "HAPPY... HOLIDAYS!"`, taunt: `"HAPPY HOLIDAYS! UNWRAP ME!"`, lvl: 0, mult: 1, win: "c3w" },
+                c3w: { who: "Present Alley", text: `The Mimic collapses into a pile of shredded paper and, strangely, real presents. Mittens. A tin whistle. A pouch of sweets.\n\n${B2}: "Never trust a box that smells of cinnamon and malice."\n\n${L2}: "I'll keep the ribbon! It's a good ribbon."`, fx: { gold: 35, item: ["Candy-Cane Tonic 🍬", "fa-candy-cane text-red-400"], pot: 1 }, next: "c4" },
+                c4: { who: "The Snowman Road", img: "General Frostbite", text: `The road to the Black Forest is lined with snowmen. Hundreds of them, in rows, as if on parade. Coal eyes. Carrot noses. Their arms, which should be twigs, are sabres of ice.\n\nThe lead snowman is a head taller than the rest, in a sash of frozen holly.\n\n⛄ General Frostbite: "HALT. NAUGHTY OR NICE, YOU ARE ON WINTER'S ROAD. THE FEE FOR PASSAGE IS ONE HEART."\n\n${B2}: "I hate snowmen. I've always hated snowmen. They were never made for anything good."`, next: "c4b" },
+                c4b: { t: "fight", boss: "General Frostbite", text: `The regiment parts like a curtain. The General draws his sabre and its edge sings a high, cold note.\n\n⛄ General Frostbite: "FOR WINTER. FOR THE LONG QUIET. FOR THE NIGHT WITHOUT END."`, taunt: `"I WAS BUILT IN A CHILD'S GARDEN. IT WAS THE BEST DAY OF MY LIFE. THEN THE SUN CAME UP AND THEY LEFT ME TO MELT."`, lvl: 0, mult: 1.05, sp: "chill", spTxt: "Frostbite's breath freezes the party", phase: { kind: "keys", title: "Melt the Heart-Coal!", text: "His heart is a lump of coal under the ice. Light it, both torches at once!", data: { label: "Touch the torch to the coal when the needle hits the green.", speed: 1.6 }, cut: 0.25, dmg: 12, okTxt: "The coal flares! Steam pours from the General!", badTxt: "The torch gutters. His sabre bites." }, win: "c5" },
+                c5: { who: "The Snowman Road", text: `The General melts in a long exhale of steam. Under him, in the slush, lies a pocket watch of green glass, still ticking.\n\n${L2}: "He was a really good snowman, you know. He just... got a mean job."\n\n${B2}: "Everybody does, sometimes."`, fx: { gold: 40, hp: 6 }, next: "c6" },
+                c6: { who: "The Last Fire", text: `A burned-out sleigh-stable, a fire barely alive in the ashes. Lyra sits close to it and lets her hat fall into her lap. Under the tinsel, her hair is frosted white.\n\n${L2}: "[humming]... [stops]. I'm not okay, by the way. I'm just loud."\n\n${B2}: "...Yeah. Me too."\n\nHe tosses you a candy cane without looking.\n\nThe Black Forest waits ahead. But there are things to do here first, if you want.`, choices: [{ t: "🍪 Gingerbread peddler (a lit window)", go: "c_ped", req: function () { return !F("v_ped"); } }, { t: "🧊 Ice-fishing hole", go: "c_ice", req: function () { return !F("v_ice"); } }, { t: "🔔 Listen to the sleigh-bells", go: "c_bell", req: function () { return !F("v_bell"); } }, { t: "🔥 Rest by the fire (heal)", go: "c6r", req: function () { return !F("v_rest"); } }, { t: "🌲 Into the Black Forest", go: "c7" }] },
+                c6r: { who: "The Last Fire", text: `You warm your hands. Lyra pours cocoa from a flask that should be empty and always, somehow, isn't. It tastes of the last good Christmas.`, fx: { heal: true, f: { v_rest: 1 } }, next: "c6" },
+                c_ped: { t: "room", who: "The Gingerbread Peddler", room: { type: "wares", text: `A window glows in a wall of nothing. Inside, a little old baker in a frosted apron smiles with teeth made of sugar. "Everything's sweet, dear," she says. "Everything has a price, too."` }, pool: function () { return [themed(1, "The Everlit Candle", "Heal you and your partner fully", "Your next battle starts at half HP"), themed(0, "Peppermint Whetstone", "+4 weapon attack for the run", "Lose 15 max HP"), themed(3, "Gingerbread Doll", "+3 potions for your partner (or 2 stouts for you)", "Foes in the next battle hit harder")]; }, next: "c_ped2" },
+                c_ped2: { who: "The Last Fire", text: `The window is a wall again. A scent of burnt sugar hangs in the air a moment.`, fx: { f: { v_ped: 1 } }, next: "c6" },
+                c_ice: { t: "fish", who: "The Ice Hole", text: `A black round hole in the frozen lake, steaming slightly. Under the ice, something very faintly glitters.\n\n${B2}: "There's a star down there. A real one. Winter swallowed it so the sky stayed dark. If you could hook it..."\n\n${L2}: "Be gentle! It's shy!"`, okText: `Your line comes up with a {fish}, and caught in its gills, a small point of cold white light. A fallen star, no bigger than a thumbnail. It hums.`, badText: `The line comes up empty, the ice hole already skinning over.`, flag: "star", next: "c_ice2" },
+                c_ice2: { who: "The Last Fire", text: `You step back from the hole. The ice closes behind you.`, fx: { f: { v_ice: 1 } }, next: "c6" },
+                c_bell: { t: "room", who: "The Sleigh-Bells", room: { type: "haunted", enemy: "Wraith", text: `The bells on Bror's shoes fall silent. In the quiet, you can hear the bells on the old sleigh in the wreckage, ringing by themselves, a soft cold chiming.` }, next: "c_bell2" },
+                c_bell2: { who: "The Last Fire", text: `The chime fades. Whatever the bells wanted you to know, you know it.`, fx: { f: { v_bell: 1 } }, next: "c6" },
+                c7: { who: "The Black Forest", img: "Krampus", text: `The forest is made of antlers. Every tree is a rack, and every branch a tine. Nothing sings here. The snow is thick and the only footprints are goat-hoofed and enormous.\n\nA long, wet laugh comes out of the dark. Chains drag.\n\n👹 Krampus: "A warm little thing, in a cold little forest. Come. Sit by me. I keep a ledger, you know. Naughty and nice. Every child, every year."\n\nHe steps out: eight feet of matted black fur, horns like scythes, a wicker basket on his back that moves. Inside, something is whispering.\n\n👹 Krampus: "Do tell me, little thing. Which one are you?"`, next: "c7b" },
+                c7b: { who: "Krampus", img: "Krampus", text: `👹 Krampus: "Let's not be dramatic. I'm not cruel. I'm only... accurate."\n\nHe opens a ledger bound in hide and runs a claw down the page.\n\n👹 Krampus: "Hm. {me}. I see "{fearline}"... Interesting. And what's this? Oh. You warmed a child's hands. Or did you pocket a toy soldier? Nice. Naughty. It's all in the ink. But one question first."`, next: "c7c" },
+                c7c: { t: "room", who: "Krampus", img: "Krampus", room: { type: "riddle", q: "What can you give away, and still keep?", o1: "Your word", o2: "A secret", o3: "Your coat", o4: "A coin", right: 1, amt: 14, text: `Krampus lowers the wicker basket. The whispering stops. He wants this answer very badly.` }, next: "c7d" },
+                c7d: { t: "route", fn: function () { return (F("nice") || 0) >= 1 && !(F("naughty") > F("nice")) ? "c7p" : "c7f"; } },
+                c7p: { who: "Krampus", img: "Krampus", text: `Krampus is quiet for a long, long time. The antlers in the forest creak.\n\n👹 Krampus: "...Nice. A close thing, but nice. Do you know how long it has been since anyone was nice to me? I am the monster you tell children about. The one who takes them. Nobody asks what I do with them."\n\n${L2}: "...What do you do with them?"\n\n👹 Krampus: "I keep them from Winter. The sack is a shelter. A thousand children in there, warm, asleep. Winter wants them, and I stand between."\n\n${B2}: "Well. That's... a bit of a reframe."`, choices: [{ t: "🤝 \"Come with us. Help us.\"", go: "c8", fx: { f: { krampus: "friend", nice: "+1" }, heal: true } }, { t: "⚔️ \"Prove it. Fight.\"", go: "c7f" }] },
+                c7f: { t: "fight", boss: "Krampus", text: `Krampus rears up, his chains whipping the snow into smoke. The basket falls open and a hundred small hands claw at the air.\n\n👹 Krampus: "NAUGHTY! I SO LOVE IT WHEN THEY'RE NAUGHTY! SO MUCH LESS TO EXPLAIN!"`, taunt: `"TWELVE DAYS, LITTLE ONE. I'LL KEEP YOU FOR TWELVE DAYS. THEN WE'LL SEE."`, lvl: 2, mult: 1.2, sp: "steal", every: 3, spTxt: "Krampus bags a handful of your gold", phase: { kind: "hold", title: "Don't Let Him Bag You!", text: "The chains tighten! Hold steady and keep your footing, or into the sack you go!", data: { secs: 10, label: "Hold the marker in the green and DON'T GET BAGGED." }, need: 0.5, cut: 0.25, dmg: 16, okTxt: "You wrench free! Krampus roars and staggers!", badTxt: "The chains bite. For a second you are in the dark." }, win: "c7w", edge: function () { return !!F("v_bell"); } },
+                c7w: { who: "Krampus", img: "Krampus", text: `The Gift-Taker kneels in the snow, chains slack, one horn broken. The wicker basket spills a hundred children's sleeping faces onto the white. They're alive. They're warm.\n\n👹 Krampus: "...I was only ever... protecting..."\n\n${L2}: "Oh, no. Oh no, oh no."\n\n${B2}: "He was telling the truth."\n\nHe is dying. He knows it, and he looks, almost, relieved.\n\n👹 Krampus: "Tell Winter... it was good to keep them warm."`, fx: { f: { krampus: "slain", naughty: "+1" }, gold: 30 }, next: "c8" },
+                c8: { who: "The Glass Stair", text: `Beyond the Black Forest rises the Ice Hall, a palace of glass and starlight, stairs as long as the night itself. At the top, a door made of nineteen days of frozen midnight.\n\nA message in frost is scratched on the lintel, in a very old hand: ${"“"}Two to open it. One to stay.${"”"}\n\n${L2}: "I don't love that. I don't love the 'one to stay'."\n\n${B2}: "Nobody does, Lyra."`, next: "c9" },
+                c9: { t: "room", who: "The Advent Doors", room: { type: "puzzle", lvl: 5, text: `Twenty-four little doors in the great door, and only one of them is a keyhole. You each can read half of the riddle.` }, next: "c10" },
+                c10: { who: "Old Man Winter", img: "Old Man Winter", text: `The Ice Hall is a cathedral of blue silence. At its heart stands a vast man in a red coat, frozen to the shoulders in a column of ice, eyes open, a single tear caught on his cheek. In his frozen hand, a sack. His other hand, outstretched toward the door, as if he had been reaching for it.\n\nOn a throne of piled sleigh-bells sits a gaunt white figure in a coat of frost. It wears Father Christmas's spectacles.\n\n🥶 Winter: "Hush. He is sleeping. He has not slept in a thousand years. Do you know what it is, to give, and give, and never be asked what you want?"\n\n${B2}: "...Kris."\n\n🥶 Winter: "I asked him once. ONE thing. That someone stay. Just stay, past sunrise, to sit with the cold. He said, I'm sorry. I have a long night ahead."\n\nThe air is still. Every candle in the hall leans toward you.\n\n🥶 Winter: "So. A bargain. One of you may stay with me, forever, in the Long Night. And Kris will wake, and the sun will rise, and the children will have their morning."`, next: "c11" },
+                c11: { who: "Old Man Winter", img: "Old Man Winter", text: `${L2}: "No. No, no, that's not... you can't ask that."\n\n🥶 Winter: "I can ask anything. I am the winter. Only those who say yes pay the price."\n\n${B2}: "...I know the bells. I know how it works. I've been wearing them for a hundred and twelve years. Somebody should stay with the cold who knows what it's like to be cold. I'll stay."\n\n${L2}: "BROR."\n\n${B2}: "Shut up, Lyra. For once in your life, shut up and let me do the thing."\n\n🥶 Winter: "Or... the crown. Take it, and Winter is yours. Wear it, and no one will ever be cold again. Only you."\n\nThe crown is made of tiny frozen bells, and it hums.`, choices: [{ t: "🔔 Let Bror stay (the bittersweet way)", go: "c_last", fx: { f: { sacrifice: 1 } } }, { t: "⚔️ \"No one stays. We end this.\"", go: "c_fight" }, { t: "👑 Reach for the crown", go: "c_crown", fx: { f: { crown: 1 } } }] },
+                c_fight: { t: "fight", boss: "Old Man Winter", text: `The throne of bells comes apart in a thousand chimes. Winter rises, and the coat of frost lengthens into a cathedral-width shadow.\n\n🥶 Winter: "THEN WE WILL ALL STAY. EVERY LAST ONE OF YOU."`, taunt: `"THE LONG NIGHT HAS NO END, LITTLE WARM THING. I AM THE END. I AM THE QUIET AFTER."`, lvl: 3, mult: 1.35, atkm: 1.05, sp: "chill", every: 3, spTxt: "Winter's breath numbs the party", phase: { kind: "rhythm", title: "Ring the Bells!", text: "The sleigh-bells of the old throne can wake the reindeer. Ring them in time, together!", data: { beats: 10, bpm: 80, icon: "🔔" }, need: 0.6, cut: 0.3, dmg: 18, okTxt: "The bells ring true! Hooves thunder far away: the reindeer are waking!", badTxt: "The bells clang out of tune. Winter laughs, a sound like a lake cracking." }, win: "c_r", edge: function () { return !!F("star") || F("krampus") === "friend"; } },
+                c_r: { t: "route", fn: function () { if (F("krampus") === "friend" && F("star") && (F("nice") || 0) >= 2) return "e_table"; return "e_silent"; } },
+                c_last: { t: "end", id: "christmas:c_last", name: "The Last Gift", who: "Frostmere", text: `Bror steps up to the throne of bells, and sits. Winter looks at him for a long time, and the Ice Hall does something it has not done in a thousand years: it sighs.\n\n🥶 Winter: "You're not afraid."\n\n${B2}: "I've been cursed to jingle for a century. I have been afraid of everything. I'm done."\n\nThe ice around Father Christmas cracks. The old man gasps, and his eyes find yours, and his voice is the voice of every good morning.\n\n🎅 Kris: "Oh. Oh, child. What have you done."\n\nBror waves with one hand, the other resting on the throne. Winter, for the first time, is not alone.\n\nThe sun comes up over Frostmere. The carollers finish their song. And, in the Ice Hall, if you stand very quietly, you can sometimes hear the bells on a pair of small pointed shoes, ringing softly, and a gaunt old man laughing at something a tiny elf has said.\n\n${L2}: "He'll be all right. He's with someone who's cold. He's good at that."\n\nShe is crying, and she is smiling, and neither is a lie.` },
+                c_crown: { t: "end", id: "christmas:c_coal", name: "Coal in the Stocking", who: "Frostmere", text: `The crown is light as a snowflake, and heavy as the sky.\n\nYou put it on, and the cold, which was a wall, becomes a coat. You are warm for the first time in nineteen days. You are warm and everyone else is not.\n\n${L2}: "...Take it off."\n\n${B2}: "Lyra, get away from them."\n\n${L2}: "Take it off. Please."\n\nYou can hear her. You can hear the whole of Frostmere, every voice, every shiver, every frozen mouth, tiny and clear as bells. And it is lovely. It is a lullaby.\n\nWinter's hand settles on your shoulder.\n\n🥶 Winter: "Rest. It isn't so bad. It isn't so bad at all."\n\nThe sun does not rise. Somewhere a child hangs a stocking by a cold hearth and in the morning it contains a single lump of coal, black and perfect, and a note in frost:\n\n${"“"}Merry Christmas. From the one who stayed.${"”"}` },
+                e_silent: { t: "end", id: "christmas:c_silent", name: "Silent Night, Saved", who: "Frostmere", text: `Winter shatters like a window. The shards fall upward, a long glittering storm that climbs the glass stair and out through the roof to where the sun, frozen all this while, begins to burn again.\n\nThe ice around Father Christmas cracks with a sound like the first note of a carol. He staggers out, an old man in a red coat, and catches Lyra before she can fall.\n\n🎅 Kris: "Ho... ho. Ho. Oh, my dear, you are freezing. All of you. Someone get these children a blanket."\n\n${B2}: "He's back. He's BACK. I can take these bells off now. Can I take these bells off?"\n\n🎅 Kris: "No, Bror. They're lovely."\n\n${B2}: "...Of course they are."\n\nChristmas comes to Frostmere one day late. The carollers finish their song. The clock chimes twelve, then one, then, finally, ten, nine, eight, hurrying toward morning. And as the sleigh lifts off into the dawn with a sack of everything the world was owed, you hear a very small, very satisfied jingle from the driver's seat.` },
+                e_table: { t: "end", id: "christmas:c_table", name: "Everyone at the Table (Secret)", who: "Frostmere", text: `The fallen star you pulled from the lake goes off in your hand like a struck match, and the whole Ice Hall fills with a clean white light that does not hurt.\n\nWinter staggers. His frost-coat falls apart, and under it is not a monster, only a thin, shivering old man in a threadbare grey coat, who has not been warm in a very long time.\n\n🥶 Winter: "...Oh. That's warm. That's... is this what it feels like?"\n\nKrampus, who has been standing in the doorway the whole time, shifts the basket on his back, clears his throat, and says, with enormous dignity:\n\n👹 Krampus: "I brought pie."\n\nKris, thawing in his ice, bursts out laughing. It is the first sound he has made in nineteen days, and it is a boom, and it shakes loose the last of the frost.\n\nThey eat, all of them, at a long table of sleigh-bells and sleep-warm children: Santa, Winter, the Gift-Taker, the elf, the ghost of a jolly woman who has stopped pretending, and you.\n\n${L2}: "I am okay. I think I'm actually okay. Look at that."\n\n${B2}: "Pass the gravy."\n\nOutside, the sun rises over Frostmere for the first time in nineteen days. Nobody notices. They are all talking.` }
+            }
+        };
+        var TALES = { halloween: HALLOWEEN, christmas: CHRISTMAS };
+        /* Christmas fallback: "c_last"/"c_crown" nodes are endings, "e_*" nodes are routed to */
+        CHRISTMAS.nodes.c_last.id = "christmas:c_last";
+
+        /* ---------- start / resume / menu ---------- */
+        function onTitle() { var s = $("start-screen"); return !!(s && !s.classList.contains("hidden") && getComputedStyle(s).display !== "none"); }
+        function ensureInGame(cb) {
+            if (!onTitle()) return cb();
+            var sv = null; try { sv = JSON.parse(localStorage.getItem("dwellerStateV9") || "null"); } catch (e) {}
+            if (!(sv && sv.hp > 0)) { banner("Tap Begin Journey once first, then open Seasonal Tales from the ☰ menu."); return; }
+            try { beginJourney(); } catch (e) { return; } setTimeout(cb, 1600);
+        }
+        function start(id, resume) {
+            var tale = TALES[id]; if (!tale) return;
+            ensureInGame(function () {
+                SE = { active: true, tale: tale, id: null, f: {}, next: null, boss: null, turn: 0, p2: false, stamp: 0, mono: null };
+                var first = "h0"; if (id === "christmas") first = "c0";
+                var run = resume ? jget(RUNK, null) : null; if (run && run.tale === id) { SE.f = run.f || {}; first = run.id || first; }
+                closeMenu(); try { document.getElementById("choices-container").innerHTML = ""; } catch (e) {}
+                A.addLog(tale.emoji + " " + tale.name + (resume ? " (resumed)" : " begins"));
+                go(first);
+            });
+        }
+        function inSeason(t) { var d = new Date(), m = d.getMonth() + 1, day = d.getDate(); if (t.id === "halloween") return (m === 10 && day >= 15) || (m === 11 && day <= 2); return m === 12 || (m === 1 && day <= 2); }
+        var menu = null;
+        function closeMenu() { if (menu) menu.style.display = "none"; }
+        function openMenu() {
+            if (!menu) { menu = document.createElement("div"); menu.id = "ddse"; document.body.appendChild(menu); var st = document.createElement("style"); st.textContent = "#ddse{position:fixed;inset:0;z-index:99991;background:#000d;display:none;align-items:center;justify-content:center;padding:12px}#ddse .sh{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:linear-gradient(180deg,#1a0a0a,#0a0a0a);border:2px solid #7f1d1d;border-radius:18px;padding:14px;color:#e7e5e4;font-family:system-ui,sans-serif}#ddse h3{margin:0 0 4px;font-size:20px;letter-spacing:.06em;text-transform:uppercase}#ddse .tale{border:1px solid #7f1d1d;border-radius:14px;padding:12px;margin:10px 0;background:#00000066}#ddse .tale.h{border-color:#c2410c;box-shadow:0 0 18px #c2410c44 inset}#ddse .tale.c{border-color:#15803d;box-shadow:0 0 18px #15803d44 inset}#ddse b.t{font-size:16px}#ddse .m{color:#a8a29e;font-size:12px;line-height:1.4;margin:4px 0}#ddse button{font:inherit;font-weight:800;font-size:13px;border-radius:10px;border:1px solid #7f1d1d;background:#241010;color:#fde68a;padding:9px 12px;margin:4px 6px 0 0}#ddse button.go{background:#b45309;color:#fff;border-color:#f59e0b}#ddse .live{display:inline-block;background:#16a34a;color:#fff;border-radius:99px;padding:1px 8px;font-size:11px;margin-left:6px}"; document.head.appendChild(st); }
+            var seen = jget(ENDK, {}), run = jget(RUNK, null), pv = jget("ddse_preview", true);
+            var card = function (t, cls) {
+                var n = t.endings.filter(function (e) { return seen[t.id + ":" + e]; }).length, live = inSeason(t), lock = !live && !pv, can = run && run.tale === t.id;
+                return '<div class="tale ' + cls + '"><b class="t">' + t.emoji + " " + esc(t.name) + "</b>" + (live ? '<span class="live">LIVE NOW</span>' : "") + '<div class="m">' + esc(t.tag) + '</div><div class="m">In season: ' + t.window + " · Endings found: " + n + "/" + t.endings.length + " · Plays solo or with a partner (they follow every scene, lean on choices and join the mini-games)</div>" + (lock ? '<div class="m">Back in season soon. (Turn on "Preview off-season tales" below.)</div>' : '<button class="go" data-s="' + t.id + '">▶ Begin</button>' + (can ? '<button data-r="' + t.id + '">↩ Resume</button>' : "")) + "</div>";
+            };
+            menu.innerHTML = '<div class="sh"><h3 class="title-font">🎃 Seasonal Tales 🎄</h3><div class="m">Short, dangerous holiday adventures with their own bosses, companions and endings.</div>' + card(HALLOWEEN, "h") + card(CHRISTMAS, "c") + '<label class="m" style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" id="ddse-pv"' + (pv ? " checked" : "") + '> Preview off-season tales</label><button id="ddse-x" style="margin-top:10px">Close</button></div>';
+            menu.style.display = "flex";
+            menu.querySelectorAll("[data-s]").forEach(function (b) { b.onclick = function () { start(b.dataset.s, false); }; });
+            menu.querySelectorAll("[data-r]").forEach(function (b) { b.onclick = function () { start(b.dataset.r, true); }; });
+            $("ddse-pv").onchange = function (e) { jset("ddse_preview", e.target.checked); openMenu(); };
+            $("ddse-x").onclick = closeMenu; menu.onclick = function (e) { if (e.target === menu) closeMenu(); };
+        }
+        /* menu buttons: title screen + settings */
+        (function () {
+            var hb = $("dd-hero-btn"); if (hb && !$("dd-season-btn")) {
+                var b = document.createElement("button"); b.id = "dd-season-btn"; b.className = "w-full mb-3 bg-gradient-to-r from-orange-950 via-neutral-950 to-green-950 border border-orange-600/70 text-orange-200 px-3 py-2 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition text-xs font-bold title-font tracking-wider";
+                var live = inSeason(HALLOWEEN) ? "🎃" : inSeason(CHRISTMAS) ? "🎄" : "🎃";
+                b.innerHTML = "<span>" + live + '</span><span>Seasonal Tales</span><span style="font-size:10px;color:#86efac">' + (inSeason(HALLOWEEN) || inSeason(CHRISTMAS) ? "LIVE" : "") + "</span>"; b.onclick = openMenu; hb.parentNode.parentNode.insertBefore(b, hb.parentNode.nextSibling);
+            }
+            var m = $("settings-modal"), j = $("dd-journal-btn"); if (m && !$("dd-season-set")) {
+                var s = document.createElement("button"); s.id = "dd-season-set"; s.className = "w-full mb-3 bg-orange-950 border border-orange-600 text-orange-200 py-2 rounded-xl text-xs font-bold"; s.textContent = "🎃🎄 Seasonal Tales"; s.onclick = function () { try { toggleSettingsMenu(); } catch (e) {} openMenu(); };
+                if (j && j.parentNode) j.parentNode.insertBefore(s, j.nextSibling); else if (m.firstElementChild) m.firstElementChild.appendChild(s);
+            }
+        })();
+        window.DDSE = { open: openMenu, start: start, state: function () { return SE; }, TALES: TALES, art: art, go: go };
+        document.dispatchEvent(new Event("ddse-ready"));
+    }
 })();
 
 </script>

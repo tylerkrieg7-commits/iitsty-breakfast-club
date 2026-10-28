@@ -17394,12 +17394,13 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     [["w_bcx_tile", "Bath Tiles", "linear-gradient(90deg,rgba(0,0,0,.12) 2px,transparent 2px) 0 0/34px 34px,linear-gradient(rgba(0,0,0,.12) 2px,transparent 2px) 0 0/34px 34px,#b3e5fc"], ["w_bcx_sky", "Open Sky", "radial-gradient(ellipse at 20% 30%,#fff 0 8%,transparent 9%),radial-gradient(ellipse at 70% 20%,#fff 0 6%,transparent 7%),linear-gradient(#4fc3f7,#e1f5fe)"], ["w_bcx_kitchen", "Kitchen Check", "repeating-conic-gradient(#fff3e0 0 25%,#ffe0b2 0 50%) 0 0/30px 30px"], ["w_bcx_night", "Night Sky", "radial-gradient(#fff 1px,transparent 1.5px) 0 0/38px 38px,radial-gradient(#ffd54f 1px,transparent 1.5px) 17px 21px/52px 52px,linear-gradient(#0d1b3d,#283593)"], ["w_bcx_brick", "Brick", "repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 2px,transparent 2px 22px),repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 2px,transparent 2px 44px),#a65a43"], ["w_bcx_wood", "Cabin Wood", "repeating-linear-gradient(0deg,#8d6e63 0 38px,#6d4c41 38px 40px)"], ["w_bcx_garden", "Garden Hedge", "radial-gradient(circle,#2e7d32 40%,transparent 42%) 0 0/20px 20px,#66bb6a"], ["w_bcx_lav", "Lavender", "#d1c4e9"]].forEach(function (w) { R0.WALLS.push({ id: w[0], n: w[1], css: w[2], how: "free" }); });
     [["f_bcx_tile", "Bath Floor", "repeating-conic-gradient(#e0f7fa 0 25%,#b2ebf2 0 50%) 0 0/32px 32px"], ["f_bcx_lawn", "Lawn", "repeating-linear-gradient(80deg,#66bb6a 0 3px,#4caf50 3px 6px)"], ["f_bcx_deck", "Wood Deck", "repeating-linear-gradient(90deg,#a1887f 0 36px,#8d6e63 36px 38px)"], ["f_bcx_stone", "Stone", "repeating-conic-gradient(#9e9e9e 0 25%,#757575 0 50%) 0 0/46px 46px"], ["f_bcx_rug", "Soft Rug", "#e1bee7"], ["f_bcx_sand", "Sand", "radial-gradient(#d7b977 1px,transparent 1.5px) 0 0/9px 9px,#ecd9a0"]].forEach(function (f) { R0.FLOORS.push({ id: f[0], n: f[1], css: f[2], how: "free" }); });
     var FUR = [["tub", "Bathtub", "🛁", "furn"], ["shower", "Shower", "🚿", "furn"], ["sink", "Sink", "🚰", "furn"], ["mirror", "Mirror", "🪞", "decor"], ["tree", "Big Tree", "🌳", "furn"], ["flowers", "Flowers", "🌻", "furn"], ["fence", "Fence", "🚧", "furn"], ["grill", "Grill", "🍖", "furn"], ["bench", "Bench", "🪑", "furn"], ["pool", "Pond", "🏞️", "furn"], ["stove", "Stove", "🍳", "furn"], ["fridge", "Fridge", "🧊", "furn"], ["shelf", "Bookshelf", "📚", "furn"], ["candle", "Candles", "🕯️", "decor"], ["tent", "Tent", "⛺", "furn"], ["swing", "Swing", "🎠", "furn"], ["slide", "Slide", "🛝", "furn"], ["telescope", "Telescope", "🔭", "furn"], ["piano", "Piano", "🎹", "furn"], ["tv", "TV", "📺", "furn"], ["plant", "House Plant", "🪴", "furn"], ["clock", "Clock", "🕰️", "decor"], ["stars", "Star Garland", "✨", "decor"], ["bush", "Bush", "🌿", "furn"], ["doghouse", "Dog House", "🏠", "furn"], ["sprinkler", "Sprinkler", "💦", "furn"], ["towels", "Towels", "🧺", "furn"], ["window", "Window", "🪟", "decor"]];
-    FUR.forEach(function (f) { R0.FURN.push({ id: "fu_bcx_" + f[0], n: f[1], e: f[2], cost: 0, cat: f[3], how: "free" }); });
+    var FUR_COST = { tub: 140, shower: 120, sink: 80, mirror: 60, tree: 90, flowers: 40, fence: 60, grill: 110, bench: 70, pool: 130, stove: 150, fridge: 160, shelf: 80, candle: 35, tent: 90, swing: 100, slide: 100, telescope: 140, piano: 220, tv: 200, plant: 40, clock: 50, stars: 60, bush: 45, doghouse: 90, sprinkler: 70, towels: 30, window: 90 };
+    FUR.forEach(function (f) { R0.FURN.push({ id: "fu_bcx_" + f[0], n: f[1], e: f[2], cost: FUR_COST[f[0]] || 60, cat: f[3] }); });   /* everything is bought in the Room Shop */
     R0.FURN.push({ id: "fu_bcx_radio", n: "Radio", e: "📻", cost: 80, cat: "furn", radio: 1 });   /* the Room Shop sells this one */
 
     var TYPES = {
         bathroom: { n: "Bathroom", e: "🛁", wall: "w_bcx_tile", floor: "f_bcx_tile", items: [["tub", 62, 68, 1.3], ["sink", 18, 66, 1], ["mirror", 18, 24, 1], ["towels", 86, 70, 0.9]] },
-        backyard: { n: "Backyard", e: "🌳", wall: "w_bcx_sky", floor: "f_bcx_lawn", items: [["tree", 14, 64, 1.7], ["fence", 55, 44, 2.2], ["flowers", 72, 72, 1], ["doghouse", 88, 66, 1.1]] },
+        backyard: { n: "Backyard", e: "🌳", wall: "w_bcx_sky", floor: "f_bcx_lawn", items: [["tree", 14, 64, 1.7], ["fence", 55, 44, 2.2], ["flowers", 72, 72, 1], ["doghouse", 88, 66, 1.1]], keep: [["fence", 55, 44, 2.2]] },
         kitchen: { n: "Kitchen", e: "🍳", wall: "w_bcx_kitchen", floor: "f_wood", items: [["stove", 30, 62, 1.2], ["fridge", 78, 60, 1.3], ["window", 52, 24, 1]] },
         bedroom: { n: "Bedroom", e: "🛏️", wall: "w_bcx_lav", floor: "f_bcx_rug", items: [["window", 60, 24, 1], ["plant", 90, 66, 1], ["clock", 30, 22, 1]] },
         playroom: { n: "Play room", e: "🎠", wall: "w_plain", floor: "f_bcx_rug", items: [["slide", 30, 66, 1.4], ["swing", 70, 66, 1.3], ["stars", 50, 18, 1.6]] },
@@ -17409,6 +17410,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         basement: { n: "Basement", e: "🧱", wall: "w_bcx_brick", floor: "f_bcx_stone", items: [["piano", 30, 64, 1.3], ["tv", 72, 60, 1.1]] },
         cinema: { n: "Movie room", e: "🍿", wall: "w_bcx_night", floor: "f_bcx_rug", items: [["tv", 50, 40, 2.4], ["candle", 14, 30, 1]] },
         beach: { n: "Beach", e: "🏖️", wall: "w_bcx_sky", floor: "f_bcx_sand", items: [["tent", 25, 66, 1.3], ["pool", 78, 72, 1.5]] },
+        balcony: { n: "Balcony", e: "🌇", wall: "w_bcx_sky", floor: "f_bcx_deck", items: [], keep: [["fence", 50, 50, 2.6]] },
         custom: { n: "Empty room", e: "🚪", wall: "w_plain", floor: "f_wood", items: [] }
     };
     var FRIEND_STYLES = ["bedroom", "backyard", "kitchen", "playroom", "garden", "library", "beach", "attic"];
@@ -17435,11 +17437,20 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     var roomInfo = function (id) { if (id === "home") return { id: "home", name: "Home", type: "home", e: "🏠" }; if (/^fh_/.test(id)) { var f = allFriends().filter(function (x) { return x.id === id.slice(3); })[0]; return { id: id, name: (f ? f.name : "Friend") + "'s house", type: "friend", e: "🏡" }; } return RS().list.filter(function (x) { return x.id === id; })[0]; };
     function makeRoom(type, name, backTo, backName) {
         var T = TYPES[type] || TYPES.custom, id = "r" + uid(), data = { wall: T.wall, floor: T.floor, items: [], doors: [] };
-        T.items.forEach(function (it, n) { data.items.push({ id: "fu_bcx_" + it[0], x: it[1], y: it[2], s: it[3] }); });
+        (T.keep || []).forEach(function (it) { data.items.push({ id: "fu_bcx_" + it[0], x: it[1], y: it[2], s: it[3], fixed: 1 }); });   /* rooms start empty: only a balcony/yard fence is built in */
         if (backTo) data.doors.push({ id: "back", to: backTo, x: 10, y: 72, label: "Back to " + (backName || "Home") });
         localStorage.setItem("bcx_room_" + id, JSON.stringify(data));
         var r = RS(); r.list.push({ id: id, name: name || T.n, type: type, e: T.e }); saveRS(r); return id;
     }
+    (function emptySeeded() {   /* one-time: rooms made by the old build came pre-furnished; clear what was never bought */
+        if (localStorage.getItem("bcx_rooms_v2")) return; localStorage.setItem("bcx_rooms_v2", "1");
+        RS().list.forEach(function (x) {
+            var T = TYPES[x.type]; if (!T || !T.items.length) return; var k = "bcx_room_" + x.id, d; try { d = JSON.parse(localStorage.getItem(k) || "null"); } catch (e) {} if (!d || !d.items) return;
+            var seeded = T.items.map(function (i) { return "fu_bcx_" + i[0] + "@" + i[1] + "," + i[2]; });
+            d.items = d.items.filter(function (it) { var sig = it.id + "@" + it.x + "," + it.y; var isSeed = seeded.indexOf(sig) >= 0; var keepIt = (T.keep || []).some(function (q) { return "fu_bcx_" + q[0] === it.id; }); if (isSeed && keepIt) it.fixed = 1; return !isSeed || keepIt; });
+            localStorage.setItem(k, JSON.stringify(d));
+        });
+    })();
     var nav = 0;
     function goto(id) {
         var r = RS(); if (id === r.cur) return; nav = 1;
@@ -17490,7 +17501,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var M = window.BCMusic; if (!M) { toast("Music isn't ready yet"); return; }
         var s = M.state();
         if (s.playing && s.ctx === "radio") { M.stop("radio"); radioOn = false; toast("📻 Radio off"); return; }
-        M.play(ls("bcx_radio_pl", "all"), "radio").then(function (ok) { radioOn = ok; if (ok) toast("📻 Radio on"); });
+        M.play(ls("bcx_radio_pl", "all"), "radio").then(function (ok) { radioOn = ok; if (ok) toast("📻 Radio on · hold the radio to change songs"); });
     }
     setInterval(function () {   /* little notes float above the radio while it plays */
         var ov = document.querySelector(".fx3-room-ov"); if (!ov || !window.BCMusic) return; var s = BCMusic.state();
@@ -17498,6 +17509,28 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var R = jget("fx3_room", {}), r = (R.items || []).filter(function (i) { return i.id === "fu_bcx_radio"; })[0]; if (!r) return;
         var n = document.createElement("div"); n.className = "bcx-notes"; n.textContent = ["🎵", "🎶", "♪"][Math.floor(Math.random() * 3)]; n.style.left = r.x + (Math.random() * 6 - 3) + "%"; n.style.top = (r.y - 12) + "%"; scene.appendChild(n); setTimeout(function () { n.remove(); }, 2300);
     }, 900);
+
+
+    /* ---------- doorbell (18): friends ring, you answer ---------- */
+    var admitted = {}, waiting = {}, bellT = {};
+    function chime() { try { window.fxSfx && window.fxSfx("quest"); } catch (e) {} try { navigator.vibrate && navigator.vibrate([120, 80, 120]); } catch (e) {} }
+    function scheduleBells(scene, list) {
+        list.forEach(function (f) {
+            if (admitted[f.id] || waiting[f.id] || bellT[f.id]) { if (waiting[f.id]) markBell(scene, true); return; }
+            bellT[f.id] = setTimeout(function () {
+                bellT[f.id] = 0; var ov = document.querySelector(".fx3-room-ov"); if (!ov || RS().cur !== "home") { return; }
+                waiting[f.id] = f; var sc = ov.querySelector("#rm-scene"); markBell(sc, true); chime(); toast("🔔 Ding-dong! " + f.name + " is at the front door. Tap the door!");
+                setTimeout(function () { if (waiting[f.id]) { delete waiting[f.id]; delete bellT[f.id]; bellT[f.id] = -1; var o2 = document.querySelector(".fx3-room-ov"); markBell(o2 && o2.querySelector("#rm-scene"), false); toast("👋 " + f.name + " left a note and went home."); } }, 90000);
+            }, 6000 + Math.random() * 14000);
+        });
+    }
+    function markBell(scene, on) { if (!scene) return; var d = scene.querySelector(".bcx-door.front"); if (!d) return; var any = Object.keys(waiting).length > 0; d.classList.toggle("ring", any); var b = d.querySelector(".bcx-bell"); if (any && !b) { b = document.createElement("b"); b.className = "bcx-bell"; b.textContent = "🔔"; d.appendChild(b); } if (!any && b) b.remove(); }
+    function answerBell(ov, scene) {
+        var ids = Object.keys(waiting); if (!ids.length) return false; var f = waiting[ids[0]]; delete waiting[ids[0]]; admitted[ids[0]] = 1;
+        toast("🚪 " + f.name + " came in!"); try { window.fxSfx && window.fxSfx("coin"); } catch (e) {}
+        var cur = RS().cur; var R = jget("fx3_room", {}); markBell(scene, false); friendsInto(scene, cur, R); return true;
+    }
+    setTimeout(function () { var s2 = document.createElement("style"); s2.textContent = ".bcx-door.ring{animation:bcxRing .5s ease-in-out infinite}.bcx-bell{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font-size:1.3rem}@keyframes bcxRing{0%,100%{transform:translate(-50%,-100%) rotate(0)}25%{transform:translate(-50%,-100%) rotate(-4deg)}75%{transform:translate(-50%,-100%) rotate(4deg)}}"; document.head.appendChild(s2); }, 0);
 
     /* ---------- decorating the room screen every time it is (re)drawn ---------- */
     var wander = {};
@@ -17518,27 +17551,29 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             var sy = 0;
             el.addEventListener("pointermove", function (e) { if (sx == null) return; var dx = e.clientX - sx, dy = e.clientY - sy; if (Math.hypot(dx, dy) > 5) mv = true; var r = scene.getBoundingClientRect(); el.style.left = clamp((ox + dx) / r.width * 100, 6, 94) + "%"; el.style.top = clamp((oy + dy) / r.height * 100, 30, 96) + "%"; });
             el.addEventListener("pointerup", function () { if (sx == null) return; sx = null; if (mv) { var Rm = jget("fx3_room", {}); Rm.doors = Rm.doors || []; var x = Rm.doors.filter(function (q) { return q.id === d.id; })[0]; if (!x) { x = { id: d.id, to: d.to, label: d.label }; Rm.doors.push(x); } x.x = parseFloat(el.style.left); x.y = parseFloat(el.style.top); jset("fx3_room", Rm); } else openPanel("rooms"); });
-            el.addEventListener("click", function (e) { if (deco) return; e.stopPropagation(); if (d.to === "front") frontDoor(); else goto(d.to); });
+            el.addEventListener("click", function (e) { if (deco) return; e.stopPropagation(); if (d.to === "front") { if (!answerBell(ov, scene)) frontDoor(); } else goto(d.to); });
         });
         /* toolbar */
         var tb = document.createElement("div"); tb.className = "bcx-tb";
-        tb.innerHTML = '<button data-p="rooms" title="Rooms & doors">🗺️</button><button data-p="friends" title="Friends">👫</button><button data-p="radio" title="Radio">📻</button><button data-p="visit" title="Visit ' + esc(names()[other()]) + '\'s room">👀</button>';
+        tb.innerHTML = '<button data-p="rooms" title="Rooms & doors">🗺️</button><button data-p="friends" title="Friends">👫</button><button data-p="visit" title="Visit ' + esc(names()[other()]) + '\'s room">👀</button>';
         tb.addEventListener("click", function (e) { var b = e.target.closest("[data-p]"); if (b) { e.stopPropagation(); openPanel(b.dataset.p); } }); tb.addEventListener("pointerdown", function (e) { e.stopPropagation(); });
         scene.appendChild(tb);
         /* gifts your partner left */
         giftsInto(scene, cur);
         /* friends */
         friendsInto(scene, cur, R);
+        try { interactInto(ov, scene, cur); } catch (e) { console.warn(e); }
     }
     function friendsInto(scene, cur, R) {
         var F2 = allFriends(); if (!F2.length) return;
         var host = cur.indexOf("fh_") === 0 ? F2.filter(function (f) { return f.id === cur.slice(3); }) : F2.filter(function (f) { return hash(f.id + new Date().toDateString()) % 3 === 0; }).slice(0, 2);
+        if (cur === "home") { var all = host; host = all.filter(function (f) { return admitted[f.id]; }); scheduleBells(scene, all); }
         var front = (R.doors || []).filter(function (d) { return d.id === "front"; })[0] || { x: 90, y: 62 };
         host.forEach(function (f) {
             var el = document.createElement("div"); el.className = "bcx-fr"; el.innerHTML = (f.photo ? '<img alt="" src="' + esc(f.photo) + '">' : (f.emoji || "🐾")) + "<small>" + esc(f.name) + "</small>";
             var w = wander[f.id]; var arrive = !w || w.room !== cur; if (arrive) w = wander[f.id] = { room: cur, x: cur === "home" ? front.x : 30 + hash(f.id) % 40, y: cur === "home" ? front.y : 72 };
             el.style.left = w.x + "%"; el.style.top = w.y + "%"; scene.appendChild(el);
-            if (arrive && cur === "home") { toast("🚪 " + f.name + " dropped by!"); setTimeout(function () { move(); }, 400); }
+            if (arrive && cur === "home") { setTimeout(function () { move(); }, 400); }
             function move() { if (!el.isConnected) return; w.x = 10 + Math.random() * 78; w.y = 62 + Math.random() * 28; el.style.left = w.x + "%"; el.style.top = w.y + "%"; setTimeout(move, 3500 + Math.random() * 3500); }
             if (!arrive) setTimeout(move, 800);
             el.addEventListener("click", function (e) {
@@ -17641,13 +17676,109 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             tell("cheer", { emoji: b.dataset.g, text: names()[me()] + " left " + b.dataset.n + " in " + s.pet + "'s room!" }); toast(b.dataset.g + " Gift left in " + s.pet + "'s room"); }; });
     }
 
+
+    /* ---------- interactive furniture (2, 8): lights, TV, window weather, and more ---------- */
+    var LIGHTS = { fu_floorlamp: 1, fu_lavalamp: 1, fu_lights: 1, fu_bcx_candle: 1, fu_fireplace: 1, fu_bcx_stars: 1 };
+    var TVCH = [["🎬", "#37474f"], ["🏀", "#e65100"], ["🍿", "#6a1b9a"], ["🎮", "#1565c0"], ["🐶", "#2e7d32"]];
+    var ST2 = document.createElement("style");
+    ST2.textContent = ".fx3-furn.bcx-off{filter:brightness(.55) saturate(.6)}.fx3-furn.bcx-on{filter:drop-shadow(0 0 12px rgba(255,214,102,.95)) brightness(1.1)}.bcx-dim{position:absolute;inset:0;background:rgba(8,10,40,.55);pointer-events:none;z-index:200;transition:opacity .35s}" +
+        ".bcx-tvs{position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);width:62%;height:56%;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.9em;pointer-events:none;animation:bcxTv 1.6s ease-in-out infinite;box-shadow:0 0 18px rgba(120,200,255,.8)}@keyframes bcxTv{50%{filter:brightness(1.4)}}" +
+        ".bcx-wx{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:.85em;font-weight:800;pointer-events:none;text-shadow:0 1px 3px #000a;text-align:center;line-height:1}.bcx-wx small{display:block;font-size:.55em}.bcx-part{position:absolute;pointer-events:none;z-index:320;font-size:1.2rem;animation:bcxNote 1.8s ease-out forwards}";
+    document.head.appendChild(ST2);
+    var itemOf = function (id) { return R0.FURN.filter(function (f) { return f.id === id; })[0]; };
+    function curItems() { return (jget("fx3_room", {}).items || []); }
+    function saveItem(i, patch) { var R = jget("fx3_room", {}); if (!R.items || !R.items[i]) return; Object.keys(patch).forEach(function (k) { if (patch[k] == null) delete R.items[i][k]; else R.items[i][k] = patch[k]; }); jset("fx3_room", R); }
+    function parts(scene, el, glyphs, n) { var r = scene.getBoundingClientRect(), b = el.getBoundingClientRect(); for (var k = 0; k < (n || 3); k++) (function (k) { setTimeout(function () { var p = document.createElement("div"); p.className = "bcx-part"; p.textContent = glyphs[Math.floor(Math.random() * glyphs.length)]; p.style.left = ((b.left + b.width / 2 - r.left) / r.width * 100 + (Math.random() * 8 - 4)) + "%"; p.style.top = ((b.top - r.top) / r.height * 100) + "%"; scene.appendChild(p); setTimeout(function () { p.remove(); }, 1900); }, k * 150); })(k); }
+    function psay(ov, t) { var b = ov.querySelector("#rm-say"); if (!b) return; b.textContent = t; b.classList.add("on"); clearTimeout(psay.t); psay.t = setTimeout(function () { b.classList.remove("on"); }, 2200); }
+    var WX = { 0: ["☀️", "sunny"], 1: ["🌤️", "mostly clear"], 2: ["⛅", "partly cloudy"], 3: ["☁️", "cloudy"], 45: ["🌫️", "foggy"], 48: ["🌫️", "foggy"], 51: ["🌦️", "drizzly"], 53: ["🌦️", "drizzly"], 55: ["🌧️", "rainy"], 61: ["🌧️", "rainy"], 63: ["🌧️", "rainy"], 65: ["🌧️", "pouring"], 71: ["🌨️", "snowy"], 73: ["❄️", "snowy"], 75: ["❄️", "heavy snow"], 80: ["🌦️", "showery"], 81: ["🌧️", "rainy"], 82: ["⛈️", "stormy"], 95: ["⛈️", "stormy"], 96: ["⛈️", "stormy"], 99: ["⛈️", "stormy"] };
+    var wxInfo = function (code) { return WX[code] || WX[Math.floor(code / 10) * 10] || ["🌡️", "weather"]; };
+    var petLine = function (e) { return { "☀️": "Sunbathing time! 😎", "🌤️": "Nice out! 😊", "⛅": "Pretty out there!", "☁️": "Cozy cloudy day.", "🌫️": "Spooky fog… 👻", "🌦️": "Drizzle! 🌂", "🌧️": "Rain! Let's stay in ☔", "❄️": "SNOW! ⛄", "🌨️": "Snow day! ⛄", "⛈️": "Thunder! Hide under the blanket!" }[e] || "What a day!"; };
+    function wxGet(force) {
+        var c = jget("bcx_wx", null), fresh = c && Date.now() - c.ts < 20 * 60000; if (fresh && !force) return Promise.resolve(c);
+        return new Promise(function (res) {
+            var go = function (lat, lon) { fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&temperature_unit=fahrenheit").then(function (r) { return r.json(); }).then(function (j) { var cur = j.current, o = { lat: lat, lon: lon, t: Math.round(cur.temperature_2m), code: cur.weather_code, ts: Date.now() }; jset("bcx_wx", o); res(o); }).catch(function () { res(c); }); };
+            if (c && c.lat != null) return go(c.lat, c.lon);
+            if (!navigator.geolocation) return res(c);
+            navigator.geolocation.getCurrentPosition(function (p) { go(+p.coords.latitude.toFixed(2), +p.coords.longitude.toFixed(2)); }, function () { toast("Allow location once so the window can show your weather."); res(c); }, { timeout: 8000, maximumAge: 3600000 });
+        });
+    }
+    var wxSaid = 0;
+    function paintWindows(scene, ov) {
+        var items = curItems(), els = scene.querySelectorAll(".fx3-furn[data-i]");
+        var wins = []; els.forEach(function (el) { var it = items[+el.dataset.i]; if (it && it.id === "fu_bcx_window") wins.push(el); }); if (!wins.length) return;
+        var apply = function (w) { if (!w || !scene.isConnected) return; var inf = wxInfo(w.code); wins.forEach(function (el) { var b = el.querySelector(".bcx-wx"); if (!b) { b = document.createElement("div"); b.className = "bcx-wx"; el.appendChild(b); } b.innerHTML = inf[0] + "<small>" + w.t + "°</small>"; el.title = "It's " + inf[1] + ", " + w.t + "°F"; });
+            if (!wxSaid || Date.now() - wxSaid > 10 * 60000) { wxSaid = Date.now(); setTimeout(function () { psay(ov, petLine(inf[0])); }, 1200); } };
+        apply(jget("bcx_wx", null)); wxGet(false).then(apply);
+    }
+    var audioC = null;
+    function note(freq) { try { audioC = audioC || new (window.AudioContext || window.webkitAudioContext)(); var o = audioC.createOscillator(), g = audioC.createGain(); o.type = "triangle"; o.frequency.value = freq; g.gain.setValueAtTime(.18, audioC.currentTime); g.gain.exponentialRampToValueAtTime(.001, audioC.currentTime + .9); o.connect(g); g.connect(audioC.destination); o.start(); o.stop(audioC.currentTime + .95); } catch (e) {} }
+    var PENT = [262, 294, 330, 392, 440, 523, 587];
+    var FACTS = ["Venus spins backwards.", "A day on Mercury lasts 176 Earth days.", "Saturn could float in water.", "The Moon drifts away 4 cm a year.", "There are more stars than grains of sand on Earth."];
+    var INTER = {
+        fu_bcx_tv: function (c) { var ch = (c.it.ch == null ? -1 : c.it.ch) + 1; if (ch >= TVCH.length) ch = -1; saveItem(c.i, { ch: ch < 0 ? null : ch }); try { window.fxSfx && window.fxSfx("click"); } catch (e) {} var old = c.el.querySelector(".bcx-tvs"); if (old) old.remove(); if (ch >= 0) { var tv = document.createElement("div"); tv.className = "bcx-tvs"; tv.style.background = TVCH[ch][1]; tv.textContent = TVCH[ch][0]; c.el.appendChild(tv); } psay(c.ov, ch < 0 ? "📺 Off" : "📺 Channel " + (ch + 1)); },
+        fu_bcx_window: function (c) { wxGet(true).then(function (w) { if (!w) return; var inf = wxInfo(w.code); toast(inf[0] + " It's " + inf[1] + ", " + w.t + "°F"); psay(c.ov, petLine(inf[0])); paintWindows(c.scene, c.ov); }); },
+        fu_bcx_piano: function (c) { var f = PENT[Math.floor(Math.random() * PENT.length)]; note(f); parts(c.scene, c.el, ["🎵", "🎶", "♪"], 2); },
+        fu_bcx_telescope: function (c) { psay(c.ov, "🔭 " + FACTS[Math.floor(Math.random() * FACTS.length)], 3500); parts(c.scene, c.el, ["⭐", "✨"], 3); },
+        fu_bcx_clock: function (c) { var d = new Date(); toast("🕰️ It's " + d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })); },
+        fu_bcx_stove: function (c) { parts(c.scene, c.el, ["🍳", "🔥", "💨"], 3); psay(c.ov, "Sizzle sizzle!"); },
+        fu_bcx_grill: function (c) { parts(c.scene, c.el, ["🌭", "🍖", "💨"], 3); psay(c.ov, "Smells amazing!"); },
+        fu_bcx_fridge: function (c) { parts(c.scene, c.el, ["🥛", "🧀", "🍎", "🥕"], 2); psay(c.ov, "Snack time? 😋"); try { var k = "bcx_fr_snack"; if (!jget(k, 0) || Date.now() - jget(k, 0) > 60000) { jset(k, Date.now()); window.addHappiness && window.addHappiness(2); } } catch (e) {} },
+        fu_bcx_tub: function (c) { parts(c.scene, c.el, ["🫧", "💧"], 4); },
+        fu_bcx_shower: function (c) { parts(c.scene, c.el, ["💧", "🚿"], 5); },
+        fu_bcx_sink: function (c) { parts(c.scene, c.el, ["💧"], 3); },
+        fu_bcx_sprinkler: function (c) { parts(c.scene, c.el, ["💦", "💧", "🌈"], 5); },
+        fu_bcx_plant: function (c) { parts(c.scene, c.el, ["💧", "🌱"], 3); psay(c.ov, "Growing nicely! 🪴"); },
+        fu_bcx_mirror: function (c) { parts(c.scene, c.el, ["✨", "💫"], 3); psay(c.ov, "Looking good! 😎"); },
+        fu_bcx_swing: function (c) { parts(c.scene, c.el, ["😄", "🍃"], 2); },
+        fu_bcx_slide: function (c) { parts(c.scene, c.el, ["🛝", "😆"], 2); },
+        fu_bcx_tent: function (c) { parts(c.scene, c.el, ["⛺", "🌙"], 2); },
+        fu_bcx_shelf: function (c) { parts(c.scene, c.el, ["📖", "📚"], 2); },
+        fu_fish: function (c) { parts(c.scene, c.el, ["🫧", "🐟", "🍞"], 4); psay(c.ov, "Blub blub 🐠"); }
+    };
+    function interactInto(ov, scene, cur) {
+        var items = curItems();
+        /* lights: dim the room only if it has lights and every one is off */
+        var anyLight = false, anyOn = false;
+        scene.querySelectorAll(".fx3-furn[data-i]").forEach(function (el) {
+            var it = items[+el.dataset.i]; if (!it) return;
+            if (LIGHTS[it.id]) { anyLight = true; var on = it.on !== false; if (on) anyOn = true; el.classList.add(on ? "bcx-on" : "bcx-off"); }
+            if (it.id === "fu_bcx_tv" && it.ch != null && it.ch >= 0) { var tv = document.createElement("div"); tv.className = "bcx-tvs"; tv.style.background = TVCH[it.ch][1]; tv.textContent = TVCH[it.ch][0]; el.appendChild(tv); }
+        });
+        if (anyLight && !anyOn) { var d = document.createElement("div"); d.className = "bcx-dim"; scene.appendChild(d); }
+        paintWindows(scene, ov);
+        /* bed only lives in the main room */
+        var bed = scene.querySelector(".fx3-room-bed"); if (bed && cur !== "home") bed.style.display = "none";
+        var pe = scene.querySelector("#rm-pet");
+        if (cur !== "home" && petAsleep()) { if (pe) pe.style.display = "none"; if (!scene.querySelector(".bcx-away")) { var a = document.createElement("div"); a.className = "bcx-away"; a.style.cssText = "position:absolute;left:50%;top:78%;transform:translateX(-50%);font-weight:800;font-size:.8rem;background:rgba(0,0,0,.55);color:#fff;border-radius:10px;padding:3px 9px;z-index:310"; a.textContent = "💤 " + petName() + " is asleep in the main room"; scene.appendChild(a); } }
+        if (cur === "home" && petAsleep() && bed) setTimeout(function () { try { bed.click(); } catch (e) {} }, 700);
+    }
+    var petAsleep = function () { var t = +ls("bcx_pet_bed", "0"); return t && Date.now() - t < 6 * 3600000; };
+    function onRoomClick(ov, e) {
+        var cur = RS().cur;
+        var nap = e.target.closest('[data-play="nap"]');
+        if (nap && cur !== "home") { e.stopPropagation(); e.preventDefault(); lsSet("bcx_pet_bed", String(Date.now())); psay(ov, "💤 " + petName() + " trots off to bed in the main room…"); var pe = ov.querySelector("#rm-pet"); if (pe) { pe.style.transition = "opacity 1s"; pe.style.opacity = "0"; setTimeout(function () { var sc = ov.querySelector("#rm-scene"); if (pe) pe.style.display = "none"; if (sc) interactInto2(ov, sc, cur); }, 1000); } return true; }
+        if (e.target.closest("#rm-pet") && cur === "home" && petAsleep()) lsSet("bcx_pet_bed", "0");
+        if (ov.querySelector(".fx3-room-tools")) return false;
+        var el = e.target.closest(".fx3-furn[data-i]"); if (!el) return false;
+        var i = +el.dataset.i, it = curItems()[i]; if (!it || it.id === "fu_bcx_radio") return false;
+        if (LIGHTS[it.id]) { e.stopPropagation(); var on = it.on === false; saveItem(i, { on: on ? null : false }); try { window.fxSfx && window.fxSfx("click"); } catch (x) {} var R2 = ov.querySelector("#rm-scene"); if (R2) { el.classList.remove("bcx-on", "bcx-off"); el.classList.add(on ? "bcx-on" : "bcx-off"); var dm = R2.querySelector(".bcx-dim"); if (dm) dm.remove(); var its = curItems(), any = false, anyOn = false; R2.querySelectorAll(".fx3-furn[data-i]").forEach(function (q) { var t = its[+q.dataset.i]; if (t && LIGHTS[t.id]) { any = true; if (t.on !== false) anyOn = true; q.classList.remove("bcx-on", "bcx-off"); q.classList.add(t.on !== false ? "bcx-on" : "bcx-off"); } }); if (any && !anyOn) { var d = document.createElement("div"); d.className = "bcx-dim"; R2.appendChild(d); } psay(ov, on ? "💡 Light on" : "🌙 Light off"); } return true; }
+        var fn = INTER[it.id]; if (!fn) return false; e.stopPropagation();
+        var scene = ov.querySelector("#rm-scene"); fn({ it: it, i: i, el: el, ov: ov, scene: scene, redraw: function () { try { ov.__bcxRe = 1; window.__fx3CloseRoom(); window.fx3OpenRoom(); } catch (x) {} } }); return true;
+    }
+    function interactInto2(ov, sc, cur) { }
+
     /* ---------- hooks ---------- */
     var prevSync = window.__bcxSynced; window.__bcxSynced = function () { try { prevSync && prevSync(); } catch (e) {} };
     function hook(ov) {
         if (ov.__bcx) return; ov.__bcx = 1; var tm = 0;
         var run = function () { clearTimeout(tm); tm = setTimeout(function () { decorate(ov); }, 0); };
         new MutationObserver(run).observe(ov, { childList: true }); run();
-        ov.addEventListener("click", function (e) {   /* tap the radio to turn the music on and off */
+        var lp = 0, lpFired = 0;
+        ov.addEventListener("pointerdown", function (e) { var el = e.target.closest(".fx3-furn[data-i]"); if (!el || ov.querySelector(".fx3-room-tools")) return; var it = (jget("fx3_room", {}).items || [])[+el.dataset.i]; if (it && it.id === "fu_bcx_radio") { lpFired = 0; clearTimeout(lp); lp = setTimeout(function () { lpFired = 1; openPanel("radio"); }, 550); } }, true);
+        ["pointerup", "pointercancel", "pointermove"].forEach(function (n) { ov.addEventListener(n, function () { clearTimeout(lp); }, true); });
+        ov.addEventListener("click", function (e) {   /* tap furniture: radio, lights, TV, window... */
+            if (lpFired) { lpFired = 0; e.stopPropagation(); return; }
+            if (onRoomClick(ov, e)) return;
             if (ov.querySelector(".fx3-room-tools")) return; var el = e.target.closest(".fx3-furn[data-i]"); if (!el) return;
             var it = (jget("fx3_room", {}).items || [])[+el.dataset.i]; if (it && it.id === "fu_bcx_radio") { e.stopPropagation(); radioToggle(ov); }
         }, true);

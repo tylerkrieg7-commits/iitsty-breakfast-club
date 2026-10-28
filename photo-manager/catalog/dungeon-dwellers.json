@@ -3834,6 +3834,77 @@
      "q": "The Cantor"
     }
    ]
+  },
+  {
+   "name": "Seasonal Tales (Halloween & Christmas)",
+   "slots": [
+    {
+     "id": "newboss:Old Crowmaw",
+     "label": "Boss: Old Crowmaw",
+     "info": "Halloween boss: the stitched scarecrow in the corn field. Shows during the fight and in the story.",
+     "q": "Old Crowmaw"
+    },
+    {
+     "id": "newboss:The Hollow Bride",
+     "label": "Boss: The Hollow Bride",
+     "info": "Halloween boss: the widow in the open chapel. Shows during the fight and in the story.",
+     "q": "The Hollow Bride"
+    },
+    {
+     "id": "newboss:Hollow Jack",
+     "label": "Boss: Hollow Jack",
+     "info": "Halloween final boss: the Lantern King. Shows during the fight and in the story.",
+     "q": "Hollow Jack"
+    },
+    {
+     "id": "newboss:General Frostbite",
+     "label": "Boss: General Frostbite",
+     "info": "Christmas boss: the snowman general. Shows during the fight and in the story.",
+     "q": "General Frostbite"
+    },
+    {
+     "id": "newboss:Krampus",
+     "label": "Boss: Krampus",
+     "info": "Christmas boss: the Gift-Taker in the Black Forest. Shows during the fight and in the story.",
+     "q": "Krampus"
+    },
+    {
+     "id": "newboss:Old Man Winter",
+     "label": "Boss: Old Man Winter",
+     "info": "Christmas final boss: the Tithe-Taker in the Ice Hall. Shows during the fight and in the story.",
+     "q": "Old Man Winter"
+    },
+    {
+     "id": "newboss:Gift Mimic",
+     "label": "Boss: Gift Mimic",
+     "info": "Christmas ambush: the present that bites. Shows during the fight and in the story.",
+     "q": "Gift Mimic"
+    },
+    {
+     "id": "photo:Ghost Lyra",
+     "label": "Companion: Ghost Lyra",
+     "info": "Halloween companion form of Lyra (shows in the Hollow Night story).",
+     "q": "Ghost Lyra"
+    },
+    {
+     "id": "photo:Skeleton Bror",
+     "label": "Companion: Skeleton Bror",
+     "info": "Halloween companion form of Bror.",
+     "q": "Skeleton Bror"
+    },
+    {
+     "id": "photo:Jolly Lyra",
+     "label": "Companion: Jolly Lyra",
+     "info": "Christmas companion form of Lyra.",
+     "q": "Jolly Lyra"
+    },
+    {
+     "id": "photo:Helper Bror",
+     "label": "Companion: Helper Bror",
+     "info": "Christmas companion form of Bror (Santa's helper).",
+     "q": "Helper Bror"
+    }
+   ]
   }
  ]
 }
