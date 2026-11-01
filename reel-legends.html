@@ -1136,9 +1136,10 @@ function puffer(c,sp,tt){
   const er=R*.2;c.fillStyle='#fff';c.beginPath();c.arc(R*.55,-R*.25,er,0,TAU);c.fill();c.fillStyle='#0b0f14';c.beginPath();c.arc(R*.6,-R*.25,er*.64,0,TAU);c.fill();
   c.strokeStyle='rgba(60,30,10,.7)';c.lineWidth=2;c.beginPath();c.moveTo(R*1.05,R*.18);c.quadraticCurveTo(R*.95,R*.28,R*.82,R*.25);c.stroke();
 }
+const fitK=m=>Math.min(1,Math.min(VW*.8,640)/Math.max(1,m));
 function drawFish(c,sp,tt){
   c.save();
-  if(sp.glow&&sp.shape!=='eel'){c.shadowColor=sp.glow;c.shadowBlur=18}
+  if(sp.glow&&sp.shape!=='eel'){c.shadowColor=sp.glow;c.shadowBlur=sp.len>420?0:sp.len>200?6:18}
   switch(sp.shape){case'hammer':hammer(c,sp,tt);break;case'flat':flat(c,sp,tt);break;case'seahorse':seahorse(c,sp,tt);break;case'turtle':turtle(c,sp,tt);break;case'crab':crab(c,sp,tt);break;case'octopus':octopus(c,sp,tt);break;case'whale':whale(c,sp,tt);break;case'jelly':jelly(c,sp,tt);break;case'eel':eel(c,sp,tt);break;case'ray':ray(c,sp,tt);break;case'squid':squid(c,sp,tt);break;case'puffer':puffer(c,sp,tt);break;default:regular(c,sp,tt)}
   c.restore();
 }
@@ -2042,8 +2043,8 @@ function drawFishAll(){
     const sp=f.sp,dep=clamp((f.y-SURF)/(FLOOR-SURF),0,1);
     ctx.save();ctx.translate(f.x,f.y);
     ctx.globalAlpha=f.alpha*(sp.glow?1:1-dep*.32);
-    if(sp.shape==='jelly'){ctx.scale(f.sc,f.sc)}
-    else{ctx.scale(f.dir*f.sc,f.sc);ctx.rotate(clamp(f.vy*.0035,-.35,.35)*(f.dir>0?1:1))}
+    const fk=fitK(sp.len*f.sc);if(sp.shape==='jelly'){ctx.scale(f.sc*fk,f.sc*fk)}
+    else{ctx.scale(f.dir*f.sc*fk,f.sc*fk);ctx.rotate(clamp(f.vy*.0035,-.35,.35)*(f.dir>0?1:1))}
     drawFish(ctx,sp,f.ph+f.off);ctx.restore();
   }
 }
@@ -2072,10 +2073,10 @@ function drawHookStuff0(){
   // hooked fish
   const f=hook.fish;
   if(f&&(st==='fight'||st==='reveal'||st==='card')){
-    const sp=f.sp,m=sp.len*f.sc,out=hook.y<wy+14;
+    const sp=f.sp,k0=Math.min(1,Math.min(VW*.6,460)/(sp.len*f.sc)),m=sp.len*f.sc*k0,out=hook.y<wy+14;
     ctx.save();ctx.translate(hx,hy);
-    if(sp.shape==='jelly'){ctx.translate(0,m*.28);ctx.scale(f.sc,f.sc);ctx.rotate(Math.sin(TM*5)*.1)}
-    else{let ang=out?-1.25+Math.sin(TM*4)*.08:-.35+Math.sin(TM*9)*.28*(st==='fight'?1:.3);ctx.rotate(ang);ctx.translate(-m*.47,0);ctx.scale(f.sc,f.sc)}
+    if(sp.shape==='jelly'){ctx.translate(0,m*.28);ctx.scale(f.sc*k0,f.sc*k0);ctx.rotate(Math.sin(TM*5)*.1)}
+    else{let ang=out?-1.25+Math.sin(TM*4)*.08:-.35+Math.sin(TM*9)*.28*(st==='fight'?1:.3);ctx.rotate(ang);ctx.translate(-m*.47,0);ctx.scale(f.sc*k0,f.sc*k0)}
     drawFish(ctx,sp,TM*1.8+(st==='fight'?TM*4:0));ctx.restore();
   }
   if(hook.bangT>0){const u=1-hook.bangT/.9,y=hy-40-u*14,s=1+Math.sin(u*12)*.1;ctx.save();ctx.translate(hx+16,y);ctx.scale(s,s);ctx.globalAlpha=clamp(hook.bangT*3,0,1);ctx.fillStyle='#ff4a4a';ctx.strokeStyle='#fff';ctx.lineWidth=3;rr(ctx,-14,-18,28,36,10);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.font='900 26px sans-serif';ctx.textAlign='center';ctx.fillText('!',0,9);ctx.restore()}
@@ -2539,7 +2540,7 @@ function drawFishAll(){
     if(f.boss){const gl=c.createRadialGradient(0,0,m*.1,0,0,m*.9);gl.addColorStop(0,'rgba(255,60,40,.28)');gl.addColorStop(1,'rgba(255,60,40,0)');c.fillStyle=gl;c.beginPath();c.arc(0,0,m*.9,0,TAU);c.fill()}
     else if(sp.vk==='golden'){const gl=c.createRadialGradient(0,0,m*.1,0,0,m*.7);gl.addColorStop(0,'rgba(255,220,100,.3)');gl.addColorStop(1,'rgba(255,220,100,0)');c.fillStyle=gl;c.beginPath();c.arc(0,0,m*.7,0,TAU);c.fill()}
     c.globalAlpha=f.alpha*(sp.glow?1:1-dep*.32);
-    if(sp.shape==='jelly'){c.scale(f.sc,f.sc)}else{c.scale(f.dir*f.sc,f.sc);c.rotate(clamp(f.vy*.0035,-.35,.35)+(f.look>0?-.12:0))}
+    const fk=fitK(m);if(sp.shape==='jelly'){c.scale(f.sc*fk,f.sc*fk)}else{c.scale(f.dir*f.sc*fk,f.sc*fk);c.rotate(clamp(f.vy*.0035,-.35,.35)+(f.look>0?-.12:0))}
     drawFish(c,sp,f.ph+f.off+(f.flash>0?f.ph*6:0));
     if(f.flash>0){c.globalAlpha=Math.min(1,f.flash*1.4);c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.ellipse(0,0,sp.len*.5,Math.max(8,sp.len*sp.h*.45),0,0,TAU);c.fill()}
     c.restore();
@@ -4120,7 +4121,7 @@ ACT.decbuy=t=>{const c=+t.dataset.c,k=t.dataset.k;if(S.money<c)return toast('Not
 /* ---- pets ---- */
 const PETS=[['cat','🐱 Cat',250,'#e89a4a'],['dog','🐶 Dog',300,'#c8955a'],['otter','🦦 Otter',800,'#7a5a3a'],['parrot','🦜 Parrot',600,'#3ac85a']];
 function drawPet(g,kind,x,y,s,face,t,mv){
-  const c=PETS.find(p=>p[0]===kind)[3],bob=mv?Math.abs(Math.sin(t*10))*3:Math.sin(t*2)*1;g.save();g.translate(x,y-bob*s);g.scale(face*s,s);
+  const c=PETC||PETS.find(p=>p[0]===kind)[3],bob=mv?Math.abs(Math.sin(t*10))*3:Math.sin(t*2)*1;g.save();g.translate(x,y-bob*s);g.scale(face*s,s);
   if(kind==='parrot'){g.fillStyle='#6a4a2a';g.fillRect(-14,0,28,3);g.fillStyle=c;g.beginPath();g.ellipse(0,-14,8,14,.1,0,TAU);g.fill();g.fillStyle='#e8d030';g.beginPath();g.ellipse(-2,-10,5,8,.1,0,TAU);g.fill();g.fillStyle='#e8402a';g.beginPath();g.moveTo(-6,-2);g.lineTo(-12,10);g.lineTo(-2,0);g.fill();g.fillStyle=c;g.beginPath();g.arc(4,-28,7,0,TAU);g.fill();g.fillStyle='#f2b134';g.beginPath();g.moveTo(9,-29);g.lineTo(16,-26);g.lineTo(9,-24);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(5,-30,2,0,TAU);g.fill();g.fillStyle='#111';g.beginPath();g.arc(5.5,-30,1,0,TAU);g.fill()}
   else{const L=kind==='otter'?22:15;g.strokeStyle=c;g.lineWidth=4;g.lineCap='round';g.beginPath();g.moveTo(-L,-14);g.quadraticCurveTo(-L-14,-24+Math.sin(t*(mv?12:4))*6,-L-10,-34);g.stroke();
     g.fillStyle=c;g.beginPath();g.ellipse(0,-12,L,10,0,0,TAU);g.fill();
@@ -4128,6 +4129,8 @@ function drawPet(g,kind,x,y,s,face,t,mv){
     g.fillStyle=c;g.beginPath();g.arc(L,-20,9,0,TAU);g.fill();
     if(kind==='cat'){g.beginPath();g.moveTo(L-6,-26);g.lineTo(L-5,-36);g.lineTo(L,-28);g.fill();g.beginPath();g.moveTo(L+2,-28);g.lineTo(L+7,-36);g.lineTo(L+9,-26);g.fill()}
     else if(kind==='dog'){g.fillStyle=shadeC(c,-40);g.beginPath();g.ellipse(L-4,-22,4,9,.3,0,TAU);g.fill();g.beginPath();g.ellipse(L+8,-22,4,9,-.3,0,TAU);g.fill()}
+    else if(kind==='rabbit'){g.beginPath();g.ellipse(L-3,-36,3,10,-.15,0,TAU);g.fill();g.beginPath();g.ellipse(L+4,-36,3,10,.15,0,TAU);g.fill();g.fillStyle='#fff';g.beginPath();g.arc(-L-3,-14,4,0,TAU);g.fill()}
+    else if(kind==='fox'){g.beginPath();g.moveTo(L-6,-26);g.lineTo(L-4,-38);g.lineTo(L+1,-28);g.fill();g.beginPath();g.moveTo(L+2,-28);g.lineTo(L+7,-38);g.lineTo(L+9,-26);g.fill()}
     else{g.beginPath();g.arc(L-4,-28,3,0,TAU);g.arc(L+6,-28,3,0,TAU);g.fill();g.fillStyle='#f0e0c0';g.beginPath();g.ellipse(L+4,-17,6,4,0,0,TAU);g.fill()}
     g.fillStyle='#111';g.beginPath();g.arc(L+4,-22,1.6,0,TAU);g.fill();g.beginPath();g.arc(L+9,-19,1.3,0,TAU);g.fill()}
   g.restore();
@@ -4571,6 +4574,238 @@ setInterval(()=>{
 },50);
 /* boat colour pennant for owned boat type */
 (function(){const d0=drawBoat;drawBoat=function(){d0();try{if(LOOKS.player.fixed)return;const k=bk();if(!k||!(S.boatKind>0))return;ctx.save();ctx.translate(B.x,B.y);ctx.rotate(B.a);ctx.strokeStyle='#3a2810';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-70,-20);ctx.lineTo(-70,-78);ctx.stroke();ctx.fillStyle=k.col;ctx.beginPath();ctx.moveTo(-70,-78);ctx.lineTo(-44,-70);ctx.lineTo(-70,-62);ctx.fill();ctx.restore()}catch(_){}}})();
+/* ===== b29: cottage v2 (free decor, trophies, comfort), pets v2, shared Aquarium ===== */
+const DEC2=`🛋️|Sofa|400|furn
+🪑|Armchair|160|furn
+🛏️|Bed|600|furn
+🗄️|Cabinet|350|furn
+🧺|Laundry basket|100|furn
+📺|Television|800|furn
+🛁|Bathtub|900|furn
+🎹|Piano|4000|furn
+🎸|Guitar|700|furn
+🪞|Standing mirror|300|furn
+🪴|Potted plant|120|plant
+🌵|Cactus|90|plant
+🌴|Palm tree|450|plant
+🌻|Sunflowers|110|plant
+🌷|Tulips|100|plant
+🎋|Bamboo|260|plant
+🍀|Lucky clover|150|plant
+🌲|Pine tree|380|plant
+🕯️|Candle|90|light
+🏮|Paper lantern|220|light
+🪔|Oil lamp|260|light
+🌙|Moon lamp|500|light
+🔦|Lighthouse lamp|420|light
+💡|Bright bulb|140|light
+✨|Fairy lights|600|light
+🖼️|Painting|200|wall
+🗺️|Treasure map|250|wall
+🧭|Compass|180|wall
+🕰️|Wall clock|320|wall
+⚓|Anchor|280|wall
+🛟|Life ring|260|wall
+🎣|Mounted rod|220|wall
+🏆|Golden trophy|1500|wall
+🥇|Gold medal|600|wall
+🎏|Carp streamer|400|wall
+🐚|Giant shell|80|sea
+🦀|Crab statue|240|sea
+🐙|Octopus plush|350|sea
+🦈|Shark plush|500|sea
+🐋|Whale model|1200|sea
+🚢|Ship model|900|sea
+🧜|Mermaid statue|3000|sea
+🏴‍☠️|Pirate flag|700|sea
+🪸|Coral display|650|sea
+🧸|Teddy bear|160|cozy
+🧶|Yarn basket|90|cozy
+☕|Tea set|70|cozy
+🍪|Cookie jar|85|cozy
+📚|Bookstack|200|cozy
+🎲|Board games|140|cozy
+🧩|Jigsaw|120|cozy
+🎨|Easel|380|cozy
+🔭|Telescope|1200|cozy
+🎮|Game console|500|cozy
+⛲|Fountain|6000|lux
+🪩|Disco ball|3500|lux
+💎|Giant gem|2500|lux
+👑|Royal crown|8000|lux
+💰|Treasure chest|5000|lux
+🗿|Moai statue|4500|lux
+🦚|Peacock|2800|lux
+🐠|Fish tank|1500|lux`.split('\n').map(l=>{const a=l.split('|');return{e:a[0],n:a[1],p:+a[2],c:a[3],pts:Math.round(+a[2]/20)+5}});
+const D2CATS=[['furn','🛋️ Furniture'],['plant','🌿 Plants'],['light','💡 Lights'],['wall','🖼️ Wall'],['sea','🐚 Nautical'],['cozy','🧸 Cozy'],['lux','👑 Luxury']];
+function D2(){const d=S.dec2||(S.dec2={own:{},items:[],sel:-1,cat:'furn',claim:-1,buffDay:-1});if(!d.items)d.items=[];if(!d.own)d.own={};return d}
+function comfort(){const d=D2();let c=0;for(const it of d.items){if(it.k>=0&&DEC2[it.k])c+=DEC2[it.k].pts;else if(it.id&&FID[it.id])c+=40+FID[it.id].t*70}
+  const O=S.decor;c+=(O.wall?30:0)+(O.floor?20:0)+Object.keys(O.own||{}).length*8;return c}
+const COZY=[[300,.05,0,'Cozy'],[1500,.10,.03,'Homey'],[6000,.15,.06,'Luxurious'],[20000,.20,.08,'Palatial']];
+function cozyTier(){const c=comfort();let t=null;for(const x of COZY)if(c>=x[0])t=x;return t}
+function cozyOn(){const d=D2(),t=cozyTier();return t&&d.buffDay===S.days?t:null}
+function cozyXp(){const t=cozyOn();return t?t[1]:0}
+function cozyLuck(){const t=cozyOn();return t?t[2]:0}
+{const ax=addXP;addXP=function(n){return ax(Math.round(n*(1+cozyXp())))}}
+function itemSize(it){return Math.round(34*it.s)}
+function roomPaint(c){
+  const g=c.getContext('2d'),d=D2();
+  if(!d._base||d._bk!==[S.decor.wall,S.decor.floor,Object.keys(S.decor.own).join(','),S.pet.kind,S.pet.ci,S.pet.acc].join('|')){d._bk=[S.decor.wall,S.decor.floor,Object.keys(S.decor.own).join(','),S.pet.kind,S.pet.ci,S.pet.acc].join('|');const im=new Image();im.onload=()=>{d._base=im};im.src=roomImg()}
+  g.clearRect(0,0,420,240);if(d._base)g.drawImage(d._base,0,0);
+  const order=d.items.map((it,i)=>[it,i]).sort((a,b)=>a[0].y-b[0].y);
+  for(const [it,i] of order){
+    g.save();g.translate(it.x,it.y);
+    if(it.k>=0){const m=DEC2[it.k];if(!m)continue;g.font=itemSize(it)+'px serif';g.textAlign='center';g.textBaseline='middle';g.scale(it.f?-1:1,1);g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=4;g.shadowOffsetY=2;g.fillText(m.e,0,0)}
+    else{const sp=FID[it.id];if(sp){const w=70*it.s,h=50*it.s;g.fillStyle='#5a3a1c';g.fillRect(-w/2-4,-h/2-4,w+8,h+8);g.fillStyle='#8ab0c8';g.fillRect(-w/2,-h/2,w,h);g.save();const bx=boxOf(sp),sc=Math.min((w-8)/bx[0],(h-8)/bx[1]);g.scale(it.f?-sc:sc,sc);drawFish(g,sp,0);g.restore();g.fillStyle='#caa24a';g.fillRect(-14,h/2+6,28,6)}}
+    g.restore();
+    if(i===d.sel){const r=it.k>=0?itemSize(it)/2+4:44*it.s;g.save();g.strokeStyle='#ffd166';g.lineWidth=2.5;g.setLineDash([5,4]);g.strokeRect(it.x-r,it.y-r,r*2,r*2);g.restore()}
+  }
+}
+const oldDecor=RENDER.decor;
+RENDER.decor=function(){
+  const d=D2(),c=comfort(),t=cozyTier(),next=COZY.find(x=>x[0]>c),claimed=d.claim===S.days;
+  let h=oldDecor().replace(/<img[^>]*>/,'<canvas id="rm2" width="420" height="240" style="width:100%;max-width:460px;border-radius:12px;border:3px solid #5a3a1c;display:block;margin:0 auto 6px;touch-action:none"></canvas>');
+  const reward=Math.min(5000,Math.round(c/8));
+  const top=`<div class="stats3"><div>Comfort<b>${c.toLocaleString()}</b></div><div>Home rank<b>${t?t[3]:'Bare'}</b></div><div>Daily buff<b>${t?'+'+Math.round(t[1]*100)+'% XP'+(t[2]?' · +'+Math.round(t[2]*100)+'% luck':''):'—'}</b></div></div>
+  <div class="row" style="margin:4px 0 8px"><button class="btn gold sm" data-act="cozy" ${claimed||!t?'disabled':''}>${claimed?'☕ Enjoyed today':t?'☕ Relax at home · +$'+reward.toLocaleString()+' & today\'s buff':'Reach 300 comfort to unlock'}</button></div>${next?`<p class="note">Next rank at ${next[0].toLocaleString()} comfort: <b>${next[3]}</b></p>`:''}`;
+  h=h.replace(/(<canvas id="rm2"[^>]*><\/canvas>)/,'$1<p class="note" style="margin:0 0 6px">Tap an item in the room to select it, drag to move.</p><div class="dexw"><button class="btn tag sm" data-act="d2big">➕ Bigger</button> <button class="btn tag sm" data-act="d2small">➖ Smaller</button> <button class="btn tag sm" data-act="d2flip">↔ Flip</button> <button class="btn tag sm" data-act="d2front">⬆ Front</button> <button class="btn wood sm" data-act="d2del">🗑️ Remove</button></div>');
+  h=top+h;
+  h+='<div class="hdr">✨ DECORATIONS ('+d.items.length+'/60 placed)</div><div class="dexw">'+D2CATS.map(([k,n])=>`<button class="btn ${d.cat===k?'wood':'tag'} sm" data-act="d2cat" data-c="${k}">${n}</button>`).join(' ')+'</div><div class="dexw" style="margin-top:6px">'+
+    DEC2.map((m,i)=>m.c!==d.cat?'':d.own[i]?`<button class="btn green sm" data-act="d2place" data-i="${i}">${m.e} ${m.n} · Place</button>`:`<button class="btn tag sm" data-act="d2buy" data-i="${i}" ${S.money<m.p?'disabled':''}>${m.e} ${m.n} $${m.p.toLocaleString()}</button>`).join(' ')+'</div>';
+  const sp=Object.keys(S.dex).filter(id=>FID[id]).sort((a,b)=>FID[b].t-FID[a].t||FID[b].len-FID[a].len);
+  h+='<div class="hdr">🐟 MOUNT A TROPHY</div><p class="note">Mount any species you have caught on your wall. Rarer fish add more comfort.</p><div class="row">'+(sp.length?`<select id="trSel" style="max-width:62%;padding:6px;border-radius:8px">${sp.map(id=>`<option value="${id}">${FID[id].name} (${['Common','Uncommon','Rare','Epic','Legendary'][FID[id].t]})</option>`).join('')}</select> <button class="btn green sm" data-act="trmount" ${S.money<400?'disabled':''}>Mount · $400</button>`:'<span class="note">Catch a fish first!</span>')+'</div>';
+  return h;
+};
+RENDER_AFTER.decor=function(b){
+  const c=b.querySelector('#rm2');if(!c)return;const d=D2();let drag=null;
+  roomPaint(c);
+  const pos=e=>{const r=c.getBoundingClientRect();return[(e.clientX-r.left)*420/r.width,(e.clientY-r.top)*240/r.height]};
+  c.addEventListener('pointerdown',e=>{const [x,y]=pos(e);let best=-1,bd=1e9;d.items.forEach((it,i)=>{const r=it.k>=0?itemSize(it)/2+8:46*it.s,dd=Math.hypot(it.x-x,it.y-y);if(dd<r&&dd<bd){bd=dd;best=i}});d.sel=best;if(best>=0){drag={dx:d.items[best].x-x,dy:d.items[best].y-y};try{c.setPointerCapture(e.pointerId)}catch(_){}}roomPaint(c)});
+  c.addEventListener('pointermove',e=>{if(!drag||d.sel<0)return;const [x,y]=pos(e),it=d.items[d.sel];it.x=clamp(x+drag.dx,10,410);it.y=clamp(y+drag.dy,14,232);roomPaint(c)});
+  const end=()=>{if(drag){drag=null;save()}};c.addEventListener('pointerup',end);c.addEventListener('pointercancel',end);
+};
+{const sel=()=>{const d=D2();return d.items[d.sel]};
+ACT.d2cat=t=>{D2().cat=t.dataset.c;sfx.click()};
+ACT.d2buy=t=>{const m=DEC2[+t.dataset.i],d=D2();if(S.money<m.p)return;S.money-=m.p;d.own[+t.dataset.i]=1;sfx.coin();ACT.d2place(t)};
+ACT.d2place=t=>{const d=D2();if(d.items.length>=60){toast('The cottage is full! (60 items)');return}d.items.push({k:+t.dataset.i,x:60+Math.random()*300|0,y:70+Math.random()*130|0,s:1,f:0});d.sel=d.items.length-1;sfx.click()};
+ACT.d2big=()=>{const it=sel();if(it)it.s=Math.min(3,+(it.s+.2).toFixed(2))};
+ACT.d2small=()=>{const it=sel();if(it)it.s=Math.max(.4,+(it.s-.2).toFixed(2))};
+ACT.d2flip=()=>{const it=sel();if(it)it.f=it.f?0:1};
+ACT.d2front=()=>{const d=D2(),it=sel();if(it){d.items.splice(d.sel,1);d.items.push(it);d.sel=d.items.length-1}};
+ACT.d2del=()=>{const d=D2();if(d.sel>=0){d.items.splice(d.sel,1);d.sel=-1}};
+ACT.trmount=()=>{const s=$('trSel'),d=D2();if(!s||S.money<400)return;if(d.items.length>=60){toast('The cottage is full!');return}S.money-=400;d.items.push({k:-1,id:s.value,x:210,y:70,s:1,f:0});d.sel=d.items.length-1;sfx.rare()};
+ACT.cozy=()=>{const d=D2(),t=cozyTier();if(!t||d.claim===S.days)return;const r=Math.min(5000,Math.round(comfort()/8));S.money+=r;S.stats.earned=(S.stats.earned||0)+r;d.claim=S.days;d.buffDay=S.days;sfx.rare();toast('☕ '+t[3]+' home: +$'+r.toLocaleString()+' and +'+Math.round(t[1]*100)+'% XP today!')};}
+/* buff luck hook */
+{const rs0=rodStats;rodStats=function(){const r=rs0();r.luck+=cozyLuck();return r}}
+/* ---- pets v2 ---- */
+PETS.push(['rabbit','🐰 Rabbit',350,'#d8d0c8'],['fox','🦊 Fox',900,'#d8692a']);
+const COATS={cat:[['Orange','#e89a4a','tabby'],['Black','#26262c',''],['Gray','#8a8f9a','tabby'],['White','#f2efe8',''],['Calico','#f0e8d8','patch'],['Siamese','#e8dcc0','points']],
+ dog:[['Brown','#8a5a2c',''],['Black','#26262c',''],['Golden','#d8a850',''],['White','#f0ece4',''],['Dalmatian','#f0ece4','spots'],['Husky','#8a909c','mask']],
+ otter:[['Brown','#7a5a3a',''],['Silver','#9a9aa4','']],parrot:[['Green','#3ac85a',''],['Red','#d8402a',''],['Blue','#3a78d8',''],['Yellow','#e8c830','']],
+ rabbit:[['White','#f2eee8',''],['Brown','#a8793c',''],['Gray','#8a8a92',''],['Black','#2a2a30','']],fox:[['Red','#d8692a',''],['Arctic','#f0f4f8',''],['Silver','#8a8f9a','']]};
+const PACC=[['None',0],['Bow',80],['Top hat',300],['Bandana',100],['Glasses',150],['Crown',1000],['Party hat',120],['Scarf',120]];
+const PCOL=['#e8402a','#3a78d8','#3ac85a','#e8c830','#c060e0','#ff8ab0','#222','#f4f4f4'];
+let PETC=null,petCheer=0;
+{const dp0=drawPet;drawPet=function(g,kind,x,y,s,face,t,mv){
+  const o=(S.pet&&S.pet.kind===kind)?S.pet:{},cs=COATS[kind]||[],cc=cs[o.ci|0]||cs[0];PETC=cc?cc[1]:null;
+  try{dp0(g,kind,x,y,s,face,t,mv)}finally{PETC=null}
+  if(!cc)return;const bob=mv?Math.abs(Math.sin(t*10))*3:Math.sin(t*2)*1,L=kind==='otter'?22:15,par=kind==='parrot';
+  g.save();g.translate(x,y-bob*s);g.scale(face*s,s);
+  if(!par){
+    if(cc[2]==='tabby'){g.strokeStyle='rgba(0,0,0,.38)';g.lineWidth=2;for(let i=0;i<4;i++){g.beginPath();g.moveTo(-9+i*6,-21);g.lineTo(-9+i*6,-14);g.stroke()}}
+    if(cc[2]==='patch'){g.fillStyle='#e08a3a';g.beginPath();g.ellipse(-6,-14,6,5,0,0,TAU);g.fill();g.fillStyle='#34343a';g.beginPath();g.ellipse(7,-10,5,4,0,0,TAU);g.fill();g.beginPath();g.arc(L,-23,5,0,TAU);g.fill()}
+    if(cc[2]==='points'){g.fillStyle='rgba(70,45,30,.65)';g.beginPath();g.arc(L+3,-19,6,0,TAU);g.fill();g.fillRect(-L+3,-6,5,8);g.fillRect(L-9,-6,5,8)}
+    if(cc[2]==='spots'){g.fillStyle='#1a1a1e';[[-8,-14,3],[2,-18,2.6],[8,-10,3],[-2,-9,2.2],[L+1,-24,2.4]].forEach(a=>{g.beginPath();g.arc(a[0],a[1],a[2],0,TAU);g.fill()})}
+    if(cc[2]==='mask'){g.fillStyle='#f0f2f6';g.beginPath();g.ellipse(L+4,-17,6,4.5,0,0,TAU);g.fill()}
+    if(kind==='fox'&&cc[1]!=='#f0f4f8'){g.fillStyle='#f6f0e6';g.beginPath();g.ellipse(L+5,-17,6,4,0,0,TAU);g.fill()}
+  }
+  const hx=par?4:L,hy=par?-28:-20;
+  if(!par&&o.col){g.fillStyle=o.col;g.fillRect(hx-6,-19,3.4,10)}
+  const a=o.acc|0;
+  if(a===1){g.fillStyle='#ff6a9a';g.beginPath();g.moveTo(hx-3,hy-9);g.lineTo(hx-10,hy-14);g.lineTo(hx-10,hy-4);g.fill();g.beginPath();g.moveTo(hx-3,hy-9);g.lineTo(hx+4,hy-14);g.lineTo(hx+4,hy-4);g.fill()}
+  else if(a===2){g.fillStyle='#17171c';g.fillRect(hx-6,hy-20,11,12);g.fillRect(hx-10,hy-9,19,3);g.fillStyle='#c0392b';g.fillRect(hx-6,hy-12,11,2)}
+  else if(a===3){g.fillStyle='#e8402a';g.beginPath();g.moveTo(hx-9,hy+7);g.lineTo(hx+1,hy+7);g.lineTo(hx-4,hy+16);g.fill()}
+  else if(a===4){g.strokeStyle='#222';g.lineWidth=1.6;g.beginPath();g.arc(hx+4,hy+1,3.6,0,TAU);g.stroke();g.beginPath();g.moveTo(hx,hy+1);g.lineTo(hx-7,hy-1);g.stroke()}
+  else if(a===5){g.fillStyle='#ffd23a';g.beginPath();g.moveTo(hx-7,hy-8);g.lineTo(hx-7,hy-17);g.lineTo(hx-3,hy-12);g.lineTo(hx,hy-18);g.lineTo(hx+3,hy-12);g.lineTo(hx+7,hy-17);g.lineTo(hx+7,hy-8);g.closePath();g.fill()}
+  else if(a===6){g.fillStyle='#c060e0';g.beginPath();g.moveTo(hx-6,hy-8);g.lineTo(hx,hy-22);g.lineTo(hx+6,hy-8);g.fill();g.fillStyle='#ffd23a';g.beginPath();g.arc(hx,hy-22,2,0,TAU);g.fill()}
+  else if(a===7){g.fillStyle='#4a9ae8';g.fillRect(hx-9,hy+7,12,4);g.fillRect(hx-9,hy+9,4,9)}
+  g.restore()}}
+{const wf0=winFight;winFight=function(){wf0();petCheer=1.5};const lf0=loseFight;loseFight=function(){lf0();petCheer=-1}}
+drawPetBoat=function(){if(!S.pet.kind||camY>SURF+100)return;const hop=petCheer>0?Math.abs(Math.sin(petCheer*8))*18:0;if(petCheer>0)petCheer=Math.max(0,petCheer-.016);else if(petCheer<0)petCheer=Math.min(0,petCheer+.016);
+  drawPet(ctx,S.pet.kind,B.x-14,B.y-21-hop,1.05,1,TM,false);
+  if(hop>0||petCheer>0){ctx.font='15px serif';ctx.textAlign='center';ctx.fillText('💖',B.x-8,B.y-70-hop*.4)}else if(petCheer<0){ctx.font='14px serif';ctx.textAlign='center';ctx.fillText('💦',B.x-8,B.y-62)}};
+{const rp0=RENDER.pet;RENDER.pet=function(){
+  const p=S.pet;let h=rp0();if(!p.kind)return h;
+  p.ci=p.ci|0;p.acc=p.acc|0;p.accOwn=p.accOwn||{0:1};const cs=COATS[p.kind]||[];
+  h+='<div class="hdr">🎨 CUSTOMIZE</div><canvas id="pvp" width="200" height="120" style="display:block;margin:0 auto 6px;background:rgba(255,255,255,.35);border-radius:12px"></canvas>';
+  h+='<div class="note">Coat</div><div class="dexw">'+cs.map((x,i)=>`<button class="btn ${p.ci===i?'wood':'tag'} sm" data-act="petcoat" data-i="${i}" style="border-left:12px solid ${x[1]}">${x[0]}</button>`).join(' ')+'</div>';
+  h+='<div class="note" style="margin-top:6px">Accessory</div><div class="dexw">'+PACC.map((x,i)=>p.accOwn[i]?`<button class="btn ${p.acc===i?'wood':'tag'} sm" data-act="petacc" data-i="${i}">${x[0]}</button>`:`<button class="btn green sm" data-act="petacc" data-i="${i}" ${S.money<x[1]?'disabled':''}>${x[0]} $${x[1]}</button>`).join(' ')+'</div>';
+  h+=`<div class="note" style="margin-top:6px">Collar</div><div class="dexw"><button class="btn ${!p.col?'wood':'tag'} sm" data-act="petcol" data-i="-1">None</button> `+PCOL.map((c,i)=>`<button class="btn ${p.col===c?'wood':'tag'} sm" data-act="petcol" data-i="${i}" style="border-left:14px solid ${c}">&nbsp;</button>`).join(' ')+'</div>';
+  h+='<div class="hdr">🐾 SWITCH PET</div><div class="grid sm">'+PETS.filter(x=>x[0]!==p.kind).map(x=>`<div class="item crate"><div class="bigic">${x[1].split(' ')[0]}</div><h3>${x[1].split(' ')[1]}</h3><div class="row"><button class="btn green sm" data-act="adopt" data-k="${x[0]}" data-c="${x[2]}" ${S.money<x[2]?'disabled':''}>Adopt $${x[2]}</button></div></div>`).join('')+'</div>';
+  return h};
+RENDER_AFTER.pet=function(b){const c=b.querySelector('#pvp');if(!c||!S.pet.kind)return;const g=c.getContext('2d');let t0=0;const id=setInterval(()=>{if(!document.body.contains(c)){clearInterval(id);return}t0+=.05;g.clearRect(0,0,200,120);drawPet(g,S.pet.kind,100,108,2.1,1,t0,false)},50)}}
+ACT.petcoat=t=>{S.pet.ci=+t.dataset.i;sfx.click()};
+ACT.petacc=t=>{const i=+t.dataset.i,p=S.pet;p.accOwn=p.accOwn||{0:1};if(!p.accOwn[i]){if(S.money<PACC[i][1])return;S.money-=PACC[i][1];p.accOwn[i]=1;sfx.coin()}p.acc=i;sfx.click()};
+ACT.petcol=t=>{const i=+t.dataset.i;S.pet.col=i<0?'':PCOL[i];sfx.click()};
+{const ad0=ACT.adopt;ACT.adopt=t=>{const before=S.pet.kind;ad0(t);if(S.pet.kind!==before){S.pet.ci=0;S.pet.acc=0;S.pet.col='';S.pet.accOwn={0:1}}}}
+/* ---- shared Aquarium (town) ---- */
+Object.assign(LOOKS,{finn:Object.assign({},LOOKS.iris,{coat:'#1f7a9a',hair:'#d8c070',hairStyle:'',glasses:0,scarf:'#f0f4f8'})});
+PLACES.aquarium={n:'Reel Harbor Aquarium',ic:'🐠',sub:'A tank you and your partner fill together',who:'finn',th:'journal',acc:'#1f7a9a',tabs:[['aq','🐠 Shared Tank']]};
+TAB_PLACE.aq='aquarium';
+BLD.push({id:'aquarium',x:3620,w:340,lab:'Aquarium',ic:'🐠'});BLD.sort((a,b)=>a.x-b.x);TW=4000;townChips();TNPC2.push(['finn',3740]);
+const AQ={other:[],nm:'',ts:0,busy:false,ok:null};
+const lsg=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const aqMe=()=>lsg('fx_me')==='p2'?'p2':'p1',aqOther=()=>aqMe()==='p1'?'p2':'p1';
+function aqCfg(){try{const c=JSON.parse(lsg('fx_sync_cfg'));return c&&c.url&&c.key&&c.hh?c:null}catch(e){return null}}
+function aqHdr(c){const h={apikey:c.key,'Content-Type':'application/json'};if(/^eyJ/.test(c.key))h.Authorization='Bearer '+c.key;return h}
+const aqRest=c=>c.url.replace(/\/+$/,'')+'/rest/v1/';
+const aqName=s=>lsg(s==='p2'?'householdNameP2':'householdNameP1')||(s==='p2'?'Player 2':'Player 1');
+function aqS(){return S.aq||(S.aq={fish:[],claim:-1,ms:{}})}
+function aqPush(){const c=aqCfg();if(!c)return;fetch(aqRest(c)+'club_kv?on_conflict=household,key',{method:'POST',headers:Object.assign(aqHdr(c),{Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([{household:c.hh,key:'rl_aq_'+aqMe(),value:JSON.stringify({nm:aqName(aqMe()),fish:aqS().fish}),updated_at:Date.now(),updated_by:aqMe()}])}).then(r=>{AQ.ok=r.ok}).catch(()=>{AQ.ok=false})}
+function aqPull(){const c=aqCfg();if(!c||AQ.busy)return;AQ.busy=true;AQ.ts=Date.now();
+  fetch(aqRest(c)+'club_kv?household=eq.'+encodeURIComponent(c.hh)+'&key=eq.rl_aq_'+aqOther()+'&select=value',{headers:aqHdr(c)}).then(r=>r.json()).then(j=>{AQ.ok=true;if(j&&j[0]){try{const v=JSON.parse(j[0].value);AQ.other=(v.fish||[]).filter(f=>FID[f.id]);AQ.nm=v.nm||aqName(aqOther())}catch(e){}}}).catch(()=>{AQ.ok=false}).then(()=>{AQ.busy=false})}
+const aqAll=()=>aqS().fish.map(f=>Object.assign({mine:1},f)).concat(AQ.other.map(f=>Object.assign({mine:0},f)));
+const AQ_CAP=16,AQ_MS=[[5,500],[10,2000],[20,8000],[35,25000],[60,80000]];
+function aqSpecies(){return new Set(aqAll().map(f=>f.id)).size}
+RENDER.aq=function(){
+  const a=aqS(),all=aqAll(),sp=aqSpecies(),worth=all.reduce((s,f)=>s+(f.v||0),0),tip=Math.round(worth*.05),claimed=a.claim===S.days,linked=!!aqCfg();
+  if(linked&&Date.now()-AQ.ts>8000)aqPull();
+  SAY='Every fish you and your partner donate swims here for both of you. Collect tips each day and milestone bonuses!';
+  let h=`<div class="stats3"><div>Residents<b>${all.length}</b></div><div>Species<b>${sp}</b></div><div>Daily tips<b>~$${tip.toLocaleString()}</b></div></div><canvas id="aqc" width="420" height="220" style="width:100%;border-radius:12px;border:3px solid #1f5a7a;display:block;margin-bottom:6px"></canvas>`;
+  h+=`<p class="note">${linked?(AQ.ok===false?'⚠️ Could not reach your partner\'s tank right now.':'🔗 Shared with '+(AQ.nm||aqName(aqOther()))+'. <span style="color:#2a7ad8">● you</span> <span style="color:#d84a8a">● ${AQ.nm||aqName(aqOther())}</span>'):'Link Supabase sync in the Club app to share this tank with your partner. It works solo until then.'}</p>`;
+  h+=`<div class="row"><button class="btn gold sm" data-act="aqtip" ${claimed||!all.length?'disabled':''}>${claimed?'💰 Tips collected today':'💰 Collect tips ~$'+tip.toLocaleString()}</button></div><div class="hdr">🏅 SPECIES MILESTONES</div>`;
+  h+=AQ_MS.map(([n,r])=>`<div class="qrow ${a.ms[n]?'done':''}"><div class="qb"><b>${n} different species</b> · $${r.toLocaleString()}</div>${a.ms[n]?'✅':sp>=n?`<button class="btn gold sm" data-act="aqms" data-n="${n}">Claim</button>`:`<small>${sp}/${n}</small>`}</div>`).join('');
+  h+=`<div class="hdr">🪣 DONATE FROM YOUR BUCKET (${a.fish.length}/${AQ_CAP} yours)</div>`;
+  h+=S.bucket.length?S.bucket.map((x,i)=>{const s=FID[x.id];return`<div class="sellrow"><span style="color:${TIERS[s.t].c};font-weight:800">${x.vk?'✦ ':''}${s.name}</span><span>${fmtW(x.w)}</span><span class="v">$${x.v}</span><button class="btn green sm" data-act="aqgive" data-i="${i}" ${a.fish.length>=AQ_CAP?'disabled':''}>Donate</button></div>`}).join(''):'<p class="note">Your bucket is empty. Catch something special!</p>';
+  h+='<div class="hdr">🐠 YOUR DONATIONS</div>'+(a.fish.length?a.fish.map((x,i)=>{const s=FID[x.id];return`<div class="sellrow"><span style="color:${TIERS[s.t].c};font-weight:800">${x.vk?'✦ ':''}${s.name}</span><span>${fmtW(x.w)}</span><span class="v">$${x.v}</span><button class="btn tag sm" data-act="aqtake" data-i="${i}">Take back</button></div>`}).join(''):'<p class="note">Nothing yet.</p>');
+  return h};
+ACT.aqgive=t=>{const a=aqS(),i=+t.dataset.i,x=S.bucket[i];if(!x||a.fish.length>=AQ_CAP)return;S.bucket.splice(i,1);a.fish.push({id:x.id,w:x.w,cm:x.cm,v:x.v,vk:x.vk||'',t:Date.now()});sfx.rare();aqPush();toast('🐠 Added to the shared tank!')};
+ACT.aqtake=t=>{const a=aqS(),i=+t.dataset.i,x=a.fish[i];if(!x)return;if(S.bucket.length>=bucketCap()){toast('Bucket is full');return}a.fish.splice(i,1);S.bucket.push({id:x.id,w:x.w,cm:x.cm,v:x.v,vk:x.vk});aqPush()};
+ACT.aqtip=()=>{const a=aqS();if(a.claim===S.days)return;const tip=Math.round(aqAll().reduce((s,f)=>s+(f.v||0),0)*.05);if(!tip)return;a.claim=S.days;S.money+=tip;S.stats.earned=(S.stats.earned||0)+tip;sfx.coin();toast('💰 Aquarium tips: +$'+tip.toLocaleString())};
+ACT.aqms=t=>{const a=aqS(),n=+t.dataset.n,m=AQ_MS.find(x=>x[0]===n);if(!m||a.ms[n]||aqSpecies()<n)return;a.ms[n]=1;S.money+=m[1];sfx.rare();achPop('Aquarium: '+n+' species','+$'+m[1].toLocaleString())};
+RENDER_AFTER.aq=function(b){
+  const c=b.querySelector('#aqc');if(!c)return;const g=c.getContext('2d');let t0=0;
+  const id=setInterval(()=>{
+    if(!document.body.contains(c)){clearInterval(id);return}
+    if(aqCfg()&&Date.now()-AQ.ts>12000)aqPull();
+    t0+=.05;const W=420,H=220,gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'#5ad0e8');gr.addColorStop(1,'#0a3a68');g.fillStyle=gr;g.fillRect(0,0,W,H);
+    g.fillStyle='rgba(255,255,255,.08)';for(let i=0;i<4;i++){g.beginPath();g.moveTo(40+i*100,0);g.lineTo(70+i*100,0);g.lineTo(20+i*100+Math.sin(t0*.5+i)*14,H);g.lineTo(0+i*100,H);g.fill()}
+    g.fillStyle='#d8c27a';g.fillRect(0,H-22,W,22);g.fillStyle='#3a9a4a';for(let i=0;i<9;i++){g.beginPath();g.ellipse(24+i*48,H-24,5,22+(i%3)*8,Math.sin(t0+i)*.12,0,TAU);g.fill()}
+    const all=aqAll();
+    all.forEach((f,i)=>{const sp=FID[f.id];if(!sp)return;const h1=hashStr(f.id+i),bx=boxOf(sp),sc=clamp(64/bx[0],.03,1.5)*(.8+sp.t*.1),dir=h1%2?1:-1,spd=14+(h1%20),x=(((t0*spd*dir+h1%400)%(W+120))+W+120)%(W+120)-60,y=30+(h1%120)+Math.sin(t0*1.2+i)*8;
+      g.save();g.translate(x,y);g.scale(dir*sc,sc);drawFish(g,sp,t0*2+i);g.restore();g.fillStyle=f.mine?'#2a7ad8':'#d84a8a';g.beginPath();g.arc(x,y-bx[1]*sc*.6-6,3,0,TAU);g.fill()});
+    if(!all.length){g.fillStyle='rgba(255,255,255,.85)';g.font='700 14px sans-serif';g.textAlign='center';g.fillText('An empty tank… donate a fish!',W/2,H/2)}
+    g.fillStyle='rgba(255,255,255,.5)';for(let i=0;i<8;i++){const bx=(i*61+t0*8)%W,by=H-((t0*30+i*37)%H);g.beginPath();g.arc(bx,by,1.5+(i%3),0,TAU);g.fill()}
+  },50)};
+function bAquarium(g,cx){
+  const n=1-tNow.d,l=cx-150;
+  g.fillStyle='#2a7a98';g.fillRect(l,390,300,GY-390+10);g.fillStyle='rgba(255,255,255,.14)';for(let y=404;y<GY;y+=16)g.fillRect(l,y,300,2);
+  const gr=g.createLinearGradient(0,380,0,GY-60);gr.addColorStop(0,'#7ae0f0');gr.addColorStop(1,'#1a6aa0');g.fillStyle=gr;g.beginPath();g.ellipse(cx,410,120,70,0,Math.PI,0);g.lineTo(cx+120,GY-40);g.lineTo(cx-120,GY-40);g.closePath();g.fill();g.strokeStyle='#f4f8ff';g.lineWidth=5;g.stroke();
+  g.font='28px serif';g.textAlign='center';for(let i=0;i<4;i++){g.fillText(['🐠','🐟','🐡','🦈'][i],cx-70+i*46+Math.sin(tt*1.4+i)*8,420+(i%2)*40+Math.sin(tt+i)*5)}
+  g.fillStyle='#1a4a68';g.fillRect(l-8,380,316,14);g.fillStyle=n>.2?'#ffe9a0':'#9ad8ec';g.font='800 20px "Segoe UI",sans-serif';g.fillText('AQUARIUM',cx,382);
+  door(g,cx,GY-70,56,70,'#1a4a68')}
+TFNS.aquarium=bAquarium;
+
 /* >>> n_main.js */
 /* ============================== MAIN ============================== */
 window.addEventListener('resize',resize);
