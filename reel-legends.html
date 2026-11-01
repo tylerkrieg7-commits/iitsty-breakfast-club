@@ -1149,10 +1149,10 @@ function puffer(c,sp,tt){
   const er=R*.2;c.fillStyle='#fff';c.beginPath();c.arc(R*.55,-R*.25,er,0,TAU);c.fill();c.fillStyle='#0b0f14';c.beginPath();c.arc(R*.6,-R*.25,er*.64,0,TAU);c.fill();
   c.strokeStyle='rgba(60,30,10,.7)';c.lineWidth=2;c.beginPath();c.moveTo(R*1.05,R*.18);c.quadraticCurveTo(R*.95,R*.28,R*.82,R*.25);c.stroke();
 }
-const fitK=m=>Math.min(1,Math.min(VW*.8,640)/Math.max(1,m));
+const fitK=m=>1;
 function drawFish(c,sp,tt){
   c.save();
-  if(sp.glow&&sp.shape!=='eel'){c.shadowColor=sp.glow;c.shadowBlur=sp.len>420?0:sp.len>200?6:18}
+  if(sp.glow&&sp.shape!=='eel'){c.shadowColor=sp.glow;c.shadowBlur=sp.len>420?8:sp.len>200?12:18}
   switch(sp.shape){case'hammer':hammer(c,sp,tt);break;case'flat':flat(c,sp,tt);break;case'seahorse':seahorse(c,sp,tt);break;case'turtle':turtle(c,sp,tt);break;case'crab':crab(c,sp,tt);break;case'octopus':octopus(c,sp,tt);break;case'whale':whale(c,sp,tt);break;case'jelly':jelly(c,sp,tt);break;case'eel':eel(c,sp,tt);break;case'ray':ray(c,sp,tt);break;case'squid':squid(c,sp,tt);break;case'puffer':puffer(c,sp,tt);break;default:regular(c,sp,tt)}
   c.restore();
 }
@@ -1563,7 +1563,7 @@ function updateFish(dt){
         const mm=m*.8+40;
         if(f.dir>0&&f.x>VW+mm)f.x=-mm;else if(f.dir<0&&f.x<-mm)f.x=VW+mm;
       }
-      const ny=f.by+Math.sin(f.ph*f.wob+f.off)*f.amp;f.vy=(ny-f.y)/Math.max(dt,.001);f.y=clamp(ny,SURF+20,FLOOR-30);
+      const ny=f.by+Math.sin(f.ph*f.wob+f.off)*f.amp;f.vy=clamp((ny-f.y)/Math.max(dt,.016),-260,260);f.y=clamp(ny,SURF+20,FLOOR-30);
       if(sp.shape==='jelly')f.y+=Math.sin(f.ph*1.2+f.off)*.35;
     }
     if(!f.junk&&sp.tags.includes('pred')&&m>100&&!f.chas)preds.push(f);
@@ -1701,7 +1701,7 @@ function updateHook(dt){
   }
   else if(st==='cast'){hook.u+=dt/.65;const u=Math.min(1,hook.u);hook.x=lerp(hook.sx,hook.ex,u);hook.y=lerp(hook.sy,hook.ey,u)-Math.sin(Math.PI*u)*150;bt=.55*(1-u);if(u>=1)landHook()}
   else if(st==='fish'){
-    bt=.3;if(hook.mode!=='ice')hook.x+=clamp(clamp(hook.tx,BX+70,VW-24)-hook.x,-260*dt,260*dt);
+    bt=.3;if(hook.mode!=='ice')hook.x+=clamp(clamp(hook.tx,BX+70,VW-24)-hook.x,-200*dt,200*dt);
     let md=Math.min(rs.depth,MAXD-1.2);if(hook.mode==='bob')md=Math.min(md,S.gear.bobD);if(hook.mode==='fly')md=Math.min(md,5);
     const sy=waveY(hook.x,TM)+3,maxY=SURF+md*PXM,up=holding&&!ignoreHold&&!hook.strike;
     if(hook.strike){hook.strike.t-=dt;if(hook.strike.t<=0)missStrike();bt=.6}
@@ -2057,7 +2057,7 @@ function drawFishAll(){
     ctx.save();ctx.translate(f.x,f.y);
     ctx.globalAlpha=f.alpha*(sp.glow?1:1-dep*.32);
     const fk=fitK(sp.len*f.sc);if(sp.shape==='jelly'){ctx.scale(f.sc*fk,f.sc*fk)}
-    else{ctx.scale(f.dir*f.sc*fk,f.sc*fk);ctx.rotate(clamp(f.vy*.0035,-.35,.35)*(f.dir>0?1:1))}
+    else{f.rot=(f.rot||0)+(clamp(f.vy*.0035,-.3,.3)-(f.rot||0))*.08;ctx.scale(f.dir*f.sc*fk,f.sc*fk);ctx.rotate(f.rot)}
     drawFish(ctx,sp,f.ph+f.off);ctx.restore();
   }
 }
@@ -2086,11 +2086,11 @@ function drawHookStuff0(){
   // hooked fish
   const f=hook.fish;
   if(f&&(st==='fight'||st==='reveal'||st==='card')){
-    const sp=f.sp,k0=Math.min(1,Math.min(VW*.6,460)/(sp.len*f.sc)),m=sp.len*f.sc*k0,out=hook.y<wy+14;
+    const sp=f.sp,k0=1,m=sp.len*f.sc*k0,out=hook.y<wy+14;
     ctx.save();ctx.translate(hx,hy);
     if(sp.shape==='jelly'){ctx.translate(0,m*.28);ctx.scale(f.sc*k0,f.sc*k0);ctx.rotate(Math.sin(TM*5)*.1)}
-    else{let ang=out?-1.25+Math.sin(TM*4)*.08:-.35+Math.sin(TM*9)*.28*(st==='fight'?1:.3);ctx.rotate(ang);ctx.translate(-m*.47,0);ctx.scale(f.sc*k0,f.sc*k0)}
-    drawFish(ctx,sp,TM*1.8+(st==='fight'?TM*4:0));ctx.restore();
+    else{const bg=clamp(m/260,0,1);let ang=out?-1.25+Math.sin(TM*4)*.08:-.35+Math.sin(TM*(9-4*bg))*.28*(1-.55*bg)*(st==='fight'?1:.3);ctx.rotate(ang);ctx.translate(-m*.47,0);ctx.scale(f.sc*k0,f.sc*k0)}
+    drawFish(ctx,sp,TM*1.8+(st==='fight'?TM*(4-2*clamp(m/260,0,1)):0));ctx.restore();
   }
   if(hook.bangT>0){const u=1-hook.bangT/.9,y=hy-40-u*14,s=1+Math.sin(u*12)*.1;ctx.save();ctx.translate(hx+16,y);ctx.scale(s,s);ctx.globalAlpha=clamp(hook.bangT*3,0,1);ctx.fillStyle='#ff4a4a';ctx.strokeStyle='#fff';ctx.lineWidth=3;rr(ctx,-14,-18,28,36,10);ctx.fill();ctx.stroke();ctx.fillStyle='#fff';ctx.font='900 26px sans-serif';ctx.textAlign='center';ctx.fillText('!',0,9);ctx.restore()}
 }
@@ -2554,8 +2554,8 @@ function drawFishAll(){
     if(f.boss){const gl=c.createRadialGradient(0,0,m*.1,0,0,m*.9);gl.addColorStop(0,'rgba(255,60,40,.28)');gl.addColorStop(1,'rgba(255,60,40,0)');c.fillStyle=gl;c.beginPath();c.arc(0,0,m*.9,0,TAU);c.fill()}
     else if(sp.vk==='golden'){const gl=c.createRadialGradient(0,0,m*.1,0,0,m*.7);gl.addColorStop(0,'rgba(255,220,100,.3)');gl.addColorStop(1,'rgba(255,220,100,0)');c.fillStyle=gl;c.beginPath();c.arc(0,0,m*.7,0,TAU);c.fill()}
     c.globalAlpha=f.alpha*(sp.glow?1:1-dep*.32);
-    const fk=fitK(m);if(sp.shape==='jelly'){c.scale(f.sc*fk,f.sc*fk)}else{c.scale(f.dir*f.sc*fk,f.sc*fk);c.rotate(clamp(f.vy*.0035,-.35,.35)+(f.look>0?-.12:0))}
-    drawFish(c,sp,f.ph+f.off+(f.flash>0?f.ph*6:0));
+    const fk=fitK(m);if(sp.shape==='jelly'){c.scale(f.sc*fk,f.sc*fk)}else{f.rot=(f.rot||0)+(clamp(f.vy*.0035,-.3,.3)-(f.rot||0))*.08;f.lk=(f.lk||0)+((f.look>0?-.12:0)-(f.lk||0))*.1;c.scale(f.dir*f.sc*fk,f.sc*fk);c.rotate(f.rot+f.lk)}
+    drawFish(c,sp,f.ph+f.off);
     if(f.flash>0){c.globalAlpha=Math.min(1,f.flash*1.4);c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.ellipse(0,0,sp.len*.5,Math.max(8,sp.len*sp.h*.45),0,0,TAU);c.fill()}
     c.restore();
     if(f.boss||sp.vk==='golden'||sp.vk==='albino'){c.save();c.font='800 11px "Segoe UI",sans-serif';c.textAlign='center';c.fillStyle=f.boss?'#ff7a6a':sp.vk==='golden'?'#ffd166':'#fff';c.globalAlpha=.85*f.alpha;c.fillText((f.boss?'☠ ':sp.vk==='golden'?'✦ ':'◇ ')+sp.name,f.x,f.y-m*sp.h*.6-14);c.restore()}
@@ -3025,7 +3025,7 @@ function pressStart(){
 function pressEnd(){holding=false;ignoreHold=false}
 function ptr(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/SC;mouse.y=(e.clientY-r.top)/SC;
   if(e.pointerType==='mouse'&&e.buttons===0&&hook.state==='fish'&&VW<560)return;
-  if(VW<560){const lo=BX+90,hi=VW-30;hook.tx=(hook.state==='idle'||hook.state==='flycast')?lo+clamp((mouse.x-BX)/((VW-BX)*.5),0,1)*(hi-lo):clamp(mouse.x,BX+70,VW-24)}else hook.tx=mouse.x}
+  if(VW<560){const lo=BX+90,hi=VW-30;if(hook.state==='idle'||hook.state==='flycast')hook.tx=lo+clamp((mouse.x-BX)/((VW-BX)*.5),0,1)*(hi-lo);else hook.tx+=(clamp(mouse.x,BX+70,VW-24)-hook.tx)*.5}else hook.tx=mouse.x}
 const ptrs=new Set();let pendCast=false;
 function ptrDown(e){ptrs.add(e.pointerId);ptr(e);
   if(e.pointerType==='touch'&&hook.state==='idle'&&started&&!modalOpen&&!S.gear.iceOn){pendCast=true;return}
