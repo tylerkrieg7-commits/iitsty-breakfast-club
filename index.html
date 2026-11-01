@@ -17680,8 +17680,8 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         panel = document.createElement("div"); panel.className = "bcx-panel";
         panel.innerHTML = '<div class="hd"><span>🏡 Pet home</span><button class="b g" id="bp-x">Close</button></div><div class="tabs"></div><div class="bd"></div>';
         document.body.appendChild(panel); panel.querySelector("#bp-x").onclick = function () { panel.remove(); panel = null; };
-        var TABS = [["rooms", "🗺️ Rooms & doors"], ["friends", "👫 Friends"], ["radio", "📻 Radio"], ["visit", "👀 Visit"]], cur = tab, bd = panel.querySelector(".bd");
-        var paint = function () { panel.querySelector(".tabs").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".tabs button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
+        var TABS = [["rooms", "🗺️ Rooms & doors"], ["gadgets", "🎛️ Gadgets"], ["friends", "👫 Friends"], ["radio", "📻 Radio"], ["visit", "👀 Visit"]], cur = tab, bd = panel.querySelector(".bd");
+        var paint = function () { panel.querySelector(".tabs").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".tabs button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, gadgets: function (b, r) { if (window.bcxGadgets) window.bcxGadgets.panel(b, r); else b.innerHTML = '<div class="card-desc">Gadgets are loading, try again in a moment.</div>'; }, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
         paint();
     }
     function close() { if (panel) { panel.remove(); panel = null; } }
@@ -17750,7 +17750,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             s.items.map(function (it) { return '<div class="fx3-furn" style="left:' + it.x + "%;top:" + it.y + "%;--s:" + it.s + ";" + (it.fl ? "--fl:-1;" : "") + "z-index:" + (3 + Math.round(it.y)) + '">' + (it.svg || '<span class="fx3-furn-e">' + esc(it.e) + "</span>") + "</div>"; }).join("") + '<div class="fx3-room-pet" id="bv-pet" style="left:50%;top:76%">' + esc(s.glyph) + "</div></div>" +
             '<div class="add" style="justify-content:center">' + [["🦴", "a treat"], ["🌸", "flowers"], ["🏐", "a ball"], ["💌", "a love note"], ["⭐", "a star"]].map(function (g) { return '<button class="b" data-g="' + g[0] + '" data-n="' + g[1] + '" style="font-size:1.3rem">' + g[0] + "</button>"; }).join("") + "</div>";
         var pet = $("bv-pet"), t = setInterval(function () { if (!pet.isConnected) { clearInterval(t); return; } pet.style.left = 12 + Math.random() * 76 + "%"; pet.style.top = 64 + Math.random() * 26 + "%"; }, 2500); pet.style.transition = "left 2.4s linear, top 2.4s linear";
-        if (window.bcxVisitHouse && sget("house_" + who, null)) { var go = document.createElement("button"); go.className = "b"; go.style.cssText = "width:100%;font-size:1rem;padding:12px;margin:6px 0"; go.textContent = "🚶 Walk over to " + nm + "'s house, with " + petName(); go.onclick = function () { close(); window.bcxVisitHouse("home"); }; bd.insertBefore(go, bd.firstChild); }
+        if (window.bcxVisitHouse) { var go = document.createElement("button"); go.className = "b"; go.style.cssText = "width:100%;font-size:1rem;padding:12px;margin:6px 0"; go.textContent = "🚶 Walk over to " + nm + "'s house, with " + petName(); go.onclick = function () { close(); window.bcxVisitHouse("home"); }; bd.insertBefore(go, bd.firstChild); }
         bd.querySelectorAll("[data-g]").forEach(function (b) { b.onclick = function () {
             var k = "rg_" + who + "_in", G = sget(k, []); G.push({ id: uid(), e: b.dataset.g, from: me(), ts: Date.now() }); sset(k, G.slice(-30));
             tell("cheer", { emoji: b.dataset.g, text: names()[me()] + " left " + b.dataset.n + " in " + s.pet + "'s room!" }); toast(b.dataset.g + " Gift left in " + s.pet + "'s room"); }; });
@@ -18028,6 +18028,210 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
 })();
 
 </script>
+<script id="bcx-gadgets">
+/* ===== Gadgets (build 26): furniture you can use. Radio plays your workout music, lights glow, the TV plays a GIF, video or website over its screen.
+   Settings live in Pet home -> 🎛️ Gadgets. The same gadgets work when you visit your partner's house. ===== */
+(function () {
+    "use strict";
+    if (window.bcxGadgets) return;
+    var F = window.FX3, R0 = window.FX3_ROOM; if (!F || !R0) return;
+    var jget = F.jget, jset = F.jset, esc = F.esc, toast = F.toast, ls = F.ls;
+    var DEFK = { fu_radio: "radio", fu_bcx_radio: "radio", fu_tv: "tv", fu_bcx_tv: "tv", fu_lamp: "light" };
+    var KINDS = [["", "Automatic"], ["radio", "📻 Radio"], ["light", "💡 Light"], ["tv", "📺 TV"], ["none", "Nothing"]];
+    var COLS = [["#ffd54f", "Warm"], ["#fff8e1", "White"], ["#ff8ab3", "Pink"], ["#64b5f6", "Blue"], ["#81c784", "Green"], ["#ba68c8", "Purple"], ["#ff7043", "Orange"]];
+    var BUILT = [["🎬", "#37474f", "Movie night"], ["🏀", "#e65100", "Game on"], ["🍿", "#6a1b9a", "Snack flick"], ["🎮", "#1565c0", "Gaming"], ["🐶", "#2e7d32", "Pet show"]];
+    var furnOf = function (id) { return R0.FURN.filter(function (f) { return f.id === id; })[0] || {}; };
+    var items = function () { return (jget("fx3_room", {}) || {}).items || []; };
+    function saveItem(i, patch) { var R = jget("fx3_room", {}) || {}; if (!R.items || !R.items[i]) return; Object.keys(patch).forEach(function (k) { if (patch[k] == null) delete R.items[i][k]; else R.items[i][k] = patch[k]; }); jset("fx3_room", R); }
+    /* what an item does: the person's choice first, otherwise by what it is */
+    function kindOf(it) { if (!it) return ""; var g = it.g || {}; if (g.kind === "none") return ""; if (g.kind) return g.kind; return DEFK[it.id] || ""; }
+    function descOf(it) { var g = it.g || {}; return { k: kindOf(it), col: g.col || "#ffd54f", sz: g.sz || 2, pl: g.pl || "", ch: (g.ch || []).slice(0, 6) }; }
+
+    /* ---------- styles ---------- */
+    var st = document.createElement("style");
+    st.textContent = ".fx3-furn.g-use{cursor:pointer}.fx3-furn.g-use::before{content:'';position:absolute;inset:-6px;border-radius:14px;pointer-events:none}" +
+        ".g-glow{position:absolute;pointer-events:none;border-radius:50%;transform:translate(-50%,-50%);z-index:199;mix-blend-mode:screen;animation:gFlick 2.6s ease-in-out infinite}" +
+        "@keyframes gFlick{0%,100%{opacity:.85}45%{opacity:1}60%{opacity:.78}}.fx3-furn.g-lit{filter:drop-shadow(0 0 14px var(--gc,#ffd54f)) brightness(1.2)}" +
+        ".fx3-furn.g-playing{animation:gBeat .6s ease-in-out infinite;filter:drop-shadow(0 0 10px #4dd0e1)}@keyframes gBeat{0%,100%{transform:translate(-50%,-50%) scaleX(var(--fl,1)) scale(1)}50%{transform:translate(-50%,-50%) scaleX(var(--fl,1)) scale(1.07)}}" +
+        ".g-tv{position:absolute;left:50%;top:44%;width:66%;height:50%;transform:translate(-50%,-50%);border-radius:6px;overflow:hidden;background:#000;z-index:2;pointer-events:none;box-shadow:0 0 14px rgba(120,200,255,.7);font-size:1rem}" +
+        ".g-tv img,.g-tv video{width:100%;height:100%;object-fit:cover;display:block}.g-tv .bi{width:100%;height:100%;display:grid;place-items:center;font-size:1.5em;animation:gTvb 1.2s ease-in-out infinite}@keyframes gTvb{50%{transform:scale(1.2)}}" +
+        ".g-tv::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.14) 0 1px,transparent 1px 3px);pointer-events:none}" +
+        ".g-tv .live{position:absolute;left:3px;top:2px;font:800 8px sans-serif;color:#fff;background:#e53935;border-radius:4px;padding:0 3px}" +
+        "#g-view{position:fixed;inset:0;z-index:2147480500;background:#000;display:flex;flex-direction:column;color:#fff}#g-view .hd{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#161616}#g-view .hd b{flex:1;font-size:.95rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#g-view .hd button,#g-view .hd a{font:inherit;font-weight:800;border:0;border-radius:10px;padding:8px 12px;background:#333;color:#fff;text-decoration:none;cursor:pointer}#g-view iframe{flex:1;border:0;width:100%;background:#fff}#g-view .hint{padding:6px 12px;font-size:.78rem;opacity:.8;background:#161616}" +
+        ".gad-card{border:1.5px solid rgba(128,128,128,.35);border-radius:14px;padding:10px;margin:10px 0;background:rgba(128,128,128,.08)}.gad-card h4{margin:0 0 6px;font-size:1rem}.gad-card label{display:block;font-size:.78rem;font-weight:700;opacity:.8;margin:8px 0 3px}.gad-card select,.gad-card input[type=text],.gad-card input[type=url]{width:100%;box-sizing:border-box;font:inherit;padding:8px;border-radius:9px;border:1.5px solid rgba(128,128,128,.4);background:transparent;color:inherit}" +
+        ".gad-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.gad-sw{width:30px;height:30px;border-radius:50%;border:3px solid transparent;cursor:pointer;padding:0}.gad-sw.on{border-color:#fff;box-shadow:0 0 0 2px #000a}.gad-ch{border:1px dashed rgba(128,128,128,.5);border-radius:10px;padding:8px;margin:6px 0}.gad-b{font:inherit;font-weight:800;border:0;border-radius:10px;padding:8px 12px;background:var(--accent-color,#00adb5);color:#fff;cursor:pointer}.gad-b.g{background:rgba(128,128,128,.35);color:inherit}";
+    document.head.appendChild(st);
+
+    /* ---------- files uploaded from this phone for the TV ---------- */
+    var DB = null, URLS = {};
+    function db() { return DB || (DB = new Promise(function (ok, no) { var r = indexedDB.open("bcx_tv", 1); r.onupgradeneeded = function () { r.result.createObjectStore("f", { keyPath: "id" }); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; })); }
+    function putFile(f) { var id = "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); return db().then(function (d) { return new Promise(function (ok, no) { var t = d.transaction("f", "readwrite"); t.objectStore("f").put({ id: id, blob: f, type: f.type, name: f.name }); t.oncomplete = function () { ok(id); }; t.onerror = function () { no(t.error); }; }); }); }
+    function getFile(id) { if (URLS[id]) return Promise.resolve(URLS[id]); return db().then(function (d) { return new Promise(function (ok) { var q = d.transaction("f").objectStore("f").get(id); q.onsuccess = function () { var r = q.result; if (r && r.blob) { URLS[id] = { url: URL.createObjectURL(r.blob), type: r.type || "" }; ok(URLS[id]); } else ok(null); }; q.onerror = function () { ok(null); }; }); }).catch(function () { return null; }); }
+    /* a channel source -> {url,type} */
+    function resolve(u) {
+        u = String(u || ""); if (!u) return Promise.resolve(null);
+        if (u.indexOf("idb:") === 0) return getFile(u.slice(4));
+        if (u.indexOf("pm:") === 0) { try { var s = u.slice(3), a = (window.BCAssets && BCAssets.all("index")) || [], x = a.filter(function (q) { return q.slot === s && q.url; })[0]; return Promise.resolve(x ? { url: x.url, type: x.type || "" } : null); } catch (e) { return Promise.resolve(null); } }
+        return Promise.resolve({ url: u, type: /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u) ? "video/mp4" : "" });
+    }
+    function libList() { try { return ((window.BCAssets && BCAssets.all("index")) || []).filter(function (x) { return (x.slot.indexOf("tv:") === 0 || x.slot.indexOf("tvv:") === 0) && x.url; }); } catch (e) { return []; } }
+
+    /* ---------- the three gadgets, shared by your room and your partner's house ---------- */
+    function center(scene, el) { var r = scene.getBoundingClientRect(), b = el.getBoundingClientRect(); return { x: (b.left + b.width / 2 - r.left) / r.width * 100, y: (b.top + b.height * 0.4 - r.top) / r.height * 100, w: b.width / r.width * 100 }; }
+    function paintLight(scene, el, d, on) {
+        if (el.__glow) { el.__glow.remove(); el.__glow = null; }
+        el.classList.toggle("g-lit", !!on); el.style.setProperty("--gc", d.col);
+        if (!on) return;
+        var c = center(scene, el), size = [30, 44, 60, 76][Math.max(0, Math.min(3, (d.sz || 2) - 1))];
+        var g = document.createElement("div"); g.className = "g-glow"; g.style.cssText = "left:" + c.x + "%;top:" + c.y + "%;width:" + size + "%;padding-bottom:" + size * 0.9 + "%;background:radial-gradient(circle," + d.col + "cc 0,rgba(255,255,255,0) 68%)";
+        scene.appendChild(g); el.__glow = g;
+    }
+    function tvLayer(el) { var t = el.querySelector(".g-tv"); if (!t) { t = document.createElement("div"); t.className = "g-tv"; el.appendChild(t); } return t; }
+    function paintTV(el, d, idx) {
+        var old = el.querySelector(".g-tv"); if (idx < 0) { if (old) old.remove(); return; }
+        var chs = d.ch && d.ch.length ? d.ch : BUILT.map(function (b) { return { t: "built", n: b[2], b: b }; });
+        var c = chs[idx % chs.length], t = tvLayer(el); t.innerHTML = "";
+        if (c.t === "built") { var b = c.b || BUILT[idx % BUILT.length]; t.style.background = b[1]; t.innerHTML = '<div class="bi">' + b[0] + "</div>"; return; }
+        if (c.t === "site") { t.style.background = "linear-gradient(135deg,#1a237e,#0d47a1)"; t.innerHTML = '<div class="bi">▶</div><span class="live">LIVE</span>'; return; }
+        t.style.background = "#000"; t.innerHTML = '<div class="bi">⏳</div>';
+        resolve(c.u).then(function (r) {
+            if (!t.isConnected) return; if (!r) { t.innerHTML = '<div class="bi">📺</div>'; return; }
+            if (c.t === "video" || /^video/.test(r.type)) { var v = document.createElement("video"); v.src = r.url; v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true; v.setAttribute("playsinline", ""); t.innerHTML = ""; t.appendChild(v); var p = v.play(); if (p && p.catch) p.catch(function () { }); v.onerror = function () { t.innerHTML = '<div class="bi">📺</div>'; }; }
+            else { var im = new Image(); im.onload = function () { t.innerHTML = ""; t.appendChild(im); }; im.onerror = function () { t.innerHTML = '<div class="bi">📺</div>'; }; im.src = r.url; }
+        });
+    }
+    function viewer(url, label) {
+        var v = document.getElementById("g-view"); if (v) v.remove();
+        v = document.createElement("div"); v.id = "g-view";
+        v.innerHTML = '<div class="hd"><b>📺 ' + esc(label || url) + '</b><a href="' + esc(url) + '" target="_blank" rel="noopener">↗ Open in browser</a><button id="g-x">✕</button></div><iframe src="' + esc(url) + '" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer"></iframe><div class="hint">If the page stays blank, that site does not allow being shown inside the app. Tap ↗ Open in browser.</div>';
+        document.body.appendChild(v); v.querySelector("#g-x").onclick = function () { v.querySelector("iframe").src = "about:blank"; v.remove(); };
+    }
+    var notesT = 0;
+    function radioPlaying() { try { var s = window.BCMusic && BCMusic.state(); return !!(s && s.playing && s.ctx === "radio"); } catch (e) { return false; } }
+    function radioToggle(d) {
+        var M = window.BCMusic; if (!M) { toast("Music isn't ready yet"); return false; }
+        if (radioPlaying()) { M.stop("radio"); toast("📻 Radio off"); return false; }
+        M.play(d.pl || ls("bcx_radio_pl", "all"), "radio").then(function (ok) { if (ok) toast("📻 Radio on · your workout music"); else toast("No songs yet. Add some in Workout → 🎧 Workout music."); }); return true;
+    }
+    function notes(scene, el) {
+        var c = center(scene, el), n = document.createElement("div"); n.className = "bcx-notes"; n.textContent = ["🎵", "🎶", "♪"][Math.floor(Math.random() * 3)];
+        n.style.left = c.x + (Math.random() * 6 - 3) + "%"; n.style.top = (c.y - 10) + "%"; scene.appendChild(n); setTimeout(function () { n.remove(); }, 2300);
+    }
+    /* one tap on a gadget. st = {on, ch} is kept by the caller. returns the new state */
+    function use(scene, el, d, st) {
+        try { window.fxSfx && window.fxSfx("click"); } catch (e) { }
+        if (d.k === "light") { st.on = !st.on; paintLight(scene, el, d, st.on); }
+        else if (d.k === "radio") { radioToggle(d); setTimeout(function () { el.classList.toggle("g-playing", radioPlaying()); }, 300); }
+        else if (d.k === "tv") {
+            var n = d.ch && d.ch.length ? d.ch.length : BUILT.length, cur = st.ch == null ? -1 : st.ch, nx = cur + 1;
+            if (nx >= n) nx = -1; st.ch = nx; paintTV(el, d, nx);
+            if (nx >= 0) { var c = d.ch && d.ch.length ? d.ch[nx] : null; if (c && c.t === "site" && c.u) viewer(c.u, c.n); else if (nx === 0 || true) { /* nothing more */ } }
+        }
+        return st;
+    }
+    setInterval(function () {   /* floating notes + beat while a radio plays (your room and visits) */
+        var on = radioPlaying();
+        document.querySelectorAll(".fx3-furn[data-gk=radio],.fx3-furn.g-radio").forEach(function (el) {
+            el.classList.toggle("g-playing", on);
+            var sc = el.closest("#rm-scene,#v2-sc"); if (on && sc && Math.random() < 0.8) notes(sc, el);
+        });
+    }, 900);
+
+    /* ---------- your own room ---------- */
+    function applyRoom(ov) {
+        var scene = ov.querySelector("#rm-scene"); if (!scene) return; var its = items();
+        scene.querySelectorAll(".g-glow").forEach(function (g) { g.remove(); });
+        scene.querySelectorAll(".fx3-furn[data-i]").forEach(function (el) {
+            var it = its[+el.dataset.i], d = descOf(it), k = d.k; el.__glow = null;
+            el.classList.toggle("g-use", !!k); el.classList.toggle("g-radio", k === "radio");
+            if (k === "light") paintLight(scene, el, d, !!(it.g && it.g.on));
+            if (k === "tv" && it.g && it.g.tv != null && it.g.tv >= 0) paintTV(el, d, it.g.tv);
+            if (k === "radio") el.classList.toggle("g-playing", radioPlaying());
+        });
+    }
+    function hookRoom(ov) {
+        if (ov.__gad) return; ov.__gad = 1; var tm = 0;
+        var run = function () { clearTimeout(tm); tm = setTimeout(function () { applyRoom(ov); }, 30); };
+        new MutationObserver(run).observe(ov, { childList: true }); run();
+    }
+    new MutationObserver(function () { var ov = document.querySelector(".fx3-room-ov"); if (ov) hookRoom(ov); }).observe(document.body, { childList: true });
+    document.addEventListener("click", function (e) {
+        var ov = document.querySelector(".fx3-room-ov"); if (!ov || !ov.contains(e.target) || ov.querySelector(".fx3-room-tools")) return;
+        var el = e.target.closest(".fx3-furn[data-i]"); if (!el) return;
+        var i = +el.dataset.i, it = items()[i]; if (!it) return; var d = descOf(it); if (!d.k) return;
+        if (d.k === "radio" && it.id === "fu_bcx_radio" && !(it.g && it.g.kind)) return;   /* the Room Shop radio keeps its own handler */
+        e.stopPropagation(); e.preventDefault();
+        var scene = ov.querySelector("#rm-scene"), s = { on: !!(it.g && it.g.on), ch: it.g && it.g.tv != null ? it.g.tv : -1 };
+        use(scene, el, d, s);
+        if (d.k === "light") saveItem(i, { g: Object.assign({}, it.g || {}, { on: s.on }) });
+        if (d.k === "tv") saveItem(i, { g: Object.assign({}, it.g || {}, { tv: s.ch }) });
+        try { window.bcxVisitPublish && bcxVisitPublish(); } catch (x) { }
+    }, true);
+
+    /* ---------- what gets published for your partner ---------- */
+    function pub(it) {
+        var d = descOf(it); if (!d.k) return null;
+        var o = { k: d.k };
+        if (d.k === "light") { o.col = d.col; o.sz = d.sz; o.on = it.g && it.g.on ? 1 : 0; }
+        if (d.k === "tv") o.ch = d.ch.filter(function (c) { return c.t === "built" || /^https?:/i.test(c.u || ""); }).map(function (c) { return { t: c.t, u: c.u || "", n: c.n || "" }; });
+        return o;
+    }
+    /* ---------- the same gadgets in your partner's house ---------- */
+    function bindVisit(scene, els) {
+        els.forEach(function (x) {
+            var d = x.g; if (!d || !d.k) return; var el = x.el; el.classList.add("g-use"); el.dataset.gk = d.k;
+            var s = { on: !!d.on, ch: -1 }; d = { k: d.k, col: d.col || "#ffd54f", sz: d.sz || 2, ch: d.ch || [], pl: "" };
+            if (d.k === "light" && s.on) setTimeout(function () { paintLight(scene, el, d, true); }, 80);
+            el.addEventListener("click", function (e) { e.stopPropagation(); use(scene, el, d, s); });
+        });
+    }
+
+    /* ---------- the Gadgets tab in Pet home ---------- */
+    function panel(bd, repaint) {
+        var its = items(), pls = (window.BCX && BCX.playlists && BCX.playlists()) || [], lib = libList(), h = "";
+        h += '<div class="card-desc">Tap furniture in your pet room to use it. Set what each piece does here. This lists the room you are in right now.</div>';
+        var any = 0;
+        its.forEach(function (it, i) {
+            var f = furnOf(it.id); if (!f.id) return; any++;
+            var g = it.g || {}, k = kindOf(it), nm = (f.e || "🪑") + " " + (f.n || "Furniture");
+            h += '<div class="gad-card" data-i="' + i + '"><h4>' + esc(nm) + (k ? ' <small style="opacity:.7">· works as ' + esc(k) + "</small>" : "") + "</h4>";
+            h += '<label>Behaves like</label><select data-f="kind">' + KINDS.map(function (o) { return '<option value="' + o[0] + '"' + ((g.kind || "") === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>";
+            if (k === "radio") h += '<label>Plays</label><select data-f="pl"><option value="">Same as the 📻 Radio tab</option><option value="all"' + (g.pl === "all" ? " selected" : "") + ">All my songs</option>" + pls.map(function (p) { return '<option value="' + esc(p.id) + '"' + (g.pl === p.id ? " selected" : "") + ">" + esc(p.name) + "</option>"; }).join("") + '</select><div class="gad-row" style="margin-top:8px"><button class="gad-b" data-a="test">▶ Try it</button></div>';
+            if (k === "light") h += '<label>Light colour</label><div class="gad-row">' + COLS.map(function (c) { return '<button class="gad-sw' + ((g.col || "#ffd54f") === c[0] ? " on" : "") + '" data-col="' + c[0] + '" style="background:' + c[0] + '" title="' + c[1] + '"></button>'; }).join("") + '</div><label>How far the glow reaches</label><select data-f="sz">' + [["1", "Small"], ["2", "Medium"], ["3", "Big"], ["4", "Whole room"]].map(function (o) { return '<option value="' + o[0] + '"' + (String(g.sz || 2) === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>";
+            if (k === "tv") {
+                var chs = g.ch || [];
+                h += '<label>Channels (tap the TV to flip through them; with none added it plays built-in shows)</label>';
+                chs.forEach(function (c, ci) {
+                    h += '<div class="gad-ch" data-c="' + ci + '"><input type="text" data-cf="n" placeholder="Channel name" value="' + esc(c.n || "") + '">' +
+                        '<label>What it shows</label><select data-cf="t">' + [["gif", "🖼️ GIF or picture"], ["video", "🎞️ Video file"], ["site", "🌐 Website / Jellyfin / YouTube"]].map(function (o) { return '<option value="' + o[0] + '"' + (c.t === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
+                        '<label>' + (c.t === "site" ? "Address (for Jellyfin use your server address)" : "Link to the file") + '</label><input type="url" data-cf="u" placeholder="https://…" value="' + esc(/^(idb|pm):/.test(c.u || "") ? "" : c.u || "") + '">' +
+                        '<div class="gad-row" style="margin-top:6px">' + (c.t !== "site" ? '<select data-cf="lib"><option value="">From my PC library…</option>' + lib.map(function (x) { return '<option value="pm:' + esc(x.slot) + '"' + (c.u === "pm:" + x.slot ? " selected" : "") + ">" + esc(x.slot.replace(/^tvv?:/, "")) + "</option>"; }).join("") + '</select><button class="gad-b g" data-a="up">⬆ From this phone</button>' : "") + '<button class="gad-b g" data-a="rm">Remove</button></div>' +
+                        (/^idb:/.test(c.u || "") ? '<div style="font-size:.75rem;opacity:.7;margin-top:4px">✅ A file from this phone is set</div>' : /^pm:/.test(c.u || "") ? '<div style="font-size:.75rem;opacity:.7;margin-top:4px">✅ From your PC library</div>' : "") + "</div>";
+                });
+                h += '<div class="gad-row"><button class="gad-b" data-a="add"' + (chs.length >= 6 ? " disabled" : "") + '>＋ Add a channel</button></div><div style="font-size:.74rem;opacity:.7;margin-top:6px">Tip: add GIFs and videos to the Photo Manager\'s "TV shows" spots and they show up in the library list on every phone.</div>';
+            }
+            h += "</div>";
+        });
+        if (!any) h += '<div class="card-desc">This room has no furniture yet. Add a TV, lamp or radio from ✏️ Decorate, then come back.</div>';
+        bd.innerHTML = h;
+        var pick = function (t) { var c = t.closest(".gad-card"); return c ? +c.dataset.i : -1; };
+        var upd = function (i, fn) { var it = items()[i]; if (!it) return; var g = Object.assign({}, it.g || {}); fn(g); saveItem(i, { g: g }); try { window.bcxVisitPublish && bcxVisitPublish(); } catch (e) { } };
+        bd.querySelectorAll("select[data-f]").forEach(function (s) { s.onchange = function () { var i = pick(s), f = s.dataset.f; upd(i, function (g) { if (f === "kind") { if (s.value) g.kind = s.value; else delete g.kind; } else if (f === "sz") g.sz = +s.value; else if (s.value) g[f] = s.value; else delete g[f]; }); repaint(); }; });
+        bd.querySelectorAll("[data-col]").forEach(function (b) { b.onclick = function () { upd(pick(b), function (g) { g.col = b.dataset.col; }); repaint(); }; });
+        bd.querySelectorAll("[data-a=add]").forEach(function (b) { b.onclick = function () { upd(pick(b), function (g) { g.ch = (g.ch || []).concat([{ t: "gif", u: "", n: "Channel " + ((g.ch || []).length + 1) }]); }); repaint(); }; });
+        bd.querySelectorAll(".gad-ch").forEach(function (box) {
+            var i = pick(box), ci = +box.dataset.c;
+            box.querySelectorAll("[data-cf]").forEach(function (inp) { inp.onchange = function () { var f = inp.dataset.cf; upd(i, function (g) { var c = g.ch[ci]; if (f === "lib") { if (inp.value) c.u = inp.value; } else c[f] = inp.value.trim(); }); if (inp.dataset.cf === "t" || inp.dataset.cf === "lib") repaint(); }; });
+            var rm = box.querySelector("[data-a=rm]"); if (rm) rm.onclick = function () { upd(i, function (g) { g.ch.splice(ci, 1); }); repaint(); };
+            var up = box.querySelector("[data-a=up]"); if (up) up.onclick = function () {
+                var fi = document.createElement("input"); fi.type = "file"; fi.accept = "image/*,video/*"; fi.onchange = function () { var f = fi.files[0]; if (!f) return; if (f.size > 60e6) { toast("That file is over 60 MB. Pick a smaller one."); return; } putFile(f).then(function (id) { upd(i, function (g) { var c = g.ch[ci]; c.u = "idb:" + id; c.t = /^video/.test(f.type) ? "video" : "gif"; }); toast("📺 Added to this channel"); repaint(); }, function () { toast("Couldn't save that file on this phone."); }); }; fi.click();
+            };
+        });
+        bd.querySelectorAll("[data-a=test]").forEach(function (b) { b.onclick = function () { var it = items()[pick(b)]; radioToggle(descOf(it)); }; });
+    }
+    window.bcxGadgets = { panel: panel, pub: pub, bindVisit: bindVisit, kindOf: kindOf };
+})();
+</script>
 <script id="bcx-visit2">
 /* ===== Pet house visits, build 23: walk around your partner's whole house (every room, their furniture and doors),
    with their companion AND yours. If they are in their pet room at the same time, they see your companion arrive too. ===== */
@@ -18041,21 +18245,36 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     var sget = function (k, d) { return jget("bcx_s_" + k, d); }, sset = function (k, v) { jset("bcx_s_" + k, v); };
     var ICON = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
 
+    /* ---------- pictures: turn anything only THIS phone can open (saved-in-app, synced, blob:) into a small real picture ---------- */
+    var INL = {};   /* key -> data url ("" while working or if it failed) */
+    function srcBlob(src) {
+        if (/^data:image\/x-idb,/i.test(src)) {
+            var id = src.slice(src.indexOf(",") + 1);
+            return new Promise(function (ok, no) { try { var rq = indexedDB.open("fx_photo_store"); rq.onerror = function () { no(); }; rq.onsuccess = function () { try { var g = rq.result.transaction("blobs").objectStore("blobs").get(id); g.onsuccess = function () { rq.result.close(); g.result && g.result.buf ? ok(new Blob([g.result.buf], { type: g.result.type || "image/png" })) : no(); }; g.onerror = function () { rq.result.close(); no(); }; } catch (e) { no(); } }; } catch (e) { no(); } });
+        }
+        return fetch(src).then(function (r) { if (!r.ok) throw 0; return r.blob(); });
+    }
+    function inlineImg(src, max, jpg) {
+        var key = max + (jpg ? "j" : "p") + "|" + src; if (INL[key] != null) return INL[key];
+        INL[key] = "";
+        srcBlob(src).then(function (b) {
+            return new Promise(function (ok, no) { var u = URL.createObjectURL(b), im = new Image(); im.onload = function () { try { var s = Math.min(1, max / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement("canvas"); c.width = Math.max(1, Math.round(im.naturalWidth * s)); c.height = Math.max(1, Math.round(im.naturalHeight * s)); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL(jpg ? "image/jpeg" : "image/png", jpg ? 0.62 : undefined)); } catch (e) { no(e); } }; im.onerror = function () { URL.revokeObjectURL(u); no(); }; im.src = u; });
+        }).then(function (d) { INL[key] = d; publish(); }, function () { INL[key] = "-"; });
+        return "";
+    }
+    var needInline = function (u) { return /^(blob:|data:image\/x-idb,)/i.test(u); };
+    /* a bit of svg or css that points at pictures only this phone can open: swap each one for a small real copy (waits one round if it has to make them) */
+    function fixSvg(svg, max) { return String(svg || "").replace(/(href|xlink:href)="([^"]+)"/g, function (m, a, u) { u = u.replace(/&amp;/g, "&"); if (!needInline(u)) return m; var d = inlineImg(u, max, false); return d && d !== "-" ? a + '="' + d + '"' : a + '=""'; }); }
+    function fixCss(css, max) { return String(css || "").replace(/url\((['"]?)([^)'"]+)\1\)/g, function (m, q, u) { if (!needInline(u)) return m; var d = inlineImg(u, max, true); return d && d !== "-" ? "url('" + d + "')" : "none"; }); }
+
     /* ---------- my house, published for my partner (every room) ---------- */
-    var SMALL = { src: "", url: "" };
     function petSnap() {
         var t = ls("companionType", "dog"), img = "";
         if (t.indexOf("comp_") === 0) {
             var c = (jget("customCompanions", []) || []).filter(function (x) { return x.id === t; })[0];
-            if (c && c.data) { if (SMALL.src === c.data) img = SMALL.url; else shrinkUrl(c.data, 160).then(function (u) { SMALL = { src: c.data, url: u }; publish(); }); }
+            if (c && c.data) { if (/^data:image\/(png|jpe?g|webp|gif);/i.test(c.data) && c.data.length < 40000) img = c.data; else { var d = inlineImg(c.data, 160, false); img = d && d !== "-" ? d : ""; } }
         }
         return { name: ls("companionName", "Buddy"), glyph: ICON[t] || "🐾", img: img };
-    }
-    function shrinkUrl(src, max) {
-        return new Promise(function (ok) {
-            var im = new Image(); im.onload = function () { try { var s = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = Math.round(im.width * s); c.height = Math.round(im.height * s); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); ok(c.toDataURL("image/png")); } catch (e) { ok(""); } };
-            im.onerror = function () { ok(""); }; im.src = src;
-        });
     }
     function read(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
     function house() {
@@ -18066,23 +18285,43 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             var info = id === "home" ? { name: "Home", e: "🏠" } : (list.filter(function (x) { return x.id === id; })[0] || {});
             var W = R0.WALLS.filter(function (w) { return w.id === d.wall; })[0] || R0.WALLS[0], Fl = R0.FLOORS.filter(function (f) { return f.id === d.floor; })[0] || R0.FLOORS[0];
             var items = (d.items || []).slice(0, 60).map(function (it) {
-                var f = R0.FURN.filter(function (x) { return x.id === it.id; })[0] || {}, svg = f.svg && f.svg.length < 3000 && f.svg.indexOf("blob:") < 0 ? f.svg : "";
-                return { x: it.x, y: it.y, s: it.s || 1, e: f.e || (svg ? "" : "🪑"), svg: svg, fl: it.flip ? 1 : 0, n: f.n || "", b: f.back ? 1 : 0 };
+                var f = R0.FURN.filter(function (x) { return x.id === it.id; })[0] || {}, svg = f.svg ? fixSvg(f.svg, 160) : "";
+                if (svg.length > 14000 || /href=""/.test(svg) && !f.e) svg = svg.length > 14000 ? "" : svg;
+                var o = { x: it.x, y: it.y, s: it.s || 1, e: f.e || (svg ? "" : "🪑"), svg: svg, fl: it.flip ? 1 : 0, n: f.n || "", b: f.back ? 1 : 0 };
+                if (f.photo && it.ph && String(it.ph).length < 24000) o.ph = it.ph;
+                if (f.portrait) o.pt = 1;
+                try { var gg = window.bcxGadgets && bcxGadgets.pub(it); if (gg) o.g = gg; } catch (e) { }
+                return o;
             });
             var doors = (d.doors || []).filter(function (x) { return x.to && ids.indexOf(x.to) >= 0; }).map(function (x) { return { to: x.to, x: x.x, y: x.y, l: x.label || "" }; });
-            var bed = null; if (id === "home") { var bd = B.filter(function (b) { return b.id === pet.bed; })[0] || B[0]; bed = { x: d.bedX != null ? d.bedX : 8, y: d.bedY != null ? d.bedY : 66, s: d.bedS || 1, svg: bd && bd.svg && bd.svg.length < 4000 ? bd.svg : "" }; }
-            return { id: id, name: info.name || "Room", e: info.e || "🚪", wall: W ? W.css : "#ddd", floor: Fl ? Fl.css : "#b98", items: items, doors: doors, bed: bed };
+            var bed = null; if (id === "home") { var bd = B.filter(function (b) { return b.id === pet.bed; })[0] || B[0]; bed = { x: d.bedX != null ? d.bedX : 8, y: d.bedY != null ? d.bedY : 66, s: d.bedS || 1, svg: bd && bd.svg ? (function (v) { return v.length < 14000 ? v : ""; })(fixSvg(bd.svg, 160)) : "" }; }
+            return { id: id, name: info.name || "Room", e: info.e || "🚪", wall: fixCss(W ? W.css : "#ddd", 640), floor: fixCss(Fl ? Fl.css : "#b98", 140), items: items, doors: doors, bed: bed };
         }).filter(Boolean);
         return { t: Date.now(), pet: petSnap(), rooms: rooms };
     }
     var pubT = 0;
+    /* published straight to the cloud (not through the app's sync) so the pictures inside stay real pictures */
+    var hsh = function (t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return String(h); };
     function publish() {
         clearTimeout(pubT);
         pubT = setTimeout(function () {
-            try { var h = house(), old = sget("house_" + me(), null); if (old && JSON.stringify(Object.assign({}, old, { t: 0 })) === JSON.stringify(Object.assign({}, h, { t: 0 }))) return; sset("house_" + me(), h); } catch (e) { console.warn("house", e); }
+            try {
+                var h = house(), sig = hsh(JSON.stringify(Object.assign({}, h, { t: 0 }))), last = jget("bcx_house_sig", {});
+                if (last.k === sig && Date.now() - (last.t || 0) < 6 * 3600000) return;
+                kset("bcx_house_" + me(), h).then(function (ok) { if (ok) jset("bcx_house_sig", { k: sig, t: Date.now() }); });
+            } catch (e) { console.warn("house", e); }
         }, 900);
     }
+    var HC = {};   /* partner's house, kept in memory once fetched */
     setTimeout(publish, 10000);
+    window.bcxVisitPublish = publish;
+    /* any change to the pet room, rooms, furniture or companion is sent right away (a short pause groups the changes) */
+    (function () {
+        var WATCH = /^(fx3_room|bcx_rooms|bcx_room_|fx3_pet|companionType|companionName|customCompanions)/, oSet = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (k) { var r = oSet.apply(this, arguments); try { if (this === window.localStorage && WATCH.test(String(k))) publish(); } catch (e) { } return r; };
+        document.addEventListener("visibilitychange", function () { if (document.hidden) publish(); });
+        window.addEventListener("pagehide", function () { publish(); });
+    })();
 
     /* ---------- live presence (straight to the cloud, a few seconds old at most) ---------- */
     var cfg = function () { var c = jget("fx_sync_cfg", null); return c && c.url && c.key && c.hh ? c : null; };
@@ -18137,15 +18376,23 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         "#v2-ov .v2-door{position:absolute;transform:translate(-50%,-100%);width:56px;height:80px;z-index:2;cursor:pointer}#v2-ov .v2-door i{position:absolute;inset:0;border-radius:10px 10px 2px 2px;background:linear-gradient(90deg,#6d4c41,#8d6e63 50%,#6d4c41);border:3px solid #4e342e}#v2-ov .v2-door i::after{content:'';position:absolute;right:8px;top:50%;width:7px;height:7px;border-radius:50%;background:#ffd54f}#v2-ov .v2-door small{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font-size:.62rem;font-weight:800;background:rgba(0,0,0,.6);border-radius:8px;padding:1px 6px;margin-top:2px}" +
         "#v2-ov .v2-ball{position:absolute;font-size:1.6rem;z-index:140;transition:left .9s ease-out,top .9s ease-out;transform:translate(-50%,-50%)}#v2-ov .v2-say{position:absolute;z-index:320;background:#fff;color:#222;border-radius:12px;padding:5px 10px;font-size:.8rem;font-weight:800;transform:translate(-50%,-260%);white-space:nowrap;pointer-events:none;animation:v2say 2.4s ease forwards}@keyframes v2say{0%{opacity:0}10%,80%{opacity:1}100%{opacity:0}}";
     document.head.appendChild(css);
-    function petHTML(pt) { return pt && pt.img ? '<img src="' + esc(pt.img) + '" alt="">' : esc((pt && pt.glyph) || "🐾"); }
+    function petHTML(pt) { return pt && pt.img && /^data:image\//i.test(pt.img) && pt.img.indexOf("x-idb") < 0 ? '<img src="' + esc(pt.img) + '" alt="" onerror="this.replaceWith(document.createTextNode(\'' + esc((pt && pt.glyph) || "🐾") + '\'))">' : esc((pt && pt.glyph) || "🐾"); }
     function myPet() { var p = petSnap(); if (!p.img) { var t = ls("companionType", "dog"); if (t.indexOf("comp_") === 0) { var c = (jget("customCompanions", []) || []).filter(function (x) { return x.id === t; })[0]; if (c) p.img = c.data; } } return p; }
     function heart(sc, el, e) { var h = document.createElement("div"); h.className = "floating-heart"; h.textContent = e || "❤️"; h.style.position = "absolute"; h.style.left = el.style.left; h.style.top = (parseFloat(el.style.top) - 12) + "%"; h.style.zIndex = 330; sc.appendChild(h); setTimeout(function () { h.remove(); }, 1500); }
     function bubble(sc, el, t) { var b = document.createElement("div"); b.className = "v2-say"; b.textContent = t; b.style.left = el.style.left; b.style.top = el.style.top; sc.appendChild(b); setTimeout(function () { b.remove(); }, 2500); }
 
+    function itemHTML(it, n, her) {
+        var body = it.svg || '<span class="fx3-furn-e">' + esc(it.e || "🪑") + "</span>";
+        if (it.ph && it.svg) body = '<div class="fx3-photo"><img src="' + esc(it.ph) + '" alt="">' + it.svg + "</div>";
+        if (it.pt) body = '<div class="fx3-photo portrait">' + (it.svg || "") + '<div class="fx3-portrait-pet">' + petHTML(her) + "</div></div>";
+        return '<div class="fx3-furn" data-vi="' + n + '" title="' + esc(it.n || "") + '" style="left:' + it.x + "%;top:" + it.y + "%;--s:" + it.s + ";" + (it.fl ? "--fl:-1;" : "") + "z-index:" + (it.b ? 1 : 3 + Math.round(it.y)) + '">' + body + "</div>";
+    }
+    var ago = function (t) { var m = Math.max(0, Math.round((Date.now() - (t || 0)) / 60000)); return m < 2 ? "just now" : m < 90 ? m + " min ago" : m < 2880 ? Math.round(m / 60) + " h ago" : Math.round(m / 1440) + " days ago"; };
     var VIS = null;
     function visit(roomId) {
-        var who = other(), nm = names()[who], H = sget("house_" + who, null);
-        if (!H || !H.rooms || !H.rooms.length) return false;
+        var who = other(), nm = names()[who], H = HC[who] || sget("house_" + who, null);
+        if ((!H || !H.rooms || !H.rooms.length) && !cfg()) return false;
+        if (!H || !H.rooms || !H.rooms.length) H = { t: 0, loading: 1, pet: { glyph: "🐾", name: "Their pet" }, rooms: [{ id: "home", name: "Home", e: "🏠", wall: "#d1c4e9", floor: "#b98", items: [], doors: [], bed: null }] };
         var ov = document.getElementById("v2-ov"); if (!ov) { ov = document.createElement("div"); ov.id = "v2-ov"; document.body.appendChild(ov); }
         VIS = { room: roomId || "home", ov: ov, H: H, timers: [] }; presence(true);
         var her = H.pet || { glyph: "🐾", name: "Their pet" }, mine = myPet(), herPres = null;
@@ -18156,13 +18403,14 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             ov.innerHTML = '<div class="hd"><b>🏡 ' + esc(nm) + "'s house · " + esc(R.e + " " + R.name) + '</b><button id="v2-x">🚪 Home</button></div>' +
                 (H.rooms.length > 1 ? '<div class="rooms">' + H.rooms.map(function (r) { return '<button data-r="' + esc(r.id) + '" class="' + (r.id === R.id ? "on" : "") + '">' + esc(r.e + " " + r.name) + "</button>"; }).join("") + "</div>" : "") +
                 '<div class="sc fx3-room" id="v2-sc"><div class="fx3-wall" style="background:' + R.wall + '"></div><div class="fx3-floor" style="background:' + R.floor + '"></div>' +
-                R.items.map(function (it) { return '<div class="fx3-furn" title="' + esc(it.n || "") + '" style="left:' + it.x + "%;top:" + it.y + "%;--s:" + it.s + ";" + (it.fl ? "--fl:-1;" : "") + "z-index:" + (it.b ? 1 : 3 + Math.round(it.y)) + '">' + (it.svg || '<span class="fx3-furn-e">' + esc(it.e) + "</span>") + "</div>"; }).join("") +
+                R.items.map(function (it, n) { return itemHTML(it, n, her); }).join("") +
                 (R.bed && R.bed.svg ? '<div class="fx3-room-bed" style="left:' + R.bed.x + "%;top:" + R.bed.y + "%;--s:" + R.bed.s + ";z-index:" + (3 + Math.round(R.bed.y)) + '">' + R.bed.svg + "</div>" : "") +
                 doors.map(function (d) { return '<div class="v2-door" data-d="' + esc(d.to) + '" style="left:' + d.x + "%;top:" + d.y + '%"><i></i><small>' + esc(d.to === "__out" ? "🏠 Go home" : d.l || ((H.rooms.filter(function (r) { return r.id === d.to; })[0] || {}).name || "Door")) + "</small></div>"; }).join("") +
                 '<div class="v2-pet her" id="v2-her" style="left:40%;top:76%">' + petHTML(her) + "<small>" + esc(her.name) + '</small></div><div class="v2-pet mine" id="v2-me" style="left:' + (R.id === "home" ? 92 : 12) + '%;top:66%">' + petHTML(mine) + "<small>" + esc(mine.name) + " (yours)</small></div>" +
                 '<div class="badge" id="v2-b">…</div></div>' +
                 '<div class="ft"><button data-a="ball">🎾 Play together</button>' + [["🦴", "a treat"], ["🌸", "flowers"], ["💌", "a love note"], ["⭐", "a star"]].map(function (g) { return '<button class="g" data-g="' + g[0] + '" data-n="' + g[1] + '">' + g[0] + "</button>"; }).join("") + "</div>";
             var sc = ov.querySelector("#v2-sc"), he = ov.querySelector("#v2-her"), mi = ov.querySelector("#v2-me");
+            try { window.bcxGadgets && bcxGadgets.bindVisit(sc, R.items.map(function (it, n) { return { g: it.g, el: sc.querySelector('[data-vi="' + n + '"]') }; }).filter(function (x) { return x.el; })); } catch (e) { }
             var wander = function (el, lo, hi) { el.style.left = lo + Math.random() * (hi - lo) + "%"; el.style.top = 64 + Math.random() * 24 + "%"; };
             setTimeout(function () { mi.style.left = 60 + Math.random() * 20 + "%"; mi.style.top = 74 + "%"; bubble(sc, mi, "Hi " + her.name + "! 👋"); setTimeout(function () { bubble(sc, he, "Yay, " + mine.name + "! 💕"); he.classList.add("hop"); }, 1300); }, 300);
             VIS.timers.push(setInterval(function () { if (!document.hidden) { wander(he, 12, 70); wander(mi, 30, 88); } }, 3400));
@@ -18184,13 +18432,21 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
             var badge = function () {
                 var bd = ov.querySelector("#v2-b"); if (!bd) return;
                 if (fresh(herPres) && herPres.room) { var rn = (H.rooms.filter(function (r) { return r.id === herPres.room; })[0] || {}).name || "their room"; bd.textContent = herPres.room === VIS.room ? "🟢 " + nm + " is here with you!" : "🟢 " + nm + " is home, in the " + rn; }
-                else bd.textContent = "⚪ " + nm + " is out. " + her.name + " is minding the house.";
+                else if (H.loading) bd.textContent = "⏳ Opening " + nm + "'s house…";
+                else if (H.empty) bd.textContent = "⚪ " + nm + " hasn't shared the house yet. Ask her to open the app once.";
+                else bd.textContent = "⚪ " + nm + " is out. " + her.name + " is minding the house. · saved " + ago(H.t);
             };
             var poll = function () { kget("pres_" + who).then(function (p) { herPres = p; badge(); }); }; poll(); badge();
             VIS.timers.push(setInterval(function () { if (!document.hidden) poll(); }, 6000));
         }
         function leave() { stopT(); VIS = null; presence(true); ov.remove(); }
-        draw(); return true;
+        draw();
+        kget("bcx_house_" + who).then(function (n) {
+            if (!VIS) return;
+            if (n && n.rooms && n.rooms.length) { HC[who] = n; if (!H.t || n.t > H.t) { H = n; VIS.H = n; her = n.pet || her; draw(); } }
+            else if (H.loading) { H.loading = 0; H.empty = 1; draw(); }
+        });
+        return true;
     }
     window.bcxVisitHouse = visit;
 

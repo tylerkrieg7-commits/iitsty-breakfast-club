@@ -2338,6 +2338,25 @@
    "fields": []
   },
   {
+   "name": "Pet room TV: GIFs & pictures",
+   "free": "tv:",
+   "one": "TV show",
+   "nameLabel": "Show name",
+   "note": "Pick it on the phone in Pet home → 🎛️ Gadgets → TV → From my PC library",
+   "slots": [],
+   "fields": []
+  },
+  {
+   "name": "Pet room TV: videos",
+   "free": "tvv:",
+   "kind": "video",
+   "one": "TV video",
+   "nameLabel": "Show name",
+   "note": "Short looping videos for the pet room TV (MP4)",
+   "slots": [],
+   "fields": []
+  },
+  {
    "name": "Pet friends",
    "free": "friend:",
    "one": "friend",
