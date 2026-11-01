@@ -272,7 +272,7 @@
     function lock(on) { el.querySelectorAll("button").forEach(function (b) { b.disabled = on; }); }
     function status() {
       var s = stats(), m = s.meta, mine = opts.app ? (s.apps[opts.app] || 0) : null;
-      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 24"; if (m.via === "pc") q(".bca-s").textContent += (m.pm ? " · PC Photo Manager build " + m.pm : "") + (!m.pm || m.pm < 23 ? " · ⚠️ update the Photo Manager on your PC" : "");
+      q(".bca-s").textContent = s.count ? s.count + " files · " + mb(s.bytes) + " on this phone" + (mine != null ? " · " + mine + " for this game" : "") + " · synced " + ago(m.synced) : "Nothing synced yet."; q(".bca-s").textContent += " · build 25"; if (m.via === "pc") q(".bca-s").textContent += (m.pm ? " · PC Photo Manager build " + m.pm : "") + (!m.pm || m.pm < 23 ? " · ⚠️ update the Photo Manager on your PC" : "");
       q('[data-a=clear]').style.display = s.count ? "" : "none";
       q('[data-a=push]').style.display = typeof window.BCPushLocal === "function" ? "" : "none";
     }
@@ -284,7 +284,7 @@
     el.addEventListener("click", function (e) {
       var b = e.target.closest("[data-a]"); if (!b) return; var a = b.dataset.a;
       if (a === "sync") { lock(true); sync(prog).then(done, fail); }
-      if (a === "push") { lock(true); say("Sending your phone's pictures to the PC…"); window.BCPushLocal(true).then(function (r) { lock(false); say((r.sent ? "✅ Sent " + r.sent + " new picture" + (r.sent === 1 ? "" : "s") + " to your PC" + (r.already ? " (" + r.already + " were already there)" : "") + "." : r.already ? "✅ Your PC already has all " + r.already + " of them." : "Nothing new to send.") + (r.skipped ? " " + r.skipped + " couldn't be sent. " + (r.why || []).join(" · ") : ""), r.skipped ? "bad" : "ok"); }, fail); }
+      if (a === "push") { lock(true); say("Sending your phone's pictures to the PC…"); window.BCPushNote = function (t) { say(t); }; window.BCPushLocal(true).then(function (r) { lock(false); say((r.sent ? "✅ Sent " + r.sent + " new picture" + (r.sent === 1 ? "" : "s") + " to your PC" + (r.already ? " (" + r.already + " were already there)" : "") + "." : r.already ? "✅ Your PC already has all " + r.already + " of them." : "Nothing new to send.") + (r.skipped ? " " + r.skipped + " couldn't be sent. " + (r.why || []).join(" · ") : ""), r.skipped ? "bad" : "ok"); }, fail); }
       if (a === "pack") fi.click();
       if (a === "link") { var l = q(".bca-l"); l.style.display = l.style.display === "flex" ? "none" : "flex"; q(".bca-l input").value = localStorage.getItem(LINK_KEY) || ""; q(".bca-l input").focus(); }
       if (a === "save") { var v = setLink(q(".bca-l input").value); q(".bca-l").style.display = "none"; say(v ? "Link saved. Tap Sync from my PC." : "That doesn't look like the phone link. Copy it from the Photo Manager.", v ? "ok" : "bad"); }
@@ -299,10 +299,12 @@
   function postPhoto(app, slot, blob, meta, name) {
     var go = function (link) {
       var u = link + "photo?app=" + encodeURIComponent(app) + "&slot=" + encodeURIComponent(slot) + "&name=" + encodeURIComponent(name || "") + (meta && Object.keys(meta).length ? "&meta=" + encodeURIComponent(JSON.stringify(meta)) : "");
-      return fetch(u, { method: "POST", headers: { "Content-Type": blob.type || "image/jpeg" }, body: blob })
+      var ac = typeof AbortController === "function" ? new AbortController() : null, tm = ac ? setTimeout(function () { ac.abort(); }, 60000 + Math.round(blob.size / 30) ) : 0;   /* about 30 KB/s is the slowest we wait for */
+      return fetch(u, { method: "POST", headers: { "Content-Type": blob.type || "image/jpeg" }, body: blob, signal: ac ? ac.signal : undefined })
+        .then(function (r) { clearTimeout(tm); return r; }, function (e) { clearTimeout(tm); throw new Error(e && e.name === "AbortError" ? (name || "a file") + " (" + (blob.size / 1e6).toFixed(1) + " MB) took too long to reach your PC. Check the PC's Photo Manager and your connection." : "Couldn't reach your PC (" + (e && e.message || "network") + ")"); })
         .then(function (r) { if (r.status === 404) throw new Error("Your PC's Photo Manager is the old version. Replace it with the newest zip, start it again, then try again."); if (!r.ok) throw new Error("Your PC said no (" + r.status + ")"); return r.json(); });
     };
-    if (lastLink.l && Date.now() - lastLink.at < 600000) return go(lastLink.l).catch(function (e) { if (/PC said no|old version/.test(e.message)) throw e; lastLink.l = null; return postPhoto(app, slot, blob, meta, name); });
+    if (lastLink.l && Date.now() - lastLink.at < 600000) return go(lastLink.l).catch(function (e) { if (/PC said no|old version|took too long/.test(e.message)) throw e; lastLink.l = null; return postPhoto(app, slot, blob, meta, name); });
     return discover().then(function (f) { lastLink = { l: f.link, at: Date.now() }; return go(f.link); });
   }
   window.BCAssets = { postPhoto: postPhoto, postVoice: postVoice, load: load, url: url, all: all, rec: rec, meta: itemMeta, isVideo: isVideo, hasSynced: hasSynced, stats: stats, sync: sync, importBundle: importBundle,

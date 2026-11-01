@@ -49,7 +49,7 @@ function sendFile(res, file, type, extra, req) {
 let HIDX = { v: -1, m: null };
 function byHash(h) { if (HIDX.v !== LIB.version || !HIDX.m) { HIDX = { v: LIB.version, m: new Map() }; Object.values(LIB.items).forEach(i => HIDX.m.set(i.hash, i)); } return HIDX.m.get(h); }
 const shownItems = () => { const o = {}; Object.keys(LIB.items).forEach(k => { if (!/^dd-voice/.test(k)) o[k] = LIB.items[k]; }); return o; };
-const PM_BUILD = 23;   /* shown on the phones, so you can tell when the PC copy is out of date */
+const PM_BUILD = 24;   /* shown on the phones, so you can tell when the PC copy is out of date */
 const manifest = () => ({ pm: PM_BUILD, version: LIB.version || 0, updated: LIB.updated || 0, files: Object.values(LIB.items).map(i => ({ app: i.app, slot: i.slot, hash: i.hash, type: i.type, size: i.size, meta: i.meta || {} })) });
 
 /* ---------------- the phone link (Cloudflare quick tunnel) ---------------- */
@@ -166,6 +166,7 @@ http.createServer(async (req, res) => {
   const pm = /^\/t\/([a-f0-9]+)\/photo$/.exec(new URL(req.url, 'http://x').pathname);
   if (pm && req.method === 'POST') {   /* a picture the phone added itself: only ever ADDED, never replaces what is already here */
     if (pm[1] !== CFG.token) return send(res, 404, 'not found', CORS);
+    res.on('finish', () => { try { req.resume(); } catch (e) { } });   /* an early 'no' must not leave the phone waiting on its upload */
     try {
       const q = new URL(req.url, 'http://x').searchParams, app = q.get('app') || 'index', slot = q.get('slot') || '', type = (req.headers['content-type'] || '').split(';')[0];
       const ok = (PHONE_OK[app] || []).some(pre => slot.startsWith(pre) && slot.length > pre.length);
@@ -174,7 +175,7 @@ http.createServer(async (req, res) => {
       if (isMusic ? !/^audio\//.test(type) : !/^image\/(jpe?g|png|webp|gif|avif|bmp)$/.test(type)) return json(res, 400, { error: isMusic ? 'songs only' : 'pictures only' }, CORS);
       const key = app + '|' + slot; const ctype = type === 'image/jpg' ? 'image/jpeg' : type;
       if (LIB.items[key]) { req.resume(); return json(res, 200, { ok: true, status: 'exists' }, CORS); }
-      const body = await readBody(req, isMusic ? 90e6 : 12e6); if (!body.length) return json(res, 400, { error: 'empty' }, CORS);
+      const body = await readBody(req, isMusic ? 90e6 : 25e6); if (!body.length) return json(res, 400, { error: 'empty' }, CORS);
       const hash = crypto.createHash('sha1').update(body).digest('hex'), dest = path.join(FILES, hash);
       if (LIB.items[key]) return json(res, 200, { ok: true, status: 'exists' }, CORS);
       if (!fs.existsSync(dest)) fs.writeFileSync(dest, body);

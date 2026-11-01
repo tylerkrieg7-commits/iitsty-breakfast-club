@@ -4643,12 +4643,23 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
         var sent = jraw(SENT, {}), res = { sent: 0, already: 0, skipped: 0, why: [] };
         var todo = localPics().filter(function (p) { var h = tiny(p.data); p.h = h; if (BCAssets.rec(A, p.slot)) { res.already++; return false; } if (sent[p.slot] === h) { res.already++; return false; } return true; });
         if (!todo.length) return Promise.resolve(res);
+        var tot = todo.length, nth = 0, note = function (t) { try { window.BCPushNote && window.BCPushNote(t); } catch (e) {} };
+        var withTimeout = function (pr, ms, what) { return new Promise(function (ok, no) { var t = setTimeout(function () { no(new Error(what + " took too long")); }, ms); pr.then(function (v) { clearTimeout(t); ok(v); }, function (e) { clearTimeout(t); no(e); }); }); };
+        var shrink = function (b) {   /* very big pictures are made smaller first so they always fit through the PC link */
+            if (b.size < 5e6 || !/^image\/(png|jpe?g|webp)$/.test(b.type)) return Promise.resolve(b);
+            return new Promise(function (ok) {
+                var u = URL.createObjectURL(b), im = new Image();
+                im.onload = function () { try { var k = Math.min(1, 2048 / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement("canvas"); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k); c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); c.toBlob(function (o) { if (o && o.size > 9e6 && b.type === "image/png") { c.toBlob(function (j) { URL.revokeObjectURL(u); ok(j && j.size < b.size ? j : (o.size < b.size ? o : b)); }, "image/jpeg", 0.9); return; } URL.revokeObjectURL(u); ok(o && o.size < b.size ? o : b); }, b.type === "image/png" ? "image/png" : "image/jpeg", 0.9); } catch (e) { ok(b); } };
+                im.onerror = function () { URL.revokeObjectURL(u); ok(b); }; im.src = u;
+            });
+        };
         pushing = todo.reduce(function (pr, p) {
             return pr.then(function () {
-                return toBlob(p.data).then(function (b) { return BCAssets.postPhoto(A, p.slot, b, p.meta, p.name).then(function (r) {
+                nth++; note("Sending picture " + nth + " of " + tot + ": " + p.name + "…");
+                return withTimeout(toBlob(p.data).then(shrink), 40000, "reading " + p.name).then(function (b) { return BCAssets.postPhoto(A, p.slot, b, p.meta, p.name).then(function (r) {
                     sent[p.slot] = p.h; if (r && r.status === "added") res.sent++; else res.already++;
                     try { oS.call(LS, SENT, JSON.stringify(sent)); } catch (e) {}
-                }); }, function (e) { res.skipped++; res.why.push(p.name + ": " + e.message); });
+                }); }).catch(function (e) { res.skipped++; res.why.push(p.name + ": " + (e && e.message || "failed")); });
             });
         }, Promise.resolve()).then(function () { pushing = null; return res; }, function (e) { pushing = null; if (loud) throw e; res.err = e && e.message; return res; });
         return pushing;
@@ -17381,15 +17392,21 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     /* songs added on this phone go up to the PC's Photo Manager (music: spots) so the PC library keeps a copy; the PC only ever adds */
     var SENTM = jget("bcx_music_sent", {});
     function pushMusic(loud) {
+        M.fails = [];
         if (!window.BCAssets || !BCAssets.postPhoto) return Promise.resolve(0);
         return tx("readonly", function (s) { return s.getAll(); }).then(function (all) {
-            var todo = (all || []).filter(function (x) { var slot = "music:" + x.name; try { if (BCAssets.rec(A, slot)) return false; } catch (e) {} return SENTM[slot] !== x.size; }), n = 0;
-            return todo.reduce(function (p, x) { return p.then(function () { var slot = "music:" + x.name; return BCAssets.postPhoto(A, slot, new Blob([x.blob], { type: x.type || x.blob.type || "audio/mpeg" }), {}, x.name).then(function (r) { SENTM[slot] = x.size; jset("bcx_music_sent", SENTM); if (r && r.status === "added") n++; }, function (e) { if (loud) throw e; }); }); }, Promise.resolve()).then(function () { return n; });
+            var todo = (all || []).filter(function (x) { var slot = "music:" + x.name; try { if (BCAssets.rec(A, slot)) return false; } catch (e) {} return SENTM[slot] !== x.size; }), n = 0, i = 0;
+            return todo.reduce(function (p, x) { return p.then(function () {
+                var slot = "music:" + x.name; i++;
+                if (x.size > 90e6) { M.fails.push(x.name + ": too big for the PC link (" + Math.round(x.size / 1e6) + " MB, limit 90)"); return; }
+                try { window.BCPushNote && window.BCPushNote("Sending song " + i + " of " + todo.length + ": " + x.name + " (" + (x.size / 1e6).toFixed(1) + " MB)…"); } catch (e) {}
+                return BCAssets.postPhoto(A, slot, new Blob([x.blob], { type: x.type || x.blob.type || "audio/mpeg" }), {}, x.name).then(function (r) { SENTM[slot] = x.size; jset("bcx_music_sent", SENTM); if (r && r.status === "added") n++; }, function (e) { M.fails.push(x.name + ": " + (e && e.message || "failed")); });
+            }); }, Promise.resolve()).then(function () { return n; });
         }).catch(function (e) { if (loud) throw e; return 0; });
     }
     M.pushMusic = pushMusic;
     var oPL = window.BCPushLocal;
-    if (oPL) window.BCPushLocal = function (loud) { return oPL(loud).then(function (r) { return pushMusic(loud).then(function (n) { r.sent = (r.sent || 0) + n; return r; }, function (e) { if (loud) throw e; return r; }); }); };
+    if (oPL) window.BCPushLocal = function (loud) { return oPL(loud).then(function (r) { return pushMusic(loud).then(function (n) { r.sent = (r.sent || 0) + n; if (M.fails && M.fails.length) { r.skipped = (r.skipped || 0) + M.fails.length; r.why = (r.why || []).concat(M.fails); } return r; }, function (e) { if (loud) throw e; return r; }); }); };
     setTimeout(function () { if (navigator.onLine) pushMusic(false); }, 12000);
     loadLocal();
     try { BCAssets.onChange(function (d) { if (d.type === "change") { change(); setTimeout(function () { pushMusic(false); }, 2000); } }); } catch (e) {}
