@@ -721,7 +721,10 @@ const BIOMES=[
 {id:'swamp',name:'Bayou Swamp',lvl:5,maxD:18,tag:'fresh',pi:3.5,desc:'Mossy cypress trees, murky water and things with teeth.',mx:.11,my:.40},
 {id:'volcano',name:'Volcanic Bay',lvl:18,maxD:80,tag:'lava',pi:8,desc:'Boiling water, glowing vents and fish that thrive in fire.',mx:.93,my:.80},
 {id:'ruins',name:'Sunken City',lvl:24,maxD:120,tag:'ruins',pi:10,desc:'A drowned empire of towers and temples, guarded by legends.',mx:.71,my:.46},
-{id:'cosmic',name:'Cosmic Sea',lvl:30,maxD:400,tag:'cosmic',pi:14,desc:'A sea among the stars. Nebulae drift below you. Nothing here is normal.',mx:.22,my:.14}
+{id:'cosmic',name:'Cosmic Sea',lvl:30,maxD:400,tag:'cosmic',pi:14,desc:'A sea among the stars. Nebulae drift below you. Nothing here is normal.',mx:.22,my:.14},
+{id:'sargasso',name:'Sargasso Drift',lvl:7,maxD:35,tag:'coast',boat:1,desc:'⛵ Boat water. Floating weed mats and drifting schools. Use 🚤 Drive to hunt hot spots.',mx:.32,my:.60},
+{id:'bluehole',name:'Blue Hole',lvl:12,maxD:95,tag:'reef',boat:1,desc:'⛵ Boat water. A giant sapphire sinkhole in the reef. Drive around the rim.',mx:.82,my:.30},
+{id:'storm',name:'Storm Front',lvl:21,maxD:150,tag:'pelagic',boat:1,desc:'⛵ Boat water. Black clouds and huge, angry fish. Drive between the squalls.',mx:.47,my:.45}
 ];
 const BID={};BIOMES.forEach((b,i)=>{b.i=i;BID[b.id]=b});
 
@@ -732,10 +735,49 @@ const DR=[[0,.3],[.08,.5],[.2,.75],[.4,.95],[.55,1]],DRA=[[.08,.38],[.25,.55],[.
 const SHYB=[.2,.42,.62,.8,1.0],VB=[7,40,130,480,2200],DFB=[.05,.26,.46,.7,.95];
 const TIERS=[{n:'Common',c:'#b8c4cc'},{n:'Uncommon',c:'#5ee08a'},{n:'Rare',c:'#4aa8ff'},{n:'Epic',c:'#c77dff'},{n:'Legendary',c:'#ffc233'}];
 const TIER_N=[4,3,3,2,1];
+
+const ROWS_E=`
+sargasso|Weed Blenny|f|6a7a2a,9aaa3a,d8e8a0|7a8a2a|24|.3|0|st:3a4a1a:6
+sargasso|Gulf Pipefish|eel|8a9a3a,b8c860,e8f0b0|9aaa40|40|.08|0|th:6
+sargasso|Sargassum Crab|cr|7a6a1a,b8a030,e8d870|9a8a28|20|.7|0|
+sargasso|Mat Shrimp|f|b8a050,e0c880,fff0c8|c8a850|20|.3|0|lat:fff0c0
+sargasso|Triggerfish Drifter|f|4a6a8a,7aa0b8,d0e8f0|5a7a98|46|.5|1|dor:long;st:1a3a58:5
+sargasso|Dolphinfish|f|2a9a5a,e8d030,f8f8c8|2a9a70|110|.34|1|sp:1a5a8a:10;dor:long;tail:lunate
+sargasso|Sargasso Frogfish|f|9a7a2a,c8a850,f0e0a0|8a6a20|40|.62|1|lure:ffe36a;sp:5a4a14:10
+sargasso|Wahoo Streak|f|2a5a8a,6a9ac8,e8f4ff|3a6a98|150|.18|1|st:1a3a68:9;teeth:1;tail:lunate
+sargasso|Weedline Tuna|f|1a3a6a,4a7aa8,e0eef8|2a5a88|130|.34|2|lat:ffd85a;tail:lunate
+sargasso|Drift Sailfish|f|1a3a7a,3a78c0,e8f4ff|2a68b8|230|.24|2|bill;dor:sail;st:9ad0ff:7;tail:lunate
+sargasso|Mat Leviathan Eel|eel|3a4a1a,7a8a30,d0e090|a0b840|320|.1|3|th:26;teeth:1;glow:c8f050
+sargasso|Golden Sargassum Marlin|f|c8962a,ffd85a,fff4c0|ffc83a|420|.26|4|bill;dor:sail;glow:ffe070;tail:lunate;sp:fff0a0:16
+bluehole|Sapphire Damsel|f|1a4ac8,4a8af0,c0e0ff|3a78e8|22|.5|0|glow:60a0ff;lat:ffffff
+bluehole|Rim Wrasse|f|1a8a9a,4ac8c8,e0ffff|2ab0b8|34|.3|0|st:0a4a5a:5
+bluehole|Cave Cardinal|f|8a1a2a,e0405a,ffc0c8|c83048|26|.5|0|night;dots:ffffff
+bluehole|Blue Tang Runner|f|1a3ad0,3a7af8,ffe050|2a58e0|36|.55|0|tail:fork
+bluehole|Cenote Grouper|f|2a3a8a,5a78c8,c0d0f0|3a50a8|100|.5|1|sp:ffffff:12
+bluehole|Hammerhead Pup|ham|3a4a68,7a88a8,e0e8f0|5a6888|180|.34|1|
+bluehole|Glass Squid|sq|a8c8e8,d8f0ff,ffffff|88b0d8|70|.5|1|glow:a0e0ff
+bluehole|Deepwall Ray|ray|1a2a5a,3a58a8,a0b8e8|2a3a7a|180|.4|1|dots:ffffff
+bluehole|Sapphire Turtle|tur|1a4a8a,4a88d0,e8f4c0|3a78c0|120|.45|2|dots:a0e0ff;glow:60b0ff
+bluehole|Midnight Hole Shark|sh|0a1a3a,1a3a68,a8c0e0|1a2a58|360|.24|2|glow:4a78ff
+bluehole|Azure Giant Octopus|oc|1a3a9a,4a78e8,c0d8ff|2a58d0|210|.5|3|glow:70a0ff
+bluehole|Blue Hole Dragon|eel|0a1a4a,2a5ad0,a0d8ff|4a90ff|520|.1|4|th:34;crest:80c0ff;teeth:2;glow:60a8ff;sp:ffffff:24
+storm|Squall Mackerel|f|3a4a5a,6a7a8a,d0d8e0|4a5a6a|60|.24|0|lat:e8f0f8;tail:lunate
+storm|Gale Sardine|f|5a6a7a,9aa8b8,f0f4f8|6a7a8a|30|.22|0|lat:ffffff
+storm|Thunder Herring|f|4a5a78,8a9ac0,f0f4ff|5a6a88|36|.26|0|glow:c0d0ff;lat:f0f4ff
+storm|Rain Skipjack|f|2a3a5a,5a6a98,d8e0f0|3a4a6a|70|.28|0|st:1a2a48:6
+storm|Tempest Bonito|f|2a4a6a,5a8aa8,e0f0f8|3a5a7a|90|.3|1|st:1a3a58:7;tail:lunate
+storm|Lightning Barracuda|f|3a4a5a,7a8a9a,e8f0f8|8a98a8|180|.14|1|teeth:2;glow:e8f4ff;tail:fork
+storm|Cyclone Ray|ray|2a3a4a,5a6a88,b0c0d8|3a4a68|220|.4|1|glow:c0d8ff
+storm|Thunderhead Marlin|f|1a2a4a,4a6aa0,e8f0ff|2a4a88|300|.24|2|bill;dor:sail;glow:d0e0ff;tail:lunate
+storm|Stormcaller Shark|sh|2a3a4a,5a6a7a,d8e0e8|3a4a5a|420|.22|2|glow:e0f0ff;teeth:2
+storm|Maelstrom Squid|sq|2a2a4a,6a5a98,d0c8f0|5a4a80|360|.28|3|glow:c0a0ff;sp:ffffff:20
+storm|Hurricane Whale|wh|2a3a4a,5a6a8a,d8e0f0|4a5a78|700|.3|3|glow:b0c8ff
+storm|Zeus's Eel|eel|1a1a3a,4a4aa8,fff0a0|ffe45a|620|.1|4|th:34;crest:fff0a0;teeth:2;glow:fff070;sp:ffffff:28
+`;
 const FISH=[],FID={},BF={};
 BIOMES.forEach(b=>BF[b.id]=[]);
 const colA=(x,a)=>{const c=hex(x);return`rgba(${c[0]},${c[1]},${c[2]},${a})`};
-(ROWS_A+ROWS_B+ROWS_C+ROWS_D).split('\n').forEach(line=>{
+(ROWS_A+ROWS_B+ROWS_C+ROWS_D+ROWS_E).split('\n').forEach(line=>{
   line=line.trim();if(!line)return;
   const [bid,name,tm,cols,fin,len,h,tier,flags]=line.split('|');
   const bm=BID[bid],t=+tier,hs=hashStr(name),fl={};
@@ -961,7 +1003,7 @@ const SKILLS=[
 {id:'hold',n:'Deep Pockets',ic:'🪣',max:5,d:'+2 bucket capacity per rank'}
 ];
 const sk=id=>S.skills[id]||0;
-const need=l=>Math.round(20+12*Math.pow(l,1.55));
+const need=l=>Math.round((20+12*Math.pow(l,1.55))*1.75);
 const SEASONS=[{n:'Spring',ic:'🌸'},{n:'Summer',ic:'☀️'},{n:'Autumn',ic:'🍂'},{n:'Winter',ic:'❄️'}];
 const MOONS=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
 const season=()=>Math.floor(S.days/6)%4;
@@ -973,10 +1015,12 @@ FISH.forEach(f=>{if(!f.ev&&!WARM_BIOMES.includes(f.biome)&&hashStr(f.id+'sea')%7
 function rodStats(){
   const rod=RODS[S.rod],G=S.gear,rl=REELS[G.reel],ln=LINES[G.line],tp=TIPS[G.tip],hk=HOOKS[G.hook];
   return{depth:rod.depth,zone:rod.zone*tp.zone*hk.zone*(1+.04*sk('hands')),reel:rod.reel*rl.spd*(1+.05*sk('reel')),sink:rod.sink,
-    luck:rod.luck+tp.luck+.02*sk('luck')+(S.prestige||0)*.03+ln.shy,
+    luck:rod.luck+bk().luck+tp.luck+.02*sk('luck')+(S.prestige||0)*.03+ln.shy,
     str:ln.str*rl.drag*(1+.08*sk('tension')),cut:ln.cut,strike:tp.strike*hk.win*(1+.12*sk('strike')),ten:hk.ten,small:hk.small}
 }
-function bucketCap(){return 10+S.boat.hold*5+2*sk('hold')}
+const BOATK=[{n:'Rowboat Skiff',ic:'🛶',p:0,hold:0,drv:1,luck:0,col:'#d9a35a',d:'Your trusty starter.'},{n:'Fishing Cruiser',ic:'🚤',p:6000,hold:2,drv:1.4,luck:.02,col:'#3a8ad0',d:'+10 bucket, faster driving, +luck.'},{n:'Deep-Sea Trawler',ic:'🚢',p:28000,hold:5,drv:1.8,luck:.04,col:'#d0443a',d:'+25 bucket, big engine, more luck.'},{n:'Luxury Yacht',ic:'🛥️',p:120000,hold:8,drv:2.4,luck:.07,col:'#f4f4f4',d:'+40 bucket, fastest, best luck.'}];
+const bk=()=>BOATK[S.boatKind||0]||BOATK[0];
+function bucketCap(){return 10+S.boat.hold*5+2*sk('hold')+bk().hold*5}
 const ENGINES=[{n:'Rowing Oars',p:0,d:'Slow, but reliable.'},{n:'Outboard Motor',p:1500,d:'Faster trips.'},{n:'Twin Motors',p:6000,d:'Shorter trips, fewer mishaps.'},{n:'Turbo Engine',p:20000,d:'Rarely get stuck.'},{n:'Aether Drive',p:70000,d:'Practically teleports.'}];
 const HULLS=[{n:'Wooden Hull',p:0,d:'Basic protection.'},{n:'Reinforced Hull',p:2000,d:'Survives mild storms.'},{n:'Steel Hull',p:8000,d:'Ride out heavy seas.'},{n:'Armored Hull',p:25000,d:'Pirates think twice.'},{n:'Mythril Hull',p:80000,d:'Nothing scratches it.'}];
 const HOLDS=[{n:'Small Bucket',p:0,d:'Holds 10 fish.'},{n:'Cooler',p:800,d:'+5 capacity.'},{n:'Live Well',p:3500,d:'+5 capacity.'},{n:'Fish Hold',p:12000,d:'+5 capacity.'},{n:'Cargo Hold',p:40000,d:'+5 capacity.'}];
@@ -1543,10 +1587,12 @@ function styleOf(sp){
   b.style=s;return s;
 }
 const STYLE_INFO={dart:['Darter','quick small darts'],thrash:['Thrasher','rapid wild thrashing'],leap:['Leaper','leaps and crashes'],heavy:['Heavyweight','slow, powerful pulls'],dive:['Diver','dives for the bottom'],sulk:['Sulker','sulks, then bursts away'],dash:['Sprinter','long fast runs']};
+/* balance: zone grows fast early, flattens late so full gear is strong but never trivial */
+function softZone(z){const a=z*1.2;return a<=108?a:Math.min(176,108+(z-90)*.2)}
 function bite(f){
   const rs=rodStats(),sp=f.sp;
   hook.state='fight';hook.fish=f;hook.bangT=.9;f.state='hooked';ignoreHold=false;hook.strike=null;
-  fight={prog:.3,zh:rs.zone*1.3*(1+(S.lvl-1)*.008)*(sp.boss?.9:1),zp:0,zv:0,fp:BAR*.5,tp:BAR*.5,timer:.3,out:0,t:0,style:styleOf(sp),tension:0,run:0,runT:rnd(1.5,3),vmul:1,leapT:rnd(2.5,4.5),sulk:0,fall:0};
+  fight={prog:.3,zh:softZone(rs.zone)*(1+(S.lvl-1)*.004)*(sp.boss?.9:1),zp:0,zv:0,fp:BAR*.5,tp:BAR*.5,timer:.3,out:0,t:0,style:styleOf(sp),tension:0,run:0,runT:rnd(1.5,3),vmul:1,leapT:rnd(2.5,4.5),sulk:0,fall:0};
   fight.zp=(BAR-fight.zh)/2;S.stats.fights++;
   if(S.bait!==0){
     const saved=Math.random()<.08*sk('saver')+(S.light>=4?.1:0);
@@ -2357,6 +2403,11 @@ SCENE.volcano={plat:'boat',hor:'volcano',floor:'lava',wall:[40,14,10],kelp:0,ray
 SCENE.ruins={plat:'boat',hor:'ruins',floor:'ruins',wall:[22,48,60],kelp:2,rays:.9,nsch:12,water:[[0,'#4ac0c8'],[.2,'#2a8aa8'],[.55,'#124a78'],[1,'#041a38']],tint:[0,0,0,0],mud:[96,92,80]};
 SCENE.cosmic={plat:'boat',hor:'cosmos',floor:'crystal',wall:null,kelp:0,rays:1.3,nsch:18,water:[[0,'#5a3ac8'],[.1,'#3a2a9a'],[.3,'#1a1a6a'],[.6,'#0a0a3a'],[1,'#02020e']],tint:[120,80,255,.1],mud:[26,22,60]};
 
+SCENE.sargasso={plat:'boat',hor:'ocean',floor:'sand',wall:null,kelp:4,rays:1,nsch:12,water:[[0,'#7ad8a0'],[.12,'#3aa890'],[.4,'#14688a'],[.7,'#08385c'],[1,'#031428']],tint:[120,140,40,.07],mud:[90,84,50]};
+SCENE.bluehole={plat:'boat',hor:'ocean',floor:'rock',wall:[14,40,90],kelp:0,rays:1.2,nsch:14,water:[[0,'#3ae0e8'],[.12,'#1a90d8'],[.4,'#0a40a8'],[.7,'#041a68'],[1,'#010838']],tint:[0,60,160,.08],mud:[20,40,80]};
+SCENE.storm={plat:'boat',hor:'ocean',floor:'sand',wall:null,kelp:0,rays:.3,nsch:16,water:[[0,'#5a7a8a'],[.12,'#3a5a70'],[.4,'#1a3450'],[.7,'#0c1c34'],[1,'#030a18']],tint:[20,30,50,.18],mud:[46,52,60]};
+MUS.sargasso=[5,'dor',.85];MUS.bluehole=[2,'lyd',.8];MUS.storm=[7,'phr',.9];
+
 function drawSky(){
   if(SCN.hor!=='cosmos'){drawSky0();return}
   const c=ctx;if(camY>SURF+60)return;
@@ -2958,12 +3009,15 @@ function pressStart(){
 }
 function pressEnd(){holding=false;ignoreHold=false}
 function ptr(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/SC;mouse.y=(e.clientY-r.top)/SC;
-  if(VW<560&&hook.state==='idle'){const lo=BX+90,hi=VW-30,f=clamp((mouse.x-BX)/((VW-BX)*.5),0,1);hook.tx=lo+f*(hi-lo)}else if(VW>=560)hook.tx=mouse.x}
-const ptrs=new Set();
-function ptrDown(e){ptrs.add(e.pointerId);ptr(e);pressStart()}
-function ptrUp(e){ptrs.delete(e.pointerId);if(!ptrs.size)pressEnd()}
+  if(e.pointerType==='mouse'&&e.buttons===0&&hook.state==='fish'&&VW<560)return;
+  if(VW<560){const lo=BX+90,hi=VW-30;hook.tx=(hook.state==='idle'||hook.state==='flycast')?lo+clamp((mouse.x-BX)/((VW-BX)*.5),0,1)*(hi-lo):clamp(mouse.x,BX+70,VW-24)}else hook.tx=mouse.x}
+const ptrs=new Set();let pendCast=false;
+function ptrDown(e){ptrs.add(e.pointerId);ptr(e);
+  if(e.pointerType==='touch'&&hook.state==='idle'&&started&&!modalOpen&&!S.gear.iceOn){pendCast=true;return}
+  pressStart()}
+function ptrUp(e){ptrs.delete(e.pointerId);if(pendCast){pendCast=false;pressStart()}if(!ptrs.size)pressEnd()}
 cv.addEventListener('pointerdown',e=>{ptrDown(e);try{cv.setPointerCapture(e.pointerId)}catch(_){}});
-cv.addEventListener('pointermove',ptr);
+cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&!ptrs.size)return;ptr(e)});
 cv.addEventListener('pointerup',ptrUp);cv.addEventListener('pointercancel',ptrUp);cv.addEventListener('lostpointercapture',ptrUp);document.addEventListener('visibilitychange',()=>{ptrs.clear();pressEnd()});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(S.gear.bobOn&&S.gear.bobber){S.gear.bobD=clamp(S.gear.bobD+(e.deltaY>0?1:-1),1,10);updateHUD()}},{passive:true});
@@ -3193,8 +3247,12 @@ RENDER.boat=function(){
   let h='<div class="grid">';
   K.forEach(([k,n,L,d])=>{const lv=S.boat[k],nx=L[lv+1],c=boatCost(k);
     h+=`<div class="item crate"><h3>${n}</h3><p><b>${L[lv].n}</b> — ${L[lv].d}</p><p class="tagline">${'■'.repeat(lv+1)}${'□'.repeat(L.length-lv-1)}</p>${nx?`<p>Next: <b>${nx.n}</b><br>${nx.d}</p><div class="row"><button class="btn tag" data-act="boat" data-k="${k}" ${S.money>=c?'':'disabled'}>$${c.toLocaleString()} · Upgrade</button></div>`:'<p class="tagline">MAX</p>'}</div>`});
+  h+='</div><div class="hdr" style="margin-top:12px">⚓ BOATS</div><div class="grid">';
+  const own=S.boatsOwned||[0];BOATK.forEach((b,i)=>{const o=own.includes(i),cur=(S.boatKind||0)===i;
+    h+=`<div class="item crate"><h3>${b.ic} ${b.n}</h3><p>${b.d}</p><div class="row"><button class="btn tag" data-act="boatk" data-i="${i}" ${cur||(!o&&S.money<b.p)?'disabled':''}>${cur?'In use':o?'Switch':'$'+b.p.toLocaleString()+' · Buy'}</button></div></div>`});
   return h+'</div>';
 };
+LOGACT.boatk=t=>{const i=+t.dataset.i,b=BOATK[i];S.boatsOwned=S.boatsOwned||[0];if(!S.boatsOwned.includes(i)){if(S.money<b.p)return;S.money-=b.p;S.boatsOwned.push(i);toast(b.ic+' New boat: '+b.n+'!')}S.boatKind=i;sfx.coin()};
 LOGACT.boat=t=>upgradeBoat(t.dataset.k);
 /* ---- lighthouse ---- */
 RENDER.light=function(){
@@ -3219,8 +3277,8 @@ LOGACT.trn=()=>{if(trnStart())closeModal()};
 const BUFF={t:0,luck:0,name:''};
 function giveBuff(n,luck,sec){BUFF.name=n;BUFF.luck=luck;BUFF.t=sec}
 let mapSel=0,mapHit=[],mapRAF=0,mapT=0,sailing=false;
-const MAPICON={pond:'🪷',river:'🏞️',beach:'🏖️',lake:'🏔️',harbor:'⚓',kelp:'🌿',reef:'🪸',arctic:'🧊',ocean:'🌊',abyss:'🕳️',swamp:'🐊',volcano:'🌋',ruins:'🏛️',cosmic:'🌌'};
-const ISLECOL={pond:'#5aa850',river:'#3f8a4a',beach:'#d8c27a',lake:'#6a8a6a',harbor:'#8a8a7a',kelp:'#4a8a52',reef:'#58b88a',arctic:'#e8f4fa',ocean:'#5a7a9a',abyss:'#3a2a52',swamp:'#4a6a3a',volcano:'#a8402a',ruins:'#6a8aa8',cosmic:'#6a4aa8'};
+const MAPICON={pond:'🪷',river:'🏞️',beach:'🏖️',lake:'🏔️',harbor:'⚓',kelp:'🌿',reef:'🪸',arctic:'🧊',ocean:'🌊',abyss:'🕳️',swamp:'🐊',volcano:'🌋',ruins:'🏛️',cosmic:'🌌',sargasso:'🌾',bluehole:'🔵',storm:'⛈️'};
+const ISLECOL={pond:'#5aa850',river:'#3f8a4a',beach:'#d8c27a',lake:'#6a8a6a',harbor:'#8a8a7a',kelp:'#4a8a52',reef:'#58b88a',arctic:'#e8f4fa',ocean:'#5a7a9a',abyss:'#3a2a52',swamp:'#4a6a3a',volcano:'#a8402a',ruins:'#6a8aa8',cosmic:'#6a4aa8',sargasso:'#8aa840',bluehole:'#2a78d0',storm:'#6a7a8a'};
 function openMap(){
   if(!started||sailing)return;if(hook.state!=='idle'){toast('Reel in your line first!');return}
   modalOpen=true;holding=false;mapSel=CUR.i;$('map').classList.remove('hidden');sizeMap();cancelAnimationFrame(mapRAF);mapLoop();renderMapInfo();
@@ -3279,7 +3337,7 @@ $('mapCv').addEventListener('pointerdown',e=>{
 $('mapClose').onclick=closeMap;
 window.addEventListener('resize',()=>{if(!$('map').classList.contains('hidden'))sizeMap()});
 /* ---------------- sailing ---------------- */
-const tripSecs=()=>[5,4,3,2.2,1.2][S.boat.engine];
+const tripSecs=()=>[5,4,3,2.2,1.2][S.boat.engine]/Math.sqrt(bk().drv);
 function arrive(id){
   const b=BID[id];S.biome=id;setBiome(b);camY=0;P.length=0;RIP.length=0;initWorld();initFish();boatXf();hook.tx=clamp(hook.tx,BX+90,VW-30);
   sfx.splash();toast('⛵ Welcome to '+b.name);S.mapSeen[id]=1;S.stats.trips++;EV('trip');save();updateHUD();
@@ -4494,6 +4552,25 @@ function renderMapInfo(){
   if(here.length){const go=$('mapGo');const el=document.createElement('div');el.className='mi-row';el.innerHTML='<span>👥 Friends here</span><b>'+here.map(p=>p.name).join(', ')+'</b>';go.parentNode.insertBefore(el,go);if(!go.disabled)go.textContent='⛵ Sail & fish with '+here[0].name}
 }
 
+/* ---- boat driving (boat locations) ---- */
+const SPOTS=['Open Water','Weed Line','Drop-off Edge','Fog Bank','Bird Pile','Current Seam'];
+let cruise=0;
+const dvb=document.createElement('button');dvb.id='bDrive';dvb.className='btn glass';dvb.innerHTML='<span class="bi">🚤</span><span class="bl"> Drive</span>';dvb.style.cssText='position:fixed;right:10px;top:150px;z-index:9;display:none';document.body.appendChild(dvb);
+function driveBoat(){
+  if(cruise>0||sailing)return;if(hook.state!=='idle'){toast('Reel in your line first!');return}
+  if(TRN.on){toast('No driving during a tournament!');return}
+  cruise=2.4/(bk().drv*(1+S.boat.engine*.2));sfx.splash();toast('🚤 Cruising to a new spot…');S.stats.drives=(S.stats.drives||0)+1;
+}
+dvb.onclick=driveBoat;
+setInterval(()=>{
+  dvb.style.display=(started&&SCN&&SCN.plat==='boat'&&!modalOpen&&!townOpen)?'':'none';
+  if(cruise>0){cruise-=.05;for(let i=0;i<2;i++)splash(B.x-70-Math.random()*40,SURF,1,.25);
+    if(cruise<=0){cruise=0;const nm=SPOTS[Math.random()*SPOTS.length|0],hot=Math.random()<.4;initFish();
+      if(hot){for(const sp of BF[CUR.id]){if(eligible(sp)&&sp.t>=1&&Math.random()<.5)spawnFish(sp,true)}for(const sp of BF[CUR.id]){if(eligible(sp)&&sp.t===0&&Math.random()<.3)spawnFish(sp,true)}}
+      toast((hot?'🔥 HOT SPOT! ':'📍 ')+nm+(hot?' — the fish are thick here!':''));sfx.splash();save()}}
+},50);
+/* boat colour pennant for owned boat type */
+(function(){const d0=drawBoat;drawBoat=function(){d0();try{if(LOOKS.player.fixed)return;const k=bk();if(!k||!(S.boatKind>0))return;ctx.save();ctx.translate(B.x,B.y);ctx.rotate(B.a);ctx.strokeStyle='#3a2810';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-70,-20);ctx.lineTo(-70,-78);ctx.stroke();ctx.fillStyle=k.col;ctx.beginPath();ctx.moveTo(-70,-78);ctx.lineTo(-44,-70);ctx.lineTo(-70,-62);ctx.fill();ctx.restore()}catch(_){}}})();
 /* >>> n_main.js */
 /* ============================== MAIN ============================== */
 window.addEventListener('resize',resize);
