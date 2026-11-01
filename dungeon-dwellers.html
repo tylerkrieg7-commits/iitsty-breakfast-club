@@ -38288,5 +38288,24 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
   BCX.publish('dd', D.ACH.map(function(a){ var ok=!!got[a[0]], p=String(a[1]).split(' '), ic=p.shift(); return [a[0], ic, p.join(' '), (a[5]&&!ok)?'A hidden achievement.':a[2], ok]; })); }catch(e){} }
   setInterval(pub,4000); setTimeout(pub,1500); })();
 </script>
+<style id="ddflk">
+/* Build 27: anti-flicker. Phones drew black rectangles / flicker when too many huge GPU layers were stacked
+   (a 240vmax vignette with will-change, full-screen blurs behind every window). Same look, far lighter. */
+html body #b19 .dark{width:120vmax!important;height:120vmax!important;transform:translate(-50%,-50%) scale(calc(var(--b19-s,1.6) * 2))!important;will-change:auto!important}
+html body #b19 .warm{will-change:auto!important}
+/* windows are already 90% black, so blurring what is behind them added nothing but cost */
+html body .backdrop-blur,html body .backdrop-blur-sm,html body .backdrop-blur-md,html body .backdrop-blur-lg,html body .backdrop-blur-xl,html body [class*="backdrop-blur"]{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* the depth-of-field layer only needs its blur while a scene is actually talking / major / a memory */
+html body:not(.dd7-talk):not(.dd7-major):not(.dd7-memory) #dd7-dim{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+/* while a full-screen window is open the world behind it is hidden anyway, so its effect layers rest */
+html body:has(.fixed.inset-0[id$="-modal"]:not(.hidden)) #b19,
+html body:has(.v4-modal:not(.hidden)) #b19,
+html body:has(.fixed.inset-0[id$="-modal"]:not(.hidden)) #dd7-atmo,
+html body:has(.fixed.inset-0[id$="-modal"]:not(.hidden)) #dd7-lens,
+html body:has(.fixed.inset-0[id$="-modal"]:not(.hidden)) #dd7-mem,
+html body:has(.fixed.inset-0[id$="-modal"]:not(.hidden)) #dd7-dim{display:none!important}
+/* the status chips keep a soft look without a live blur */
+html body #dd-status span{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+</style>
 </body>
 </html>

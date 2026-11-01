@@ -133,6 +133,7 @@ canvas#c{position:fixed;inset:0;display:block;touch-action:none}
 .mi-bar{height:8px;border-radius:5px;background:rgba(60,36,10,.2);overflow:hidden}.mi-bar i{display:block;height:100%;background:linear-gradient(90deg,#d8412f,#f0a030)}
 .big2{margin-top:auto;font-size:17px;padding:12px}
 #mapClose{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:10px;border:2px solid #4a1008;background:#a8321f;color:#fff;font-size:18px;cursor:pointer;z-index:3}
+#mapInfo .mchips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;flex:none;-webkit-overflow-scrolling:touch;scrollbar-width:none}.mchip{flex:none;display:flex;flex-direction:column;align-items:center;min-width:64px;padding:6px 8px;border-radius:12px;border:2px solid #8a6a30;background:rgba(255,250,230,.6);font-size:20px;font-family:inherit;color:#3a2810}.mchip span{font-size:10.5px;font-weight:800;white-space:nowrap}.mchip.on{background:#ffd166;border-color:#6a4426}.mchip.lk{opacity:.6}
 @media(max-width:760px){.mapbox{flex-direction:column}#mapInfo{width:auto;max-height:42%}}
 
 /* ===== v3 ===== */
@@ -1545,7 +1546,7 @@ const STYLE_INFO={dart:['Darter','quick small darts'],thrash:['Thrasher','rapid 
 function bite(f){
   const rs=rodStats(),sp=f.sp;
   hook.state='fight';hook.fish=f;hook.bangT=.9;f.state='hooked';ignoreHold=false;hook.strike=null;
-  fight={prog:.3,zh:rs.zone*(1+(S.lvl-1)*.008)*(sp.boss?.85:1),zp:0,zv:0,fp:BAR*.5,tp:BAR*.5,timer:.3,out:0,t:0,style:styleOf(sp),tension:0,run:0,runT:rnd(1.5,3),vmul:1,leapT:rnd(2.5,4.5),sulk:0,fall:0};
+  fight={prog:.3,zh:rs.zone*1.3*(1+(S.lvl-1)*.008)*(sp.boss?.9:1),zp:0,zv:0,fp:BAR*.5,tp:BAR*.5,timer:.3,out:0,t:0,style:styleOf(sp),tension:0,run:0,runT:rnd(1.5,3),vmul:1,leapT:rnd(2.5,4.5),sulk:0,fall:0};
   fight.zp=(BAR-fight.zh)/2;S.stats.fights++;
   if(S.bait!==0){
     const saved=Math.random()<.08*sk('saver')+(S.light>=4?.1:0);
@@ -1558,7 +1559,7 @@ function snapLine(){
 }
 function fightUpdate(dt){
   const F=fight,f=hook.fish,sp=f.sp,rs=rodStats(),st=F.style;F.t+=dt;
-  F.zv+=(holding?1100:-850)*dt;F.zv=clamp(F.zv,-420,460);F.zp+=F.zv*dt;
+  F.pumpT=Math.max(0,(F.pumpT||0)-dt);const hd=holding||F.pumpT>0;F.zv+=(hd?820:-560)*dt;F.zv=clamp(F.zv,-300,340);F.zp+=F.zv*dt;
   if(F.zp<0){F.zp=0;F.zv=Math.abs(F.zv)*.28}
   if(F.zp>BAR-F.zh){F.zp=BAR-F.zh;F.zv=-Math.abs(F.zv)*.25}
   F.timer-=dt;F.runT-=dt;if(F.run>0){F.run-=dt;if(F.run<=0)F.vmul=1}
@@ -1577,12 +1578,12 @@ function fightUpdate(dt){
       if(F.sulk>0){F.tp=F.fp;F.timer=.4}else{F.tp=Math.random()<.5?22:BAR-22;F.vmul=2.4;F.timer=.9;F.sulk=rnd(1.5,2.6);setTimeout(()=>{if(fight===F)F.vmul=1},900)}
     }
   }
-  const mult=st==='heavy'?.6:1,vmax=(50+sp.spd*22+sp.diff*60)*mult*(F.vmul||1);F.fp+=clamp(F.tp-F.fp,-vmax*dt,vmax*dt);
+  const mult=st==='heavy'?.6:1,vmax=(50+sp.spd*22+sp.diff*60)*.85*mult*(F.vmul||1);F.fp+=clamp(F.tp-F.fp,-vmax*dt,vmax*dt);
   const inZ=F.fp>=F.zp&&F.fp<=F.zp+F.zh;F.inZ=inZ;
-  if(inZ)F.prog+=(.26+rs.luck*.35)*(1-.2*sp.diff)*dt;else{F.prog-=(.09+.2*sp.diff)*dt;F.out+=dt}
+  if(inZ)F.prog+=(.32+rs.luck*.35)*(1-.2*sp.diff)*dt;else{F.prog-=(.06+.14*sp.diff)*dt;F.out+=dt}
   /* line tension */
   const tf={heavy:1.3,dash:1.1,leap:1.05,thrash:1.15,dive:1,sulk:1,dart:.9}[st],pull=F.run>0?1:.35;
-  let dT=holding?(inZ?.05:.34*pull*tf*(.5+sp.diff*.7)):-.32;
+  let dT=hd?(inZ?.0:.18*pull*tf*(.5+sp.diff*.7)):-.5;
   if(sp.teeth&&!rs.cut&&!inZ)dT+=.1;
   dT*=(rs.ten/rs.str)*(.7+.5*clamp(sp.len*f.sc/200,0,1.2))*(1+WX.storm*.1);
   F.tension=clamp(F.tension+dT*dt,0,1.05);
@@ -2950,16 +2951,20 @@ function hideCard(){$('card').classList.add('hidden');cardShown=false;REV.on=fal
 function pressStart(){
   if(!started||modalOpen)return;initAudio();
   if(hook.state==='card'){if(!cardShown)revealNow();return}
-  holding=true;
+  holding=true;if(fight&&hook.state==='fight')fight.pumpT=.25;
   if(hook.state==='fish'&&hook.strike){setHook();return}
   if(hook.state==='flycast'){flyPress();return}
   if(hook.state==='idle')startCast();
 }
 function pressEnd(){holding=false;ignoreHold=false}
-function ptr(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/SC;mouse.y=(e.clientY-r.top)/SC;hook.tx=mouse.x}
-cv.addEventListener('pointerdown',e=>{ptr(e);pressStart();try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+function ptr(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/SC;mouse.y=(e.clientY-r.top)/SC;
+  if(VW<560&&hook.state==='idle'){const lo=BX+90,hi=VW-30,f=clamp((mouse.x-BX)/((VW-BX)*.5),0,1);hook.tx=lo+f*(hi-lo)}else if(VW>=560)hook.tx=mouse.x}
+const ptrs=new Set();
+function ptrDown(e){ptrs.add(e.pointerId);ptr(e);pressStart()}
+function ptrUp(e){ptrs.delete(e.pointerId);if(!ptrs.size)pressEnd()}
+cv.addEventListener('pointerdown',e=>{ptrDown(e);try{cv.setPointerCapture(e.pointerId)}catch(_){}});
 cv.addEventListener('pointermove',ptr);
-cv.addEventListener('pointerup',pressEnd);cv.addEventListener('pointercancel',pressEnd);
+cv.addEventListener('pointerup',ptrUp);cv.addEventListener('pointercancel',ptrUp);cv.addEventListener('lostpointercapture',ptrUp);document.addEventListener('visibilitychange',()=>{ptrs.clear();pressEnd()});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(S.gear.bobOn&&S.gear.bobber){S.gear.bobD=clamp(S.gear.bobD+(e.deltaY>0?1:-1),1,10);updateHUD()}},{passive:true});
 window.addEventListener('blur',pressEnd);
@@ -3238,7 +3243,8 @@ function drawMap0(){
   const P=b=>[b.mx*W,b.my*H],ord=BIOMES.slice().sort((a,b)=>a.lvl-b.lvl);
   g.setLineDash([8*d,8*d]);g.lineWidth=2.5*d;g.strokeStyle='rgba(255,230,160,.6)';g.beginPath();ord.forEach((b,i)=>{const p=P(b);i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])});g.stroke();g.setLineDash([]);
   mapHit=[];
-  for(const b of BIOMES){const p=P(b),lock=S.lvl<b.lvl,sel=mapSel===b.i,rx=(sel?56:48)*d,ry=(sel?40:34)*d;
+  const mk=clamp(Math.min(W/d/520,H/d/380),.6,1);
+  for(const b of BIOMES){const p=P(b),lock=S.lvl<b.lvl,sel=mapSel===b.i,rx=(sel?56:48)*d*mk,ry=(sel?40:34)*d*mk;
     g.globalAlpha=lock?.55:1;isle(g,p[0],p[1],rx,ry,40+b.i*9,ISLECOL[b.id]);g.globalAlpha=1;
     if(b.id==='abyss'||b.id==='cosmic'){g.strokeStyle=b.id==='cosmic'?'rgba(120,200,255,.5)':'rgba(180,120,255,.5)';g.lineWidth=2*d;for(let k=0;k<3;k++){g.beginPath();g.ellipse(p[0],p[1],(rx+12+k*9)*(1+.03*Math.sin(mapT*3+k)),(ry+9+k*7),0,0,TAU);g.stroke()}}
     g.font=`${24*d}px serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(lock?'🔒':MAPICON[b.id],p[0],p[1]-2*d);
@@ -3266,7 +3272,9 @@ function renderMapInfo0(){
 }
 $('mapCv').addEventListener('pointerdown',e=>{
   const r=$('mapCv').getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-  for(const h of mapHit){if(((x-h.x)/h.rx)**2+((y-h.y)/h.ry)**2<=1){mapSel=h.b.i;sfx.click();renderMapInfo();return}}
+  let best=null,bd=1e9;for(const h of mapHit){const dd=Math.hypot((x-h.x)/h.rx,(y-h.y)/h.ry);if(dd<bd){bd=dd;best=h}}
+  if(best&&bd<=2.2){const again=mapSel===best.b.i&&!e.__nodbl;mapSel=best.b.i;sfx.click();renderMapInfo();
+    const now=performance.now();if(again&&now-(mapHit.lt||0)<450&&S.lvl>=best.b.lvl&&CUR!==best.b){closeMap();travel(best.b.id)}mapHit.lt=now}
 });
 $('mapClose').onclick=closeMap;
 window.addEventListener('resize',()=>{if(!$('map').classList.contains('hidden'))sizeMap()});
@@ -3465,7 +3473,7 @@ function townLoop(now){
 }
 function townUpdate0(dt){
   tNow=TQ();
-  if(TOWN.tx!=null){const d=TOWN.tx-TOWN.px,sp=420;if(Math.abs(d)<=sp*dt+1){TOWN.px=TOWN.tx;TOWN.tx=null;TOWN.vx=0;if(TOWN.go){const g=TOWN.go;TOWN.go=null;S.townX=TOWN.px;openPlace(g.id,g.tab)}}else{TOWN.vx=Math.sign(d);TOWN.px+=Math.sign(d)*sp*dt;TOWN.face=Math.sign(d)}}
+  if(TOWN.tx!=null){tpan=false;const d=TOWN.tx-TOWN.px,sp=420;if(Math.abs(d)<=sp*dt+1){TOWN.px=TOWN.tx;TOWN.tx=null;TOWN.vx=0;if(TOWN.go){const g=TOWN.go;TOWN.go=null;S.townX=TOWN.px;openPlace(g.id,g.tab)}}else{TOWN.vx=Math.sign(d);TOWN.px+=Math.sign(d)*sp*dt;TOWN.face=Math.sign(d)}}
   const k=townK(),vw=tw/k;
   if(!tpan){const want=clamp(TOWN.px-vw/2,0,Math.max(0,TW-vw));tcam+=(want-tcam)*Math.min(1,dt*4)}
   tcam=clamp(tcam,Math.min(0,(TW-vw)/2),Math.max(0,TW-vw));
@@ -3675,10 +3683,10 @@ const tcv=$('townCv');
 function w2x(cx){return cx/townK()+tcam}
 tcv.addEventListener('pointerdown',e=>{tdrag={x:e.clientX,cam:tcam,moved:false};tpan=false;try{tcv.setPointerCapture(e.pointerId)}catch(_){}});
 tcv.addEventListener('pointermove',e=>{
-  if(tdrag&&e.buttons!==0||tdrag&&e.pointerType==='touch'){const dx=e.clientX-tdrag.x;if(Math.abs(dx)>8)tdrag.moved=true;if(tdrag.moved){tpan=true;tcam=tdrag.cam-dx/townK()}}
+  if(tdrag&&e.buttons!==0||tdrag&&e.pointerType==='touch'){const dx=e.clientX-tdrag.x;if(Math.abs(dx)>5)tdrag.moved=true;if(tdrag.moved){tpan=true;tcam=tdrag.cam-dx/townK()}}
   const wx=w2x(e.clientX),wy=(e.clientY-(th-720*townK()))/townK();TOWN.hover=hitB(wx,wy)});
 tcv.addEventListener('pointerup',e=>{
-  if(!tdrag)return;const moved=tdrag.moved;tdrag=null;if(moved){setTimeout(()=>{tpan=false},900);return}tpan=false;
+  if(!tdrag)return;const moved=tdrag.moved;tdrag=null;if(moved){return}tpan=false;
   const wx=w2x(e.clientX),wy=(e.clientY-(th-720*townK()))/townK(),b=hitB(wx,wy);
   if(b){TOWN.go={id:b};TOWN.go.id=b;TOWN.tx=clamp(BLD.find(x=>x.id===b).x+(b==='light'?-0:0),40,TW-40);sfx.click()}
   else{TOWN.go=null;TOWN.tx=clamp(wx,40,TW-40)}
@@ -4263,13 +4271,15 @@ function peerLook(p){if(p.lo&&typeof lookFrom==='function')return lookFrom(p.lo)
 function friendSlots(){const w=VW,a=[{sx:w-B.x,m:1}];if(w>=1100){a.push({sx:w*.42,m:0});a.push({sx:w*.58,m:1})}return a}
 function drawFriends(){
   if(!COOP.on||camY>SURF+400)return;const ps=peersSea();if(!ps.length)return;const sl=friendSlots();
-  ps.forEach((p,i)=>{const s=sl[i];if(!s)return;if(i===0&&s.sx-B.x<300)return;
-    const sv={x:B.x,a:B.a,rb:rodBend,rod:S.rod,pl:LOOKS.player,react:FX.react},bx=s.m?VW-s.sx:s.sx;
+  ps.forEach((p,i)=>{const s=sl[i];if(!s)return;const nar=i===0&&s.sx-B.x<300,k=nar?.7:1;
+    const sv={x:B.x,a:B.a,rb:rodBend,rod:S.rod,pl:LOOKS.player,react:FX.react},bx=nar?52:s.m?VW-s.sx:s.sx;
     ctx.save();if(s.m){ctx.translate(VW,0);ctx.scale(-1,1)}
+    if(nar){ctx.fillStyle='#6a4a28';ctx.fillRect(-40,SURF-2,bx+86,9);ctx.fillStyle='#8a6638';ctx.fillRect(-40,SURF-2,bx+86,3);ctx.fillStyle='#4a3218';for(let q=-20;q<bx+40;q+=34)ctx.fillRect(q,SURF+6,5,36)}
+    ctx.save();if(nar){ctx.translate(bx,B.y);ctx.scale(k,k);ctx.translate(-bx,-B.y)}
     LOOKS.player=Object.assign({},peerLook(p),{fixed:1});rodBend=p.rb;S.rod=Math.min(p.rod||0,RODS.length-1);FX.react={k:p.rk,t:p.rt};B.x=bx;B.a=-B.a*.8;
-    try{drawBoat()}finally{LOOKS.player=sv.pl;rodBend=sv.rb;S.rod=sv.rod;FX.react=sv.react;B.a=sv.a;B.x=sv.x}
+    try{drawBoat()}finally{LOOKS.player=sv.pl;rodBend=sv.rb;S.rod=sv.rod;FX.react=sv.react;B.a=sv.a;B.x=sv.x;ctx.restore()}
     if(p.hs&&p.hs!=='idle'&&p.hs!=='card'){
-      const hx=p.sx*VW+(bx-B.x),hy=p.sy,rb=p.rb,ang=-.72,len=150,tx2=bx+26+Math.cos(ang)*len*(1-.12*rb),ty2=B.y-50+Math.sin(ang)*len*(1-.1*rb)+rb*46;
+      const hx=p.sx*VW+(bx-B.x),hy=p.sy,rb=p.rb,ang=-.72,len=150,tx2=bx+(26+Math.cos(ang)*len*(1-.12*rb))*k,ty2=B.y+(-50+Math.sin(ang)*len*(1-.1*rb)+rb*46)*k;
       ctx.strokeStyle=p.tn>.7?'rgba(255,90,70,.9)':'rgba(255,255,255,.75)';ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(tx2,ty2);ctx.quadraticCurveTo((tx2+hx)/2,Math.min(ty2,hy)+(hy>SURF?30:-10),hx,hy);ctx.stroke();
       ctx.fillStyle='#e8ecf0';ctx.beginPath();ctx.arc(hx,hy,3.2,0,TAU);ctx.fill();
       if(hy>SURF+4){ctx.strokeStyle='rgba(255,255,255,.35)';ctx.beginPath();ctx.arc(hx,hy,8+Math.sin(TM*4)*2,0,TAU);ctx.stroke()}
@@ -4279,8 +4289,7 @@ function drawFriends(){
 }
 function drawFriendTags(){
   if(!COOP.on||camY>SURF+400)return;const ps=peersSea(),sl=friendSlots();
-  ps.forEach((p,i)=>{const s=sl[i];if(!s)return;if(i===0&&s.sx-B.x<300)return;coopTag(ctx,p,s.m?s.sx+8:s.sx+10,B.y-150)});
-  if(ps.length&&VW-B.x-B.x<300){ctx.save();ctx.font='700 13px sans-serif';ctx.fillStyle='rgba(0,0,0,.45)';ctx.textAlign='right';ctx.fillText('👥 '+ps[0].name+' is fishing here',VW-12,SURF-60);ctx.restore()}
+  ps.forEach((p,i)=>{const s=sl[i];if(!s)return;if(i===0&&s.sx-B.x<300){coopTag(ctx,p,VW-52,B.y-112);return}coopTag(ctx,p,s.m?s.sx+8:s.sx+10,B.y-150)});
 }
 function coopTag(g,p,x,y){
   g.save();g.font='800 13px "Segoe UI",sans-serif';g.textAlign='center';const w=g.measureText(p.name).width+16;g.fillStyle='rgba(10,20,40,.7)';rrp(g,x-w/2,y-12,w,22,8);g.fill();g.fillStyle='#fff';g.fillText(p.name,x,y+4);
@@ -4472,8 +4481,16 @@ function drawMap(){
     g.font=`800 ${10*d}px sans-serif`;g.fillStyle='#fff';g.fillText(p.name,x,y-18*d)}
   const tw2=ps.filter(p=>p.loc==='town');if(tw2.length){g.font=`800 ${13*d}px sans-serif`;g.textAlign='left';const t='🏘️ In Reel Harbor: '+tw2.map(p=>p.name).join(', ');const w=g.measureText(t).width+20*d;g.fillStyle='rgba(30,22,10,.82)';rr(g,12*d,H-40*d,w,28*d,10*d);g.fill();g.fillStyle='#ffe9b0';g.fillText(t,22*d,H-26*d)}
 }
+function mapChips(){
+  const mi=$('mapInfo');if(!mi)return;const old=mi.querySelector('.mchips');if(old)old.remove();
+  const el=document.createElement('div');el.className='mchips';
+  el.innerHTML=BIOMES.slice().sort((a,b)=>a.lvl-b.lvl).map(b=>`<button class="mchip${b.i===mapSel?' on':''}${S.lvl<b.lvl?' lk':''}" data-i="${b.i}">${S.lvl<b.lvl?'🔒':MAPICON[b.id]}<span>${b.name}</span></button>`).join('');
+  el.onclick=e=>{const c=e.target.closest('.mchip');if(!c)return;mapSel=+c.dataset.i;sfx.click();renderMapInfo()};
+  mi.insertBefore(el,mi.firstChild);const on=el.querySelector('.on');if(on)el.scrollLeft=on.offsetLeft-el.clientWidth/2+on.clientWidth/2;
+  const go=$('mapGo');if(go&&!go.disabled&&!mi.querySelector('.mboat')){const n=document.createElement('div');n.className='mi-row mboat';n.innerHTML='<span>🚤 Your boat can sail here</span><b>free</b>';go.parentNode.insertBefore(n,go)}
+}
 function renderMapInfo(){
-  renderMapInfo0();if(!COOP.on)return;const b=BIOMES[mapSel],here=peerList().filter(p=>p.loc==='sea'&&p.bi===b.id);
+  renderMapInfo0();mapChips();if(!COOP.on)return;const b=BIOMES[mapSel],here=peerList().filter(p=>p.loc==='sea'&&p.bi===b.id);
   if(here.length){const go=$('mapGo');const el=document.createElement('div');el.className='mi-row';el.innerHTML='<span>👥 Friends here</span><b>'+here.map(p=>p.name).join(', ')+'</b>';go.parentNode.insertBefore(el,go);if(!go.disabled)go.textContent='⛵ Sail & fish with '+here[0].name}
 }
 
@@ -4494,7 +4511,7 @@ function loop(now){
   }catch(err){console.error(err)}
 }
 requestAnimationFrame(loop);
-window.__rl={get S(){return S},get ACH(){return ACH},get SET(){return SET},get hook(){return hook},get fish(){return fish},travel,openModal,openPlace,goTown,closeModal,closeTown,PLACES,get townOpen(){return townOpen},TOWN,openMap,setBiome,BID,get CUR(){return CUR},initFish,initWorld,BIOMES,FISH,EVENTS,showEvent,startReveal,TRN,trnStart,set camY(v){camY=v},get started(){return started},get fight(){return fight},hold(v){holding=v},press(){pressStart()},rel(){pressEnd()}};
+window.__rl={get COOP(){return COOP},get fight(){return fight},S0:0,get S(){return S},get ACH(){return ACH},get SET(){return SET},get hook(){return hook},get fish(){return fish},travel,openModal,openPlace,goTown,closeModal,closeTown,PLACES,get townOpen(){return townOpen},TOWN,openMap,setBiome,BID,get CUR(){return CUR},initFish,initWorld,BIOMES,FISH,EVENTS,showEvent,startReveal,TRN,trnStart,set camY(v){camY=v},get started(){return started},get fight(){return fight},hold(v){holding=v},press(){pressStart()},rel(){pressEnd()}};
 
 })();
 </script>
