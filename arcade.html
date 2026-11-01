@@ -6616,6 +6616,45 @@ ACH.push(
     });
 })();
 
+// ---------- REEL LEGENDS (takes over the Anglers' Pond cabinet) ----------
+(function() {
+    const W = 300, H = 450;
+    const old = GMAP.angler; if(old) GMAP.angler_old = old;
+    let ov = null, S = null;
+    function info() { try { const j = JSON.parse(localStorage.getItem('reelLegends.v3')); return j && j.rods ? j : null; } catch(e) { return null; } }
+    function closeOv() { if(ov) { try { ov.querySelector('iframe').src = 'about:blank'; } catch(e) {} ov.remove(); ov = null; } }
+    function openOv() {
+        closeOv();
+        ov = document.createElement('div'); ov.id = 'rl-ov';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:2147470000;background:#04101f';
+        ov.innerHTML = '<iframe src="reel-legends.html?arc=1" allow="autoplay; fullscreen" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#04101f"></iframe>' +
+            '<button id="rl-x" aria-label="Back to the arcade" style="position:absolute;left:8px;top:112px;z-index:2;width:34px;height:34px;border-radius:50%;border:2px solid #ffffff55;background:#000a;color:#fff;font:700 16px sans-serif;opacity:.7">◀</button>';
+        document.body.appendChild(ov);
+        ov.querySelector('#rl-x').onclick = () => { sfx('click'); closeOv(); openHub(); };
+    }
+    const g = {
+        id: 'angler', name: 'Reel Legends', icon: '🎣', color: '#29b6f6', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
+        desc: 'The full World Fishing Tour: 14 locations, 300+ fish, weather and seasons, bosses, a town to build, pets, and tournaments. Fish together with your partner in the same water. Everything you catch counts toward your Club trophies.',
+        tip: 'Tap the big screen to start fishing', help: ['Drag to aim, tap to cast', 'Tap fast when the ❗ appears to set the hook', 'Hold to reel up, let go to sink', 'Open 👥 to fish with your partner. Same water gives a lure bonus and a catch bonus', '◀ under the level box takes you back to the arcade'],
+        best: () => { const j = info(); return j ? 'Lv ' + (j.lvl || 1) + ' · ' + (j.caught || 0) + ' fish' : ''; },
+        init() { S = {f: 0}; setTimeout(() => { if(P.g && P.g.id === 'angler') openOv(); }, 60); },
+        update() { S.f++; },
+        draw(c) {
+            c.fillStyle = vgrad(c, 0, H, ['#0b3d6b', '#04101f']); c.fillRect(0, 0, W, H);
+            EMO(c, '🎣', W / 2, 150 + Math.sin(S.f / 20) * 6, 64);
+            PX(c, 'REEL LEGENDS', W / 2, 235, 14, '#ffea00', 'center');
+            T(c, 'World Fishing Tour', W / 2, 262, 12, '#fff');
+            const j = info(); if(j) T(c, `Level ${j.lvl || 1} · ${j.caught || 0} fish caught`, W / 2, 292, 11, '#9fd8ff');
+            T(c, 'Tap to open the game', W / 2, 380, 12, '#ffffffaa');
+        },
+        pdown() { audio(); if(!ov) openOv(); },
+        stop() { closeOv(); }
+    };
+    const i = GAMES.findIndex(x => x.id === 'angler');
+    if(i >= 0) GAMES[i] = g; else GAMES.push(g);
+    GMAP.angler = g;
+})();
+
 // ---------- SKEE-BALL ----------
 (function() {
     const W = 300, H = 450;
