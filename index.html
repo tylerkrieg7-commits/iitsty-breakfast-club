@@ -18815,18 +18815,22 @@ setTimeout(register,600);setTimeout(register,2500);
         var did = function () { var c = cfg(); if (c.did) return c.did; var d = "bc-" + Math.random().toString(36).slice(2, 12); jset(KEY, Object.assign(c, { did: d })); return d; };
         var AH = function (tok) { return 'MediaBrowser Client="Breakfast Club", Device="Phone", DeviceId="' + did() + '", Version="1.0.0"' + (tok ? ', Token="' + tok + '"' : ""); };
         var base = function () { return String(cfg().url || "").replace(/\/+$/, ""); };
+        var CK = "jf_cred", kv = function () { return window.bcxKV || null; };
+        /* the shared Jellyfin account (not the admin) lives in the household store so both phones sign in on their own */
+        function shared() { var k = kv(); return k ? k.get(CK).then(function (v) { return v && v.user && v.pw ? v : null; }, function () { return null; }) : Promise.resolve(null); }
+        function auto() { return shared().then(function (c) { return c ? login(c.url || "https://iiitsty.duckdns.org", c.user, c.pw, true).then(function () { return true; }, function () { return false; }) : false; }); }
         function api(path, opt) {
             opt = opt || {}; var c = cfg();
             return fetch(base() + path, { method: opt.method || "GET", headers: Object.assign({ "X-Emby-Token": c.token, "X-Emby-Authorization": AH(c.token), "Content-Type": "application/json" }, opt.headers || {}), body: opt.body ? JSON.stringify(opt.body) : undefined }).then(function (r) {
-                if (r.status === 401) { jset(KEY, Object.assign(cfg(), { token: "", uid: "" })); throw new Error("expired"); }
+                if (r.status === 401) { jset(KEY, Object.assign(cfg(), { token: "", uid: "" })); if (!opt.retry) return auto().then(function (okk) { if (okk) return api(path, Object.assign({}, opt, { retry: 1 })); throw new Error("expired"); }); throw new Error("expired"); }
                 if (!r.ok) throw new Error("http " + r.status); return r.status === 204 ? null : r.json().catch(function () { return null; });
             });
         }
-        function login(url, user, pw) {
+        function login(url, user, pw, quiet) {
             url = String(url || "").trim().replace(/\/+$/, ""); if (!/^https?:\/\//i.test(url)) url = "https://" + url;
             return fetch(url + "/Users/AuthenticateByName", { method: "POST", headers: { "Content-Type": "application/json", "X-Emby-Authorization": AH("") }, body: JSON.stringify({ Username: user, Pw: pw }) }).then(function (r) {
                 if (r.status === 401 || r.status === 400) throw new Error("Wrong name or password."); if (!r.ok) throw new Error("The server answered " + r.status + "."); return r.json();
-            }).then(function (j) { jset(KEY, Object.assign(cfg(), { url: url, token: j.AccessToken, uid: j.User.Id, user: j.User.Name })); return j; });
+            }).then(function (j) { jset(KEY, Object.assign(cfg(), { url: url, token: j.AccessToken, uid: j.User.Id, user: j.User.Name })); if (!quiet && kv()) kv().set(CK, { url: url, user: user, pw: pw }).then(function (okk) { if (okk) toast("🔗 Shared with your partner's phone too"); }); return j; });
         }
         var img = function (it, h) { var id = it.ImageTags && it.ImageTags.Primary ? it.Id : it.SeriesId && it.SeriesPrimaryImageTag ? it.SeriesId : it.ParentThumbItemId || null; return id ? base() + "/Items/" + id + "/Images/Primary?maxHeight=" + (h || 280) + "&quality=80" : ""; };
         var CSS = "#jf-sheet{position:fixed;inset:0;z-index:2147480800;background:#0d1117;color:#fff;display:flex;flex-direction:column;font:inherit}#jf-sheet .hd{display:flex;gap:8px;align-items:center;padding:10px;background:#161b22}#jf-sheet .hd b{flex:1;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jf-sheet button,#jf-sheet input{font:inherit}#jf-sheet .hd button{border:0;border-radius:10px;padding:8px 12px;font-weight:800;background:#2d333b;color:#fff}#jf-sheet .bd{flex:1;overflow:auto;padding:10px}#jf-sheet h4{margin:14px 0 6px;font-size:.95rem}#jf-sheet .row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}#jf-sheet .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}#jf-sheet .c{background:#161b22;border-radius:10px;overflow:hidden;border:0;color:#fff;text-align:left;padding:0;flex:none}#jf-sheet .row .c{width:104px}#jf-sheet .c i{display:block;aspect-ratio:2/3;background:#222 center/cover no-repeat}#jf-sheet .c span{display:block;font-size:.72rem;padding:5px 6px;line-height:1.2;max-height:3.3em;overflow:hidden}#jf-sheet .c .pb{height:3px;background:#444}#jf-sheet .c .pb u{display:block;height:100%;background:#00adb5}#jf-sheet .ep{display:flex;gap:10px;align-items:center;width:100%;background:#161b22;border:0;border-radius:10px;color:#fff;text-align:left;padding:8px;margin-bottom:6px}#jf-sheet .ep i{width:84px;aspect-ratio:16/9;background:#222 center/cover no-repeat;border-radius:6px;flex:none}#jf-sheet .ep small{opacity:.7;display:block}#jf-sheet input{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #444;background:#0d1117;color:#fff;margin:5px 0}#jf-sheet .go{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;background:#00adb5;color:#fff;margin-top:8px}#jf-sheet .msg{opacity:.8;font-size:.85rem;margin:8px 0}#jf-rem{position:fixed;left:8px;right:8px;top:calc(64px + env(safe-area-inset-top,0px));z-index:2147480700;background:rgba(18,22,28,.94);border:1px solid #333;border-radius:16px;padding:8px 10px;display:flex;gap:6px;align-items:center;color:#fff;backdrop-filter:blur(6px)}#jf-rem b{flex:1;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jf-rem button{border:0;border-radius:10px;padding:8px 10px;font-size:1rem;background:#2d333b;color:#fff}";
@@ -18837,12 +18841,12 @@ setTimeout(register,600);setTimeout(register,2500);
             sheet.innerHTML = '<div class="hd">' + (back ? '<button data-b="1">←</button>' : "") + '<b>🎬 ' + esc(title) + '</b>' + (ok() ? '<button data-o="1" title="Sign out">⎋</button>' : "") + '<button data-x="1">✕</button></div><div class="bd">' + body + "</div>";
             sheet.querySelector("[data-x]").onclick = close;
             var bk = sheet.querySelector("[data-b]"); if (bk) bk.onclick = function () { stack.pop(); var p = stack.pop(); if (p) p(); else home(); };
-            var so = sheet.querySelector("[data-o]"); if (so) so.onclick = function () { if (confirm("Sign out of Jellyfin on this phone?")) { jset(KEY, { did: cfg().did, url: cfg().url, user: cfg().user }); loginView(); } };
+            var so = sheet.querySelector("[data-o]"); if (so) so.onclick = function () { if (confirm("Sign out of Jellyfin? This also removes the shared login, so your partner's phone will need to sign in again.")) { jset(KEY, { did: cfg().did, url: cfg().url, user: cfg().user }); if (kv()) kv().set(CK, null); loginView(); } };
         }
         function go(fn) { stack.push(fn); fn(); }
         function loginView(msg) {
             var c = cfg();
-            shell("Jellyfin sign in", '<div class="msg">Sign in once and this phone stays signed in. Your password is not saved — only the sign-in token Jellyfin gives back.</div><input id="jf-u" placeholder="Server address" value="' + esc(c.url || "https://iiitsty.duckdns.org") + '" autocapitalize="off" autocorrect="off"><input id="jf-n" placeholder="Username" value="' + esc(c.user || "") + '" autocapitalize="off" autocorrect="off"><input id="jf-p" type="password" placeholder="Password"><div class="msg" id="jf-m" style="color:#ff8a80">' + esc(msg || "") + '</div><button class="go" id="jf-go">Sign in</button><div class="msg">Away from home the public address works. On your home Wi-Fi it may not (router limitation) — turn Wi-Fi off or use mobile data if it fails.</div>');
+            shell("Jellyfin sign in", '<div class="msg">Sign in once and this phone stays signed in. The login is saved and shared with your partner’s phone so neither of you has to type it again.</div><input id="jf-u" placeholder="Server address" value="' + esc(c.url || "https://iiitsty.duckdns.org") + '" autocapitalize="off" autocorrect="off"><input id="jf-n" placeholder="Username" value="' + esc(c.user || "") + '" autocapitalize="off" autocorrect="off"><input id="jf-p" type="password" placeholder="Password"><div class="msg" id="jf-m" style="color:#ff8a80">' + esc(msg || "") + '</div><button class="go" id="jf-go">Sign in</button><div class="msg">Away from home the public address works. On your home Wi-Fi it may not (router limitation) — turn Wi-Fi off or use mobile data if it fails.</div>');
             var f = function () { var m = sheet.querySelector("#jf-m"); m.style.color = "#9ecbff"; m.textContent = "Signing in…"; login(sheet.querySelector("#jf-u").value, sheet.querySelector("#jf-n").value.trim(), sheet.querySelector("#jf-p").value).then(function () { toast("🎬 Signed in to Jellyfin"); home(); }, function (e) { m.style.color = "#ff8a80"; m.textContent = /Wrong/.test(e.message) ? e.message : "Couldn't reach the server (" + (e.message || "network") + "). Check the address and your connection."; }); };
             sheet.querySelector("#jf-go").onclick = f; sheet.querySelector("#jf-p").onkeydown = function (e) { if (e.key === "Enter") f(); };
         }
@@ -18919,8 +18923,8 @@ setTimeout(register,600);setTimeout(register,2500);
         }
         return {
             ready: ok, stop: stop, close: close,
-            pick: function (el) { cur = { el: el }; if (sheet) close(); cur = { el: el }; ok() ? home() : loginView(); },
-            account: function () { cur = cur || {}; ok() ? home() : loginView(); },
+            pick: function (el) { cur = { el: el }; if (sheet) close(); cur = { el: el }; if (ok()) return home(); shell("Jellyfin", '<div class="msg">Signing in…</div>'); auto().then(function (okk) { if (!sheet) return; okk ? home() : loginView(); }); },
+            account: function () { cur = cur || {}; if (ok()) return home(); shell("Jellyfin", '<div class="msg">Signing in…</div>'); auto().then(function (okk) { if (!sheet) return; okk ? home() : loginView(); }); },
             playing: function (el) { return !!(P && P.el === el); }
         };
     })();
@@ -18992,7 +18996,7 @@ setTimeout(register,600);setTimeout(register,2500);
         var d = descOf(it); if (!d.k) return null;
         var o = { k: d.k };
         if (d.k === "light") { o.col = d.col; o.sz = d.sz; o.on = it.g && it.g.on ? 1 : 0; }
-        if (d.k === "tv") o.ch = d.ch.filter(function (c) { return c.t === "built" || /^https?:/i.test(c.u || ""); }).map(function (c) { return { t: c.t, u: c.u || "", n: c.n || "" }; });
+        if (d.k === "tv") o.ch = d.ch.filter(function (c) { return c.t === "built" || c.t === "jf" || /^https?:/i.test(c.u || ""); }).map(function (c) { return { t: c.t, u: c.u || "", n: c.n || "" }; });
         return o;
     }
     /* ---------- the same gadgets in your partner's house ---------- */
@@ -19149,6 +19153,7 @@ setTimeout(register,600);setTimeout(register,2500);
     var rest = function (c) { return c.url.replace(/\/+$/, "") + "/rest/v1/"; };
     function kget(k) { var c = cfg(); if (!c) return Promise.resolve(null); return fetch(rest(c) + "club_kv?select=value&household=eq." + encodeURIComponent(c.hh) + "&key=eq." + encodeURIComponent(k), { headers: hdr(c), cache: "no-store" }).then(function (r) { return r.ok ? r.json() : []; }).then(function (x) { try { return x[0] ? JSON.parse(x[0].value) : null; } catch (e) { return null; } }).catch(function () { return null; }); }
     function kset(k, v) { var c = cfg(); if (!c) return Promise.resolve(false); return fetch(rest(c) + "club_kv?on_conflict=household,key", { method: "POST", headers: Object.assign(hdr(c), { Prefer: "resolution=merge-duplicates,return=minimal" }), body: JSON.stringify([{ household: c.hh, key: k, value: JSON.stringify(v), updated_at: Date.now(), updated_by: "pres" }]) }).then(function (r) { return r.ok; }).catch(function () { return false; }); }
+    window.bcxKV = { get: kget, set: kset };
     var PRES = { room: null, vis: null, at: null }, lastPres = 0;
     function presence(force) {
         var open = !!document.querySelector(".fx3-room-ov"), RS = read("bcx_rooms") || { cur: "home" };
