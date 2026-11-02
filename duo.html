@@ -6,7 +6,7 @@
 :root{--bg:#0f0b1e;--card:#1a1433;--line:#322a5e;--ink:#f3f0ff;--mut:#a79fd6;--a:#ff4d8d;--b:#35c8ff;--ok:#4ade80;--warn:#fbbf24}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}body{margin:0;background:radial-gradient(circle at 20% 0,#2a1b5e 0,var(--bg) 55%) fixed;color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 40px}
 .wrap{max-width:520px;margin:0 auto;padding:12px 14px}
-h1{font-size:20px;margin:6px 0 2px;display:flex;align-items:center;gap:8px}h1 a{color:var(--mut);text-decoration:none;font-size:14px;margin-left:auto}
+body.arc h1{padding-left:44px}h1{font-size:20px;margin:6px 0 2px;display:flex;align-items:center;gap:8px}h1 a{color:var(--mut);text-decoration:none;font-size:14px;margin-left:auto}
 .mut{color:var(--mut);font-size:13px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
 .gc{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center;cursor:pointer;font-weight:800}.gc:active{transform:scale(.97)}.gc .i{font-size:34px;display:block}.gc small{display:block;color:var(--mut);font-weight:600;font-size:11.5px;margin-top:2px}
@@ -411,6 +411,7 @@ function create(g,opts,local){
 function join(code){
   kvGet("duo_"+code).then(function(d){
     if(!d||d.ended){alert("That game isn't open any more.");lobby();return}
+    if(!GAMES[d.g]){alert("That game now lives in the main Arcade. Open the Arcade and tap VS PARTNER.");lobby();return}
     var mine=jget("duo_mine",{}),slot=mine[code];
     if(!slot){ if(d.b){alert("That game is full.");return} slot="b";d.b={n:myName(),by:me()};d.seq++;kvSet("duo_"+code,d);mine[code]="b";lset("duo_mine",JSON.stringify(mine)); }
     R={code:code,slot:slot,doc:d,sim:null,mySim:null,ver:0};startPoll();render();
@@ -464,7 +465,18 @@ function ctx(slot){
 var CABCOL={connect4:"#ff4d8d",ttt:"#35c8ff",reversi:"#22c55e",checkers:"#f97316",dots:"#a78bfa",memory:"#fbbf24",battleship:"#38bdf8",rps:"#f43f5e",reaction:"#facc15",trivia:"#c084fc",pictionary:"#ff2bd6",twotruths:"#ef4444",tycoon:"#16a34a",oops:"#00e5ff",lifepath:"#ffb300",chess:"#e5e7eb",mancala:"#a16207",eights:"#7c3aed",dice:"#f43f5e",words:"#14b8a6",gomoku:"#f59e0b",codebreak:"#22c55e"};
 var NEWG={chess:1,mancala:1,eights:1,dice:1,words:1,gomoku:1,codebreak:1};
 function dShade(h,p){var n=parseInt(h.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,f=1+p/100;return"#"+[r,g,b].map(function(v){return("0"+Math.max(0,Math.min(255,Math.round(v*f))).toString(16)).slice(-2)}).join("")}
+var ARCQ=new URLSearchParams(location.search),ARC=ARCQ.get("arc")==="1",ARCG=ARCQ.get("g");if(ARC)document.body.classList.add("arc");
+function arcLobby(){
+  var k=ARCG,g=GAMES[k],app=$("#app"),c=CABCOL[k]||"#ff2bd6";
+  app.innerHTML='<h1>'+g.icon+' '+esc(g.title)+'</h1><div class="card" style="text-align:center;border-color:'+c+'"><div style="font-size:54px">'+g.icon+'</div><div class="mut" style="margin:6px 0 12px">'+esc(g.desc)+'</div>'+
+   '<div class="bar" style="flex-direction:column;gap:8px"><button class="pri" id="pl" style="width:100%">👥 Play with your partner</button><button class="ok" id="plb" style="width:100%">🤖 Play vs Bot (solo)</button></div></div>'+
+   '<div id="open"></div>'+(cfg()?'':'<div class="card">⚠️ Sync is off. Turn it on in the Breakfast Club app (Settings → Sync with your partner) to play with your partner.</div>');
+  function st(local){var o={};if(k==="trivia"){var cc=prompt("Category? Type one of: "+Object.keys(window.DUO_CATS).join(", "),"all")||"all";o.cat=window.DUO_CATS[cc]?cc:"all"}create(k,o,local)}
+  $("#pl").onclick=function(){st(false)};$("#plb").onclick=function(){st(true)};
+  refreshOpen();
+}
 function lobby(){
+  if(ARC&&ARCG&&GAMES[ARCG])return arcLobby();
   var app=$("#app"),gs=Object.keys(GAMES),pc=["#ff1744","#2979ff","#ffea00"],cur=-1;
   var last=+(ls("duo_last","0")||0);if(!(last>=0&&last<gs.length))last=0;
   app.innerHTML='<h1>💞 Together Arcade <a href="arcade.html">← Arcade</a></h1><div class="mut">Play against your partner on your own phones. Swipe to a machine, tap it to start; they get a notification to join.</div>'+
@@ -495,6 +507,7 @@ function refreshOpen(){
     var mine=jget("duo_mine",{}),out=[];
     rows.forEach(function(r){var m=/^duo_([A-Z]{5})$/.exec(r.key);if(!m)return;var d;try{d=JSON.parse(r.value)}catch(e){return}
       if(!d||d.ended||!GAMES[d.g]||Date.now()-d.ts>6*3600e3)return;
+      if(ARC&&ARCG&&d.g!==ARCG)return;
       var code=m[1];
       if(mine[code])out.push('<div class="card bar"><div>▶ <b>'+esc(GAMES[d.g].title)+'</b><div class="mut">'+esc(d.a.n)+(d.b?' vs '+esc(d.b.n):' · waiting for a partner')+'</div></div><button class="ok" data-r="'+code+'">Resume</button></div>');
       else if(!d.b&&d.a.by!==me())out.push('<div class="card bar" style="border-color:#4ade80"><div>🎉 <b>'+esc(d.a.n)+'</b> started <b>'+esc(GAMES[d.g].title)+'</b></div><button class="ok" data-r="'+code+'">Join</button></div>');
@@ -538,16 +551,6 @@ function line4(b,W,H,need,idx){ /* returns winning cells or null */
   return null}
 
 /* ---- Connect 4 ---- */
-reg("connect4",{title:"Connect 4",icon:"🔴",desc:"Four in a row",
- init:function(){return{b:new Array(42).fill("")}},
- render:function(el,c){
-  var b=c.st.b,w=line4(b,7,6,4),cells=w?w.cells:[],nw=changed(c,"b");
-  el.innerHTML='<div class="c4h">'+[0,1,2,3,4,5,6].map(function(i){return'<button data-c="'+i+'"'+(c.myTurn&&!b[i]?"":" disabled")+'>⬇</button>'}).join("")+'</div><div class="c4">'+b.map(function(v,i){return'<i class="'+v+(cells.indexOf(i)>=0?" w":"")+(nw.indexOf(i)>=0&&v?" new":"")+'"></i>'}).join("")+'</div>';
-  el.querySelectorAll("[data-c]").forEach(function(x){x.onclick=function(){var col=+x.dataset.c,nb=b.slice();for(var r=5;r>=0;r--){if(!nb[r*7+col]){nb[r*7+col]=c.me;break}}
-    var ww=line4(nb,7,6,4);c.move({b:nb},c.opp,ww?c.me:nb.every(Boolean)?"draw":null)}});
- }});
-
-/* ---- Tic-Tac-Toe ---- */
 reg("ttt",{title:"Tic-Tac-Toe",icon:"❌",desc:"Classic, best of many",
  init:function(){return{b:new Array(9).fill("")}},
  render:function(el,c){
@@ -583,31 +586,6 @@ function ckMoves(b,p,chain){
       if(!t){if(chain==null)out.push({f:i,t:y*8+x})}
       else if(t.toLowerCase()!==p){var y2=y+d[0],x2=x+d[1];if(y2>=0&&x2>=0&&y2<8&&x2<8&&!b[y2*8+x2])caps.push({f:i,t:y2*8+x2,x:y*8+x})}})}
   return caps.length?caps:out}
-reg("checkers",{title:"Checkers",icon:"🏁",desc:"Jump to win",
- init:function(){var b=new Array(64).fill("");for(var r=0;r<8;r++)for(var c=0;c<8;c++){if((r+c)%2===1){if(r<3)b[r*8+c]="a";if(r>4)b[r*8+c]="b"}}return{b:b,chain:null}},
- render:function(el,c){
-  var b=c.st.b,flip=c.me==="a"?false:true,all=c.myTurn?ckMoves(b,c.me,c.st.chain):[],selK="sel_"+c.doc.seq,nw=changed(c,"b");
-  var sel=el._sel!=null&&el._selSeq===c.doc.seq?el._sel:(c.st.chain!=null&&c.myTurn?c.st.chain:null);
-  var draw=function(){
-    var tg=sel!=null?all.filter(function(m){return m.f===sel}):[];
-    var cells=[];for(var k=0;k<64;k++){var i=flip?63-k:k,r=Math.floor(i/8),cc=i%8,v=b[i];
-      cells.push('<div data-i="'+i+'" class="'+((r+cc)%2?"d":"l")+(sel===i?" sel":"")+(tg.some(function(m){return m.t===i})?" tg":"")+(sel==null&&all.some(function(m){return m.f===i})?" can":"")+(nw.indexOf(i)>=0&&v?" lm":"")+'">'+(v?'<span class="pc '+v.toLowerCase()+(nw.indexOf(i)>=0&&v?" new":"")+'">'+(v===v.toUpperCase()?"♛":"")+'</span>':"")+'</div>')}
-    el.innerHTML='<div class="ck">'+cells.join("")+'</div><div class="mut" style="text-align:center;margin-top:6px">Jumps are required. Reach the far side to become a king ♛.</div>';
-    el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i;if(!c.myTurn)return;
-      var m=tg.filter(function(q){return q.t===i})[0];
-      if(m){var nb=b.slice(),pc=nb[m.f];nb[m.f]="";nb[m.t]=pc;var promoted=false;if(m.x!=null)nb[m.x]="";
-        var tr=Math.floor(m.t/8);if(pc===pc.toLowerCase()&&((c.me==="a"&&tr===7)||(c.me==="b"&&tr===0))){nb[m.t]=pc.toUpperCase();promoted=true}
-        var more=m.x!=null&&!promoted?ckMoves(nb,c.me,m.t).filter(function(q){return q.x!=null}):[];
-        if(more.length){c.move({b:nb,chain:m.t},c.me);return}
-        var oppM=ckMoves(nb,c.opp,null),oppLeft=nb.some(function(v){return v&&v.toLowerCase()===c.opp});
-        c.move({b:nb,chain:null},c.opp,(!oppLeft||!oppM.length)?c.me:null)}
-      else if(all.some(function(q){return q.f===i})&&c.st.chain==null){sel=i;el._sel=i;el._selSeq=c.doc.seq;draw()}}});
-  };
-  if(c.myTurn&&!all.length&&!c.doc.winner){setTimeout(function(){c.move(c.st,c.opp,c.opp)},50);return}
-  draw();
- }});
-
-/* ---- Dots & Boxes ---- */
 reg("dots",{title:"Dots & Boxes",icon:"🔲",desc:"Close the boxes",
  init:function(){return{h:new Array(20).fill(""),v:new Array(20).fill(""),bx:new Array(16).fill("")}},
  render:function(el,c){
@@ -627,54 +605,6 @@ reg("dots",{title:"Dots & Boxes",icon:"🔲",desc:"Close the boxes",
 
 /* ---- Memory Match ---- */
 var EMO=["🍕","🐱","🚀","🌈","🍩","🎸","🦄","🌵","🐙","🍉","⚡","🎲"];
-reg("memory",{title:"Memory Match",icon:"🃏",desc:"Find the pairs",
- init:function(d){var r=seedRng(d.seed+d.round*131),a=[];EMO.forEach(function(_,i){a.push(i,i)});for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return{o:a,own:{},up:[],sc:{a:0,b:0}}},
- render:function(el,c){
-  var st=c.st,up=st.up;
-  el.innerHTML='<div class="mut" style="text-align:center">Pairs: '+esc(c.names.a)+' '+st.sc.a+' · '+st.sc.b+' '+esc(c.names.b)+'</div><div class="mem">'+st.o.map(function(v,i){var own=st.own[i],show=own||up.indexOf(i)>=0;return'<button data-i="'+i+'" class="'+(show?"up":"")+(own?" own-"+own:"")+'"'+((!c.myTurn||show||up.length>=2)?" disabled":"")+'>'+(show?EMO[v]:"❔")+'</button>'}).join("")+'</div>';
-  if(up.length===2){ /* a miss: flip back after a moment, then pass the turn */
-    var mover=c.doc.turn,delay=(c.me===mover||R.local)?1400:4200;
-    clearTimeout(el._t);el._t=setTimeout(function(){if(R&&R.doc.seq===c.doc.seq&&R.doc.st.up.length===2){var n=JSON.parse(JSON.stringify(R.doc.st));n.up=[];put({st:n,turn:other(R.doc.turn)});render()}},delay);return}
-  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i,n=JSON.parse(JSON.stringify(st));n.up.push(i);
-    if(n.up.length===2){var a=n.up[0],b=n.up[1];if(n.o[a]===n.o[b]){n.own[a]=c.me;n.own[b]=c.me;n.sc[c.me]++;n.up=[];var done=Object.keys(n.own).length===24;c.move(n,c.me,done?(n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"):null)}else c.move(n,c.me)}
-    else c.move(n,c.me)}});
- }});
-
-/* ---- Battleship ---- */
-var FLEET=[4,3,3,2,2];
-function bsPlace(rng){var cells=[];var occ={};var ships=[];FLEET.forEach(function(len){for(var t=0;t<200;t++){var h=rng()<.5,r=Math.floor(rng()*(h?8:9-len)),c=Math.floor(rng()*(h?9-len:8)),cs=[];for(var k=0;k<len;k++)cs.push((r+(h?0:k))*8+c+(h?k:0));if(cs.every(function(i){return!occ[i]})){cs.forEach(function(i){occ[i]=1});ships.push(cs);break}}});return ships}
-reg("battleship",{title:"Battleship",icon:"🚢",desc:"Sink the fleet",
- init:function(){return{rd:{a:0,b:0},sh:{a:[],b:[]},pend:null}},
- render:function(el,c){
-  var st=c.st,key="bs_"+R.code+"_"+c.me,fleet=jget(key,null);
-  if(!fleet){fleet=bsPlace(Math.random);lset(key,JSON.stringify(fleet))}
-  var mine={};fleet.forEach(function(s,si){s.forEach(function(i){mine[i]=si})});
-  if(!st.rd[c.me]){
-    el.innerHTML='<div class="card">Your fleet is placed. Not happy with it?<div class="bs me">'+Array.from({length:64},function(_,i){return'<div class="'+(mine[i]!=null?"s":"")+'"></div>'}).join("")+'</div><div class="bar"><button id="sf">🔀 Shuffle</button><button class="ok" id="rd">Ready!</button></div></div>';
-    $("#sf").onclick=function(){lset(key,JSON.stringify(bsPlace(Math.random)));render()};
-    $("#rd").onclick=function(){this.disabled=true;kvGet("duo_"+R.code).then(function(d){if(d)R.doc=d;var n=JSON.parse(JSON.stringify(R.doc.st));n.rd[c.me]=1;return put({st:n})}).then(function(){render()})};return}
-  if(!st.rd[c.opp]){el.innerHTML='<div class="banner">Waiting for your partner to place their fleet…</div>';return}
-  /* if my board was shot at, resolve it */
-  if(st.pend&&st.pend.at===c.me){
-    var p=st.pend,idx=p.r*8+p.c,hit=mine[idx]!=null,n=JSON.parse(JSON.stringify(st)),res="miss";
-    if(hit){var si=mine[idx],ship=fleet[si],prior=n.sh[c.me].filter(function(s){return s.res!=="miss"}).map(function(s){return s.i});var allHit=ship.every(function(i){return i===idx||prior.indexOf(i)>=0});res=allHit?"sunk":"hit";
-      if(allHit){n.sunkShip=ship}}
-    n.sh[c.me].push({i:idx,res:res,ship:res==="sunk"?fleet[mine[idx]]:undefined});n.pend=null;
-    var hitCells=n.sh[c.me].filter(function(s){return s.res!=="miss"}).length,total=FLEET.reduce(function(a,b){return a+b},0);
-    el.innerHTML='<div class="banner">Resolving shot…</div>';
-    setTimeout(function(){put({st:n,turn:c.me,winner:hitCells>=total?c.opp:null,wins:hitCells>=total?(function(){var w=Object.assign({},c.doc.wins);w[c.opp]++;return w})():c.doc.wins});render()},300);return}
-  var shotsMine=st.sh[c.opp],shotsOn=st.sh[c.me];
-  var mk=function(shots,own){var m={};shots.forEach(function(s){m[s.i]=s.res});return Array.from({length:64},function(_,i){var r=m[i];return'<div data-i="'+i+'" class="'+(r?r:"")+(own&&mine[i]!=null&&!r?" s":"")+'">'+(r==="hit"?"💥":r==="sunk"?"🔥":r==="miss"?"•":"")+'</div>'}).join("")};
-  var sunkMine=shotsMine.filter(function(s){return s.res==="sunk"}).length;
-  el.innerHTML='<div class="mut">🎯 Enemy waters (tap to fire) · ships sunk '+sunkMine+'/'+FLEET.length+'</div><div class="bs" id="en">'+mk(shotsMine,false)+'</div><div class="mut">🛟 Your fleet</div><div class="bs me">'+mk(shotsOn,true)+'</div>'+(st.pend?'<div class="mut" style="text-align:center">Shot fired… waiting for the result</div>':"");
-  if(c.myTurn&&!st.pend)$("#en").querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){var i=+x.dataset.i;if(shotsMine.some(function(s){return s.i===i}))return;var n=JSON.parse(JSON.stringify(st));n.pend={at:c.opp,r:Math.floor(i/8),c:i%8};
-    c.move(n,c.opp)}});
- }});
-
-/* ---- Rock Paper Scissors Lizard Spock ---- */
-var RPS=[["🪨","Rock",[1,3]],["📄","Paper",[0,4]],["✂️","Scissors",[1,3]],["🦎","Lizard",[1,4]],["🖖","Spock",[0,2]]];
-/* index i beats RPS[i][2] */
-RPS[0][2]=[2,3];RPS[1][2]=[0,4];RPS[2][2]=[1,3];RPS[3][2]=[1,4];RPS[4][2]=[0,2];
 reg("rps",{title:"Rock Paper Scissors Lizard Spock",icon:"🖖",desc:"First to 3",sim:true,
  init:function(){return{r:0,sc:{a:0,b:0},hist:[]}},
  render:function(el,c){

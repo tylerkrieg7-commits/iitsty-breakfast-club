@@ -252,7 +252,6 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
         <div class="hl gold" id="link-merchant"><span>🛒</span>Prize Counter</div>
         <div class="hl" id="link-trophies"><span>🏆</span>Trophy Wall</div>
         <div class="hl" id="link-random"><span>🎲</span>Random Game</div>
-        <div class="hl" id="link-duo" onclick="location.href='./duo.html'"><span>💞</span>Play together</div>
         <div class="hl" id="link-skins"><span>🎨</span>Skins &amp; Sounds</div>
         <div class="hl" id="link-stats"><span>📊</span><b id="hub-trocount">0/0</b></div>
         <div class="hl home" id="link-home"><span>🏠</span>Back to Main App</div>
@@ -1073,7 +1072,7 @@ function cabHTML(g, i) {
     const best = gameBest(g);
     const pc = ['#ff1744', '#2979ff', '#ffea00'];
     return `<div class="slot"><div class="cab dim" data-i="${i}" style="--c:${g.color};--c2:${shade(g.color, -70)};--cg:${hexA(g.color, 0.4)}">
-        ${g.isNew ? '<div class="new-tag">NEW</div>' : ''}
+        ${g.isNew ? '<div class="new-tag">NEW</div>' : ''}${g.mp ? '<div class="new-tag" style="left:6px;right:auto;background:#7c4dff">👥 2P</div>' : ''}
         <div class="cab-marq">${g.name.toUpperCase()}</div>
         <div class="cab-bez"><div class="cab-scr"><div class="cab-ico">${(window.__bcxArcTile && window.__bcxArcTile(g.id)) || g.icon}</div><div class="cab-hi">${best ? 'HI ' + best : 'NEW GAME!'}</div><div class="cab-press">PRESS START</div></div></div>
         <div class="cab-panel"><div class="stick"></div><div class="pb" style="--pc:${pc[i % 3]}"></div><div class="pb" style="--pc:${g.color}"></div><div class="pb" style="--pc:${pc[(i + 1) % 3]}"></div></div>
@@ -1584,6 +1583,7 @@ function renderTrophies() {
         sfx('whistle');
     }
     function resolve() {
+        if(S.net && S.shell.side === 'enemy') { const {r, c} = S.shell; S.shell = null; MP.send({t: 'shot', r, c}); S.turn = 'await'; return; }
         const {side, r, c, to} = S.shell; S.shell = null;
         const B = side === 'enemy' ? S.enemy : S.me, idx = r * N + c, s = shipAt(B, r, c);
         const big = side === 'enemy';
@@ -1609,13 +1609,17 @@ function renderTrophies() {
             if(big) FX.text('MISS', to.x, to.y - 16, '#b3e5fc', 11);
         }
         const won = S.enemy.ships.every(x => x.sunk), lost = S.me.ships.every(x => x.sunk);
+        if(S.net && side === 'me') MP.send({t: 'res', r, c, hit: !!s, sunk: s && s.sunk ? {n: s.n, len: s.len, r: s.r, c: s.c, h: s.h} : null, over: lost});
         if(won || lost) { S.phase = 'done'; S.endT = 80; S.won = won; return; }
         if(side === 'enemy') { S.turn = 'cpu'; S.wait = 50; }
         else { S.turn = 'player'; S.wait = 0; }
     }
     function finish() {
         const acc = S.pShots ? Math.round(S.pHits / S.pShots * 100) : 0;
-        if(S.won) {
+        if(S.won && S.net) {
+            LS.set('bat_wins', LS.int('bat_wins') + 1); unlock('bat_win'); A.daily(1);
+            A.over({win: true, title: 'VICTORY!', pts: 12 + (acc >= 55 ? 3 : 0), reason: 'Battleship online win', sub: `Fleet destroyed in ${S.pShots} shots`, sub2: `Accuracy ${acc}% · vs ${MP.partner()}`});
+        } else if(S.won) {
             LS.set('bat_wins', LS.int('bat_wins') + 1);
             const base = {easy: 6, normal: 10, hard: 15}[S.diff];
             unlock('bat_win'); if(S.diff === 'hard') unlock('bat_hard');
@@ -1627,7 +1631,38 @@ function renderTrophies() {
         }
     }
 
+    function checkStart() {
+        if(S.net && S.phase === 'place' && S.sentReady && S.peerReady) {
+            S.phase = 'battle'; S.turn = MP.first() === MP.role() ? 'player' : 'opp'; S.wait = 0;
+            S.banner = {txt: S.turn === 'player' ? 'YOU FIRE FIRST!' : 'THEY FIRE FIRST', col: '#ffea00', t: 80};
+            sfx('power'); A.refreshActions(); A.setInfo('Online · vs ' + MP.partner());
+        }
+    }
+    function applyRes(m) {   /* the result of a shot we fired, reported by the other phone */
+        const B = S.enemy, idx = m.r * N + m.c, to = bigCenter(m.r, m.c);
+        if(m.hit) {
+            B.shots[idx] = 2; S.pHits++;
+            FX.burst(to.x, to.y, ['#ffea00', '#ff9100', '#ff3d00', '#fff'], 26, 3, {g: -0.02, size: 4, add: true});
+            FX.burst(to.x, to.y, ['#555', '#777', '#333'], 10, 1, {g: -0.04, size: 6, life: 50});
+            FX.ring(to.x, to.y, '#ffab40', 26, 18, 3); FX.shake(5); sfx('boom'); haptic(40);
+            FX.text('HIT!', to.x, to.y - 18, '#ff5252', 14);
+            if(m.sunk) {
+                const sh = B.ships.find(x => x.n === m.sunk.n && !x.sunk);
+                if(sh) { sh.r = m.sunk.r; sh.c = m.sunk.c; sh.h = m.sunk.h; sh.hits = sh.len; sh.sunk = true; }
+                S.banner = {txt: `YOU SUNK THEIR ${m.sunk.n.toUpperCase()}!`, col: '#69f0ae', t: 110};
+                cellsOf(m.sunk).forEach(([a, b]) => { const p = bigCenter(a, b); FX.burst(p.x, p.y, ['#ff9100', '#ffea00'], 8, 2, {add: true}); });
+                sfx('levelup');
+            }
+        } else {
+            B.shots[idx] = 1;
+            FX.burst(to.x, to.y, ['#e1f5fe', '#81d4fa', '#fff'], 16, 2.2, {angle: -Math.PI / 2, spread: 1.1, g: 0.12, size: 3});
+            FX.ring(to.x, to.y, '#b3e5fc', 18, 20, 2); sfx('splash'); FX.text('MISS', to.x, to.y - 16, '#b3e5fc', 11);
+        }
+        if(m.over) { S.phase = 'done'; S.endT = 80; S.won = true; return; }
+        S.turn = 'opp';
+    }
     function startBattle() {
+        if(S.net) { if(S.phase !== 'place' || S.sentReady) return; S.sentReady = true; MP.send({t: 'ready'}); A.refreshActions(); checkStart(); return; }
         if(S.phase !== 'place') return;
         S.phase = 'battle'; S.turn = 'player'; S.wait = 0;
         S.banner = {txt: 'BATTLE STATIONS!', col: '#ffea00', t: 80};
@@ -1637,6 +1672,11 @@ function renderTrophies() {
     function update() {
         S.f++;
         if(S.banner && --S.banner.t <= 0) S.banner = null;
+        if(S.net) {
+            MP.take().forEach(m => { if(m.t === 'ready') S.peerReady = true; else if(m.t === 'shot') S.inq.push(m); else if(m.t === 'res' && S.phase === 'battle') applyRes(m); });
+            checkStart();
+            if(!S.shell && S.inq.length && S.phase === 'battle') { const m = S.inq.shift(); fire('me', m.r, m.c); }
+        }
         if(S.shell) { if(++S.shell.t >= S.shell.dur) resolve(); return; }
         if(S.phase === 'done') { if(--S.endT <= 0) finish(); return; }
         if(S.phase === 'battle' && S.turn === 'cpu') {
@@ -1720,9 +1760,9 @@ function renderTrophies() {
         if(place) {
             S.me.ships.forEach(s => drawShip(c, s, GX, GY, CS, {bad: S.drag && S.drag.ship === s && !fits(S.me.ships, s), sel: S.drag && S.drag.ship === s && fits(S.me.ships, s)}));
             T(c, 'Drag ships to move · tap a ship to rotate', W / 2, GY + N * CS + 16, 11, '#9fd3ff');
-            T(c, 'Press START BATTLE when ready', W / 2, GY + N * CS + 32, 11, '#69f0ae');
+            T(c, S.net && S.sentReady ? 'Waiting for ' + MP.partner() + '…' : 'Press START BATTLE when ready', W / 2, GY + N * CS + 32, 11, '#69f0ae');
         } else {
-            S.enemy.ships.forEach(s => { if(s.sunk || (S.phase === 'done' && !S.won)) drawShip(c, s, GX, GY, CS, {col: s.sunk ? '#8d4a4a' : '#5c6b8a', alpha: s.sunk ? 0.95 : 0.6}); });
+            S.enemy.ships.forEach(s => { if(s.r >= 0 && (s.sunk || (S.phase === 'done' && !S.won))) drawShip(c, s, GX, GY, CS, {col: s.sunk ? '#8d4a4a' : '#5c6b8a', alpha: s.sunk ? 0.95 : 0.6}); });
             drawMarks(c, S.enemy, GX, GY, CS, true);
             // hover reticle
             if(S.turn === 'player' && !S.shell && S.hover && S.phase === 'battle') {
@@ -1734,7 +1774,7 @@ function renderTrophies() {
             }
             // status line
             const yourTurn = S.turn === 'player' && S.phase === 'battle';
-            const msg = S.phase === 'done' ? (S.won ? 'ENEMY FLEET DESTROYED' : 'YOUR FLEET IS LOST') : (yourTurn ? (S.shell ? 'FIRING…' : 'YOUR TURN · TAP TO FIRE') : 'ENEMY IS TAKING AIM…');
+            const msg = S.phase === 'done' ? (S.won ? 'ENEMY FLEET DESTROYED' : 'YOUR FLEET IS LOST') : (S.net && !MP.ready() ? 'WAITING…' : yourTurn ? (S.shell ? 'FIRING…' : 'YOUR TURN · TAP TO FIRE') : (S.net ? (S.turn === 'await' ? 'WAITING FOR RESULT…' : MP.partner().toUpperCase() + ' IS TAKING AIM…') : 'ENEMY IS TAKING AIM…'));
             const mc = S.phase === 'done' ? (S.won ? '#69f0ae' : '#ff5252') : (yourTurn ? '#69f0ae' : '#ff8a80');
             fillRR(c, 24, GY + N * CS + 2, 252, 22, 11, hexA(mc, 0.14));
             PX(c, msg, W / 2, GY + N * CS + 13, 7, mc, 'center');
@@ -1765,6 +1805,7 @@ function renderTrophies() {
     }
 
     function pdown(x, y) {
+        if(S.phase === 'place' && S.sentReady) return;
         if(S.phase === 'place') {
             const cell = cellFromBig(x, y); if(!cell) return;
             const s = shipAt(S.me, cell.r, cell.c); if(!s) return;
@@ -1802,7 +1843,7 @@ function renderTrophies() {
             else sfx('thud', 0.08);
             return;
         }
-        if(S.phase !== 'battle' || S.turn !== 'player' || S.shell) return;
+        if(S.phase !== 'battle' || S.turn !== 'player' || S.shell || (S.net && !MP.ready())) return;
         const cell = cellFromBig(x, y); if(!cell) return;
         if(S.enemy.shots[cell.r * N + cell.c]) { sfx('error'); return; }
         S.pShots++; A.setScore(S.pShots); S.turn = 'firing';
@@ -1822,19 +1863,24 @@ function renderTrophies() {
 
     defGame({
         dbg: () => S,
-        id: 'battle', name: 'Battleship', icon: '🚢', color: '#29b6f6', cat: 'board', isNew: true, w: W, h: H, noPause: true,
-        desc: 'Hide your fleet, then hunt the enemy\'s. Drag your ships into position, then trade shots with a CPU admiral who gets smarter on Hard.',
+        mp: true, id: 'battle', name: 'Battleship', icon: '🚢', color: '#29b6f6', cat: 'board', isNew: true, w: W, h: H, noPause: true,
+        desc: 'Hide your fleet, then hunt the enemy\'s. Drag your ships into position, then trade shots with a CPU admiral who gets smarter on Hard, or go 📡 Online and battle your partner on your own phones.',
         tip: 'Tap a cell in enemy waters to fire', help: ['Drag ships to place them · tap to rotate', 'Tap enemy waters to fire', 'Sink all 5 enemy ships to win'],
-        modes: [{key: 'bat_diff', def: 'normal', opts: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']]}],
+        modes: [
+            {key: 'bat_play', def: 'cpu', opts: [['cpu', '🤖 vs CPU'], ['net', '📡 Online']], onChange: v => { if(v === 'net' && !MP.host('battle', () => { LS.set('bat_play', 'cpu'); restartGame(); })) LS.set('bat_play', 'cpu'); restartGame(); }},
+            {key: 'bat_diff', def: 'normal', opts: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], show: () => LS.get('bat_play', 'cpu') !== 'net'}
+        ],
         actions: [
-            {label: '🎲 Shuffle fleet', fn: () => { if(S.phase === 'place') { S.me = board(randomFleet()); sfx('whoosh'); } }, show: () => S && S.phase === 'place'},
-            {label: '▶ START BATTLE', hot: true, fn: startBattle, show: () => S && S.phase === 'place'}
+            {label: '🎲 Shuffle fleet', fn: () => { if(S.phase === 'place' && !S.sentReady) { S.me = board(randomFleet()); sfx('whoosh'); } }, show: () => S && S.phase === 'place' && !S.sentReady},
+            {label: '▶ START BATTLE', hot: true, fn: startBattle, show: () => S && S.phase === 'place' && !S.sentReady}
         ],
         best: () => LS.int('bat_best') ? `${LS.int('bat_best')} shots` : (LS.int('bat_wins') ? `${LS.int('bat_wins')} wins` : ''),
         init() {
-            S = {phase: 'place', me: board(randomFleet()), enemy: board(randomFleet()), turn: 'player', wait: 0, shell: null, f: 0, drag: null, hover: null,
+            let play = LS.get('bat_play', 'cpu'), net = null;
+            if(play === 'net') { net = MP.attach('battle'); if(!net) { LS.set('bat_play', 'cpu'); play = 'cpu'; } } else MP.end();
+            S = {phase: 'place', me: board(randomFleet()), enemy: board(net ? FLEET.map(f => ({n: f.n, len: f.len, h: true, r: -1, c: -1, hits: 0, sunk: false})) : randomFleet()), net: net ? {} : null, inq: [], sentReady: false, peerReady: false, turn: 'player', wait: 0, shell: null, f: 0, drag: null, hover: null,
                  pShots: 0, pHits: 0, banner: null, diff: LS.get('bat_diff', 'normal'), won: false};
-            A.setInfo(`vs CPU · ${S.diff}`); A.setScore(0);
+            A.setInfo(S.net ? 'Online · place your fleet' : `vs CPU · ${S.diff}`); A.setScore(0); A.rebuildModes();
         },
         update, draw, pdown, pmove, pup, input,
         phover(x, y) { if(S.phase !== 'place') S.hover = cellFromBig(x, y); }
@@ -1950,8 +1996,8 @@ function renderTrophies() {
         c.strokeStyle = 'rgba(255,255,255,0.35)'; c.lineWidth = 1.2; c.beginPath(); c.arc(x, y, r * 0.66, Math.PI * 1.05, Math.PI * 1.6); c.stroke();
         c.globalAlpha = 1;
     }
-    const nameOf = p => S.mode === 'cpu' ? (p === 1 ? 'YOU' : 'CPU') : (p === 1 ? 'RED' : 'YELLOW');
-    const isHumanTurn = () => S.mode === '2p' || S.turn === 1;
+    const nameOf = p => S.net ? (p === S.net.me ? 'YOU' : MP.partner().toUpperCase()) : S.mode === 'cpu' ? (p === 1 ? 'YOU' : 'CPU') : (p === 1 ? 'RED' : 'YELLOW');
+    const isHumanTurn = () => S.net ? (S.turn === S.net.me && MP.ready()) : (S.mode === '2p' || S.turn === 1);
 
     function drop(col) {
         if(S.anim || S.end || col < 0) return false;
@@ -1976,6 +2022,15 @@ function renderTrophies() {
     }
     function finish() {
         const w = S.end.winner;
+        if(S.net) {
+            const pn = MP.partner();
+            if(w === 0) { tally.d++; A.over({title: 'DRAW', color: '#b388ff', sub: 'The board is full', sub2: `Session  You ${tally.p1} · ${pn} ${tally.p2} · Draws ${tally.d}`}); return; }
+            const won = w === S.net.me; if(won) tally.p1++; else tally.p2++;
+            const sub2 = `Session  You ${tally.p1} · ${pn} ${tally.p2}${tally.d ? ' · Draws ' + tally.d : ''}`;
+            if(won) A.over({win: true, title: 'YOU WIN!', color: w === 1 ? '#ff5252' : '#ffd740', pts: 3, reason: 'Connect 4 online win', sub: 'Four in a row!', sub2});
+            else A.over({title: pn.toUpperCase() + ' WINS', sub: 'Four in a row!', sub2});
+            return;
+        }
         if(w === 0) { tally.d++; A.over({title: 'DRAW', color: '#b388ff', sub: 'The board is full', sub2: `Session  You ${tally.p1} · ${S.mode === 'cpu' ? 'CPU' : 'Yellow'} ${tally.p2} · Draws ${tally.d}`}); return; }
         if(w === 1) tally.p1++; else tally.p2++;
         const sub2 = `Session  ${S.mode === 'cpu' ? 'You' : 'Red'} ${tally.p1} · ${S.mode === 'cpu' ? 'CPU' : 'Yellow'} ${tally.p2}${tally.d ? ' · Draws ' + tally.d : ''}`;
@@ -2001,6 +2056,11 @@ function renderTrophies() {
             return;
         }
         if(S.end) { S.end.t++; if(S.end.t === 75) finish(); return; }
+        if(S.net) {
+            MP.take().forEach(m => { if(m.t === 'drop') S.q.push(m.col); });
+            if(S.q.length && S.turn !== S.net.me) drop(S.q.shift());
+            return;
+        }
         if(S.mode === 'cpu' && S.turn === 2) {
             if(--S.aiWait <= 0) { const c = aiMove(2); S.hover = c; drop(c); }
         }
@@ -2010,10 +2070,10 @@ function renderTrophies() {
         c.globalAlpha = 0.08; for(let i = 0; i < 10; i++) circle(c, (i * 71) % W, (i * 113) % H, 30 + (i % 3) * 10, i % 2 ? '#ff5252' : '#ffeb3b'); c.globalAlpha = 1;
         // header: turn indicator
         const p = S.end ? S.end.winner : S.turn;
-        const label = S.end ? (S.end.winner ? `${nameOf(S.end.winner)} ${S.mode === 'cpu' && S.end.winner === 1 ? 'WIN' : 'WINS'}!` : 'DRAW!') : (S.mode === 'cpu' ? (S.turn === 1 ? 'YOUR TURN' : 'CPU IS THINKING…') : `${nameOf(S.turn)}'S TURN`);
+        const label = S.end ? (S.end.winner ? `${nameOf(S.end.winner)} ${S.mode === 'cpu' && S.end.winner === 1 ? 'WIN' : 'WINS'}!` : 'DRAW!') : (S.net ? (!MP.ready() ? 'WAITING…' : S.turn === S.net.me ? 'YOUR TURN' : nameOf(S.turn) + ' IS THINKING…') : S.mode === 'cpu' ? (S.turn === 1 ? 'YOUR TURN' : 'CPU IS THINKING…') : `${nameOf(S.turn)}'S TURN`);
         if(p) drawDisc(c, 34, 26, p, 1, 11);
         PX(c, label, p ? 54 : W / 2, 27, 9, p === 1 ? '#ff8a80' : p === 2 ? '#ffe57f' : '#b388ff', p ? 'left' : 'center');
-        T(c, `You ${tally.p1}  ·  ${S.mode === 'cpu' ? 'CPU' : 'Yellow'} ${tally.p2}${tally.d ? '  ·  Draws ' + tally.d : ''}`, W - 12, 27, 10, '#9b95bd', 'right');
+        T(c, `You ${tally.p1}  ·  ${S.net ? MP.partner() : S.mode === 'cpu' ? 'CPU' : 'Yellow'} ${tally.p2}${tally.d ? '  ·  Draws ' + tally.d : ''}`, W - 12, 27, 10, '#9b95bd', 'right');
         // hover disc
         if(!S.anim && !S.end && isHumanTurn() && S.hover >= 0) {
             const x = cx(S.hover), bob = Math.sin(S.f / 8) * 2;
@@ -2043,26 +2103,28 @@ function renderTrophies() {
             glow(c, '#fff', 14); c.beginPath(); c.moveTo(cx(a[1]), cy(a[0])); c.lineTo(cx(b[1]), cy(b[0])); c.stroke(); noGlow(c); c.lineCap = 'butt';
         }
         // column numbers / tip
-        T(c, S.mode === 'cpu' ? `vs CPU · ${S.diff.toUpperCase()}` : '2 PLAYERS · PASS & PLAY', W / 2, H - 18, 10, '#6f6a8e');
+        T(c, S.net ? `ONLINE · vs ${MP.partner().toUpperCase()}` : S.mode === 'cpu' ? `vs CPU · ${S.diff.toUpperCase()}` : '2 PLAYERS · PASS & PLAY', W / 2, H - 18, 10, '#6f6a8e');
     }
     const colAt = x => clamp(Math.floor((x - BX) / CS), 0, COLS - 1);
     defGame({
         dbg: () => S,
-        id: 'connect4', name: 'Connect 4', icon: '🔴', color: '#ff5252', cat: 'board', isNew: true, w: W, h: H, noPause: true,
+        mp: true, id: 'connect4', name: 'Connect 4', icon: '🔴', color: '#ff5252', cat: 'board', isNew: true, w: W, h: H, noPause: true,
         desc: 'Drop discs and line up four in a row — across, down or diagonally. Play pass-and-play with a friend or take on a CPU that looks 7 moves ahead on Hard.',
         tip: 'Tap a column to drop a disc', help: ['Tap a column to drop your disc', 'Get 4 in a row to win'],
         modes: [
-            {key: 'c4_mode', def: 'cpu', opts: [['cpu', '🤖 vs CPU'], ['2p', '👥 2 Players']]},
+            {key: 'c4_mode', def: 'cpu', opts: [['cpu', '🤖 vs CPU'], ['2p', '👥 2 Players'], ['net', '📡 Online']], onChange: v => { if(v === 'net' && !MP.host('connect4', () => { LS.set('c4_mode', 'cpu'); restartGame(); })) LS.set('c4_mode', 'cpu'); restartGame(); }},
             {key: 'c4_diff', def: 'normal', opts: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], show: () => LS.get('c4_mode', 'cpu') === 'cpu'}
         ],
         best: () => LS.int('c4_wins') ? `${LS.int('c4_wins')} wins` : '',
         init() {
-            const mode = LS.get('c4_mode', 'cpu');
+            let mode = LS.get('c4_mode', 'cpu'), net = null;
+            if(mode === 'net') { net = MP.attach('connect4'); if(!net) { mode = 'cpu'; LS.set('c4_mode', 'cpu'); } } else MP.end();
             const first = LS.int('c4_first', 1); LS.set('c4_first', first === 1 ? 2 : 1);
             S = {b: Array.from({length: ROWS}, () => Array(COLS).fill(0)), turn: mode === 'cpu' ? first : 1, mode, diff: LS.get('c4_diff', 'normal'),
-                 anim: null, end: null, line: null, hover: 3, f: 0, moves: 0, last: null, aiWait: 30};
+                 anim: null, end: null, line: null, hover: 3, f: 0, moves: 0, last: null, aiWait: 30, q: []};
+            if(net) { S.net = {me: net.role === 'a' ? 1 : 2}; S.turn = MP.first() === 'a' ? 1 : 2; }
             if(S.mode === 'cpu' && S.turn === 2) S.aiWait = 40;
-            A.setInfo(S.mode === 'cpu' ? (S.turn === 1 ? 'You go first' : 'CPU goes first') : 'Red goes first');
+            A.setInfo(S.net ? (S.turn === S.net.me ? 'You go first' : MP.partner() + ' goes first') : S.mode === 'cpu' ? (S.turn === 1 ? 'You go first' : 'CPU goes first') : 'Red goes first');
             A.setScore(tally.p1);
             A.rebuildModes();
         },
@@ -2071,12 +2133,12 @@ function renderTrophies() {
         phover(x) { if(isHumanTurn()) S.hover = colAt(x); },
         pdown(x) { if(isHumanTurn()) S.hover = colAt(x); },
         pmove(x) { if(isHumanTurn()) S.hover = colAt(x); },
-        pup(x, y) { if(!isHumanTurn() || S.anim || S.end) return; S.hover = colAt(x); drop(S.hover); },
+        pup(x, y) { if(!isHumanTurn() || S.anim || S.end) return; S.hover = colAt(x); if(drop(S.hover) && S.net) MP.send({t: 'drop', col: S.hover}); },
         input(b, down) {
             if(!down || !isHumanTurn() || S.anim || S.end) return;
             if(b === 'left') { S.hover = Math.max(0, S.hover - 1); sfx('move'); }
             if(b === 'right') { S.hover = Math.min(COLS - 1, S.hover + 1); sfx('move'); }
-            if(b === 'a' || b === 'down') drop(S.hover);
+            if((b === 'a' || b === 'down') && drop(S.hover) && S.net) MP.send({t: 'drop', col: S.hover});
         }
     });
 })();
@@ -4808,13 +4870,17 @@ function renderTrophies() {
         if(S.lock || S.done) return;
         const cd = S.cards.find(k => x >= k.x && x <= k.x + k.w && y >= k.y && y <= k.y + k.h);
         if(!cd || cd.up || cd.matched) return;
+        if(S.net) { if(S.turn !== S.net.me || !MP.ready()) return; MP.send({t: 'flip', i: S.cards.indexOf(cd)}); }
+        pick(cd);
+    }
+    function pick(cd) {
         if(!S.start) S.start = S.f;
         cd.up = true; flip(cd, true); S.open.push(cd); sfx('select'); haptic(8);
         if(S.open.length === 2) {
             S.moves++;
             const [a, b] = S.open;
             if(a.icon === b.icon) {
-                S.open = []; S.streak++; S.matches++;
+                S.open = []; S.streak++; S.matches++; if(S.net) S.sc[S.turn]++;
                 S.lock = true;
                 setTimeout(() => {
                     if(!S || S.cards.indexOf(a) < 0) return;
@@ -4826,13 +4892,24 @@ function renderTrophies() {
                 }, 260);
             } else {
                 S.streak = 0; S.lock = true;
-                setTimeout(() => { if(!S || S.cards.indexOf(a) < 0) return; [a, b].forEach(k => { k.up = false; flip(k, false); k.shake = 10; }); S.open = []; S.lock = false; sfx('error'); }, 750);
+                setTimeout(() => { if(!S || S.cards.indexOf(a) < 0) return; [a, b].forEach(k => { k.up = false; flip(k, false); k.shake = 10; }); S.open = []; S.lock = false; if(S.net) S.turn = 1 - S.turn; sfx('error'); }, 750);
             }
         }
     }
     function finish() {
         const cfg = MODES[S.mode], secs = Math.floor((S.f - S.start) / 60);
         S.done = true;
+        if(S.net) {
+            const mine = S.sc[S.net.me], theirs = S.sc[1 - S.net.me], pn = MP.partner();
+            setTimeout(() => {
+                if(!P.g || P.g.id !== 'memory') return;
+                const sub2 = `You ${mine} pairs · ${pn} ${theirs} pairs`;
+                if(mine > theirs) A.over({win: true, title: 'YOU WIN!', pts: 8, reason: 'Memory online win', sub: 'You found the most pairs', sub2});
+                else if(mine < theirs) A.over({title: pn.toUpperCase() + ' WINS', sub: pn + ' found the most pairs', sub2});
+                else A.over({title: 'TIE GAME', color: '#b388ff', sub: 'Same number of pairs', sub2});
+            }, 700);
+            return;
+        }
         let pts = S.moves <= 12 * cfg.scale ? 20 : (S.moves <= 18 * cfg.scale ? 10 : 5);
         pts = Math.round(pts * cfg.mult);
         const prev = LS.int('mem_best_' + S.mode);
@@ -4848,7 +4925,7 @@ function renderTrophies() {
         }, 700);
     }
     function peek() {
-        if(S.done || S.lock) return;
+        if(S.done || S.lock || S.net) return;
         if(invCount('peek') <= 0) { showToast('👁 No Peek Potions — buy one at the Prize Counter'); sfx('error'); return; }
         consumeItem('peek'); S.peeked = true; S.lock = true;
         const hidden = S.cards.filter(k => !k.matched && !k.up);
@@ -4857,9 +4934,13 @@ function renderTrophies() {
     }
     function update() {
         S.f++;
+        if(S.net) {
+            MP.take().forEach(m => { if(m.t === 'flip') S.fq.push(m.i); });
+            if(!S.lock && !S.done && S.fq.length && S.turn !== S.net.me) { const cd = S.cards[S.fq.shift()]; if(cd && !cd.up && !cd.matched) pick(cd); }
+        }
         S.cards.forEach(k => { k.flip += clamp(k.target - k.flip, -0.12, 0.12); if(k.shake > 0) k.shake--; });
         if(S.start && !S.done) { const s = Math.floor((S.f - S.start) / 60); A.setInfo(`Matches ${S.matches}/${MODES[S.mode].pairs} · ⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`); }
-        A.setScore(S.moves);
+        A.setScore(S.net ? S.sc[S.net.me] : S.moves);
     }
     function drawCard(c, k) {
         const sx = Math.abs(Math.cos(k.flip * Math.PI)), face = k.flip > 0.5;
@@ -4887,6 +4968,13 @@ function renderTrophies() {
     function draw(c) {
         c.fillStyle = vgrad(c, 0, H, ['#160f2e', '#0e0a1f']); c.fillRect(0, 0, W, H);
         const best = LS.int('mem_best_' + S.mode);
+        if(S.net) {
+            const my = S.turn === S.net.me;
+            PX(c, !MP.ready() ? 'WAITING…' : my ? 'YOUR TURN' : MP.partner().toUpperCase() + "'S TURN", 10, 16, 7, my ? '#69f0ae' : '#ff8a80', 'left');
+            T(c, `You ${S.sc[S.net.me]}  ·  ${MP.partner()} ${S.sc[1 - S.net.me]}`, W - 10, 16, 11, '#ffd54f', 'right');
+            T(c, `Pairs ${S.matches}/${MODES[S.mode].pairs}${S.streak > 1 ? `  ·  🔥 ${S.streak} streak` : ''}`, 10, 32, 11, '#cfc9ee', 'left');
+            S.cards.forEach(k => drawCard(c, k)); return;
+        }
         PX(c, `${S.mode.toUpperCase()} · ${MODES[S.mode].pairs} PAIRS`, 10, 16, 7, '#b388ff', 'left');
         T(c, best ? `🏅 Best ${best} moves` : 'No record yet', W - 10, 16, 11, '#ffd54f', 'right');
         T(c, `Moves ${S.moves}${S.streak > 1 ? `  ·  🔥 ${S.streak} streak` : ''}`, 10, 32, 11, '#cfc9ee', 'left');
@@ -4894,16 +4982,28 @@ function renderTrophies() {
     }
     defGame({
         dbg: () => S,
-        id: 'memory', name: 'Memory Match', icon: '🃏', color: '#b388ff', cat: 'puzzle', w: W, h: H, noPause: true,
+        mp: true, id: 'memory', name: 'Memory Match', icon: '🃏', color: '#b388ff', cat: 'puzzle', w: W, h: H, noPause: true,
         desc: 'Flip two cards at a time and find every matching pair in as few moves as you can. Three board sizes, combo streaks and move records for each.',
         tip: 'Tap two cards to find a pair', help: ['Tap cards to flip them', 'Find all the matching pairs', 'Fewer moves = more points'],
-        modes: [{key: 'mem_mode', def: 'easy', opts: [['easy', 'Easy 4×4'], ['medium', 'Medium 5×4'], ['hard', 'Hard 6×5']]}],
+        modes: [
+            {key: 'mem_play', def: 'solo', opts: [['solo', '🧠 Solo'], ['net', '📡 Online']], onChange: v => { if(v === 'net' && !MP.host('memory', () => { LS.set('mem_play', 'solo'); restartGame(); })) LS.set('mem_play', 'solo'); restartGame(); }},
+            {key: 'mem_mode', def: 'easy', opts: [['easy', 'Easy 4×4'], ['medium', 'Medium 5×4'], ['hard', 'Hard 6×5']], show: () => LS.get('mem_play', 'solo') !== 'net'}
+        ],
         actions: [{label: () => `👁 Peek (${invCount('peek')})`, fn: () => peek()}, {label: '🔄 New game', fn: () => A.restart()}],
         best: () => LS.int('mem_best_easy') ? `${LS.int('mem_best_easy')} moves` : '',
         init() {
-            const mode = MODES[LS.get('mem_mode', 'easy')] ? LS.get('mem_mode', 'easy') : 'easy', cfg = MODES[mode];
+            let play = LS.get('mem_play', 'solo'), net = null;
+            if(play === 'net') { net = MP.attach('memory'); if(!net) { LS.set('mem_play', 'solo'); play = 'solo'; } } else MP.end();
+            const mode = net ? 'medium' : MODES[LS.get('mem_mode', 'easy')] ? LS.get('mem_mode', 'easy') : 'easy', cfg = MODES[mode];
             const pool = ICONS.slice(0, cfg.pairs);
-            S = {mode, cards: shuffle([...pool, ...pool]).map(icon => ({icon, up: false, matched: false, flip: 0, target: 0, shake: 0, mt: 0})), open: [], moves: 0, matches: 0, streak: 0, f: 0, start: 0, done: false, lock: false, peeked: false};
+            let deck = [...pool, ...pool];
+            if(net) {   /* both phones build the same deck from the room code and round */
+                let h = 2166136261; for(const ch of net.code + net.round) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+                const rnd = () => { h = Math.imul(h ^ (h >>> 15), 1 | h); h ^= h + Math.imul(h ^ (h >>> 7), 61 | h); return ((h ^ (h >>> 14)) >>> 0) / 4294967296; };
+                for(let i = deck.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+            } else deck = shuffle(deck);
+            S = {mode, cards: deck.map(icon => ({icon, up: false, matched: false, flip: 0, target: 0, shake: 0, mt: 0})), open: [], moves: 0, matches: 0, streak: 0, f: 0, start: 0, done: false, lock: false, peeked: false, fq: [], sc: [0, 0], turn: net ? net.round % 2 : 0};
+            if(net) S.net = {me: net.role === 'a' ? 0 : 1};
             layout(); A.setInfo(`Matches 0/${cfg.pairs}`);
         },
         update, draw, pdown: (x, y) => tap(x, y)
@@ -4958,6 +5058,7 @@ function renderTrophies() {
         b[e.r][e.c] = v;
     }
     const copy = b => b.map(r => r.slice());
+    const F = v => S && S.flip ? 7 - v : v;
     function evalB(b) {
         let s = 0;
         for(let r = 0; r < 8; r++) for(let c = 0; c < 8; c++) {
@@ -4986,7 +5087,7 @@ function renderTrophies() {
     }
     // ---------- game flow ----------
     const legal = () => genMoves(S.b, S.turn, S.forced);
-    const humanTurn = () => !S.over && !S.anim && !(S.mode === 'cpu' && S.turn === 2);
+    const humanTurn = () => !S.over && !S.anim && (S.net ? (S.turn === S.net.me && MP.ready()) : !(S.mode === 'cpu' && S.turn === 2));
     const matchPrefix = m => { for(let i = 0; i < S.prefix.length; i++) if(!m.path[i] || m.path[i].r !== S.prefix[i].r || m.path[i].c !== S.prefix[i].c) return false; return true; };
     function counts() { let r = 0, k = 0; S.b.forEach(row => row.forEach(v => { if(v && owner(v) === 1) r++; else if(v) k++; })); return [r, k]; }
     function commit(mv) {
@@ -5010,9 +5111,15 @@ function renderTrophies() {
     }
     function end(winner) {
         S.over = true;
-        const human = S.mode === '2p' || winner === 1;
+        const human = S.net ? winner === S.net.me : (S.mode === '2p' || winner === 1);
         setTimeout(() => {
             if(!P.g || P.g.id !== 'checkers') return;
+            if(S.net) {
+                const pn = MP.partner();
+                if(human) { LS.set('chk_wins', LS.int('chk_wins') + 1); A.daily(1); unlock('chk_win'); A.over({win: true, title: 'YOU WIN!', color: winner === 1 ? '#ff5252' : '#cfd8dc', pts: 12, reason: 'Checkers online win', sub: `Captured ${S.cap[winner]} pieces`}); }
+                else A.over({title: pn.toUpperCase() + ' WINS', sub: 'Better luck next game', sub2: `You captured ${S.cap[S.net.me]} pieces`});
+                return;
+            }
             if(human) {
                 LS.set('chk_wins', LS.int('chk_wins') + 1); A.daily(1); unlock('chk_win');
                 if(S.mode === 'cpu' && S.diff === 'hard') unlock('chk_hard');
@@ -5034,7 +5141,7 @@ function renderTrophies() {
             const cand = moves.filter(m => m.from.r === S.sel.r && m.from.c === S.sel.c && matchPrefix(m) && m.path[S.prefix.length] && m.path[S.prefix.length].r === r && m.path[S.prefix.length].c === c);
             if(!cand.length) { sfx('error'); return; }
             const np = S.prefix.concat([{r, c}]), full = cand.find(m => m.path.length === np.length);
-            if(full) commit(full); else { S.prefix = np; sfx('eat'); }
+            if(full) { commit(full); if(S.net) MP.send({t: 'mv', mv: {from: full.from, path: full.path, caps: full.caps}}); } else { S.prefix = np; sfx('eat'); }
         }
     }
     function update() {
@@ -5043,14 +5150,17 @@ function renderTrophies() {
             const a = S.anim; a.t++;
             if(a.t >= 10) {
                 a.t = 0; const step = a.mv.path[a.seg];
-                if(a.mv.caps[a.seg]) { const [cr, cc] = a.mv.caps[a.seg]; FX.burst(BX + cc * CS + CS / 2, BY + cr * CS + CS / 2, owner(a.fromB[cr][cc]) === 1 ? ['#ff5252', '#fff'] : ['#616161', '#fff'], 14, 2.4); a.fromB[cr][cc] = 0; sfx('smash'); haptic(20); FX.shake(2); }
+                if(a.mv.caps[a.seg]) { const [cr, cc] = a.mv.caps[a.seg]; FX.burst(BX + F(cc) * CS + CS / 2, BY + F(cr) * CS + CS / 2, owner(a.fromB[cr][cc]) === 1 ? ['#ff5252', '#fff'] : ['#616161', '#fff'], 14, 2.4); a.fromB[cr][cc] = 0; sfx('smash'); haptic(20); FX.shake(2); }
                 else sfx('thud', 0.08);
                 void step; a.seg++;
                 if(a.seg >= a.mv.path.length) finishAnim();
             }
             return;
         }
-        if(!S.over && S.mode === 'cpu' && S.turn === 2 && --S.aiWait <= 0) {
+        if(S.net) {
+            MP.take().forEach(m => { if(m.t === 'mv') S.q.push(m.mv); });
+            if(S.q.length && !S.over && S.turn !== S.net.me) commit(S.q.shift());
+        } else if(!S.over && S.mode === 'cpu' && S.turn === 2 && --S.aiWait <= 0) {
             const depth = S.diff === 'hard' ? 5 : S.diff === 'normal' ? 3 : 1;
             let mv;
             if(S.diff === 'easy' && Math.random() < 0.3) { const all = genMoves(S.b, 2, S.forced); mv = pick(all); }
@@ -5075,7 +5185,7 @@ function renderTrophies() {
     }
     function draw(c) {
         c.fillStyle = vgrad(c, 0, H, ['#1b120c', '#2a1a10']); c.fillRect(0, 0, W, H);
-        const turnTxt = S.over ? 'GAME OVER' : S.mode === 'cpu' ? (S.turn === 1 ? "YOUR TURN · RED" : 'CPU THINKING…') : (S.turn === 1 ? "RED'S TURN" : "BLACK'S TURN");
+        const turnTxt = S.over ? 'GAME OVER' : S.net ? (!MP.ready() ? 'WAITING…' : S.turn === S.net.me ? 'YOUR TURN' : MP.partner().toUpperCase() + ' · THINKING') : S.mode === 'cpu' ? (S.turn === 1 ? "YOUR TURN · RED" : 'CPU THINKING…') : (S.turn === 1 ? "RED'S TURN" : "BLACK'S TURN");
         piece(c, 24, 26, S.turn === 1 ? 1 : 2);
         PX(c, turnTxt, 44, 26, 8, S.turn === 1 ? '#ff8a80' : '#cfd8dc', 'left');
         T(c, `Taken  🔴${S.cap[1]}  ⚫${S.cap[2]}`, W - 10, 26, 11, '#d7ccc8', 'right');
@@ -5089,7 +5199,7 @@ function renderTrophies() {
         const lastSet = new Set(S.last.map(p => p.r * 8 + p.c)), trail = new Set(S.prefix.map(p => p.r * 8 + p.c));
         const board = S.anim ? S.anim.fromB : S.b;
         for(let r = 0; r < 8; r++) for(let k = 0; k < 8; k++) {
-            const x = BX + k * CS, y = BY + r * CS, dark = (r + k) % 2 === 1;
+            const x = BX + F(k) * CS, y = BY + F(r) * CS, dark = (r + k) % 2 === 1;
             c.fillStyle = dark ? '#5d4037' : '#e8d5b9'; c.fillRect(x, y, CS, CS);
             if(dark) { c.fillStyle = 'rgba(255,255,255,0.03)'; c.fillRect(x, y, CS, CS / 2); }
             const id = r * 8 + k;
@@ -5100,34 +5210,34 @@ function renderTrophies() {
         for(let r = 0; r < 8; r++) for(let k = 0; k < 8; k++) {
             const v = board[r][k]; if(!v) continue;
             if(S.anim && r === S.anim.mv.from.r && k === S.anim.mv.from.c) continue;
-            const x = BX + k * CS + CS / 2, y = BY + r * CS + CS / 2;
+            const x = BX + F(k) * CS + CS / 2, y = BY + F(r) * CS + CS / 2;
             const sel = S.sel && S.sel.r === r && S.sel.c === k;
             const canMove = humanTurn() && !S.sel && moves.some(m => m.from.r === r && m.from.c === k);
             const pulse = must && canMove ? Math.abs(Math.sin(S.f / 10)) * 4 : 0;
             if(sel) { glow(c, '#ffeb3b', 16); circle(c, x, y, CS * 0.44, 'rgba(255,235,59,0.35)'); noGlow(c); }
             piece(c, x, y, v, sel ? 5 : pulse);
         }
-        targets.forEach(id => { const r = Math.floor(id / 8), k = id % 8, x = BX + k * CS + CS / 2, y = BY + r * CS + CS / 2; glow(c, '#ffeb3b', 10); circle(c, x, y, 6 + Math.sin(S.f / 6) * 1.5, 'rgba(255,235,59,0.85)'); noGlow(c); });
+        targets.forEach(id => { const r = Math.floor(id / 8), k = id % 8, x = BX + F(k) * CS + CS / 2, y = BY + F(r) * CS + CS / 2; glow(c, '#ffeb3b', 10); circle(c, x, y, 6 + Math.sin(S.f / 6) * 1.5, 'rgba(255,235,59,0.85)'); noGlow(c); });
         if(S.anim) {
             const a = S.anim, pts = [a.mv.from].concat(a.mv.path), p0 = pts[a.seg], p1 = pts[a.seg + 1] || p0, k = easeInOut(a.t / 10);
-            const x = BX + lerp(p0.c, p1.c, k) * CS + CS / 2, y = BY + lerp(p0.r, p1.r, k) * CS + CS / 2;
+            const x = BX + F(lerp(p0.c, p1.c, k)) * CS + CS / 2, y = BY + F(lerp(p0.r, p1.r, k)) * CS + CS / 2;
             piece(c, x, y, a.v, 4 + Math.sin(k * Math.PI) * (a.mv.caps.length ? 12 : 4));
         }
-        T(c, S.mode === 'cpu' ? `vs CPU · ${S.diff.toUpperCase()}${S.forced ? ' · forced jumps' : ''}` : `2 PLAYERS${S.forced ? ' · forced jumps' : ''}`, W / 2, H - 10, 10, '#a1887f');
+        T(c, S.net ? `ONLINE · vs ${MP.partner().toUpperCase()}` : S.mode === 'cpu' ? `vs CPU · ${S.diff.toUpperCase()}${S.forced ? ' · forced jumps' : ''}` : `2 PLAYERS${S.forced ? ' · forced jumps' : ''}`, W / 2, H - 10, 10, '#a1887f');
     }
     defGame({
         dbg: () => S,
-        id: 'checkers', name: 'Checkers', icon: '🏁', color: '#ff7043', cat: 'board', w: W, h: H, noPause: true,
+        mp: true, id: 'checkers', name: 'Checkers', icon: '🏁', color: '#ff7043', cat: 'board', w: W, h: H, noPause: true,
         desc: 'Classic checkers with multi-jumps and kings. Play a friend or a CPU with three brain sizes, with undo, hints and optional forced captures.',
         tip: 'Tap a piece, then tap where to move it', help: ['Tap a piece, then a highlighted square', 'Jump to capture · reach the far side to king'],
         modes: [
-            {key: 'chk_mode', def: 'cpu', opts: [['cpu', '🤖 vs CPU'], ['2p', '👥 2 Players']]},
+            {key: 'chk_mode', def: 'cpu', opts: [['cpu', '🤖 vs CPU'], ['2p', '👥 2 Players'], ['net', '📡 Online']], onChange: v => { if(v === 'net' && !MP.host('checkers', () => { LS.set('chk_mode', 'cpu'); restartGame(); })) LS.set('chk_mode', 'cpu'); restartGame(); }},
             {key: 'chk_diff', def: 'normal', opts: [['easy', 'Easy'], ['normal', 'Normal'], ['hard', 'Hard']], show: () => LS.get('chk_mode', 'cpu') === 'cpu'},
             {key: 'chk_forced', def: '1', opts: [['1', 'Forced jumps'], ['0', 'Free jumps']]}
         ],
         actions: [
             {label: '↩ Undo', fn: () => {
-                if(S.anim || !S.hist.length || S.over) { sfx('error'); return; }
+                if(S.anim || !S.hist.length || S.over || S.net) { sfx('error'); return; }
                 let snap = S.hist.pop();
                 if(S.mode === 'cpu' && snap.turn === 2 && S.hist.length) snap = S.hist.pop();
                 S.b = snap.b; S.turn = snap.turn; S.last = snap.last; S.cap = snap.cap; S.sel = null; S.prefix = []; S.hint = null; sfx('whoosh');
@@ -5137,13 +5247,16 @@ function renderTrophies() {
         ],
         best: () => LS.int('chk_wins') ? `${LS.int('chk_wins')} wins` : '',
         init() {
-            S = {b: Array.from({length: 8}, () => Array(8).fill(0)), turn: 1, mode: LS.get('chk_mode', 'cpu'), diff: LS.get('chk_diff', 'normal'), forced: LS.get('chk_forced', '1') === '1',
+            let mode = LS.get('chk_mode', 'cpu'), net = null;
+            if(mode === 'net') { net = MP.attach('checkers'); if(!net) { mode = 'cpu'; LS.set('chk_mode', 'cpu'); } } else MP.end();
+            S = {q: [], b: Array.from({length: 8}, () => Array(8).fill(0)), turn: 1, mode, diff: LS.get('chk_diff', 'normal'), forced: LS.get('chk_forced', '1') === '1',
                  sel: null, prefix: [], last: [], hist: [], hint: null, cap: {1: 0, 2: 0}, over: false, anim: null, aiWait: 0, f: 0};
+            if(net) { S.net = {me: (net.role === 'a') === (net.round % 2 === 0) ? 1 : 2}; S.flip = S.net.me === 2; S.forced = true; }
             for(let r = 0; r < 8; r++) for(let k = 0; k < 8; k++) if((r + k) % 2 !== 0) { if(r < 3) S.b[r][k] = 2; else if(r > 4) S.b[r][k] = 1; }
             A.rebuildModes();
         },
         update, draw,
-        pdown(x, y) { const k = Math.floor((x - BX) / CS), r = Math.floor((y - BY) / CS); if(inB(r, k)) tapCell(r, k); }
+        pdown(x, y) { let k = Math.floor((x - BX) / CS), r = Math.floor((y - BY) / CS); if(S.flip) { k = 7 - k; r = 7 - r; } if(inB(r, k)) tapCell(r, k); }
     });
 })();
 
@@ -6716,6 +6829,41 @@ ACH.push(
     });
 })();
 
+// ---------- TOGETHER GAMES (partner or bot) in the main carousel ----------
+(function() {
+    const W = 300, H = 450;
+const TG = [["ttt", "Tic-Tac-Toe", "❌", "#35c8ff", "board", "Classic noughts and crosses. Best of many."], ["reversi", "Reversi", "⚫", "#22c55e", "board", "Flip the other discs and own the board."], ["dots", "Dots & Boxes", "🔲", "#a78bfa", "board", "Close the boxes. Every box you finish gives you another turn."], ["chess", "Chess", "♟️", "#e5e7eb", "board", "The real thing. Checkmate wins."], ["mancala", "Mancala", "🫘", "#a16207", "board", "Sow seeds, capture, fill your store."], ["gomoku", "Gomoku", "⚪", "#f59e0b", "board", "Five in a row on a big board."], ["codebreak", "Code Breaker", "🔐", "#22c55e", "puzzle", "Crack the secret color code first."], ["words", "Word Guess", "🔤", "#14b8a6", "puzzle", "Pick a secret word, they guess the letters."], ["rps", "RPS Lizard Spock", "🖖", "#f43f5e", "casual", "Rock Paper Scissors Lizard Spock. First to 3."], ["reaction", "Reaction Duel", "⚡", "#facc15", "casual", "Tap when it turns green. First to 3."], ["trivia", "Trivia Showdown", "🧠", "#c084fc", "casual", "Movies, anime, games and more."], ["pictionary", "Draw & Guess", "🎨", "#ff2bd6", "casual", "One draws live, the other guesses."], ["twotruths", "Two Truths & a Lie", "🤥", "#ef4444", "casual", "Spot the fib. Great for long-distance nights."], ["eights", "Crazy Eights", "🎴", "#7c3aed", "casual", "Match suit or rank. 8s are wild."], ["dice", "Dice Duel", "🎲", "#f43f5e", "casual", "Roll, hold, score. Thirteen rounds."], ["tycoon", "Property Tycoon", "🏙️", "#16a34a", "board", "Buy streets, build, bankrupt your partner."], ["oops", "Oops! Slide Home", "🛝", "#00e5ff", "board", "Race 3 pawns home and bump your opponent."], ["lifepath", "Life Path", "🎡", "#ffb300", "board", "Careers, family, houses. Retire richest."]];
+    TG.forEach(([key, name, icon, color, cat, desc]) => {
+        let ov = null, S = null;
+        function closeOv() { if(ov) { try { ov.querySelector('iframe').src = 'about:blank'; } catch(e) {} ov.remove(); ov = null; } }
+        function openOv() {
+            closeOv();
+            ov = document.createElement('div'); ov.id = 'tg-ov';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:2147470000;background:#0b0818';
+            ov.innerHTML = '<iframe src="duo.html?arc=1&g=' + key + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#0b0818"></iframe>' +
+                '<button aria-label="Back to the arcade" style="position:absolute;left:8px;top:8px;z-index:2;width:34px;height:34px;border-radius:50%;border:2px solid #ffffff55;background:#000a;color:#fff;font:700 16px sans-serif">◀</button>';
+            document.body.appendChild(ov);
+            ov.querySelector('button').onclick = () => { sfx('click'); closeOv(); openHub(); };
+        }
+        defGame({
+            id: 'tg_' + key, name, icon, color, cat, mp: true, w: W, h: H, noPause: true,
+            desc: desc + ' Play with your partner on your own phones, or solo against a bot.',
+            tip: 'Tap the screen to start', help: ['Choose 👥 Partner or 🤖 Bot', 'Your partner gets a notification to join'],
+            init() { S = {f: 0}; setTimeout(() => { if(P.g && P.g.id === 'tg_' + key) openOv(); }, 60); },
+            update() { S.f++; },
+            draw(c) {
+                c.fillStyle = vgrad(c, 0, H, [shade(color, -60), '#0b0818']); c.fillRect(0, 0, W, H);
+                EMO(c, icon, W / 2, 150 + Math.sin(S.f / 20) * 6, 64);
+                PX(c, name.toUpperCase(), W / 2, 235, 11, '#ffea00', 'center');
+                T(c, '👥 Partner  ·  🤖 Bot', W / 2, 270, 13, '#fff');
+                T(c, 'Tap to open the game', W / 2, 380, 12, '#ffffffaa');
+            },
+            pdown() { audio(); if(!ov) openOv(); },
+            stop() { closeOv(); }
+        });
+    });
+})();
+
     /* build 21: publish trophies to the Club tab */
     (function(){ const pub=()=>{ try { if(!window.BCX) return; const got=LS.json('arc_ach',{}); BCX.publish('arcade', ACH.map(a=>[a.id,a.icon,a.name,a.desc,!!got[a.id]])); } catch(e){} }; pub(); setInterval(pub,5000); })();
     setupCanvasInput();
@@ -6730,6 +6878,139 @@ ACH.push(
     const h = (location.hash || '').slice(1);
     if(h && GMAP[h]) setTimeout(() => openGame(h), 50);
     window.ARCADE = {GAMES, GMAP, P, A, openGame, openHub};
+})();
+</script>
+<script id="arcade-mp">
+/* Online play layer: turn-based message passing between two phones through club_kv.
+   Each player only ever writes their own doc (acmp_CODE_a / acmp_CODE_b), so there are no write races. */
+(function() {
+    const ls = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch(e) { return d; } };
+    const me = () => ls('fx_me', 'p1') === 'p2' ? 'p2' : 'p1';
+    const myName = () => ls(me() === 'p2' ? 'householdNameP2' : 'householdNameP1', me() === 'p2' ? 'Player 2' : 'Player 1');
+    const cfg = () => { try { const c = JSON.parse(localStorage.getItem('fx_sync_cfg')); return c && c.url && c.key && c.hh ? c : null; } catch(e) { return null; } };
+    const hdr = c => { const h = {apikey: c.key, 'Content-Type': 'application/json'}; if(/^eyJ/.test(c.key)) h.Authorization = 'Bearer ' + c.key; return h; };
+    const rest = c => c.url.replace(/\/+$/, '') + '/rest/v1/';
+    const kvGet = key => { const c = cfg(); if(!c) return Promise.resolve(null);
+        return fetch(rest(c) + 'club_kv?select=value&household=eq.' + encodeURIComponent(c.hh) + '&key=eq.' + encodeURIComponent(key), {headers: hdr(c), cache: 'no-store'})
+            .then(r => r.ok ? r.json() : []).then(x => { if(!x[0]) return null; try { return JSON.parse(x[0].value); } catch(e) { return null; } }).catch(() => undefined); };
+    const kvSet = (key, obj) => { const c = cfg(); if(!c) return Promise.resolve(false);
+        return fetch(rest(c) + 'club_kv?on_conflict=household,key', {method: 'POST', headers: Object.assign(hdr(c), {Prefer: 'resolution=merge-duplicates,return=minimal'}),
+            body: JSON.stringify([{household: c.hh, key, value: JSON.stringify(obj), updated_at: Date.now(), updated_by: me()}])}).then(r => r.ok).catch(() => false); };
+    const kvList = prefix => { const c = cfg(); if(!c) return Promise.resolve([]);
+        return fetch(rest(c) + 'club_kv?select=key,value&household=eq.' + encodeURIComponent(c.hh) + '&key=like.' + encodeURIComponent(prefix + '*'), {headers: hdr(c), cache: 'no-store'})
+            .then(r => r.ok ? r.json() : []).catch(() => []); };
+    const pushTurn = (text, code) => { const c = cfg(); if(!c) return;
+        fetch(rest(c) + 'club_events', {method: 'POST', headers: Object.assign(hdr(c), {Prefer: 'return=minimal'}),
+            body: JSON.stringify({household: c.hh, ts: Date.now(), sender: me(), kind: 'turn', body: {__cid: 'a' + Date.now().toString(36), data: {text, url: './arcade.html#mp=' + code}}})}).catch(() => {}); };
+    const NAMES = {connect4: 'Connect 4', battle: 'Battleship', checkers: 'Checkers', memory: 'Memory Match'};
+    const MODEKEY = {connect4: 'c4_mode', battle: 'bat_play', checkers: 'chk_mode', memory: 'mem_play'};
+    const mkCode = () => { const a = 'ABCDEFGHJKMNPQRSTUVWXYZ'; let s = ''; for(let i = 0; i < 5; i++) s += a[Math.floor(Math.random() * a.length)]; return s; };
+
+    const MP = {s: null, keep: false, NAMES, MODEKEY};
+    function mk(role, code, g) {
+        return {role, code, g, round: 0, attached: false, out: [], rxi: 0, inbox: [], peerRound: -1, peerName: '', gone: false, joined: false,
+            writing: false, dirty: false, timer: 0, ended: 0, mine: 'acmp_' + code + '_' + role, theirs: 'acmp_' + code + '_' + (role === 'a' ? 'b' : 'a'), lastRx: Date.now()};
+    }
+    function flush(s) {
+        if(s.writing) { s.dirty = true; return; }
+        s.writing = true;
+        kvSet(s.mine, {g: s.g, n: myName(), by: me(), ts: Date.now(), msgs: s.out, ended: s.ended}).then(() => { s.writing = false; if(s.dirty) { s.dirty = false; flush(s); } });
+    }
+    function poll(s) {
+        if(MP.s !== s) return;
+        kvGet(s.theirs).then(d => {
+            if(MP.s !== s || !d) return;
+            s.lastRx = Date.now(); s.peerName = d.n || s.peerName; s.joined = true;
+            const msgs = d.msgs || [];
+            msgs.slice(s.rxi).forEach(m => { if(m.t === 'rdy') s.peerRound = Math.max(s.peerRound, m.rd); else if(m.t === 'bye') s.gone = true; else s.inbox.push(m); });
+            s.rxi = msgs.length; if(d.ended) s.gone = true;
+        }).then(() => { if(MP.s === s) s.timer = setTimeout(() => poll(s), document.hidden ? 4000 : 800); });
+    }
+    MP.send = m => { const s = MP.s; if(!s) return; m.rd = s.round; s.out.push(m); flush(s); };
+    MP.take = () => { const s = MP.s; if(!s) return []; const out = [], keep = []; s.inbox.forEach(m => { if(m.rd === s.round) out.push(m); else if(m.rd > s.round) keep.push(m); }); s.inbox = keep; return out; };
+    MP.ready = () => { const s = MP.s; return !!(s && s.joined && s.peerRound >= s.round && !s.gone); };
+    MP.role = () => MP.s ? MP.s.role : 'a';
+    MP.first = () => MP.s && MP.s.round % 2 === 1 ? 'b' : 'a';   /* who moves first this round */
+    MP.partner = () => (MP.s && MP.s.peerName) || 'Partner';
+    MP.attach = g => {
+        const s = MP.s; if(!s || s.g !== g) return null;
+        if(s.attached) s.round++;
+        s.attached = true; s.inbox = s.inbox.filter(m => m.rd >= s.round);
+        MP.send({t: 'rdy'}); ui(); return s;
+    };
+    MP.host = (g, onCancel) => {
+        if(!cfg()) { alert('Turn on Sync in the Breakfast Club app first (Settings → Sync with your partner) so your two phones can find each other.'); return false; }
+        MP.end();
+        const s = mk('a', mkCode(), g); s.onCancel = onCancel; MP.s = s;
+        flush(s); poll(s); pushTurn(myName() + ' wants to play ' + NAMES[g] + '!', s.code); startUI(); return true;
+    };
+    MP.join = code => {
+        code = String(code || '').toUpperCase();
+        return kvGet('acmp_' + code + '_a').then(d => {
+            if(!d || d.ended || !NAMES[d.g]) { alert('That game is not open any more.'); return false; }
+            MP.end();
+            const s = mk('b', code, d.g); s.peerName = d.n || ''; MP.s = s;
+            flush(s); poll(s); startUI();
+            try { localStorage.setItem(MODEKEY[d.g], 'net'); } catch(e) {}
+            MP.keep = true; try { openGame(d.g); } finally { MP.keep = false; }
+            return true;
+        });
+    };
+    MP.end = () => {
+        const s = MP.s; if(!s) return;
+        MP.s = null; clearTimeout(s.timer);
+        s.out.push({t: 'bye', rd: s.round}); s.ended = 1; flush(s);
+        const o = document.getElementById('mp-ov'); if(o) o.remove();
+        clearInterval(MP.uiT);
+    };
+    /* waiting / partner-left overlay */
+    function ui() {
+        const s = MP.s; let o = document.getElementById('mp-ov');
+        const need = s && P.g && P.g.id === s.g && (!MP.ready());
+        if(!need) { if(o) o.remove(); return; }
+        if(!o) {
+            o = document.createElement('div'); o.id = 'mp-ov';
+            o.style.cssText = 'position:fixed;inset:0;z-index:2147460000;display:flex;align-items:center;justify-content:center;background:#000b;font-family:system-ui,sans-serif';
+            document.body.appendChild(o);
+        }
+        const gone = s.gone, host = s.role === 'a' && !s.joined;
+        const html = gone ? '<div style="font-size:42px">👋</div><b>' + MP.partner() + ' left the game</b><button id="mp-x" style="margin-top:14px">Back to solo</button>'
+            : host ? '<div style="font-size:42px">📨</div><b>Waiting for your partner…</b><div style="opacity:.8;font-size:13px;margin:6px 0">They got a notification. Or they can open the Arcade and tap Join.</div><div style="font:800 28px monospace;letter-spacing:6px;color:#ffea00">' + s.code + '</div><button id="mp-x" style="margin-top:14px">Cancel</button>'
+            : '<div style="font-size:42px">⏳</div><b>' + (s.round > 0 ? 'Waiting for ' + MP.partner() + ' to start the next round…' : 'Connecting to ' + MP.partner() + '…') + '</b><button id="mp-x" style="margin-top:14px">Cancel</button>';
+        if(o.dataset.h !== html) {
+            o.dataset.h = html;
+            o.innerHTML = '<div style="background:#1b1638;border:2px solid #7c4dff;border-radius:16px;padding:20px 22px;text-align:center;color:#fff;max-width:300px">' + html + '</div>';
+            const b = o.querySelector('#mp-x');
+            b.style.cssText = 'padding:10px 20px;border-radius:12px;border:0;background:#7c4dff;color:#fff;font-weight:800;font-size:15px';
+            b.onclick = () => { const cb = s.onCancel; MP.end(); if(cb) cb(); else openHub(); };
+        }
+    }
+    function startUI() { clearInterval(MP.uiT); MP.uiT = setInterval(ui, 400); }
+    /* make leaving a game always close the session */
+    const _stop = window.stopGame;
+    window.stopGame = function() { if(!MP.keep) MP.end(); return _stop.apply(this, arguments); };
+    /* invites on the hub */
+    function strip(html, code) {
+        let e = document.getElementById('mp-strip');
+        if(!html) { if(e) e.remove(); return; }
+        if(!e) { e = document.createElement('div'); e.id = 'mp-strip'; e.style.cssText = 'position:fixed;left:10px;right:10px;bottom:10px;z-index:9000;display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:#1b1638;border:2px solid #4ade80;color:#fff;font:700 14px system-ui,sans-serif;box-shadow:0 6px 24px #000a'; document.body.appendChild(e); }
+        if(e.dataset.c !== code) { e.dataset.c = code; e.innerHTML = '<div style="flex:1">' + html + '</div><button style="padding:9px 16px;border-radius:10px;border:0;background:#4ade80;color:#052;font-weight:800">Join</button>'; e.querySelector('button').onclick = () => { strip(''); MP.join(code); }; }
+    }
+    function scan() {
+        setTimeout(scan, 6000);
+        if(P.g || MP.s || document.hidden || !cfg()) { if(P.g || MP.s) strip(''); return; }
+        kvList('acmp_').then(rows => {
+            const has = {}, docs = [];
+            rows.forEach(r => { has[r.key] = 1; const m = /^acmp_([A-Z]{5})_a$/.exec(r.key); if(m) { try { docs.push([m[1], JSON.parse(r.value)]); } catch(e) {} } });
+            const inv = docs.find(([c, d]) => d && !d.ended && d.by !== me() && NAMES[d.g] && Date.now() - d.ts < 20 * 60e3 && !has['acmp_' + c + '_b']);
+            if(P.g || MP.s) { strip(''); return; }
+            strip(inv ? '🎉 <b>' + (inv[1].n || 'Your partner') + '</b> wants to play <b>' + NAMES[inv[1].g] + '</b>' : '', inv ? inv[0] : '');
+        });
+    }
+    function hashJoin() { const m = /mp=([A-Za-z]{5})/.exec(location.hash || ''); if(m) { history.replaceState(null, '', location.pathname + location.search); MP.join(m[1]); } }
+    window.addEventListener('hashchange', hashJoin);
+    setTimeout(() => { hashJoin(); scan(); }, 900);
+    window.MP = MP;
 })();
 </script>
 <script src="bc-assets.js"></script>
