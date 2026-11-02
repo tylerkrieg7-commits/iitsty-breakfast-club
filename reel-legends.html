@@ -4964,6 +4964,75 @@ ACT.mastclaim=t=>{const id=t.dataset.id,sp=FID[id];S.mast=S.mast||{};const cl=S.
 /* ---- surface sparkle (graphics) ---- */
 {const dsf=drawSurfaceFront;drawSurfaceFront=function(){dsf();if(camY>SURF+60||SET.quality===0)return;ctx.save();ctx.globalCompositeOperation='lighter';for(let i=0;i<26;i++){const x=(i*97+TM*12*(i%3+1))%VW,tw=Math.max(0,Math.sin(TM*3+i*1.7));if(tw<.5)continue;const y=waveY(x,TM);ctx.fillStyle='rgba(255,255,230,'+(.55*tw)+')';ctx.fillRect(x-1,y-1,3,2)}ctx.restore()}}
 
+/* ===== build 33: water reflections, bow spray, wake ===== */
+(function(){
+  const off=document.createElement('canvas'),oc=off.getContext('2d');
+  const SPR=[],FOAM=[];let lastT=0,bowY=null,wakeT=0,slamT=0;
+  const wy=x=>waveY(x,TM);
+  function reflect(){
+    if(typeof SET!=='undefined'&&SET.quality===0)return;
+    const m=ctx.getTransform(),a=m.a;if(!a)return;
+    const axis=SURF+5,axY=(axis)*m.d+m.f;            // device y of the waterline
+    if(axY<20||axY>cv.height+400)return;
+    const top=Math.max(axis-96,(-m.f)/m.d),h=axis-top;if(h<14)return;
+    const wd=Math.max(2,Math.round(VW*a)),hd=Math.max(2,Math.round(h*a)),sy=(top*m.d+m.f);
+    if(sy<0||sy+hd>cv.height+2)return;
+    if(off.width!==wd)off.width=wd;if(off.height!==hd)off.height=hd;
+    oc.globalCompositeOperation='source-over';oc.clearRect(0,0,wd,hd);
+    oc.drawImage(cv,m.e,sy,wd,hd,0,0,wd,hd);
+    oc.globalCompositeOperation='source-atop';oc.fillStyle='rgba(18,80,120,.2)';oc.fillRect(0,0,wd,hd);
+    const n=Math.ceil(h/3.6),sH=3.6;
+    ctx.save();
+    for(let j=0;j<n;j++){
+      const f=1-j/n,al=.55*Math.pow(f,1.1)*(1-.35*(typeof night!=='undefined'?night:0));if(al<.02)continue;
+      const srcY=hd-(j+1)*sH*a;if(srcY<0)break;
+      const wob=Math.sin(TM*1.9+j*.75)*(.7+j*.16)+Math.sin(TM*3.1+j*1.7)*.5;
+      ctx.globalAlpha=al;
+      ctx.drawImage(off,0,srcY,wd,Math.max(1,sH*a),wob-4,axis+j*sH,VW+8,sH+.6);
+    }
+    ctx.restore();
+    // glitter on the reflected water
+    if(typeof light!=='undefined'&&light>.15){ctx.save();ctx.globalCompositeOperation='lighter';
+      for(let i=0;i<26;i++){const gx=(i*149.3+Math.sin(TM*.7+i)*40)%VW,gy=axis+8+((i*37)%70),tw=Math.max(0,Math.sin(TM*3+i*2.1));if(tw<.5)continue;
+        ctx.fillStyle=`rgba(255,255,255,${.22*tw*light})`;ctx.fillRect(gx,gy+Math.sin(TM*1.5+i)*2,6+(i%4)*5,1.3)}
+      ctx.restore()}
+  }
+  function spawnSpray(x,y,vx,vy,r,life){if(SPR.length<260)SPR.push({x,y,vx,vy,r,life,max:life})}
+  function stepFx(dt){
+    const boatOn=typeof SCN!=='undefined'&&SCN.plat==='boat'&&camY<SURF+160;
+    const driving=(typeof cruise!=='undefined'&&cruise>0)||(typeof sailing!=='undefined'&&sailing);
+    if(boatOn){
+      const bx=B.x+84,by=wy(bx);
+      if(bowY!=null){const v=(by-bowY)/Math.max(dt,.001);
+        if(Math.abs(v)>26&&(slamT-=dt)<=0){slamT=.16;const n=Math.min(9,Math.floor(Math.abs(v)/22));for(let i=0;i<n;i++)spawnSpray(bx+rnd(-8,8),by-2,rnd(10,70),-rnd(70,170),rnd(1,2.4),rnd(.4,.75))}}
+      bowY=by;
+      if(driving){
+        const n=Math.round(dt*70);for(let i=0;i<n;i++)spawnSpray(bx+rnd(-6,10),by-3,-rnd(50,190),-rnd(140,340),rnd(1.2,3),rnd(.5,.95));
+        wakeT-=dt;if(wakeT<=0){wakeT=.045;FOAM.push({x:B.x-95+rnd(-8,8),life:1.6,max:1.6,w:rnd(18,34),o:rnd(-3,3)});FOAM.push({x:B.x+60,life:.9,max:.9,w:rnd(10,20),o:0})}
+      }else{
+        wakeT-=dt;if(wakeT<=0){wakeT=.5;FOAM.push({x:B.x-92+rnd(-10,10),life:2.2,max:2.2,w:rnd(14,26),o:rnd(-2,2),calm:1})}
+      }
+    }else bowY=null;
+    for(let i=SPR.length-1;i>=0;i--){const p=SPR[i];p.life-=dt;p.vy+=760*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;
+      const w=wy(p.x);if(p.life<=0||(p.vy>0&&p.y>w)){if(p.life>0&&Math.random()<.18)RIP.push({x:p.x,y:w,r:2,life:.7});SPR.splice(i,1)}}
+    for(let i=FOAM.length-1;i>=0;i--){const f=FOAM[i];f.life-=dt;f.x-=(f.calm?10:46)*dt;f.w+=dt*(f.calm?5:16);if(f.life<=0)FOAM.splice(i,1)}
+  }
+  function drawFx(){
+    ctx.save();
+    for(const f of FOAM){const k=f.life/f.max,a=(f.calm?.28:.55)*k;ctx.fillStyle=`rgba(255,255,255,${a})`;ctx.beginPath();ctx.ellipse(f.x,wy(f.x)+2+f.o*.4,f.w,2.3+(1-k)*1.6,0,0,TAU);ctx.fill();
+      ctx.fillStyle=`rgba(210,245,255,${a*.6})`;ctx.beginPath();ctx.ellipse(f.x-f.w*.3,wy(f.x)+4,f.w*.6,1.6,0,0,TAU);ctx.fill()}
+    for(const p of SPR){const a=Math.min(1,p.life/p.max*1.8);ctx.fillStyle=`rgba(235,250,255,${a*.9})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,TAU);ctx.fill();
+      ctx.strokeStyle=`rgba(235,250,255,${a*.35})`;ctx.lineWidth=p.r*.8;ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p.x-p.vx*.03,p.y-p.vy*.03);ctx.stroke()}
+    ctx.restore();
+  }
+  const dsf=drawSurfaceFront;
+  drawSurfaceFront=function(){
+    const now=performance.now();let dt=lastT?(now-lastT)/1000:0;lastT=now;if(dt>.2)dt=.016;
+    try{reflect()}catch(e){}
+    dsf();
+    try{stepFx(dt);drawFx()}catch(e){}
+  };
+})();
 /* >>> n_main.js */
 /* ============================== MAIN ============================== */
 window.addEventListener('resize',resize);
