@@ -8093,7 +8093,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                     penguin: "🐧",
                     robot: "🤖",
                     ghost: "👻",
-                    alien: "👽",
+                    alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲",
                 };
 
                 unlocked.forEach((u) => {
@@ -8201,7 +8201,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                         penguin: "🐧",
                         robot: "🤖",
                         ghost: "👻",
-                        alien: "👽",
+                        alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲",
                     };
 
                     if (baseIcons[type]) {
@@ -14608,7 +14608,7 @@ function fxNutEstimate(lines) {
     function adopt() {
         const L = pets(); if (L.length >= slotsAllowed()) { toast(`You can have ${slotsAllowed()} pet${slotsAllowed() > 1 ? "s" : ""} right now. More slots unlock at pet levels 10, 25 and 40 — or buy one for 300 pts below.`); return; }
         const types = JSON.parse(ls("unlockedCompanions", '["dog","cat","bird","fox","bunny","penguin","robot"]'));
-        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
         const el = F.sheet("🐣 Adopt a new pet", `<div class="form-group"><label>Kind</label><select id="fx3-ad-t">${types.map((t) => `<option value="${t}">${icons[t] || ""} ${t[0].toUpperCase() + t.slice(1)}</option>`).join("")}${jget("customCompanions", []).map((c) => `<option value="${c.id}">Custom: ${esc(c.name)}</option>`).join("")}</select></div>
             <div class="form-group"><label>Name</label><input type="text" id="fx3-ad-n" maxlength="20" placeholder="e.g. Biscuit"></div>
             <div class="form-group"><label>Personality</label><select id="fx3-ad-p">${Object.entries(PERS).map(([k, v]) => `<option value="${k}">${v.n} — ${v.d}</option>`).join("")}</select></div>
@@ -14757,7 +14757,7 @@ function fxNutEstimate(lines) {
         window.__fx3CloseRoom = () => { cancelAnimationFrame(raf); clearInterval(idleT); ov.remove(); };
         const pet = { x: 50, y: 74, tx: 50, ty: 74, speed: 0.35, task: null, carry: false, sleep: false };
         let ball = null, treat = null, scene = null, petEl = null, ballEl = null, treatEl = null;
-        const petGlyph = () => { const t = petType(), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" }; if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; } return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐶"; };
+        const petGlyph = () => { const t = petType(), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" }; if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; } return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐶"; };
         const itemHTML = (it, i) => {
             const f = FURN.find((x) => x.id === it.id); if (!f) return "";
             let body = f.svg || `<span class="fx3-furn-e">${f.e}</span>`;
@@ -14910,10 +14910,10 @@ function fxNutEstimate(lines) {
         const host = $("pet-care-section"); if (!host) return;
         let c = $("fx3-mypets"); if (!c) { c = document.createElement("div"); c.className = "card"; c.id = "fx3-mypets"; c.style.borderColor = "#8d6e63"; host.insertAdjacentElement("beforebegin", c); }
         const p = P(), s = p.stats || {}, L = pets(), act = ls("fx3_pet_active", "pet1");
-        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
         const daysTogether = Math.max(0, Math.round((new Date(today() + "T00:00:00") - new Date((p.adopted || today()) + "T00:00:00")) / 864e5));
         const bedsOwned = BEDS.filter(bedUnlocked);
-        c.innerHTML = `<div class="card-header"><span class="card-title">🐾 My Pets</span><button class="btn-action" id="fx3-room-open" style="padding:4px 10px;font-size:.8rem;background:#8d6e63">🏠 Pet Room</button></div>
+        c.innerHTML = `<div class="card-header"><span class="card-title">🐾 My Pets</span><span><button class="btn-action" id="fx3-shop-open" style="padding:4px 10px;font-size:.8rem;background:#00897b">🛍️ Shop</button> <button class="btn-action" id="fx3-room-open" style="padding:4px 10px;font-size:.8rem;background:#8d6e63">🏠 Room</button></span></div>
             <div class="fx3-roster">${L.map((x) => { const d = x.data || {}, t = d.companionType || "dog", c2 = t.startsWith("comp_") ? (jget("customCompanions", []).find((y) => y.id === t) || {}) : null; return `<button class="fx3-pet-chip ${x.id === act ? "on" : ""}" data-pet="${x.id}">${c2 && c2.data ? `<img src="${c2.data}">` : (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0, "1.6rem") : icons[t]) || "🐾"}<span>${esc(d.companionName || "Buddy")}</span><small>Lv ${d.compLvl || 1}</small></button>`; }).join("")}
                 <button class="fx3-pet-chip add" id="fx3-adopt">＋<span>Adopt</span><small>${L.length}/${slotsAllowed()}</small></button></div>
             ${L.length >= slotsAllowed() && slotsAllowed() < 6 ? `<button class="btn-action" id="fx3-buy-slot" style="width:100%;margin:6px 0;background:#ff9800">Buy an extra pet slot · 300 pts</button>` : ""}
@@ -14937,7 +14937,7 @@ function fxNutEstimate(lines) {
         const q = (id) => c.querySelector("#" + id);
         q("fx3-flip").value = p.flip || "never"; q("fx3-bed-show").value = ls("fx3_bed_show", "sleep"); q("fx3-sleepn").value = ls("fx3_sleep_night", "on"); q("fx3-idle").value = ls("fx3_idle", "on"); q("fx3-voice").value = p.voice || "on";
         q("fx3-pet-behave").addEventListener("toggle", (e) => lsSet("fx3_behave_open", e.target.open ? "1" : "0"));
-        q("fx3-room-open").onclick = openRoom; q("fx3-adopt").onclick = adopt;
+        q("fx3-room-open").onclick = openRoom; q("fx3-shop-open").onclick = () => window.fx3ShopOpen && window.fx3ShopOpen("pets"); q("fx3-adopt").onclick = adopt;
         c.querySelectorAll("[data-pet]").forEach((b) => (b.onclick = () => switchPet(b.dataset.pet)));
         if (q("fx3-buy-slot")) q("fx3-buy-slot").onclick = () => { if (!confirm("Buy an extra pet slot for 300 pts?")) return; if (F.spend(300, "Pet slot")) { lsSet("fx3_extra_slots", String((parseInt(ls("fx3_extra_slots", "0"), 10) || 0) + 1)); renderPetCard(); toast("New pet slot unlocked!"); } };
         q("fx3-pers").onchange = (e) => { setP((x) => (x.personality = e.target.value)); renderPetCard(); };
@@ -15170,6 +15170,7 @@ function fxNutEstimate(lines) {
         const out = [];
         allAcc().forEach((a) => { const custom = !(a.id.startsWith("def_") || a.id.startsWith("fx3_")), toy = a.type === "toy"; out.push({ kind: toy ? "toy" : "acc", id: a.id, n: custom ? a.name : clean(a.name), icon: a.data, cost: custom ? 0 : a.cost || 0, lvl: custom ? 1 : a.unlockLvl || 1, egg: a.egg, ev: a.ev, gems: a.gems, rarity: custom ? "common" : rarityOf(a), owned: custom ? true : accOwned(a), slot: toy ? "toy" : slotFor(a), custom }); });
         if (window.BXPET) BXPET.types.forEach((t) => { const lvl = t === "ghost" ? 12 : t === "alien" ? 18 : 1, cost = PET_PRICE[t] || 0; out.push({ kind: "pet", id: "pt_" + t, type: t, n: t[0].toUpperCase() + t.slice(1), html: BXPET.svg(t, 0, "100%"), cost, lvl, how: lvl > 1 ? "lvl" : "", rarity: cost >= 500 ? "legendary" : cost >= 260 ? "epic" : cost >= 150 || lvl > 1 ? "rare" : "common", owned: unlockedTypes().includes(t), theme: PET_THEME[t] || "special" }); });
+        (jget("customCompanions", []) || []).forEach((c) => { if (c && c.id) out.push({ kind: "pet", custom: true, id: "pc_" + c.id, type: c.id, n: c.name || "Custom", html: `<img src="${esc(c.data)}" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:12px">`, cost: 0, lvl: 1, rarity: "common", owned: true, theme: "mine" }); });
         BEDS().forEach((b) => out.push({ kind: "bed", id: b.id, n: b.n, svg: b.svg, cost: b.how === "pts" ? b.cost : b.how === "event" ? 120 : 0, lvl: b.lvl || 1, egg: b.how === "egg" ? "epic" : null, ev: b.ev, gems: b.how === "gems" ? b.cost : null, how: b.how, note: b.note, rarity: b.how === "egg" ? "epic" : b.how === "gems" ? "legendary" : rarityOf({ cost: b.cost, lvl: b.lvl }), owned: window.fx3BedUnlocked ? window.fx3BedUnlocked(b) : false }));
         const R = ROOM();
         R.WALLS.forEach((w) => out.push({ kind: "wall", id: w.id, n: w.n, css: w.css, cost: w.ev ? 80 : w.cost || 0, lvl: w.lvl || 1, ev: w.ev, how: w.how, rarity: rarityOf(w), owned: window.fx3ItemOwned ? window.fx3ItemOwned(w) : false }));
@@ -15209,7 +15210,7 @@ function fxNutEstimate(lines) {
     const wish = () => jget("fx3_wish", []);
     const ownedAct = (it) => {
         if (it.kind === "acc" || it.kind === "toy") { const on = equippedIds().includes(it.id); return `<button class="btn-action fx3-buy" data-wear="${it.id}" ${on ? 'style="background:var(--success-color)"' : ""}>${on ? "Take off" : it.kind === "toy" ? "Use toy" : "Wear"}</button>${it.custom ? `<button class="fx-mini" data-adj="${it.id}" style="margin-top:2px">⚙️ Adjust</button>` : ""}`; }
-        if (it.kind === "pet") return curPetType() === it.type ? `<span class="fx3-owned">✓ Current</span>` : `<button class="btn-action fx3-buy" data-usepet="${it.type}">Use</button>`;
+        if (it.kind === "pet") return (curPetType() === it.type ? `<span class="fx3-owned">✓ Current</span>` : `<button class="btn-action fx3-buy" data-usepet="${it.type}">Use</button>`) + (it.custom ? `<button class="fx-mini" data-delcomp="${it.type}" style="margin-top:2px">🗑️ Remove</button>` : "");
         if (it.kind === "door") { const on = ((jget("bcx_door_skins", {}) || {})["home:front"] || "red") === it.dk; return on ? `<span class="fx3-owned">✓ On front door</span>` : `<button class="btn-action fx3-buy" data-usedoor="${it.dk}">Use on front door</button>`; }
         return `<span class="fx3-owned">✓ Owned</span>`;
     };
@@ -15266,7 +15267,7 @@ function fxNutEstimate(lines) {
     const TABS_A = [["deals", "🔥 Deals"], ["pets", "🐾 Companions"], ["wear", "👕 Wearables"], ["toys", "🎾 Toys"], ["room", "🛋️ Room"], ["doors", "🚪 Doors"], ["beds", "🛏️ Beds"], ["treats", "🍖 Treats"], ["season", "🎉 Seasonal"]];
     const TABS_B = [["eggs", "🥚 Eggs"], ["sets", "👔 Sets"], ["tags", "🏷️ Name tags"], ["style", "✨ Style"], ["wish", "★ Wishlist"], ["shards", "🔷 Shards"], ["tools", "⚙️ Manage"]];
     const SUBS = {
-        pets: [["all", "All"], ["starter", "Starters"], ["small", "Small & cute"], ["wild", "Wild"], ["fantasy", "Fantasy"], ["special", "Special"]],
+        pets: [["all", "All"], ["mine", "My custom"], ["starter", "Starters"], ["small", "Small & cute"], ["wild", "Wild"], ["fantasy", "Fantasy"], ["special", "Special"]],
         wear: [["all", "All"], ["head", "Head"], ["face", "Face"], ["neck", "Neck"], ["back", "Back"], ["hand", "Hand"], ["side", "Side"], ["mine", "My uploads"]],
         toys: [["all", "All"], ["mine", "My uploads"]],
         room: [["furn", "🛋️ Furniture"], ["decor", "🖼️ Wall art"], ["win", "🪟 Windows"], ["pet", "🐾 Pet stuff"], ["htoy", "🎾 House toys"], ["wall", "🎨 Wallpaper"], ["floor", "🪵 Floors"]],
@@ -15282,11 +15283,16 @@ function fxNutEstimate(lines) {
     const gridOf = (items, empty) => { const ho = shopHO(), L = items.filter((x) => !(ho && x.owned)).sort(ordOwned); return `<div class="fx3-grid">${L.length ? L.map((x) => card(x)).join("") : `<div class="card-desc" style="grid-column:1/-1">${empty || "Nothing here"}${ho ? " — you own it all" : ""}.</div>`}</div>`; };
     const subnav = (t, items) => `<div class="fx3-subnav fx3-rnav">${SUBS[t].map(([k, l]) => { const n = items.filter((x) => subTest(t, k, x)).length; return `<button class="${subCur(t) === k ? "on" : ""}" data-ssub="${t}:${k}">${l} <small>${n}</small></button>`; }).join("")}</div>`;
     function subTest(t, k, x) {
-        if (t === "pets") return k === "all" || x.theme === k;
+        if (t === "pets") return k === "all" ? true : k === "mine" ? !!x.custom : x.theme === k;
         if (t === "wear" || t === "toys") return k === "all" || (k === "mine" ? !!x.custom : x.slot === k);
         if (t === "room") return roomSub(x) === k;
         if (t === "doors") return k === "all" || (k === "free" ? !x.ev : !!x.ev);
         return true;
+    }
+    function rosterStrip() {
+        const L = jget("fx3_pets", []) || [], act = ls("fx3_pet_active", "pet1"); if (!L.length) return "";
+        const glyph = (t) => t.startsWith("comp_") ? (() => { const c = (jget("customCompanions", []) || []).find((y) => y.id === t); return c ? `<img src="${esc(c.data)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">` : "🐾"; })() : window.BXPET && BXPET.types.includes(t) ? BXPET.svg(t, 0, "100%") : "🐾";
+        return `<div style="font-weight:700;margin:10px 0 4px">🐾 Your pets <small style="font-weight:400;opacity:.7">tap to switch · manage them in My Pet</small></div><div class="fx3-roster" style="margin-bottom:8px">${L.map((x) => { const d = x.data || {}, t = d.companionType || "dog"; return `<button class="fx3-pet-chip ${x.id === act ? "on" : ""}" data-swpet="${x.id}"><i style="display:block;width:38px;height:38px;margin:0 auto">${glyph(t)}</i><span>${esc(d.companionName || "Pet")}</span><small>${esc(t.startsWith("comp_") ? "custom" : t)}</small></button>`; }).join("")}<button class="fx3-pet-chip add" data-goto-mypet="1">🐾<span>My Pet</span></button></div>`;
     }
     const noteBox = (h) => `<div class="card-desc">${h}</div>`;
     window.fx3ShopOpen = (t, s2) => {
@@ -15313,7 +15319,10 @@ function fxNutEstimate(lines) {
         const c = $("fx3-shop"); if (!c) return;
         shopSkeleton(c);
         const main = c.querySelector("#fx3-main"), stash = c.querySelector("#fx3-stash");
+        const farmCard = () => [...document.querySelectorAll("#settings-pets .card, #fx3-shop .card")].find((e) => /Farm & Arcade Achievements/.test((e.querySelector("strong,.card-title,b") || {}).textContent || "") && !e.contains($("fx3-shop")) && e.id !== "fx3-shop");
+        const park = () => { ["fx3-acc-card", "new-accessory-shop-container", "fx-style-shop"].forEach((id) => { const e = $(id); if (e && !stash.contains(e) && !(e.parentElement && e.parentElement.id === "fx3-slot")) stash.appendChild(e); }); const f = farmCard(); if (f && !stash.contains(f) && !(f.parentElement && f.parentElement.id === "fx3-slot")) stash.appendChild(f); };
         ["fx3-acc-card", "new-accessory-shop-container", "fx-style-shop"].forEach((id) => { const e = $(id); if (e && main.contains(e)) stash.appendChild(e); });
+        if (tab !== "tools" && tab !== "style") { park(); setTimeout(park, 500); setTimeout(park, 2000); }
         const cat = catalog(); let body = "";
         c.querySelector("#fx3-bal").textContent = `${F.pts()} pts · ${gems()} 💎 · ${shards()} 🔷`;
         const nav = (list) => list.map(([k, l]) => `<button class="${tab === k ? "on" : ""}" data-tab="${k}">${l}</button>`).join("");
@@ -15325,7 +15334,7 @@ function fxNutEstimate(lines) {
             body = `<div class="card-desc">New deals every day at midnight.</div><div class="fx3-grid">${D.length ? D.map(({ it, off }) => card(it, `<s>${it.cost}</s> ${Math.round(it.cost * (1 - off / 100))} pts`).replace('class="fx3-item', `data-off="${off}" class="fx3-item fx3-deal`)).join("") : `<div class="card-desc">You own everything on sale today! 🎉</div>`}</div>`;
         } else if (tab === "pets") {
             const L = cat.filter((x) => x.kind === "pet");
-            body = `${noteBox("Pick what your floating companion is. New kinds are drawn with CSS and stay yours forever. Switching is free — tap <b>Use</b>. Want your own picture as a companion?")}<div class="fx-btnrow"><button class="btn-action" data-addcomp="1" style="background:#455a64">＋ Add a custom companion</button></div>${subnav("pets", L)}${gridOf(L.filter((x) => subTest("pets", subCur("pets"), x)))}`;
+            body = `${noteBox("Pick what your floating companion is. New kinds are drawn with CSS and stay yours forever. Switching is free — tap <b>Use</b>. Want your own picture as a companion?")}<div class="fx-btnrow"><button class="btn-action" data-addcomp="1" style="background:#455a64">＋ Add a custom companion</button></div>${rosterStrip()}${subnav("pets", L)}${gridOf(L.filter((x) => subTest("pets", subCur("pets"), x)))}`;
         } else if (tab === "wear") {
             const L = cat.filter((x) => x.kind === "acc");
             body = `${noteBox("Hats, glasses, wings and more for your floating companion. Tap <b>Wear</b> on anything you own; adjust or remove it from 👕 Wardrobe.")}<div class="fx-btnrow"><button class="btn-action" data-addacc="1" style="background:#455a64">＋ Add your own wearable</button></div>${subnav("wear", L)}${gridOf(L.filter((x) => subTest("wear", subCur("wear"), x)))}`;
@@ -15366,7 +15375,7 @@ function fxNutEstimate(lines) {
         if (tab === "tags") { const tb = c.querySelector("#fx3-tagshop"); if (tb && window.fx3RenderTags) window.fx3RenderTags(tb); else if (tb) setTimeout(() => window.fx3RenderTags && window.fx3RenderTags(tb), 0); }
         if (tab === "style" || tab === "tools") {
             const slot = c.querySelector("#fx3-slot"), el = tab === "style" ? $("fx-style-shop") : ($("fx3-acc-card") || $("new-accessory-shop-container"));
-            if (el && slot) { slot.appendChild(el); const st = el.querySelector("strong"); if (st && /Accessories & Toys Shop/.test(st.textContent)) st.textContent = "⚙️ Manage wearables, toys & uploads"; }
+            if (el && slot) { slot.appendChild(el); if (tab === "tools") { const f = farmCard(); if (f) slot.appendChild(f); } const st = el.querySelector("strong"); if (st && /Accessories & Toys Shop/.test(st.textContent)) st.textContent = "⚙️ Manage wearables, toys & uploads"; }
             else if (slot) slot.innerHTML = `<div class="card-desc">Loading…</div>`;
         }
         runSearch(c);
@@ -15389,7 +15398,10 @@ function fxNutEstimate(lines) {
             const w = e.target.closest("[data-wish]"); if (w) { const W = wish(), i = W.indexOf(w.dataset.wish); i >= 0 ? W.splice(i, 1) : W.push(w.dataset.wish); jset("fx3_wish", W); renderShop(); return; }
             const b = e.target.closest("[data-buy]"); if (b) { const it = catalog().find((x) => x.id === b.dataset.buy), off = +(b.closest("[data-off]") || { dataset: {} }).dataset.off || 0; if (it) buy(it, priceNow(it, off)); return; }
             const wr = e.target.closest("[data-wear]"); if (wr) { try { window.toggleAccessoryEquip(wr.dataset.wear); } catch (x) { toast("Couldn't wear that."); } renderShop(); return; }
-            const up = e.target.closest("[data-usepet]"); if (up) { const sel = $("setting-companion-type"); if (sel) { sel.value = up.dataset.usepet; try { window.updateCompanionSettings(); } catch (x) {} } toast("🐾 Your companion is now a " + up.dataset.usepet + "!"); renderShop(); return; }
+            const sw = e.target.closest("[data-swpet]"); if (sw) { try { window.fx3SwitchPet(sw.dataset.swpet); } catch (x) {} setTimeout(renderShop, 60); return; }
+            if (e.target.closest("[data-goto-mypet]")) { try { switchTab("settings"); switchSettingsPage("settings-pets"); window.fx3ShowCard($("fx3-mypets")); const m = $("fx3-mypets"); if (m) m.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (x) {} return; }
+            const dc = e.target.closest("[data-delcomp]"); if (dc) { if (confirm("Remove this custom companion?")) { try { window.removeCustomCompanion(dc.dataset.delcomp); } catch (x) {} renderShop(); } return; }
+            const up = e.target.closest("[data-usepet]"); if (up) { const sel = $("setting-companion-type"); if (sel) { sel.value = up.dataset.usepet; try { window.updateCompanionSettings(); } catch (x) {} } toast("🐾 Your companion is now " + (up.dataset.usepet.startsWith("comp_") ? "your custom pet!" : "a " + up.dataset.usepet + "!")); renderShop(); return; }
             const ud = e.target.closest("[data-usedoor]"); if (ud) { const S = jget("bcx_door_skins", {}); S["home:front"] = ud.dataset.usedoor; jset("bcx_door_skins", S); try { window.bcxVisitPublish && window.bcxVisitPublish(); } catch (x) {} toast("🚪 Front door repainted!"); renderShop(); return; }
             const tr = e.target.closest("[data-treat]"); if (tr) { try { window.buyTreat(tr.dataset.treat); } catch (x) {} renderShop(); return; }
             const aj = e.target.closest("[data-adj]"); if (aj) { try { window.openAccessoryEditModal(aj.dataset.adj); } catch (x) { toast("This item can't be adjusted."); } return; }
@@ -16559,7 +16571,7 @@ function fxNutEstimate(lines) {
 
     /* ---------- wardrobe card ---------- */
     function petGlyph() {
-        const t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+        const t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
         if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; }
         return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐾";
     }
@@ -18108,7 +18120,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var R = (function () { try { return JSON.parse(localStorage.getItem(RS().cur === "home" ? "fx3_room" : "bcx_room_home") || "null"); } catch (e) { return null; } })() || { wall: "w_plain", floor: "f_wood", items: [] };
         var W = R0.WALLS.filter(function (w) { return w.id === R.wall; })[0] || R0.WALLS[0], Fl = R0.FLOORS.filter(function (f) { return f.id === R.floor; })[0] || R0.FLOORS[0];
         var items = (R.items || []).slice(0, 60).map(function (it) { var f = R0.FURN.filter(function (x) { return x.id === it.id; })[0] || {}; var svg = f.svg && f.svg.length < 2500 && f.svg.indexOf("blob:") < 0 ? f.svg : ""; return { x: it.x, y: it.y, s: it.s || 1, e: f.e || (svg ? "" : "🪑"), svg: svg, fl: it.flip ? 1 : 0 }; });
-        var t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+        var t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
         return { t: Date.now(), pet: petName(), glyph: icons[t] || "🐾", wall: W.css, floor: Fl.css, items: items };
     }
     var pubT = 0;
@@ -18926,7 +18938,7 @@ setTimeout(register,600);setTimeout(register,2500);
     var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
     var names = function () { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Person 1", p2: "Person 2" }; };
     var sget = function (k, d) { return jget("bcx_s_" + k, d); }, sset = function (k, v) { jset("bcx_s_" + k, v); };
-    var ICON = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽" };
+    var ICON = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
 
     /* ---------- pictures: turn anything only THIS phone can open (saved-in-app, synced, blob:) into a small real picture ---------- */
     var INL = {};   /* key -> data url ("" while working or if it failed) */
