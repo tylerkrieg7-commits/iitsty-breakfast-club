@@ -4230,7 +4230,7 @@ var E={
 "🥇":'<path d="M18 4L30 26H20L10 4Z" fill="#1e88e5"/><path d="M46 4L34 26H44L54 4Z" fill="#e53935"/><circle cx="32" cy="42" r="18" fill="#ffca28"/><circle cx="32" cy="42" r="13" fill="#fdd835" stroke="#f9a825" stroke-width="2"/><text x="32" y="49" font-size="18" font-weight="bold" text-anchor="middle" fill="#f57f17" font-family="sans-serif">1</text>',
 "🏐":'<circle cx="32" cy="32" r="26" fill="#fff" stroke="#90a4ae" stroke-width="2"/><path d="M32 6C20 16 20 48 32 58M6 32C16 26 48 26 58 32" stroke="#42a5f5" stroke-width="3" fill="none"/><path d="M12 12C22 20 22 44 12 52M52 12C42 20 42 44 52 52" stroke="#ffca28" stroke-width="3" fill="none"/>'
 };
-var DRUM='<path d="M26 35L12 50" stroke="#f5ecda" stroke-width="8" stroke-linecap="round"/><circle cx="8.5" cy="49" r="5.6" fill="#f5ecda"/><circle cx="14.5" cy="55.5" r="5.6" fill="#f5ecda"/><path d="M5 52L11 56" stroke="#e0d3b8" stroke-width="1.6"/><path d="M23 39C12 27 21 7 40 7C55 7 62 22 53 35C47 45 32 47 23 39Z" fill="#c26a22"/><path d="M27 21C30 15 39 11 47 14" stroke="#eaa35a" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M30 41C41 43 51 37 54 29" stroke="#8e4a14" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M36 22C39 20 44 21 46 24" stroke="#f1b878" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>';window.BXDRUM=DRUM;
+var DRUM='<path d="M26 35L12 50" stroke="#f5ecda" stroke-width="8" stroke-linecap="round"/><circle cx="8.5" cy="49" r="5.6" fill="#f5ecda"/><circle cx="14.5" cy="55.5" r="5.6" fill="#f5ecda"/><path d="M5 52L11 56" stroke="#e0d3b8" stroke-width="1.6"/><path d="M23 39C12 27 21 7 40 7C55 7 62 22 53 35C47 45 32 47 23 39Z" fill="#c26a22"/><path d="M27 21C30 15 39 11 47 14" stroke="#eaa35a" stroke-width="3.6" fill="none" stroke-linecap="round"/><path d="M30 41C41 43 51 37 54 29" stroke="#8e4a14" stroke-width="2.8" fill="none" stroke-linecap="round"/><path d="M36 22C39 20 44 21 46 24" stroke="#f1b878" stroke-width="2" fill="none" stroke-linecap="round" opacity=".7"/>';window.BXDRUM=DRUM; window.bxToyDraw=function(el,d){if(window.BXEMO&&BXEMO.has(d)){el.innerHTML=BXEMO.svg(d,"1em");el.style.lineHeight="1"}else el.textContent=d};
 Object.assign(E,{
 "🐔":'<path d="M10 40C5 44 8 53 15 52C12 48 12 44 10 40Z" fill="#fbc02d"/><path d="M54 40C59 44 56 53 49 52C52 48 52 44 54 40Z" fill="#fbc02d"/><ellipse cx="32" cy="38" rx="22" ry="20" fill="#ffd54f"/><path d="M26 19C25 9 32 7 32 15C32 7 39 9 38 19Z" fill="#e53935"/><circle cx="25" cy="32" r="2.7" fill="#1c1c1c"/><circle cx="39" cy="32" r="2.7" fill="#1c1c1c"/><circle cx="26" cy="31" r=".9" fill="#fff"/><circle cx="40" cy="31" r=".9" fill="#fff"/><path d="M27 37L37 37L32 45Z" fill="#fb8c00"/><path d="M30 45Q32 52 34 45Z" fill="#e53935"/><ellipse cx="14" cy="42" rx="4" ry="3" fill="#ffab91" opacity=".6"/><ellipse cx="50" cy="42" rx="4" ry="3" fill="#ffab91" opacity=".6"/>',
 "🦆":'<ellipse cx="30" cy="44" rx="23" ry="14" fill="#ffd54f"/><circle cx="41" cy="22" r="13" fill="#ffd54f"/><path d="M51 21L63 25L51 30Z" fill="#ff9800"/><circle cx="44" cy="19" r="2.5" fill="#1c1c1c"/><circle cx="45" cy="18" r=".8" fill="#fff"/><path d="M12 42C8 35 17 31 25 37C21 43 17 46 12 42Z" fill="#fbc02d"/><path d="M8 52Q30 58 54 48" stroke="#4fc3f7" stroke-width="3" fill="none" opacity=".6"/>',
@@ -9581,10 +9581,10 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                     } else if (activeToy.data.includes("http")) {
                         iToyEl.innerHTML = `<img src="${activeToy.data}" style="width:30px;height:30px;object-fit:contain;pointer-events:none;">`;
                     } else {
-                        iToyEl.innerText = activeToy.data;
+                        (window.bxToyDraw||function(e,d){e.innerText=d})(iToyEl, activeToy.data);
                     }
                 } else {
-                    iToyEl.innerText = "🥎";
+                    (window.bxToyDraw||function(e,d){e.innerText=d})(iToyEl, "🥎");
 
                     iToyEffect = "bounce";
                 }
@@ -10500,7 +10500,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
         const arena = $("fetch-arena"), toy = $("fetch-toy-icon"), pet = $("fetch-pet-icon"), st = $("fetch-status-text"), btn = $("btn-throw-toy");
         const sel = $("fetch-toy-select").value;
         btn.disabled = true;
-        toy.innerText = sel.length <= 4 ? sel : "🎁";
+        if (sel.length <= 4 && window.bxToyDraw) window.bxToyDraw(toy, sel); else toy.innerText = sel.length <= 4 ? sel : "🎁";
         if (sel.startsWith("http") || sel.startsWith("data:")) toy.innerHTML = `<img src="${sel}" style="width:30px;height:30px;object-fit:contain;">`;
         toy.style.transition = "none"; pet.style.transition = "none";
         const tx = Math.max(120, arena.clientWidth - 70), sT = 50, sP = 30;
