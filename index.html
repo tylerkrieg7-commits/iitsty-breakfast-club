@@ -18792,6 +18792,7 @@ setTimeout(register,600);setTimeout(register,2500);
         var chs = d.ch && d.ch.length ? d.ch : BUILT.map(function (b) { return { t: "built", n: b[2], b: b }; });
         var c = chs[idx % chs.length], t = tvLayer(el); t.innerHTML = "";
         if (c.t === "built") { var b = c.b || BUILT[idx % BUILT.length]; t.style.background = b[1]; t.innerHTML = '<div class="bi">' + b[0] + "</div>"; return; }
+        if (c.t === "jf") { t.style.background = "linear-gradient(135deg,#1b1f3a,#3a1b5c)"; t.innerHTML = '<div class="bi">🎬</div>'; return; }
         if (c.t === "site") { t.style.background = "linear-gradient(135deg,#1a237e,#0d47a1)"; t.innerHTML = '<div class="bi">▶</div><span class="live">LIVE</span>'; return; }
         t.style.background = "#000"; t.innerHTML = '<div class="bi">⏳</div>';
         resolve(c.u).then(function (r) {
@@ -18806,6 +18807,123 @@ setTimeout(register,600);setTimeout(register,2500);
         v.innerHTML = '<div class="hd"><b>📺 ' + esc(label || url) + '</b><a href="' + esc(url) + '" target="_blank" rel="noopener">↗ Open in browser</a><button id="g-x">✕</button></div><iframe src="' + esc(url) + '" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen referrerpolicy="no-referrer"></iframe><div class="hint">If the page stays blank, that site does not allow being shown inside the app. Tap ↗ Open in browser.</div>';
         document.body.appendChild(v); v.querySelector("#g-x").onclick = function () { v.querySelector("iframe").src = "about:blank"; v.remove(); };
     }
+    /* ---------- Jellyfin: sign in once, browse your library and play it ON the pet TV ---------- */
+    var JF = (function () {
+        var KEY = "bcx_jf", sheet = null, stack = [], cur = null, hlsP = null;
+        var cfg = function () { return jget(KEY, null) || {}; };
+        var ok = function () { var c = cfg(); return !!(c.url && c.token && c.uid); };
+        var did = function () { var c = cfg(); if (c.did) return c.did; var d = "bc-" + Math.random().toString(36).slice(2, 12); jset(KEY, Object.assign(c, { did: d })); return d; };
+        var AH = function (tok) { return 'MediaBrowser Client="Breakfast Club", Device="Phone", DeviceId="' + did() + '", Version="1.0.0"' + (tok ? ', Token="' + tok + '"' : ""); };
+        var base = function () { return String(cfg().url || "").replace(/\/+$/, ""); };
+        function api(path, opt) {
+            opt = opt || {}; var c = cfg();
+            return fetch(base() + path, { method: opt.method || "GET", headers: Object.assign({ "X-Emby-Token": c.token, "X-Emby-Authorization": AH(c.token), "Content-Type": "application/json" }, opt.headers || {}), body: opt.body ? JSON.stringify(opt.body) : undefined }).then(function (r) {
+                if (r.status === 401) { jset(KEY, Object.assign(cfg(), { token: "", uid: "" })); throw new Error("expired"); }
+                if (!r.ok) throw new Error("http " + r.status); return r.status === 204 ? null : r.json().catch(function () { return null; });
+            });
+        }
+        function login(url, user, pw) {
+            url = String(url || "").trim().replace(/\/+$/, ""); if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+            return fetch(url + "/Users/AuthenticateByName", { method: "POST", headers: { "Content-Type": "application/json", "X-Emby-Authorization": AH("") }, body: JSON.stringify({ Username: user, Pw: pw }) }).then(function (r) {
+                if (r.status === 401 || r.status === 400) throw new Error("Wrong name or password."); if (!r.ok) throw new Error("The server answered " + r.status + "."); return r.json();
+            }).then(function (j) { jset(KEY, Object.assign(cfg(), { url: url, token: j.AccessToken, uid: j.User.Id, user: j.User.Name })); return j; });
+        }
+        var img = function (it, h) { var id = it.ImageTags && it.ImageTags.Primary ? it.Id : it.SeriesId && it.SeriesPrimaryImageTag ? it.SeriesId : it.ParentThumbItemId || null; return id ? base() + "/Items/" + id + "/Images/Primary?maxHeight=" + (h || 280) + "&quality=80" : ""; };
+        var CSS = "#jf-sheet{position:fixed;inset:0;z-index:2147480800;background:#0d1117;color:#fff;display:flex;flex-direction:column;font:inherit}#jf-sheet .hd{display:flex;gap:8px;align-items:center;padding:10px;background:#161b22}#jf-sheet .hd b{flex:1;font-size:1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jf-sheet button,#jf-sheet input{font:inherit}#jf-sheet .hd button{border:0;border-radius:10px;padding:8px 12px;font-weight:800;background:#2d333b;color:#fff}#jf-sheet .bd{flex:1;overflow:auto;padding:10px}#jf-sheet h4{margin:14px 0 6px;font-size:.95rem}#jf-sheet .row{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}#jf-sheet .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}#jf-sheet .c{background:#161b22;border-radius:10px;overflow:hidden;border:0;color:#fff;text-align:left;padding:0;flex:none}#jf-sheet .row .c{width:104px}#jf-sheet .c i{display:block;aspect-ratio:2/3;background:#222 center/cover no-repeat}#jf-sheet .c span{display:block;font-size:.72rem;padding:5px 6px;line-height:1.2;max-height:3.3em;overflow:hidden}#jf-sheet .c .pb{height:3px;background:#444}#jf-sheet .c .pb u{display:block;height:100%;background:#00adb5}#jf-sheet .ep{display:flex;gap:10px;align-items:center;width:100%;background:#161b22;border:0;border-radius:10px;color:#fff;text-align:left;padding:8px;margin-bottom:6px}#jf-sheet .ep i{width:84px;aspect-ratio:16/9;background:#222 center/cover no-repeat;border-radius:6px;flex:none}#jf-sheet .ep small{opacity:.7;display:block}#jf-sheet input{width:100%;box-sizing:border-box;padding:11px;border-radius:10px;border:1px solid #444;background:#0d1117;color:#fff;margin:5px 0}#jf-sheet .go{width:100%;border:0;border-radius:12px;padding:13px;font-weight:800;background:#00adb5;color:#fff;margin-top:8px}#jf-sheet .msg{opacity:.8;font-size:.85rem;margin:8px 0}#jf-rem{position:fixed;left:8px;right:8px;top:calc(64px + env(safe-area-inset-top,0px));z-index:2147480700;background:rgba(18,22,28,.94);border:1px solid #333;border-radius:16px;padding:8px 10px;display:flex;gap:6px;align-items:center;color:#fff;backdrop-filter:blur(6px)}#jf-rem b{flex:1;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jf-rem button{border:0;border-radius:10px;padding:8px 10px;font-size:1rem;background:#2d333b;color:#fff}";
+        var stl = document.createElement("style"); stl.textContent = CSS; document.head.appendChild(stl);
+        function close() { if (sheet) { sheet.remove(); sheet = null; } stack = []; cur = null; }
+        function shell(title, body, back) {
+            if (!sheet) { sheet = document.createElement("div"); sheet.id = "jf-sheet"; document.body.appendChild(sheet); }
+            sheet.innerHTML = '<div class="hd">' + (back ? '<button data-b="1">←</button>' : "") + '<b>🎬 ' + esc(title) + '</b>' + (ok() ? '<button data-o="1" title="Sign out">⎋</button>' : "") + '<button data-x="1">✕</button></div><div class="bd">' + body + "</div>";
+            sheet.querySelector("[data-x]").onclick = close;
+            var bk = sheet.querySelector("[data-b]"); if (bk) bk.onclick = function () { stack.pop(); var p = stack.pop(); if (p) p(); else home(); };
+            var so = sheet.querySelector("[data-o]"); if (so) so.onclick = function () { if (confirm("Sign out of Jellyfin on this phone?")) { jset(KEY, { did: cfg().did, url: cfg().url, user: cfg().user }); loginView(); } };
+        }
+        function go(fn) { stack.push(fn); fn(); }
+        function loginView(msg) {
+            var c = cfg();
+            shell("Jellyfin sign in", '<div class="msg">Sign in once and this phone stays signed in. Your password is not saved — only the sign-in token Jellyfin gives back.</div><input id="jf-u" placeholder="Server address" value="' + esc(c.url || "https://iiitsty.duckdns.org") + '" autocapitalize="off" autocorrect="off"><input id="jf-n" placeholder="Username" value="' + esc(c.user || "") + '" autocapitalize="off" autocorrect="off"><input id="jf-p" type="password" placeholder="Password"><div class="msg" id="jf-m" style="color:#ff8a80">' + esc(msg || "") + '</div><button class="go" id="jf-go">Sign in</button><div class="msg">Away from home the public address works. On your home Wi-Fi it may not (router limitation) — turn Wi-Fi off or use mobile data if it fails.</div>');
+            var f = function () { var m = sheet.querySelector("#jf-m"); m.style.color = "#9ecbff"; m.textContent = "Signing in…"; login(sheet.querySelector("#jf-u").value, sheet.querySelector("#jf-n").value.trim(), sheet.querySelector("#jf-p").value).then(function () { toast("🎬 Signed in to Jellyfin"); home(); }, function (e) { m.style.color = "#ff8a80"; m.textContent = /Wrong/.test(e.message) ? e.message : "Couldn't reach the server (" + (e.message || "network") + "). Check the address and your connection."; }); };
+            sheet.querySelector("#jf-go").onclick = f; sheet.querySelector("#jf-p").onkeydown = function (e) { if (e.key === "Enter") f(); };
+        }
+        var card = function (it, on) { var p = it.UserData && it.RunTimeTicks && it.UserData.PlaybackPositionTicks ? Math.min(100, it.UserData.PlaybackPositionTicks / it.RunTimeTicks * 100) : 0; var nm = it.Type === "Episode" ? (it.SeriesName || "") + " · " + (it.Name || "") : it.Name; return '<button class="c" data-id="' + it.Id + '"><i style="background-image:url(\'' + img(it) + '\')"></i><span>' + esc(nm) + '</span>' + (p ? '<div class="pb"><u style="width:' + p + '%"></u></div>' : "") + "</button>"; };
+        function wire(items) { sheet.querySelectorAll("[data-id]").forEach(function (b) { b.onclick = function () { var it = items.filter(function (x) { return x.Id === b.dataset.id; })[0]; if (it) open(it); }; }); }
+        function open(it) {
+            if (it.Type === "Movie" || it.Type === "Episode" || it.Type === "Video" || it.Type === "MusicVideo") return play(it);
+            if (it.Type === "Series") return go(function () { episodes(it); });
+            go(function () { folder(it); });
+        }
+        var FIELDS = "&Fields=Overview,PrimaryImageAspectRatio&EnableImageTypes=Primary&ImageTypeLimit=1";
+        function home() {
+            if (!ok()) return loginView(); stack = [home]; var uid = cfg().uid;
+            shell("My Jellyfin", '<input id="jf-q" placeholder="🔎 Search movies & shows" autocapitalize="off"><div id="jf-h" class="msg">Loading…</div>');
+            var q = sheet.querySelector("#jf-q"); q.onkeydown = function (e) { if (e.key === "Enter" && q.value.trim()) go(function () { search(q.value.trim()); }); };
+            Promise.all([api("/Users/" + uid + "/Items/Resume?Limit=12&MediaTypes=Video" + FIELDS), api("/Users/" + uid + "/Views"), api("/Users/" + uid + "/Items/Latest?Limit=16&IncludeItemTypes=Movie,Series" + FIELDS)]).then(function (r) {
+                if (!sheet) return; var res = (r[0] && r[0].Items) || [], views = (r[1] && r[1].Items) || [], lat = r[2] || [], all = res.concat(lat), h = "";
+                if (res.length) h += "<h4>▶ Continue watching</h4><div class=\"row\">" + res.map(card).join("") + "</div>";
+                if (lat.length) h += "<h4>🆕 Recently added</h4><div class=\"row\">" + lat.map(card).join("") + "</div>";
+                h += "<h4>📚 Libraries</h4><div class=\"row\">" + views.map(function (v) { all.push(v); return card(v); }).join("") + "</div>";
+                sheet.querySelector("#jf-h").outerHTML = h; wire(all);
+            }, function (e) { if (e.message === "expired") return loginView("Your sign-in expired. Please sign in again."); var m = sheet && sheet.querySelector("#jf-h"); if (m) m.textContent = "Couldn't load your library (" + e.message + "). Check your connection."; });
+        }
+        function listView(title, path) {
+            shell(title, '<div class="msg" id="jf-h">Loading…</div>', true);
+            api(path).then(function (r) { var items = (r && r.Items) || r || []; if (!sheet) return; sheet.querySelector("#jf-h").outerHTML = items.length ? '<div class="grid">' + items.map(card).join("") + "</div>" : '<div class="msg">Nothing here.</div>'; wire(items); }, function (e) { var m = sheet && sheet.querySelector("#jf-h"); if (m) m.textContent = e.message === "expired" ? "Please sign in again." : "Couldn't load that (" + e.message + ")."; });
+        }
+        function folder(it) { listView(it.Name, "/Users/" + cfg().uid + "/Items?ParentId=" + it.Id + "&SortBy=SortName&Limit=400" + FIELDS); }
+        function search(t) { listView("Search: " + t, "/Users/" + cfg().uid + "/Items?SearchTerm=" + encodeURIComponent(t) + "&Recursive=true&IncludeItemTypes=Movie,Series,Episode&Limit=60" + FIELDS); }
+        function episodes(s) {
+            shell(s.Name, '<div class="msg" id="jf-h">Loading…</div>', true);
+            api("/Shows/" + s.Id + "/Episodes?UserId=" + cfg().uid + "&Fields=Overview&EnableImageTypes=Primary").then(function (r) {
+                var items = (r && r.Items) || []; if (!sheet) return; var last = -1, h = "";
+                items.forEach(function (e) { if (e.ParentIndexNumber !== last) { last = e.ParentIndexNumber; h += "<h4>" + (last === 0 ? "Specials" : "Season " + last) + "</h4>"; } var p = e.UserData && e.RunTimeTicks && e.UserData.PlaybackPositionTicks ? Math.min(100, e.UserData.PlaybackPositionTicks / e.RunTimeTicks * 100) : 0; h += '<button class="ep" data-id="' + e.Id + '"><i style="background-image:url(\'' + img(e, 200) + '\')"></i><div><b>' + (e.IndexNumber ? e.IndexNumber + ". " : "") + esc(e.Name) + "</b><small>" + (e.UserData && e.UserData.Played ? "✓ watched" : p ? Math.round(p) + "% watched" : (e.RunTimeTicks ? Math.round(e.RunTimeTicks / 6e8) + " min" : "")) + "</small></div></button>"; });
+                sheet.querySelector("#jf-h").outerHTML = h || '<div class="msg">No episodes.</div>'; wire(items);
+            }, function (e) { var m = sheet && sheet.querySelector("#jf-h"); if (m) m.textContent = "Couldn't load episodes (" + e.message + ")."; });
+        }
+        /* ----- playing on the pet TV ----- */
+        var P = null;   /* {el, v, it, hls, tm} */
+        function loadHls() { if (window.Hls) return Promise.resolve(); if (hlsP) return hlsP; hlsP = new Promise(function (ok2, no) { var s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"; s.onload = ok2; s.onerror = no; document.head.appendChild(s); }); return hlsP; }
+        function report(kind) { if (!P || !P.v) return; var it = P.it; try { api("/Sessions/Playing" + (kind === "start" ? "" : kind === "stop" ? "/Stopped" : "/Progress"), { method: "POST", body: { ItemId: it.Id, MediaSourceId: it.Id, PositionTicks: Math.round((P.v.currentTime || 0) * 1e7), IsPaused: !!P.v.paused, PlayMethod: P.hls ? "Transcode" : "DirectStream" } }).catch(function () { }); } catch (e) { } }
+        function stop(silent) {
+            if (!P) return; var p = P; report("stop"); clearInterval(p.tm); try { p.v.pause(); p.v.removeAttribute("src"); p.v.load(); } catch (e) { } try { p.h && p.h.destroy(); } catch (e) { } P = null; var r = document.getElementById("jf-rem"); if (r) r.remove();
+            try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { }
+        }
+        function remote() {
+            var r = document.getElementById("jf-rem"); if (r) r.remove(); r = document.createElement("div"); r.id = "jf-rem";
+            r.innerHTML = '<button data-k="b">⏪</button><button data-k="p">⏸</button><button data-k="f">⏩</button><b>' + esc(P.it.Name) + '</b><button data-k="m">🔊</button><button data-k="s">⛶</button><button data-k="x">✕</button>'; document.body.appendChild(r);
+            r.onclick = function (e) {
+                var k = e.target.getAttribute && e.target.getAttribute("data-k"); if (!k || !P) return; var v = P.v;
+                if (k === "b") v.currentTime = Math.max(0, v.currentTime - 10); else if (k === "f") v.currentTime += 30; else if (k === "p") { v.paused ? v.play() : v.pause(); } else if (k === "m") { v.muted = !v.muted; e.target.textContent = v.muted ? "🔇" : "🔊"; }
+                else if (k === "s") { v.controls = true; var rq = v.requestFullscreen || v.webkitRequestFullscreen || v.webkitEnterFullscreen; if (rq) rq.call(v); v.onfullscreenchange = function () { if (!document.fullscreenElement) v.controls = false; }; }
+                else if (k === "x") { var t = P.el && P.el.querySelector(".g-tv"); stop(); if (t) t.innerHTML = '<div class="bi">🎬</div>'; }
+            };
+            P.v.onpause = P.v.onplay = function () { var b = r.querySelector("[data-k=p]"); if (b) b.textContent = P && P.v.paused ? "▶" : "⏸"; };
+        }
+        function play(it) {
+            var tvEl = cur && cur.el; if (!tvEl || !tvEl.isConnected) { toast("Tap the TV in your pet room first, then pick something."); return; }
+            var t = tvLayer(tvEl); stop(); close(); t.classList.remove("off"); t.style.background = "#000"; t.innerHTML = ""; var v = document.createElement("video"); v.playsInline = true; v.setAttribute("playsinline", ""); v.autoplay = true; v.muted = false; v.preload = "auto"; v.style.cssText = "width:100%;height:100%;object-fit:contain";
+            t.appendChild(v); P = { el: tvEl, v: v, it: it, hls: false }; var c = cfg(), pos = it.UserData && it.UserData.PlaybackPositionTicks ? it.UserData.PlaybackPositionTicks / 1e7 : 0; if (pos < 20 || (it.RunTimeTicks && it.UserData.PlaybackPositionTicks > it.RunTimeTicks * 0.95)) pos = 0;
+            var q = "api_key=" + encodeURIComponent(c.token) + "&MediaSourceId=" + it.Id + "&DeviceId=" + encodeURIComponent(did());
+            var direct = base() + "/Videos/" + it.Id + "/stream?static=true&" + q;
+            var hls = base() + "/Videos/" + it.Id + "/main.m3u8?" + q + "&VideoCodec=h264&AudioCodec=aac&TranscodingMaxAudioChannels=2&SegmentContainer=ts&MaxStreamingBitrate=6000000&BreakOnNonKeyFrames=true";
+            var tried = false, seeked = false; v.onloadedmetadata = function () { if (pos && !seeked) { seeked = true; try { v.currentTime = pos; } catch (e) { } } };
+            var fall = function () {
+                if (tried || !P || P.v !== v) return; tried = true; P.hls = true; toast("🎬 Converting for your phone…");
+                if (v.canPlayType("application/vnd.apple.mpegurl")) { v.src = hls; v.play().catch(function () { }); }
+                else loadHls().then(function () { if (!window.Hls || !Hls.isSupported() || !P || P.v !== v) { v.src = hls; return; } var h = new Hls({ startPosition: pos || -1 }); P.h = h; h.loadSource(hls); h.attachMedia(v); h.on(Hls.Events.MEDIA_ATTACHED, function () { v.play().catch(function () { }); }); h.on(Hls.Events.ERROR, function (e, d) { if (d.fatal) { toast("😕 Couldn't play that one."); } }); }, function () { toast("😕 Couldn't play that one."); });
+            };
+            v.onerror = fall; v.src = direct; v.play().catch(function () { });
+            setTimeout(function () { if (P && P.v === v && !tried && v.readyState < 2) fall(); }, 6000);
+            v.onended = function () { report("stop"); toast("📺 Finished"); }; P.tm = setInterval(function () { if (!P || !P.v.isConnected) { stop(); return; } report("prog"); }, 15000);
+            report("start"); remote(); toast("🎬 Playing on your TV");
+        }
+        return {
+            ready: ok, stop: stop, close: close,
+            pick: function (el) { cur = { el: el }; if (sheet) close(); cur = { el: el }; ok() ? home() : loginView(); },
+            account: function () { cur = cur || {}; ok() ? home() : loginView(); },
+            playing: function (el) { return !!(P && P.el === el); }
+        };
+    })();
     var notesT = 0;
     function radioPlaying() { try { var s = window.BCMusic && BCMusic.state(); return !!(s && s.playing && s.ctx === "radio"); } catch (e) { return false; } }
     function radioToggle(d) {
@@ -18824,7 +18942,8 @@ setTimeout(register,600);setTimeout(register,2500);
         else if (d.k === "radio") { radioToggle(d); setTimeout(function () { el.classList.toggle("g-playing", radioPlaying()); }, 300); }
         else if (d.k === "tv") {
             var n = d.ch && d.ch.length ? d.ch.length : BUILT.length, cur = st.ch == null ? -1 : st.ch, nx = cur + 1;
-            if (nx >= n) nx = -1; st.ch = nx; paintTV(el, d, nx);
+            if (nx >= n) nx = -1; try { JF.stop(); } catch (e) { } st.ch = nx; paintTV(el, d, nx);
+            if (nx >= 0 && d.ch && d.ch[nx] && d.ch[nx].t === "jf") { try { JF.pick(el); } catch (e) { toast("Jellyfin isn't ready."); } }
             if (nx >= 0) { var c = d.ch && d.ch.length ? d.ch[nx] : null; if (c && c.t === "site" && c.u) viewer(c.u, c.n); else if (nx === 0 || true) { /* nothing more */ } }
         }
         return st;
@@ -18903,9 +19022,9 @@ setTimeout(register,600);setTimeout(register,2500);
                 h += '<label>Channels (tap the TV to flip through them; with none added it plays built-in shows)</label>';
                 chs.forEach(function (c, ci) {
                     h += '<div class="gad-ch" data-c="' + ci + '"><input type="text" data-cf="n" placeholder="Channel name" value="' + esc(c.n || "") + '">' +
-                        '<label>What it shows</label><select data-cf="t">' + [["gif", "🖼️ GIF or picture"], ["video", "🎞️ Video file"], ["site", "🌐 Website / Jellyfin / YouTube"]].map(function (o) { return '<option value="' + o[0] + '"' + (c.t === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
-                        '<label>' + (c.t === "site" ? "Address (for Jellyfin use your server address)" : "Link to the file") + '</label><input type="url" data-cf="u" placeholder="https://…" value="' + esc(/^(idb|pm):/.test(c.u || "") ? "" : c.u || "") + '">' +
-                        '<div class="gad-row" style="margin-top:6px">' + (c.t !== "site" ? '<select data-cf="lib"><option value="">From my PC library…</option>' + lib.map(function (x) { return '<option value="pm:' + esc(x.slot) + '"' + (c.u === "pm:" + x.slot ? " selected" : "") + ">" + esc(x.slot.replace(/^tvv?:/, "")) + "</option>"; }).join("") + '</select><button class="gad-b g" data-a="up">⬆ From this phone</button>' : "") + '<button class="gad-b g" data-a="rm">Remove</button></div>' +
+                        '<label>What it shows</label><select data-cf="t">' + [["gif", "🖼️ GIF or picture"], ["video", "🎞️ Video file"], ["jf", "🎬 Jellyfin (my library, plays on the TV)"], ["site", "🌐 Website / YouTube"]].map(function (o) { return '<option value="' + o[0] + '"' + (c.t === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>" +
+                        (c.t === "jf" ? '<div style="font-size:.78rem;opacity:.8;margin:8px 0">' + (JF.ready() ? "✅ Signed in to Jellyfin. Tap the TV, switch to this channel, then pick what to watch." : "Not signed in yet.") + '</div><div class="gad-row"><button class="gad-b" data-a="jf">🎬 ' + (JF.ready() ? "Open my library" : "Sign in to Jellyfin") + '</button></div>' : '<label>' + (c.t === "site" ? "Address of the website" : "Link to the file") + '</label><input type="url" data-cf="u" placeholder="https://…" value="' + esc(/^(idb|pm):/.test(c.u || "") ? "" : c.u || "") + '">') +
+                        '<div class="gad-row" style="margin-top:6px">' + (c.t !== "site" && c.t !== "jf" ? '<select data-cf="lib"><option value="">From my PC library…</option>' + lib.map(function (x) { return '<option value="pm:' + esc(x.slot) + '"' + (c.u === "pm:" + x.slot ? " selected" : "") + ">" + esc(x.slot.replace(/^tvv?:/, "")) + "</option>"; }).join("") + '</select><button class="gad-b g" data-a="up">⬆ From this phone</button>' : "") + '<button class="gad-b g" data-a="rm">Remove</button></div>' +
                         (/^idb:/.test(c.u || "") ? '<div style="font-size:.75rem;opacity:.7;margin-top:4px">✅ A file from this phone is set</div>' : /^pm:/.test(c.u || "") ? '<div style="font-size:.75rem;opacity:.7;margin-top:4px">✅ From your PC library</div>' : "") + "</div>";
                 });
                 h += '<div class="gad-row"><button class="gad-b" data-a="add"' + (chs.length >= 6 ? " disabled" : "") + '>＋ Add a channel</button></div><div style="font-size:.74rem;opacity:.7;margin-top:6px">Tip: add GIFs and videos to the Photo Manager\'s "TV shows" spots and they show up in the library list on every phone.</div>';
@@ -18922,6 +19041,7 @@ setTimeout(register,600);setTimeout(register,2500);
         bd.querySelectorAll(".gad-ch").forEach(function (box) {
             var i = pick(box), ci = +box.dataset.c;
             box.querySelectorAll("[data-cf]").forEach(function (inp) { inp.onchange = function () { var f = inp.dataset.cf; upd(i, function (g) { var c = g.ch[ci]; if (f === "lib") { if (inp.value) c.u = inp.value; } else c[f] = inp.value.trim(); }); if (inp.dataset.cf === "t" || inp.dataset.cf === "lib") repaint(); }; });
+            var jb = box.querySelector("[data-a=jf]"); if (jb) jb.onclick = function () { JF.account(); };
             var rm = box.querySelector("[data-a=rm]"); if (rm) rm.onclick = function () { upd(i, function (g) { g.ch.splice(ci, 1); }); repaint(); };
             var up = box.querySelector("[data-a=up]"); if (up) up.onclick = function () {
                 var fi = document.createElement("input"); fi.type = "file"; fi.accept = "image/*,video/*"; fi.onchange = function () { var f = fi.files[0]; if (!f) return; if (f.size > 60e6) { toast("That file is over 60 MB. Pick a smaller one."); return; } putFile(f).then(function (id) { upd(i, function (g) { var c = g.ch[ci]; c.u = "idb:" + id; c.t = /^video/.test(f.type) ? "video" : "gif"; }); toast("📺 Added to this channel"); repaint(); }, function () { toast("Couldn't save that file on this phone."); }); }; fi.click();
