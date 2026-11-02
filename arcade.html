@@ -602,7 +602,6 @@ const ACH = [
     { id: 'tf_perf',  icon: '⭐', name: 'Perfectionist',     desc: 'Land 10 PERFECT crafts.' },
     { id: 'tf_rush',  icon: '⏱', name: 'Rush Hour',         desc: 'Craft 15 treats in one Rush.' },
     { id: 'brk_clear',icon: '🧱', name: 'Wall Wrecker',      desc: 'Clear a Neon Breaker level.' },
-    { id: 'mrg_2048', icon: '🔢', name: 'Two-Oh-Four-Eight', desc: 'Make a 2048 tile.' },
     { id: 'blk_tetra',icon: '🧩', name: 'Four Score',        desc: 'Clear 4 lines at once in Block Drop.' },
     { id: 'blk_40',   icon: '📏', name: 'Line Legend',       desc: 'Clear 40 lines in one Block Drop game.' },
     { id: 'sht_boss', icon: '🐙', name: 'Boss Slayer',       desc: 'Defeat a Star Blaster boss.' },
@@ -653,7 +652,6 @@ const allChallenges = [
     { game: 'treats', target: 1, pts: 10, text: "Craft a Royal Treat for +10 Bonus Points!", extra: 'royal' },
     { game: 'dk', target: 1000, pts: 15, text: "Reach the top in Donkey Kong (1000 pts) for +15 Bonus!" },
     { game: 'breaker', target: 800, pts: 15, text: "Score 800 in Neon Breaker for +15 Bonus Points!" },
-    { game: 'merge', target: 2000, pts: 15, text: "Score 2000 in Tile Merge for +15 Bonus Points!" },
     { game: 'blocks', target: 3000, pts: 15, text: "Score 3000 in Block Drop for +15 Bonus Points!" },
     { game: 'shooter', target: 2500, pts: 15, text: "Score 2500 in Star Blaster for +15 Bonus Points!" },
     { game: 'hop', target: 15, pts: 15, text: "Fly through 15 gates in Sky Hop for +15 Bonus Points!" },
@@ -713,7 +711,8 @@ function updateDailyBanner() {
 //  GAME FRAMEWORK
 // ======================================================================
 const GAMES = [], GMAP = {};
-function defGame(d) { d.cat = d.cat || 'retro'; GAMES.push(d); GMAP[d.id] = d; }
+const REMOVED_GAMES = ['merge', 'dash']; // retired: Tile Merge, Lane Dash
+function defGame(d) { if(REMOVED_GAMES.includes(d.id)) return; d.cat = d.cat || 'retro'; GAMES.push(d); GMAP[d.id] = d; }
 const STEP = 1000 / 60;
 const P = { g: null, cv: null, ctx: null, W: 300, H: 300, scale: 1, paused: false, over: null, overAt: 0, raf: 0, last: 0, acc: 0,
             frame: 0, held: {}, ptr: {}, rep: {}, score: 0 };
@@ -6064,7 +6063,8 @@ function renderTrophies() {
 // ======================================================================
 (function boot() {
     const ORDER = ['duck', 'battle', 'connect4', 'blocks', 'shooter', 'dk', 'chomp', 'snake', 'invaders', 'rocks', 'missile', 'frog',
-                   'pong', 'hockey', 'lander', 'breaker', 'hop', 'stack', 'mole', 'merge', 'mines', 'simon', 'memory', 'checkers', 'treats'];
+                   'pong', 'hockey', 'lander', 'breaker', 'hop', 'stack', 'mole', 'mines', 'simon', 'memory', 'checkers', 'treats'];
+    for(const rid of ['merge', 'dash']) { const ri = GAMES.findIndex(x => x.id === rid); if(ri >= 0) GAMES.splice(ri, 1); delete GMAP[rid]; }
     GAMES.sort((a, b) => {
         const ia = ORDER.indexOf(a.id), ib = ORDER.indexOf(b.id);
         return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
@@ -6690,15 +6690,19 @@ ACH.push(
         c.fillStyle = '#8d6e63'; c.beginPath(); c.moveTo(px(-0.95, 0)[0], px(0, 0)[1] + 20); c.lineTo(px(-0.95, 1)[0], px(0, 1)[1]); c.lineTo(px(0.95, 1)[0], px(0, 1)[1]); c.lineTo(px(0.95, 0)[0], px(0, 0)[1] + 20); c.fill();
         for(let i = 1; i < 8; i++) { const [, y] = px(0, i / 8); c.strokeStyle = '#ffffff14'; c.beginPath(); c.moveTo(px(-0.95, i / 8)[0], y); c.lineTo(px(0.95, i / 8)[0], y); c.stroke(); }
         const [cx, cy] = [W / 2, 128]; 
-        for(let i = RINGS.length - 1; i >= 0; i--) { const g = RINGS[i]; c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135, g.r * 62, 0, 0, TAU); c.fill(); c.fillStyle = '#00000044'; c.beginPath(); c.ellipse(cx, cy + 2, g.r * 135 - 5, g.r * 62 - 4, 0, 0, TAU); c.fill(); c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135 - 6, g.r * 62 - 5, 0, 0, TAU); c.fill(); if(g.r > 0.1) T(c, g.v, cx + g.r * 135 - 16, cy + 2, 8, '#000'); }
-        T(c, '100', cx, cy, 11, '#fff');
-        fillRR(c, 0, 0, W, 38, 0, '#000b'); T(c, `Balls ${S.balls}`, 46, 19, 12, '#fff'); PX(c, String(S.score), W / 2, 19, 13, '#ffea00', 'center'); T(c, `🎟️ ${S.tickets}`, W - 40, 19, 12, '#fff');
+        for(let i = RINGS.length - 1; i >= 0; i--) { const g = RINGS[i]; c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135, g.r * 62, 0, 0, TAU); c.fill(); c.fillStyle = '#00000044'; c.beginPath(); c.ellipse(cx, cy + 2, g.r * 135 - 5, g.r * 62 - 4, 0, 0, TAU); c.fill(); c.fillStyle = g.c; c.beginPath(); c.ellipse(cx, cy, g.r * 135 - 6, g.r * 62 - 5, 0, 0, TAU); c.fill(); }
+        const lab = (t, x, y, sz, col) => { c.save(); c.font = `900 ${sz}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.lineJoin = 'round'; c.lineWidth = Math.max(3, sz / 4); c.strokeStyle = '#000'; c.strokeText(t, x, y); c.fillStyle = col; c.fillText(t, x, y); c.restore(); };
+        for(let i = 1; i < RINGS.length; i++) { if(RINGS[i].v === 50) continue; const g = RINGS[i], inner = RINGS[i - 1].r, mid = (g.r + inner) / 2 * 135; const col = g.v >= 40 ? '#fff' : '#fffde7'; lab(g.v, cx + mid, cy + 1, g.v >= 40 ? 13 : 12, col); lab(g.v, cx - mid, cy + 1, g.v >= 40 ? 13 : 12, col); }
+        { const order = RINGS.slice().reverse(), cw = 44, x0 = (W - cw * 6 - 4 * 5) / 2; order.forEach((g, i) => { const x = x0 + i * (cw + 4); fillRR(c, x, 54, cw, 22, 6, g.c); c.save(); c.globalAlpha = 0.9; c.strokeStyle = '#fff'; c.lineWidth = 1.5; rr(c, x, 54, cw, 22, 6); c.stroke(); c.restore(); lab(g.v, x + cw / 2, 65.5, 14, '#fff'); }); }
+        if(S.last && S.last.t > 0 && S.last.v) { const hr = RINGS.find(g => g.v === S.last.v); if(hr) { c.save(); c.globalAlpha = 0.5 + 0.5 * Math.sin(S.f / 3); c.strokeStyle = '#fff'; c.lineWidth = 4; c.shadowColor = '#fff'; c.shadowBlur = 14; c.beginPath(); c.ellipse(cx, cy, hr.r * 135, hr.r * 62, 0, 0, TAU); c.stroke(); c.restore(); } }
+        lab('100', cx, cy, 15, '#fff');
+        fillRR(c, 0, 0, W, 48, 0, '#000d'); c.fillStyle = '#ffea0055'; c.fillRect(0, 47, W, 2); lab(`BALLS ${S.balls}`, 48, 24, 14, '#fff'); lab(String(S.score), W / 2, 24, 26, '#ffea00'); lab(`🎟️ ${S.tickets}`, W - 44, 24, 14, '#fff');
         if(S.ball) { const b = S.ball; let d = Math.min(b.d, 0.83), lat = b.lat, [x, y] = px(lat, d), sz = 15 * (1 - d * 0.55), lift = 0;
             if(b.state === 'air') { const k = b.t / 26; const tgt = [cx + clamp(b.lat * 135 * 0.86, -135, 135) * 0.9, cy + (b.p - 0.78) * 90]; x = lerp(x, tgt[0], k); y = lerp(y, tgt[1], k) - Math.sin(k * Math.PI) * 50; sz = lerp(sz, 9, k); }
             if(b.state === 'done') { const tgt = [cx + clamp(b.lat * 135 * 0.86, -135, 135) * 0.9, cy + (b.p - 0.78) * 90]; x = tgt[0]; y = tgt[1]; sz = 9; }
             c.fillStyle = '#0006'; c.beginPath(); c.ellipse(x, y + sz, sz, sz * 0.4, 0, 0, TAU); c.fill(); c.fillStyle = '#ffcc80'; c.beginPath(); c.arc(x, y, sz, 0, TAU); c.fill(); c.fillStyle = '#fff6'; c.beginPath(); c.arc(x - sz * 0.3, y - sz * 0.3, sz * 0.3, 0, TAU); c.fill(); }
         else if(S.balls > 0) { const [x, y] = px(S.lat0, 0); c.fillStyle = '#ffcc80'; c.beginPath(); c.arc(x, y, 15, 0, TAU); c.fill(); T(c, 'Flick up to roll!', W / 2, H - 14, 12, '#fff'); }
-        if(S.last && S.last.t > 0) { c.globalAlpha = Math.min(1, S.last.t / 25); PX(c, S.last.label, W / 2, 230, S.last.v >= 50 ? 20 : 13, S.last.v ? '#ffea00' : '#ff5252', 'center', '#000'); c.globalAlpha = 1; }
+        if(S.last && S.last.t > 0) { c.globalAlpha = Math.min(1, S.last.t / 25); { const u = 1 - S.last.t / 90, big = S.last.v >= 50 ? 38 : 28; c.save(); c.shadowColor = S.last.v ? '#ffea00' : '#ff5252'; c.shadowBlur = 18; lab(S.last.v ? '+' + S.last.v : S.last.label, W / 2, 232 - u * 26, big * (1 + 0.15 * Math.sin(u * 9)), S.last.v ? '#ffea00' : '#ff5252'); c.restore(); if(S.last.v) lab(S.last.label, W / 2, 268 - u * 26, 14, '#fff'); } c.globalAlpha = 1; }
     }
     defGame({
         dbg: () => S, id: 'skee', name: 'Skee-Ball', icon: '🎳', color: '#ff6d00', cat: 'casual', isNew: true, w: W, h: H, cursor: 'grab',
