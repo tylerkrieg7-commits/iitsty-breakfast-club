@@ -5093,6 +5093,49 @@ ACT.mastclaim=t=>{const id=t.dataset.id,sp=FID[id];S.mast=S.mast||{};const cl=S.
   fix();
   window.__ctree={CT:CT,unlock:unlock,fix:fix};
 })();
+/* ===== build 35: tow slot (second boat in tow) + stranded-boat rescue event ===== */
+(function(){
+  const towIdx=()=>{const t=S.tow;return(t!=null&&t>=0&&t!==(S.boatKind|0)&&(S.boatsOwned||[0]).includes(t)&&BOATK[t])?t:-1};
+  const towBonus=()=>{const t=towIdx();return t<0?0:4+BOATK[t].hold*3};
+  const bc0=bucketCap;bucketCap=function(){return bc0()+towBonus()};
+  /* boat page: tow slot picker */
+  const rb=RENDER.boat;
+  RENDER.boat=function(){
+    let h=rb();const own=(S.boatsOwned||[0]).filter(i=>i!==(S.boatKind|0)),t=towIdx();
+    h+='<div class="hdr" style="margin-top:12px">🪢 TOW SLOT</div><p class="note">Hitch a second boat from your fleet behind you. A towed boat carries extra fish for you: <b>+4 bucket space, plus 3 for each hold level of the towed boat</b>. Buy more boats above to build your fleet.</p>';
+    if(!own.length)return h+'<p class="note">You only own one boat right now. Buy a second boat to put it in tow.</p>';
+    h+='<div class="grid sm">';
+    own.forEach(i=>{const b=BOATK[i],on=t===i;
+      h+=`<div class="item crate ${on?'owned':''}"><div class="bigic">${b.ic}</div><h3>${b.n}</h3><p class="tagline">Tow bonus: <b>+${4+b.hold*3}</b> bucket space</p><div class="row"><button class="btn ${on?'wood':'tag'}" data-act="tow" data-i="${i}">${on?'🪢 Cast off':'🪢 Tow this boat'}</button></div></div>`});
+    return h+'</div>';
+  };
+  LOGACT.tow=t=>{const i=+t.dataset.i;S.tow=towIdx()===i?-1:i;sfx.click();toast(S.tow>=0?'🪢 '+BOATK[i].n+' is now in tow (+'+towBonus()+' bucket space)':'🪢 Tow line released')};
+  const bk0=LOGACT.boatk;LOGACT.boatk=function(t){bk0(t);if(S.tow===(S.boatKind|0))S.tow=-1};
+  /* draw the towed boat behind the stern */
+  function drawTowed(){
+    const t=towIdx();if(t<0||typeof SCN==='undefined'||SCN.plat!=='boat'||camY>SURF+140||LOOKS.player.fixed)return;
+    const k=BOATK[t],sc2=.5+.02*t,L=70+t*8,x=B.x-120-L*sc2-8,y=waveY(x,TM),a=Math.atan2(waveY(x+30,TM)-waveY(x-30,TM),60)*.7+Math.sin(TM*1.3+2)*.02;
+    ctx.save();
+    ctx.strokeStyle='rgba(60,40,20,.8)';ctx.lineWidth=1.8;ctx.beginPath();ctx.moveTo(B.x-108,B.y-8);
+    ctx.quadraticCurveTo((B.x-108+x+L*sc2)/2,Math.max(B.y,y)+10+Math.sin(TM*2)*2,x+L*sc2*.95,y-12*sc2*2);ctx.stroke();
+    ctx.translate(x,y-2);ctx.rotate(a);ctx.scale(sc2,sc2);
+    ctx.fillStyle=k.col;ctx.beginPath();ctx.moveTo(-L,-26);ctx.lineTo(L,-30);ctx.quadraticCurveTo(L*.8,10,L*.2,14);ctx.lineTo(-L*.7,14);ctx.quadraticCurveTo(-L*.95,2,-L,-26);ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.75)';ctx.fillRect(-L*.95,-22,L*1.9,4);
+    ctx.fillStyle='rgba(0,0,0,.25)';ctx.beginPath();ctx.moveTo(-L*.7,14);ctx.lineTo(L*.2,14);ctx.quadraticCurveTo(L*.5,10,L*.6,0);ctx.lineTo(-L*.8,0);ctx.fill();
+    if(t>=1){ctx.fillStyle='#e8eef5';ctx.fillRect(-L*.3,-52,L*.5,24);ctx.fillStyle='#4a6a8a';ctx.fillRect(-L*.22,-47,L*.12,10);ctx.fillRect(-L*.02,-47,L*.12,10)}
+    if(t>=2){ctx.fillStyle='#3a3a3a';ctx.fillRect(-L*.1,-72,6,22);ctx.fillStyle='#d0443a';ctx.fillRect(-L*.1,-72,6,5)}
+    if(t>=3){ctx.fillStyle='#fff';ctx.fillRect(-L*.55,-44,L*.2,16)}
+    ctx.restore();
+  }
+  const db0=drawBoat;drawBoat=function(){db0();try{drawTowed()}catch(e){}};
+  /* stranded boat event: tow a friend's boat home */
+  EVENTS.push({id:'adrift',ic:'🆘',n:'Boat Adrift!',d:'A little boat is drifting with a dead engine. A fisherman waves both arms: “Friend! Can you tow me in?”',w:1.1,o:[
+    {l:'Tow them to port',s:'Bigger pay with a boat in tow',f:()=>{const m=Math.round(sc()*(towIdx()>=0?2.6:1.8));S.money+=m;addXP(35+S.lvl*3);S.stats.towed=(S.stats.towed|0)+1;
+      const b=1+(Math.random()*4|0),n=2+(Math.random()*3|0);S.baits[b]+=n;return'You tow them safely in. They pay $'+m+' and give you '+n+'× '+BAITS[b].name+'! (+XP)'}},
+    {l:'Radio the Coast Guard',s:'Safe and quick',f:()=>{addXP(15);return'Help is on the way. They thank you warmly. (+XP)'}},
+    {l:'Sail on',f:()=>'You wave, but keep going…'}]});
+  window.__tow={towIdx:towIdx};
+})();
 /* >>> n_main.js */
 /* ============================== MAIN ============================== */
 window.addEventListener('resize',resize);
