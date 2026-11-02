@@ -1928,14 +1928,14 @@ function tankCost(){return 1500*Math.pow(S.tankLvl+1,2)}
 /* ---- prestige ---- */
 const canPrestige=()=>S.lvl>=28&&dexCount()>=140;
 function doPrestige(){
-  if(!canPrestige())return;const p=(S.prestige||0)+1,keep={dex:S.dex,vdex:S.vdex,skills:S.skills,ach:S.ach,title:S.title,tank:S.tank,tankCap:S.tankCap,tankLvl:S.tankLvl,light:S.light,stats:S.stats,tourney:S.tourney,rival:S.rival,days:S.days,caught:S.caught,pts:S.pts+5,bossKills:S.bossKills,mapSeen:S.mapSeen,tut:S.tut,mats:S.mats};
+  if(!canPrestige())return;const p=(S.prestige||0)+1,keep={dex:S.dex,vdex:S.vdex,skills:S.skills,ach:S.ach,title:S.title,tank:S.tank,tankCap:S.tankCap,tankLvl:S.tankLvl,light:S.light,stats:S.stats,tourney:S.tourney,rival:S.rival,days:S.days,caught:S.caught,pts:S.pts+5,bossKills:S.bossKills,mapSeen:S.mapSeen,tut:S.tut,mats:S.mats,ctree:S.ctree};
   S=Object.assign(defSave(),keep);S.prestige=p;S.money=25+p*500;toast('🌟 PRESTIGE '+p+'! Everything resets, but you keep your knowledge. +5 skill points');
   setBiome(BIOMES[0]);camY=0;initWorld();initFish();hook.state='idle';save();updateHUD();EV('pres');
 }
 /* ---- crafting & purchases ---- */
 const CRAFT_Y={chum:3,scent:2,pearl:2,star:1};
 function canCraft(i){const c=BAITS[i].craft;return c&&Object.keys(c).every(k=>(S.mats[k]||0)>=c[k])}
-function craft(i){if(!canCraft(i))return false;const c=BAITS[i].craft;for(const k in c)S.mats[k]-=c[k];S.baits[i]+=CRAFT_Y[BAITS[i].id]||1;S.stats.crafted++;sfx.coin();toast('⚒️ Crafted '+(CRAFT_Y[BAITS[i].id]||1)+' '+BAITS[i].name);return true}
+function craft(i){if(!canCraft(i))return false;const c=BAITS[i].craft,T=S.ctree||{},n=T.bulk?5:1;let made=0,bt=0;for(let b=0;b<n&&canCraft(i);b++){if(!(T.thrift&&Math.random()<.25))for(const k in c)S.mats[k]-=c[k];made+=(CRAFT_Y[BAITS[i].id]||1)+(T.yield?1:0);bt++;S.stats.crafted++}S.baits[i]+=made;sfx.coin();toast('⚒️ Crafted '+made+' '+BAITS[i].name+(bt>1?' ('+bt+' batches)':''));return true}
 function buyPart(kind,i){
   const T={rod:[RODS,S.rods,'rod'],reel:[REELS,S.gear.reels,'reel'],line:[LINES,S.gear.lines,'line'],tip:[TIPS,S.gear.tips,'tip'],hook:[HOOKS,S.gear.hooks,'hook']}[kind],it=T[0][i];
   if(!it||T[1][i])return false;if(S.lvl<it.lvl||S.money<it.price)return false;S.money-=it.price;T[1][i]=1;equipPart(kind,i);sfx.coin();toast('Bought '+it.name+'!');return true;
@@ -2945,7 +2945,7 @@ function updateHUD(){
   $('money').textContent='$'+S.money.toLocaleString();$('lvl').textContent='Lv '+S.lvl+(S.prestige?' ✦'+S.prestige:'');$('xpi').style.width=(100*S.xp/need(S.lvl))+'%';
   $('bucketN').textContent='🪣 '+S.bucket.length+'/'+bucketCap()+(S.bucket.length?' · $'+bucketValue():'')+(S.pts?' · ⭐'+S.pts+' skill pts':'');
   $('titleline').textContent=S.title?'« '+S.title+' »':'';
-  let h='';BAITS.forEach((b,i)=>{const n=i===0?'∞':S.baits[i];const k=i<9?i+1:0;h+=`<div class="slot ${i===S.bait?'sel':''} ${i&&!S.baits[i]?'empty':''}" data-i="${i}" title="${b.name} — lure ${b.lure}"><span class="k">${k}</span><span class="ic">${b.ic}</span><span class="n">${n}</span></div>`});
+  let h='';BAITS.forEach((b,i)=>{if(b.node&&!(S.ctree&&S.ctree[b.node]))return;const n=i===0?'∞':S.baits[i];const k=i<9?i+1:i===9?0:'';h+=`<div class="slot ${i===S.bait?'sel':''} ${i&&!S.baits[i]?'empty':''}" data-i="${i}" title="${b.name} — lure ${b.lure}"><span class="k">${k}</span><span class="ic">${b.ic}</span><span class="n">${n}</span></div>`});
   const rod=RODS[S.rod],G=S.gear;let gb='';
   if(G.bobber)gb+=`<div class="gbtn ${G.bobOn?'on':''}" data-g="bobber">🔴 Bobber${G.bobOn?' '+G.bobD+'m':''} <small>V</small></div>`+(G.bobOn?`<div class="gbtn" data-g="bobup">▲ shallower</div><div class="gbtn" data-g="bobdn">▼ deeper</div>`:'');
   if(G.fly)gb+=`<div class="gbtn ${G.flyOn?'on':''}" data-g="fly">🪶 Fly <small>F</small></div>`;
@@ -3146,7 +3146,7 @@ RENDER.bait=function(){
   h+='<div class="hdr">🪱 BAIT FOR SALE</div><div class="grid sm">';
   BAITS.forEach((x,i)=>{if(!i||x.craft)return;h+=`<div class="item crate"><div class="bigic">${x.ic}</div><h3>${x.name}</h3><p>${x.desc}</p>${stat('Lure',x.lure,1.15)}<p class="tagline">In stock: <b>${S.baits[i]}</b> · $${x.price} each</p><div class="row"><button class="btn tag" data-act="buybait" data-i="${i}" data-n="1" ${S.money<x.price?'disabled':''}>1 · $${x.price}</button><button class="btn tag" data-act="buybait" data-i="${i}" data-n="5" ${S.money<x.price*5?'disabled':''}>5 · $${x.price*5}</button><button class="btn tag" data-act="buybait" data-i="${i}" data-n="20" ${S.money<x.price*20?'disabled':''}>20 · $${x.price*20}</button></div></div>`});
   h+='</div><div class="hdr">⚒️ CRAFTING BENCH</div><div style="margin-bottom:8px">'+mats+'</div><div class="grid sm">';
-  BAITS.forEach((x,i)=>{if(!x.craft)return;const ok=canCraft(i);h+=`<div class="item crate"><div class="bigic">${x.ic}</div><h3>${x.name}</h3><p>${x.desc}</p>${stat('Lure',x.lure,1.15)}<p class="tagline">Needs: ${Object.keys(x.craft).map(k=>`<b class="${(S.mats[k]||0)>=x.craft[k]?'':'dn'}">${x.craft[k]} ${MATS[k].n}</b>`).join(', ')} → makes ${CRAFT_Y[x.id]}<br>In stock: <b>${S.baits[i]}</b></p><div class="row"><button class="btn tag" data-act="craft" data-i="${i}" ${ok?'':'disabled'}>⚒️ Craft</button></div></div>`});
+  BAITS.forEach((x,i)=>{if(!x.craft||(x.node&&!(S.ctree&&S.ctree[x.node])))return;const ok=canCraft(i);h+=`<div class="item crate"><div class="bigic">${x.ic}</div><h3>${x.name}</h3><p>${x.desc}</p>${stat('Lure',x.lure,1.15)}<p class="tagline">Needs: ${Object.keys(x.craft).map(k=>`<b class="${(S.mats[k]||0)>=x.craft[k]?'':'dn'}">${x.craft[k]} ${MATS[k].n}</b>`).join(', ')} → makes ${CRAFT_Y[x.id]}<br>In stock: <b>${S.baits[i]}</b></p><div class="row"><button class="btn tag" data-act="craft" data-i="${i}" ${ok?'':'disabled'}>⚒️ Craft</button></div></div>`});
   h+='</div><p class="note">Get Fish Scraps & Glow Gel by choosing “Cut bait” on caught fish. Pearls come from treasure; Stardust from the Cosmic Sea and bosses.</p>';
   return h;
 };
@@ -5032,6 +5032,66 @@ ACT.mastclaim=t=>{const id=t.dataset.id,sp=FID[id];S.mast=S.mast||{};const cl=S.
     dsf();
     try{stepFx(dt);drawFx()}catch(e){}
   };
+})();
+/* ===== build 34: bait crafting tree (new materials, recipes, workshop perks) ===== */
+(function(){
+  Object.assign(MATS,{herb:{n:'Herbs',ic:'🌿'},shell:{n:'Shell Bits',ic:'🐚'},ember:{n:'Ember Coal',ic:'🔥'},frost:{n:'Frost Crystal',ic:'❄️'}});
+  const NB=[
+    {node:'honey',id:'honey',name:'Honey Dough',ic:'🍯',lure:.72,price:0,fav:['fresh','cold'],col:'#f2c14e',craft:{herb:2,scrap:1},y:4,desc:'Crafted. Sweet dough that freshwater and cold-water fish love.'},
+    {node:'reefmix',id:'reefmix',name:'Reef Cocktail',ic:'🍹',lure:.93,price:0,fav:['reef','coast'],col:'#ff7ab6',craft:{shell:2,gel:1,herb:1},y:3,desc:'Crafted. A shellfish punch that reef and coastal fish cannot resist.'},
+    {node:'ember',id:'ember',name:'Ember Lure',ic:'🔥',lure:.96,price:0,fav:['lava','abyss','pred'],col:'#ff6a2a',craft:{ember:2,gel:1},y:3,desc:'Crafted. Glows red-hot. Predators and volcano dwellers go wild.'},
+    {node:'frostb',id:'frostb',name:'Frost Jig',ic:'🧊',lure:.95,price:0,fav:['cold','abyss','pelagic'],col:'#9fe8ff',craft:{frost:2,scrap:1},y:3,desc:'Crafted. Icy and shimmering. Perfect for cold, deep water.'},
+    {node:'ghost',id:'ghost',name:'Spirit Lure',ic:'👻',lure:1.1,price:0,fav:['ruins','cosmic','abyss','pelagic'],col:'#d8c8ff',craft:{frost:1,pearl:1,gel:2},y:2,desc:'Crafted. A pale light that draws fish from the old, deep places.'},
+    {node:'royal',id:'royal',name:'Royal Blend',ic:'👑',lure:1.22,price:0,fav:['all'],col:'#ffd166',craft:{stardust:1,pearl:2,ember:1,herb:1},y:1,desc:'Crafted. The finest bait ever mixed. Works on everything.'},
+    {node:'megachum',id:'megachum',name:'Mega Chum',ic:'🥩',lure:.7,price:0,fav:['pred','coast','pelagic'],col:'#a8322a',rad:2.2,craft:{scrap:6,herb:2},y:3,desc:'Crafted. A colossal scent cloud that pulls fish in from across the water.'}
+  ];
+  NB.forEach(b=>{CRAFT_Y[b.id]=b.y;BAITS.push(b)});
+  const CT=[
+    {id:'forage',br:0,n:"Forager's Pouch",ic:'🌿',d:'Cutting bait now also gathers local materials: 🌿 Herbs (ponds, rivers, swamps), 🐚 Shell Bits (coast & reef), 🔥 Ember Coal (volcano), ❄️ Frost Crystal (arctic & storms).',cost:{scrap:4},$:150},
+    {id:'scavenge',br:0,n:'Scavenger',ic:'♻️',d:'Salvaging junk always gives +1 Fish Scraps.',req:['forage'],cost:{scrap:6},$:300},
+    {id:'prospect',br:0,n:'Prospector',ic:'⛏️',d:'15% chance for a free local material from every catch.',req:['scavenge'],cost:{scrap:10,gel:2},$:800},
+    {id:'honey',br:1,n:'Honey Dough',ic:'🍯',d:'Unlocks the Honey Dough recipe.',req:['forage'],cost:{herb:3,scrap:3},$:200},
+    {id:'reefmix',br:1,n:'Reef Cocktail',ic:'🍹',d:'Unlocks the Reef Cocktail recipe.',req:['honey'],cost:{shell:4,gel:2},$:500},
+    {id:'ember',br:1,n:'Ember Lure',ic:'🔥',d:'Unlocks the Ember Lure recipe.',req:['honey'],cost:{ember:3,gel:2},$:700},
+    {id:'frostb',br:1,n:'Frost Jig',ic:'🧊',d:'Unlocks the Frost Jig recipe.',req:['honey'],cost:{frost:3,gel:2},$:700},
+    {id:'ghost',br:1,n:'Spirit Lure',ic:'👻',d:'Unlocks the Spirit Lure recipe.',req:['ember','frostb'],cost:{pearl:2,gel:4,frost:2},$:2500},
+    {id:'royal',br:1,n:'Royal Blend',ic:'👑',d:'Unlocks the Royal Blend recipe, the best bait in the game.',req:['ghost'],cost:{stardust:2,pearl:3,herb:3,ember:2},$:6000},
+    {id:'yield',br:2,n:'Double Batch',ic:'🧰',d:'Every craft makes +1 extra bait.',req:['forage'],cost:{scrap:8},$:400},
+    {id:'thrift',br:2,n:'Thrifty Bench',ic:'🪙',d:'25% of crafts cost no materials.',req:['yield'],cost:{scrap:10,shell:2},$:900},
+    {id:'bulk',br:2,n:'Bulk Crafting',ic:'📦',d:'The craft button makes up to 5 batches at once.',req:['thrift'],cost:{gel:4},$:1500},
+    {id:'megachum',br:2,n:'Mega Chum',ic:'🥩',d:'Unlocks the Mega Chum recipe (huge scent cloud).',req:['yield'],cost:{scrap:12,herb:4},$:1200},
+    {id:'master',br:2,n:'Master Crafter',ic:'🏅',d:'All crafted baits are 8% stronger.',req:['bulk'],cost:{pearl:3,stardust:1},$:5000}
+  ];
+  const BR=['🌿 GATHERING','⚗️ ALCHEMY','🛠️ WORKSHOP'],CTID={};CT.forEach(n=>CTID[n.id]=n);
+  const has=id=>!!(S.ctree&&S.ctree[id]);
+  function fix(){
+    if(!S.ctree)S.ctree={};if(!S.mats)S.mats={};
+    for(let i=0;i<BAITS.length;i++)if(typeof S.baits[i]!=='number'||S.baits[i]!==S.baits[i])S.baits[i]=0;
+    const m=has('master')?1.08:1;BAITS.forEach(b=>{if(b.craft){if(b.l0==null)b.l0=b.lure;b.lure=b.l0*m}});
+  }
+  function canBuy(n){return(n.req||[]).every(has)&&S.money>=n.$&&Object.keys(n.cost).every(k=>(S.mats[k]||0)>=n.cost[k])}
+  function unlock(id){const n=CTID[id];if(!n||has(id)||!canBuy(n))return;S.money-=n.$;for(const k in n.cost)S.mats[k]-=n.cost[k];S.ctree[id]=1;fix();sfx.coin();toast('🔓 '+n.n+' unlocked!')}
+  ACT.ctree=t=>unlock(t.dataset.id);
+  /* local material for the current biome */
+  const bMat=()=>{const b=CUR.id;return/arctic|storm/.test(b)?'frost':b==='volcano'?'ember':/reef|beach|kelp|harbor|bluehole|sargasso/.test(b)?'shell':'herb'};
+  const mc=matsFromCut;
+  matsFromCut=function(info){const m=mc(info);if(has('forage')){const k=bMat();m[k]=(m[k]||0)+1;if(Math.random()<.35)m.herb=(m.herb||0)+1}return m};
+  const cc=closeCard;
+  closeCard=function(act){const info=cardInfo;cc(act);try{if(!info)return;
+    if(info.junk&&act==='mats'&&has('scavenge')){S.mats.scrap=(S.mats.scrap||0)+1;toast('♻️ Scavenger: +1 Fish Scraps')}
+    else if(!info.junk&&has('prospect')&&act!=='sell0'&&Math.random()<.15){const k=bMat();S.mats[k]=(S.mats[k]||0)+1;toast('⛏️ Prospector: +1 '+MATS[k].n)}}catch(e){}};
+  const uh=updateHUD;updateHUD=function(){fix();uh()};
+  const rb=RENDER.bait;
+  RENDER.bait=function(){
+    fix();let h=rb()+'<div class="hdr">🌳 CRAFTING TREE</div><p class="note">Spend materials and cash to learn new skills and recipes. New materials come from cutting bait once you learn the Forager\'s Pouch.</p>';
+    BR.forEach((t,bi)=>{h+='<div class="hdr" style="font-size:13px">'+t+'</div><div class="grid sm">';
+      CT.filter(n=>n.br===bi).forEach(n=>{const own=has(n.id),rq=(n.req||[]).filter(r=>!has(r)),ok=canBuy(n);
+        const cost=Object.keys(n.cost).map(k=>`<b class="${(S.mats[k]||0)>=n.cost[k]?'':'dn'}">${n.cost[k]} ${MATS[k].n}</b>`).join(', ')+` · <b class="${S.money>=n.$?'':'dn'}">$${n.$.toLocaleString()}</b>`;
+        h+=`<div class="item crate ${own?'owned':''}"><div class="bigic">${n.ic}</div><h3>${n.n}</h3><p>${n.d}</p><p class="tagline">${own?'':'Cost: '+cost+'<br>'}${rq.length&&!own?'Requires: '+rq.map(r=>CTID[r].n).join(' + '):''}</p><div class="row">${own?'<button class="btn wood" disabled>✓ Unlocked</button>':rq.length?'<button class="btn wood" disabled>🔒 Locked</button>':`<button class="btn tag" data-act="ctree" data-id="${n.id}" ${ok?'':'disabled'}>🔓 Unlock</button>`}</div></div>`});
+      h+='</div>'});
+    return h};
+  fix();
+  window.__ctree={CT:CT,unlock:unlock,fix:fix};
 })();
 /* >>> n_main.js */
 /* ============================== MAIN ============================== */
