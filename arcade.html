@@ -1673,12 +1673,18 @@ function renderTrophies() {
         S.f++;
         if(S.banner && --S.banner.t <= 0) S.banner = null;
         if(S.net) {
-            MP.take().forEach(m => { if(m.t === 'ready') S.peerReady = true; else if(m.t === 'shot') S.inq.push(m); else if(m.t === 'res' && S.phase === 'battle') applyRes(m); });
+            MP.take().forEach(m => { if(m.t === 'ready') S.peerReady = true; else if(m.t === 'shot') S.inq.push(m); else if(m.t === 'fleet') { m.ships.forEach(f => { const sh = S.enemy.ships.find(x => x.n === f.n); if(sh) { sh.r = f.r; sh.c = f.c; sh.h = f.h; } }); S.fleetRx = true; S.endT = Math.max(S.endT || 0, 200); } else if(m.t === 'res' && S.phase === 'battle') applyRes(m); });
             checkStart();
             if(!S.shell && S.inq.length && S.phase === 'battle') { const m = S.inq.shift(); fire('me', m.r, m.c); }
         }
         if(S.shell) { if(++S.shell.t >= S.shell.dur) resolve(); return; }
-        if(S.phase === 'done') { if(--S.endT <= 0) finish(); return; }
+        if(S.phase === 'done') {
+            if(S.net) {
+                if(!S.fleetSent) { S.fleetSent = true; S.fleetWait = 360; MP.send({t: 'fleet', ships: S.me.ships.map(x => ({n: x.n, r: x.r, c: x.c, h: x.h}))}); }
+                if(!S.fleetRx && S.fleetWait-- > 0) return;
+            }
+            if(--S.endT <= 0) finish(); return;
+        }
         if(S.phase === 'battle' && S.turn === 'cpu') {
             if(--S.wait <= 0) { const i = aiPick(); fire('me', Math.floor(i / N), i % N); }
         }
@@ -1762,7 +1768,7 @@ function renderTrophies() {
             T(c, 'Drag ships to move · tap a ship to rotate', W / 2, GY + N * CS + 16, 11, '#9fd3ff');
             T(c, S.net && S.sentReady ? 'Waiting for ' + MP.partner() + '…' : 'Press START BATTLE when ready', W / 2, GY + N * CS + 32, 11, '#69f0ae');
         } else {
-            S.enemy.ships.forEach(s => { if(s.r >= 0 && (s.sunk || (S.phase === 'done' && !S.won))) drawShip(c, s, GX, GY, CS, {col: s.sunk ? '#8d4a4a' : '#5c6b8a', alpha: s.sunk ? 0.95 : 0.6}); });
+            S.enemy.ships.forEach(s => { if(s.r >= 0 && (s.sunk || S.phase === 'done')) drawShip(c, s, GX, GY, CS, {col: s.sunk ? '#8d4a4a' : '#5c6b8a', alpha: s.sunk ? 0.95 : 0.6}); });
             drawMarks(c, S.enemy, GX, GY, CS, true);
             // hover reticle
             if(S.turn === 'player' && !S.shell && S.hover && S.phase === 'battle') {
