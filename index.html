@@ -18741,7 +18741,9 @@ setTimeout(register,600);setTimeout(register,2500);
     function saveItem(i, patch) { var R = jget("fx3_room", {}) || {}; if (!R.items || !R.items[i]) return; Object.keys(patch).forEach(function (k) { if (patch[k] == null) delete R.items[i][k]; else R.items[i][k] = patch[k]; }); jset("fx3_room", R); }
     /* what an item does: the person's choice first, otherwise by what it is */
     function kindOf(it) { if (!it) return ""; var g = it.g || {}; if (g.kind === "none") return ""; if (g.kind) return g.kind; return DEFK[it.id] || ""; }
-    function descOf(it) { var g = it.g || {}; return { k: kindOf(it), col: g.col || "#ffd54f", sz: g.sz || 2, pl: g.pl || "", ch: (g.ch || []).slice(0, 6) }; }
+    /* an old "Website" channel that points at your Jellyfin server becomes a real Jellyfin channel (plays on the TV instead of opening the website) */
+    function normCh(c) { if (c && c.t === "site" && /jellyfin|iiitsty\.duckdns|:8096|:8920|\/web\/index\.html/i.test(c.u || "")) return Object.assign({}, c, { t: "jf", n: c.n || "Jellyfin" }); return c; }
+    function descOf(it) { var g = it.g || {}; return { k: kindOf(it), col: g.col || "#ffd54f", sz: g.sz || 2, pl: g.pl || "", ch: (g.ch || []).slice(0, 6).map(normCh) }; }
 
     /* ---------- styles ---------- */
     var st = document.createElement("style");
@@ -19022,7 +19024,7 @@ setTimeout(register,600);setTimeout(register,2500);
             if (k === "radio") h += '<label>Plays</label><select data-f="pl"><option value="">Same as the 📻 Radio tab</option><option value="all"' + (g.pl === "all" ? " selected" : "") + ">All my songs</option>" + pls.map(function (p) { return '<option value="' + esc(p.id) + '"' + (g.pl === p.id ? " selected" : "") + ">" + esc(p.name) + "</option>"; }).join("") + '</select><div class="gad-row" style="margin-top:8px"><button class="gad-b" data-a="test">▶ Try it</button></div>';
             if (k === "light") h += '<label>Light colour</label><div class="gad-row">' + COLS.map(function (c) { return '<button class="gad-sw' + ((g.col || "#ffd54f") === c[0] ? " on" : "") + '" data-col="' + c[0] + '" style="background:' + c[0] + '" title="' + c[1] + '"></button>'; }).join("") + '</div><label>How far the glow reaches</label><select data-f="sz">' + [["1", "Small"], ["2", "Medium"], ["3", "Big"], ["4", "Whole room"]].map(function (o) { return '<option value="' + o[0] + '"' + (String(g.sz || 2) === o[0] ? " selected" : "") + ">" + o[1] + "</option>"; }).join("") + "</select>";
             if (k === "tv") {
-                var chs = g.ch || [];
+                var chs = (g.ch || []).map(normCh);
                 h += '<label>Channels (tap the TV to flip through them; with none added it plays built-in shows)</label>';
                 chs.forEach(function (c, ci) {
                     h += '<div class="gad-ch" data-c="' + ci + '"><input type="text" data-cf="n" placeholder="Channel name" value="' + esc(c.n || "") + '">' +
