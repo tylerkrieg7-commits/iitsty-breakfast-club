@@ -1,7 +1,7 @@
 <!doctype html>
 
 <html lang="en">
-    <head><script src="bc-extras.js"></script>
+    <head><style id="bc-boot-css">#bc-boot{position:fixed;inset:0;z-index:2147483000;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;transition:opacity .35s ease}#bc-boot.off{opacity:0;pointer-events:none}#bc-boot b{font:800 1.5rem system-ui,sans-serif;color:#ffa726;letter-spacing:.3px}#bc-boot i{width:34px;height:34px;border-radius:50%;border:4px solid rgba(255,167,38,.25);border-top-color:#ffa726;animation:bcbs .8s linear infinite}@keyframes bcbs{to{transform:rotate(360deg)}}</style><script>(function(){function go(){var e=document.getElementById("bc-boot");if(e){e.classList.add("off");setTimeout(function(){var x=document.getElementById("bc-boot");x&&x.remove();var c=document.getElementById("bc-boot-css");c&&c.remove()},450)}}window.__bcBootDone=go;setTimeout(go,7000)})()</script><script src="bc-extras.js"></script>
         <meta charset="UTF-8" />
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -1677,6 +1677,7 @@ body.theme-light .comp-stats-header div { color: #222 !important; }
     </head>
 
     <body>
+<div id="bc-boot"><b>Iitstys Breakfast Club</b><i></i></div>
         <div class="app-wrapper">
             <div class="app-container">
                 <header>
@@ -19196,5 +19197,6 @@ setTimeout(register,600);setTimeout(register,2500);
 })();
 </script>
 
+<script>(function(){var d=false;function fin(){if(d)return;d=true;requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.__bcBootDone&&window.__bcBootDone()},700)})})}if(document.readyState==="complete")fin();else addEventListener("load",fin)})()</script>
 </body>
 </html>
