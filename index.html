@@ -12935,7 +12935,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
         function tick(ts) {
             requestAnimationFrame(tick);
             const k = Math.min(3, (ts - lt) / 16.667); lt = ts;
-            const extra = typeof iToyState !== "undefined" && iToyState === "tethered" && !F.playing && window.__fxExtraTarget ? window.__fxExtraTarget() : null;
+            const extra = typeof iToyState !== "undefined" && (iToyState === "tethered" || (iToyState === "dragged" && iToyEffect === "bubbles")) && !F.playing && window.__fxExtraTarget ? window.__fxExtraTarget() : null;
             const active = (extra || (typeof iToyState !== "undefined" && iToyState !== "tethered")) && !F.playing && !(typeof isDraggingComp !== "undefined" && isDraggingComp);
             if (!active) { if (st.active) { st.active = false; comp.style.transition = "transform 3.5s ease-in-out"; } return; }
             if (!st.active) { const p0 = readPos(); st.x = p0.x; st.y = p0.y; st.active = true; comp.style.transition = "none"; }
