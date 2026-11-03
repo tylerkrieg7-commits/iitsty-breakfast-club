@@ -12899,6 +12899,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
         window.moveCompanion = function () {
             if (typeof iToyState !== "undefined" && iToyState !== "tethered") return;
             if (F.playing || window.__fxPetBusy) return;
+            try { if (window.__fxExtraTarget && window.__fxExtraTarget()) return; } catch (e) {}
             const now = Date.now(); if (now - lastMove < 4000) return; lastMove = now;
             return origMove.apply(this, arguments);
         };
@@ -12952,7 +12953,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
             const cx = st.x + g.dx, cy = st.y + g.dy, dx = tx - cx, dy = ty - cy, d = Math.hypot(dx, dy), step = speed * spdMul * k;
             if (d > 0.5) { const m = Math.min(1, step / d); st.x += dx * m; st.y += dy * m; }
             st.x = clamp(st.x, pad + g.aw / 2 - g.dx, Math.max(pad + g.aw / 2 - g.dx, innerWidth - pad - g.aw / 2 - g.dx)); st.y = clamp(st.y, pad + g.ah / 2 - g.dy, Math.max(pad + g.ah / 2 - g.dy, innerHeight - pad - g.ah / 2 - g.dy));
-            comp.style.transform = `translate(${st.x}px, ${st.y}px)`;
+            comp.style.transition = "none"; comp.style.transform = `translate(${st.x}px, ${st.y - (window.__fxJumpH || 0)}px)`;
             window.__fxPetVX = dx;
             if (window.__fxPetTick) try { window.__fxPetTick(st.x + g.dx, st.y + g.dy); } catch (e) {}
             if (iToyState === "retrieving") { iToyX = st.x + g.dx - t.w / 2; iToyY = st.y + g.dy - t.h / 2 + 6; iToyVX = 0; iToyVY = 0; }
@@ -15840,18 +15841,16 @@ function fxNutEstimate(lines) {
         const c = window.fxPetCenter ? window.fxPetCenter() : { x: innerWidth / 2, y: innerHeight - 60 };
         let best = null, bd = 1e9; bodies.forEach((b) => { if (performance.now() - b.born < 450) return; const d = Math.hypot(b.x - c.x, b.y - c.y); if (d < bd) { bd = d; best = b; } });
         if (best && best.kind === "bubble") {
-            // stay on the ground, trot under the bubbles and JUMP for the ones that are low enough
-            const gy = innerHeight - (window.boundaryPadding || 0) - 60, reach = gy - 175, now = performance.now();
-            const cand = bodies.filter((b) => b.kind === "bubble" && now - b.born > 450), low = cand.filter((b) => b.y > reach), pool = low.length ? low : cand;
+            // stay on the ground and trot under the bubbles; bubbleJump() does the leaping
+            const gy = innerHeight - (window.boundaryPadding || 0) - 60, now = performance.now();
+            const cand = bodies.filter((b) => b.kind === "bubble" && now - b.born > 450), low = cand.filter((b) => b.y > gy - 185), pool = low.length ? low : cand;
             let tb = null, td = 1e9; pool.forEach((b) => { const d = Math.abs(b.x - c.x); if (d < td) { td = d; tb = b; } });
             if (!tb) return { x: c.x, y: gy, speed: 5 };
-            if (now < jumpA.until) return { x: tb.x, y: Math.max(tb.y, reach), speed: 15 };
-            if (td < 55 && tb.y > reach && now > jumpA.cool) { jumpA.until = now + 450; jumpA.cool = now + 1300; try { window.fxSfx && window.fxSfx("click"); } catch (e) {} return { x: tb.x, y: Math.max(tb.y, reach), speed: 15 }; }
-            return { x: tb.x, y: gy, speed: c.y < gy - 25 ? 9 : 5.5 };
+            return { x: tb.x + Math.sin(now / 900 + tb.born) * 18, y: gy, speed: (window.__fxJumpH || 0) > 5 ? 2.6 : (td > 140 ? 6.5 : 4.2) };
         }
         return best ? { x: best.x, y: best.y, speed: 9.5 } : { x: c.x, y: c.y };
     };
-    const jumpA = { until: 0, cool: 0 };
+
     const dayKey = () => F.day();
     function capped(key, cap) { const C = jget("fx3_caps", {}); if (C.d !== dayKey()) { C.d = dayKey(); C.v = {}; } C.v = C.v || {}; if ((C.v[key] || 0) >= cap) return false; C.v[key] = (C.v[key] || 0) + 1; jset("fx3_caps", C); return true; }
     function stepBody(b, k, pool) {
@@ -16105,7 +16104,23 @@ function fxNutEstimate(lines) {
         if (eff === "mouse" && imp > 2.5) blip(1800, 1300, 0.04, "square", 0.02);
         if (eff === "carrot" || eff === "apple" || eff === "cheese" || eff === "cookie" || eff === "donut") { if (imp > 2.5) blip(240, 160, 0.05, "triangle", 0.03); }
     };
-    function tugTick(k) { try { ropeTick(k); wandTick(k); toyLife(k); } catch (e) { window.__toyErr = e.message; } }
+    const jmp = { on: false, v: 0, h: 0, cool: 0, wind: 0 };
+    window.__fxJumpH = 0;
+    function bubbleJump(k) {
+        const st = stNow(), eff = effNow(), now = performance.now(), G = 0.62;
+        if (jmp.on) { jmp.h += jmp.v * k; jmp.v -= G * k; if (jmp.h <= 0) { jmp.h = 0; jmp.v = 0; jmp.on = false; jmp.cool = now + 450 + Math.random() * 700; } window.__fxJumpH = jmp.h; return; }
+        if (jmp.wind && now < jmp.wind) { window.__fxJumpH = -7; return; }
+        window.__fxJumpH = 0;
+        const chasing = (st === "tethered" || (st === "dragged" && eff === "bubbles")) && !(rope && rope.mode === "drop") && !F.playing;
+        if (!chasing || now < jmp.cool) { jmp.wind = 0; return; }
+        const c = pc2(), gy = innerHeight - (window.boundaryPadding || 0) - 60; if (c.y < gy - 12) return;
+        let tb = null, td = 1e9; bodies.forEach((b) => { if (b.kind !== "bubble" || now - b.born < 450 || b.y > gy - 30 || b.y < gy - 185) return; const d = Math.abs(b.x - c.x); if (d < td) { td = d; tb = b; } });
+        if (!tb || td > 42) { jmp.wind = 0; return; }
+        if (!jmp.wind) { jmp.wind = now + 170 + Math.random() * 200; return; }
+        jmp.wind = 0; const H = clamp(gy - tb.y + (Math.random() - 0.5) * 34, 45, 190); jmp.v = Math.sqrt(2 * G * H); jmp.on = true; jmp.h = 0.1;
+        try { window.fxSfx && window.fxSfx("click"); } catch (e) {} blip(300, 520, 0.08, "triangle", 0.025);
+    }
+    function tugTick(k) { try { ropeTick(k); wandTick(k); bubbleJump(k); toyLife(k); } catch (e) { window.__toyErr = e.message; } }
 
     /* ---------- main loop ---------- */
     let prevState = "tethered", lt = performance.now();
