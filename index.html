@@ -9607,6 +9607,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
 
                     if (iToyEffect === "laser") {
                         iToyEl.innerHTML = `<div style="width:12px;height:12px;background:red;border-radius:50%;box-shadow:0 0 10px red; pointer-events:none;"></div>`;
+                    } else if (window.bxToyCustom && window.bxToyCustom(iToyEffect, iToyEl)) {
                     } else if (activeToy.data.includes("http")) {
                         iToyEl.innerHTML = `<img src="${activeToy.data}" style="width:30px;height:30px;object-fit:contain;pointer-events:none;">`;
                     } else {
@@ -9756,7 +9757,8 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
             function onToyDragEnd(e) {
                 if (iToyState !== "dragged") return;
 
-                if (iToyEffect === "laser") {
+                if (iToyEffect === "laser" || iToyEffect === "bubbles" || iToyEffect === "tug") {
+                    if (iToyEffect === "tug" && window.__fxRopeDrop) window.__fxRopeDrop();
                     recallInteractiveToy();
                 } else {
                     if (Math.abs(iToyVX) < 0.5 && Math.abs(iToyVY) < 0.5) {
@@ -10508,7 +10510,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
         hist = [];
         const sp = Math.hypot(vx, vy);
         if (sp > 70) { vx *= 70 / sp; vy *= 70 / sp; }
-        if (iToyEffect === "laser") { recallInteractiveToy(); return; }
+        if (iToyEffect === "laser" || iToyEffect === "bubbles" || iToyEffect === "tug") { if (iToyEffect === "tug" && window.__fxRopeDrop) window.__fxRopeDrop(); recallInteractiveToy(); return; }
         iToyVX = vx; iToyVY = vy; spin = vx * 2.2 + vy * 0.4;
         iToyState = "thrown";
         window.thrownTime = now; window.ghostPetUntil = now + 1000;
@@ -15824,11 +15826,14 @@ function fxNutEstimate(lines) {
     function addBody(o) {
         const el = document.createElement("div"); el.className = "fx3-body" + (o.kind === "bubble" ? " bubble" : "") + (o.mat === "glow" ? " glow" : ""); el.textContent = o.icon || "⚽";
         document.body.appendChild(el);
-        const b = Object.assign({ r: 16, vx: 0, vy: 0, born: performance.now(), el, rot: 0 }, o); bodies.push(b); return b;
+        const b = Object.assign({ r: 16, vx: 0, vy: 0, born: performance.now(), el, rot: 0 }, o); bodies.push(b);
+        if (b.kind === "bubble") { el.textContent = ""; el.style.width = el.style.height = b.r * 2 + "px"; el.addEventListener("pointerdown", (e) => { e.preventDefault(); e.stopPropagation(); removeBody(b, "pop"); }); }
+        return b;
     }
-    function removeBody(b, emo) { const i = bodies.indexOf(b); if (i >= 0) bodies.splice(i, 1); if (emo) burst(b.x, b.y, emo); b.el.remove(); }
+    function removeBody(b, emo) { const i = bodies.indexOf(b); if (i >= 0) bodies.splice(i, 1); if (b.kind === "bubble") { popFx(b.x, b.y, b.r); } else if (emo) burst(b.x, b.y, emo); b.el.remove(); }
     function burst(x, y, emo) { const d = document.createElement("div"); d.className = "floating-heart"; d.style.position = "fixed"; d.style.left = x - 12 + "px"; d.style.top = y - 20 + "px"; d.textContent = emo; document.body.appendChild(d); setTimeout(() => d.remove(), 1200); }
     window.__fxExtraTarget = function () {
+        if (rope && rope.mode === "drop") { if (rope.bite) return { x: rope.wx, y: rope.wy, speed: 5.5 }; const e = rope.p[rope.near || 0]; return { x: e.x, y: e.y, speed: 9 }; }
         if (!bodies.length) return null;
         const c = window.fxPetCenter ? window.fxPetCenter() : { x: innerWidth / 2, y: innerHeight - 60 };
         let best = null, bd = 1e9; bodies.forEach((b) => { if (performance.now() - b.born < 450) return; const d = Math.hypot(b.x - c.x, b.y - c.y); if (d < bd) { bd = d; best = b; } });
@@ -15838,20 +15843,21 @@ function fxNutEstimate(lines) {
     function capped(key, cap) { const C = jget("fx3_caps", {}); if (C.d !== dayKey()) { C.d = dayKey(); C.v = {}; } C.v = C.v || {}; if ((C.v[key] || 0) >= cap) return false; C.v[key] = (C.v[key] || 0) + 1; jset("fx3_caps", C); return true; }
     function stepBody(b, k, pool) {
         const m = MAT[b.mat] || MAT.bounce || { g: 0.8, e: 0.65, air: 0.996, roll: 0.985 }, pad = window.boundaryPadding || 0;
-        if (b.kind === "bubble") { b.vy += -0.04 * k; b.vx += Math.sin((performance.now() + b.born) / 400) * 0.05 * k + ((P.wind || 0) + (window.__fxGust || 0)) * 0.02 * k; b.vx *= 0.98; b.vy *= 0.985; }
+        if (b.kind === "bubble") { b.vy += 0.018 * k; b.vx += Math.sin((performance.now() + b.born) / 400) * 0.05 * k + ((P.wind || 0) + (window.__fxGust || 0)) * 0.02 * k; b.vx *= 0.98; b.vy *= 0.985; }
         else { b.vy += m.g * (P.gravity != null ? P.gravity : 1) * k; b.vx += ((P.wind || 0) + (window.__fxGust || 0)) * 0.04 * k; b.vx *= Math.pow(m.air, (P.drag != null ? P.drag : 1) * k); b.vy *= Math.pow(m.air, (P.drag != null ? P.drag : 1) * k * 0.4); }
         b.x += b.vx * k; b.y += b.vy * k; b.rot += b.vx * 2 * k;
         const e = clamp(m.e * (P.bounce != null ? P.bounce : 1), 0, 0.97), L = pad + b.r, R = innerWidth - pad - b.r, T = pad + b.r, B = innerHeight - pad - b.r;
         if (b.x < L) { b.x = L; b.vx = Math.abs(b.vx) * e; } else if (b.x > R) { b.x = R; b.vx = -Math.abs(b.vx) * e; }
-        if (b.y < T) { if (b.kind === "bubble") return removeBody(b, "💥"); b.y = T; b.vy = Math.abs(b.vy) * 0.5; }
+        if (b.y < T) { if (b.kind === "bubble") return removeBody(b, "pop"); b.y = T; b.vy = Math.abs(b.vy) * 0.5; }
+        if (b.y > B && b.kind === "bubble") { b.y = B; if (!b.touch) b.touch = performance.now(); else if (performance.now() - b.touch > 500) return removeBody(b, "pop"); }
         if (b.y > B) { b.y = B; b.landed = true; if (b.vy > 0) { b.vy = -b.vy * e; if (Math.abs(b.vy) < 1.6) b.vy = 0; } if (!b.vy) b.vx *= Math.pow(clamp(1 - (1 - m.roll) * (P.fric != null ? P.fric : 1), 0.5, 1), k); }
         if (pool) poolEffect(b, m, k);
-        if (b.kind === "bubble" && performance.now() - b.born > 9000) return removeBody(b, "💥");
+        if (b.kind === "bubble" && performance.now() - b.born > (b.life || 9000)) return removeBody(b, "pop");
         b.el.style.transform = `translate(${b.x - b.r}px, ${b.y - b.r}px) rotate(${b.kind === "bubble" ? 0 : b.rot}deg)`;
         const c = window.fxPetCenter ? window.fxPetCenter() : null;
         if (c && performance.now() - b.born > 450 && Math.hypot(c.x - b.x, c.y - b.y) < Math.max(34, c.w * 0.75)) {
             if (b.kind === "treat") { removeBody(b); try { window.__fx3OnTreat && window.__fx3OnTreat(b); } catch (x) {} }
-            else if (b.kind === "bubble") { removeBody(b, "💥"); if (capped("bubble", 15)) { window.__fxPtsLabel = "Bubbles"; try { addPoints(1); } catch (x) {} } try { addHappiness(3); } catch (x) {} }
+            else if (b.kind === "bubble") { removeBody(b, "pop"); if (capped("bubble", 15)) { window.__fxPtsLabel = "Bubbles"; try { addPoints(1); } catch (x) {} } try { addHappiness(3); } catch (x) {} }
             else { removeBody(b, "❤️"); if (capped("extraFetch", 20)) { window.__fxPtsLabel = "Fetch"; try { addPoints(3); addXP(5); } catch (x) {} } try { addHappiness(5); } catch (x) {} window.dispatchEvent(new CustomEvent("fx:fetched")); }
         }
     }
@@ -15916,25 +15922,14 @@ function fxNutEstimate(lines) {
     const glowTrail = [];
     function drawOverlay() {
         const eff = typeof iToyEffect !== "undefined" ? iToyEffect : "", st = typeof iToyState !== "undefined" ? iToyState : "tethered";
-        const need = (st !== "tethered" && (eff === "kite" || eff === "tug" || eff === "glow")) || glowTrail.length || bodies.some((b) => b.mat === "glow");
+        const need = !!rope || (st !== "tethered" && (eff === "kite" || eff === "glow")) || glowTrail.length || bodies.some((b) => b.mat === "glow");
         if (!need) { if (dirty) { g.clearRect(0, 0, cv.width, cv.height); dirty = false; } return; }
         dirty = true; g.clearRect(0, 0, cv.width, cv.height);
         const c = window.fxPetCenter ? window.fxPetCenter() : null, t = toyCenter();
-        if (c && st !== "tethered" && (eff === "kite" || eff === "tug")) {
+        if (rope) drawRope();
+        if (c && st !== "tethered" && eff === "kite") {
             const mx = (c.x + t.x) / 2, dist = Math.hypot(c.x - t.x, c.y - t.y), tt = performance.now() / 1000;
-            if (eff === "tug") {
-                // braided rope: sags when slack, goes straight and trembles when the pet pulls hard
-                const taut = Math.max(0, Math.min(1, (dist - 90) / 150)), sag = (1 - taut) * Math.min(70, 18 + dist * 0.3), tremble = taut * 2.2 * Math.sin(tt * 38);
-                const my = (c.y + t.y) / 2 + sag + tremble, ctrl = [mx + tremble * 1.5, my];
-                const path = () => { g.beginPath(); g.moveTo(c.x, c.y); g.quadraticCurveTo(ctrl[0], ctrl[1], t.x, t.y); };
-                g.lineCap = "round"; g.setLineDash([]); g.strokeStyle = "rgba(0,0,0,.25)"; g.lineWidth = 9; path(); g.translate(0, 3); path(); g.stroke(); g.translate(0, -3);
-                g.strokeStyle = "#7a4f1d"; g.lineWidth = 8; path(); g.stroke();
-                g.strokeStyle = "#d9b26b"; g.lineWidth = 6; path(); g.stroke();
-                g.strokeStyle = "#8a5a1e"; g.lineWidth = 6; g.setLineDash([3, 7]); g.lineDashOffset = 0; path(); g.stroke();
-                g.strokeStyle = "#f1d39a"; g.lineWidth = 2.4; g.setLineDash([3, 7]); g.lineDashOffset = -5; path(); g.stroke();
-                g.setLineDash([]);
-                g.fillStyle = "#b9894a"; g.strokeStyle = "#7a4f1d"; g.lineWidth = 2; g.beginPath(); g.arc(c.x, c.y, 6, 0, 7); g.fill(); g.stroke();
-            } else {
+            {
             g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 1.5; g.lineCap = "round";
             g.beginPath(); g.moveTo(c.x, c.y); const my = (c.y + t.y) / 2 + 40; g.quadraticCurveTo(mx, my, t.x, t.y); g.stroke();
             }
@@ -15946,23 +15941,158 @@ function fxNutEstimate(lines) {
         g.globalAlpha = 1; if (glowTrail.length > 160) glowTrail.splice(0, glowTrail.length - 160);
     }
 
-    /* ---------- tug of war ---------- */
-    let tug = null;
-    window.__fxTug = function () { if (!tug) return null; const t = toyCenter(), c = window.fxPetCenter ? window.fxPetCenter() : t; const dx = c.x - t.x, dy = c.y - t.y, d = Math.hypot(dx, dy) || 1; return { x: t.x + (dx / d) * 120, y: t.y + (dy / d) * 120 }; };
-    function tugTick(k) {
-        if (typeof iToyState === "undefined") return;
-        if (iToyState === "dragged" && iToyEffect === "tug") {
-            if (!tug) { tug = { t0: performance.now(), win: 0 }; try { showCompanionReaction("😤"); } catch (e) {} }
-            const t = toyCenter(), c = window.fxPetCenter(), d = Math.hypot(c.x - t.x, c.y - t.y);
-            iToyX += (c.x - t.x) * 0.012 * k; iToyY += (c.y - t.y) * 0.012 * k;
-            if (d > 200) tug.win += k * 16.7; if (Math.random() < 0.02) try { showCompanionReaction(Math.random() < 0.5 ? "💢" : "🪢"); } catch (e) {}
-            if (tug.win > 2500) { const won = tug; tug = null; recallInteractiveToy(); toast(`🪢 You won the tug-of-war! ${ls("companionName", "Buddy")} wants a rematch.`); try { addHappiness(15); if (capped("tug", 5)) { window.__fxPtsLabel = "Tug of war"; addPoints(5); } } catch (e) {} }
-        } else if (tug) {
-            const held = performance.now() - tug.t0; tug = null;
-            if (held > 800) { try { showCompanionReaction("🏆"); addHappiness(10); } catch (e) {} toast(`${ls("companionName", "Buddy")} won the tug-of-war! 😄`); }
-            if (iToyEffect === "tug" && iToyState === "thrown") recallInteractiveToy();
+    /* =====================================================================
+       Build 60: REAL TOYS — hold-and-wave bubble wand, physics rope, bell, dice, fish, mouse, duck
+       ===================================================================== */
+    let actx2 = null;
+    function blip(f0, f1, dur, type, vol) { if (ls("appSoundsEnabled", "enabled") === "disabled") return; try { actx2 = actx2 || new (window.AudioContext || window.webkitAudioContext)(); const t = actx2.currentTime, o = actx2.createOscillator(), gn = actx2.createGain(); o.type = type || "sine"; o.frequency.setValueAtTime(f0, t); if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur); gn.gain.setValueAtTime(vol || 0.05, t); gn.gain.exponentialRampToValueAtTime(0.001, t + dur); o.connect(gn); gn.connect(actx2.destination); o.start(t); o.stop(t + dur + 0.02); } catch (e) {} }
+    const jingle = () => { [2093, 2637, 3136].forEach((f, i) => setTimeout(() => blip(f, f * 0.99, 0.28, "sine", 0.035), i * 38)); };
+    const pc2 = () => (window.fxPetCenter ? window.fxPetCenter() : { x: innerWidth / 2, y: innerHeight - 80, w: 60, h: 60 });
+    const stNow = () => (typeof iToyState !== "undefined" ? iToyState : "tethered");
+    const effNow = () => (typeof iToyEffect !== "undefined" ? iToyEffect : "");
+
+    /* ----- dice art ----- */
+    const PIPS = { 1: [[5, 5]], 2: [[2.6, 2.6], [7.4, 7.4]], 3: [[2.6, 2.6], [5, 5], [7.4, 7.4]], 4: [[2.6, 2.6], [7.4, 2.6], [2.6, 7.4], [7.4, 7.4]], 5: [[2.6, 2.6], [7.4, 2.6], [5, 5], [2.6, 7.4], [7.4, 7.4]], 6: [[2.6, 2.6], [7.4, 2.6], [2.6, 5], [7.4, 5], [2.6, 7.4], [7.4, 7.4]] };
+    const diceSVG = (n) => `<svg viewBox="0 0 10 10" width="34" height="34" style="pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))"><rect x=".5" y=".5" width="9" height="9" rx="2" fill="#fafafa" stroke="#b0b0b0" stroke-width=".5"/>${PIPS[n].map((p) => `<circle cx="${p[0]}" cy="${p[1]}" r=".95" fill="${n === 1 ? "#e53935" : "#222"}"/>`).join("")}</svg>`;
+    let diceFace = 6, diceT = 0, diceSet = false;
+    const WAND = `<svg viewBox="0 0 46 46" width="46" height="46" style="pointer-events:none;overflow:visible"><path d="M7 43L21 26" stroke="#6d4c41" stroke-width="4.4" stroke-linecap="round"/><path d="M7 43L21 26" stroke="#a1887f" stroke-width="1.6" stroke-linecap="round"/><circle class="bx-film" cx="30" cy="16" r="11" fill="rgba(170,225,255,.3)"/><circle class="bx-film" cx="30" cy="16" r="11" fill="none" stroke="rgba(255,150,210,.55)" stroke-width="1.4" stroke-dasharray="6 9"/><path class="bx-film" d="M24 11C26 8 30 7 33 8" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="30" cy="16" r="12" fill="none" stroke="#7e57c2" stroke-width="3"/><circle cx="30" cy="16" r="12" fill="none" stroke="#b39ddb" stroke-width="1" stroke-dasharray="2 5"/></svg>`;
+    const KNOT = `<div style="width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e4c283,#a9742a 70%);border:2px solid #6b4416;box-shadow:0 2px 3px rgba(0,0,0,.4);pointer-events:none"></div>`;
+    window.bxToyCustom = function (eff, el) {
+        if (eff === "bubbles") { el.innerHTML = WAND; return true; }
+        if (eff === "tug") { el.innerHTML = KNOT; return true; }
+        if (eff === "dice") { el.innerHTML = diceSVG(diceFace); return true; }
+        return false;
+    };
+    try { window.initInteractiveToy && window.initInteractiveToy(); } catch (e) {}
+
+    /* ----- bubble wand: nothing happens until you WAVE it ----- */
+    const wand = { film: 1, lx: 0, ly: 0, t: 0, have: false };
+    function wandTick(k) {
+        if (stNow() !== "dragged" || effNow() !== "bubbles") { wand.have = false; return; }
+        const c = toyCenter(), rx = c.x + 10, ry = c.y - 5;
+        if (!wand.have) { wand.have = true; wand.lx = rx; wand.ly = ry; wand.film = 1; wand.t = 0; return; }
+        const kk = Math.max(0.3, k), vx = (rx - wand.lx) / kk, vy = (ry - wand.ly) / kk, sp = Math.hypot(vx, vy);
+        wand.lx = rx; wand.ly = ry; wand.film = Math.min(1, wand.film + 0.006 * k); wand.t -= k * 16.7;
+        const f = toyEl().querySelector(".bx-film"); if (f) toyEl().querySelectorAll(".bx-film").forEach((e) => (e.style.opacity = (0.1 + 0.9 * wand.film).toFixed(2)));
+        if (sp > 5 && wand.film > 0.1 && wand.t <= 0 && bodies.filter((b) => b.kind === "bubble").length < 70) {
+            wand.t = 70; const n = Math.min(4, 1 + Math.floor(sp / 7));
+            for (let i = 0; i < n; i++) { const r = 7 + Math.random() * (sp > 14 ? 9 : 15); addBody({ x: rx + (Math.random() - 0.5) * 8, y: ry + (Math.random() - 0.5) * 8, vx: vx * 0.2 + (Math.random() - 0.5) * 1.4, vy: vy * 0.2 + (Math.random() - 0.5) * 1.4, icon: "", kind: "bubble", r, life: 3500 + Math.random() * 5500 }); wand.film -= 0.06; }
+            blip(500 + Math.random() * 500, 900, 0.05, "sine", 0.018);
+            if (Math.random() < 0.08) try { showCompanionReaction("😍"); } catch (e) {}
         }
     }
+    function popFx(x, y, r) {
+        const d = document.createElement("div"); d.className = "bx-pop"; d.style.cssText = `left:${x - r}px;top:${y - r}px;width:${r * 2}px;height:${r * 2}px`;
+        d.innerHTML = [0, 1, 2, 3, 4, 5].map((i) => `<i style="--a:${i * 60 + Math.random() * 30}deg"></i>`).join(""); document.body.appendChild(d); setTimeout(() => d.remove(), 420);
+        blip(900 + Math.random() * 500, 250, 0.06, "triangle", 0.03);
+    }
+
+    /* ----- the rope: a real, floppy rope (verlet chain) ----- */
+    const RN = 18, RSEG = 13, RLEN = RN * RSEG;
+    let rope = null;
+    const floorY = () => innerHeight - (window.boundaryPadding || 0) - 10;
+    function ropeInit(x, y) { const p = []; for (let i = 0; i < RN; i++) p.push({ x: x, y: y + i * RSEG * 0.7, ox: x, oy: y + i * RSEG * 0.7 }); rope = { p, mode: "held", bite: false, biteEnd: RN - 1, pull: 0, t0: performance.now(), hx: x, hy: y, vx: 0, vy: 0, wt: 0, wx: innerWidth / 2, wy: innerHeight - 90, dropAt: 0, near: RN - 1 }; }
+    function mouthPos() { const c = pc2(); return { x: c.x, y: c.y + 6 }; }
+    function ropeStep(k) {
+        const p = rope.p, n = p.length, held = rope.mode === "held", pinA = held ? { x: rope.hx, y: rope.hy } : null, mo = rope.bite ? mouthPos() : null, be = rope.biteEnd;
+        const sub = 2, sk = Math.min(1.6, k) / sub, fy = floorY();
+        for (let s = 0; s < sub; s++) {
+            for (let i = 0; i < n; i++) { const q = p[i]; const vx = (q.x - q.ox) * 0.985, vy = (q.y - q.oy) * 0.985; q.ox = q.x; q.oy = q.y; q.x += vx; q.y += vy + 0.7 * sk; }
+            for (let it = 0; it < 10; it++) {
+                if (pinA) { p[0].x = pinA.x; p[0].y = pinA.y; } if (mo) { p[be].x = mo.x; p[be].y = mo.y; }
+                for (let i = 0; i < n - 1; i++) {
+                    const a = p[i], b = p[i + 1], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 0.001, diff = (d - RSEG) / d;
+                    const wa = (i === 0 && pinA) || (mo && i === be) ? 0 : 1, wb = (i + 1 === n - 1 && mo && be === n - 1) || (mo && i + 1 === be) ? 0 : 1, ws = wa + wb; if (!ws) continue;
+                    a.x += dx * diff * (wa / ws); a.y += dy * diff * (wa / ws); b.x -= dx * diff * (wb / ws); b.y -= dy * diff * (wb / ws);
+                }
+                if (pinA) { p[0].x = pinA.x; p[0].y = pinA.y; } if (mo) { p[be].x = mo.x; p[be].y = mo.y; }
+            }
+            for (let i = 0; i < n; i++) { const q = p[i]; if (q.y > fy) { q.y = fy; q.oy = q.y; q.ox = q.x - (q.x - q.ox) * 0.55; } if (q.x < 6) { q.x = 6; q.ox = q.x; } if (q.x > innerWidth - 6) { q.x = innerWidth - 6; q.ox = q.x; } }
+        }
+    }
+    function ropeWin() {
+        const nm = ls("companionName", "Buddy"); rope = null; try { recallInteractiveToy(); } catch (e) {}
+        toast(`🪢 You won the tug-of-war! ${nm} wants a rematch.`); try { addHappiness(15); if (capped("tug", 5)) { window.__fxPtsLabel = "Tug of war"; addPoints(5); } showCompanionReaction("😅"); } catch (e) {}
+    }
+    window.__fxRopeDrop = function () {
+        if (!rope || rope.mode !== "held") return; const held = performance.now() - rope.t0; rope.mode = "drop"; rope.dropAt = performance.now();
+        if (rope.bite && held > 800) { try { showCompanionReaction("🏆"); addHappiness(10); } catch (e) {} toast(`${ls("companionName", "Buddy")} won the tug-of-war! 😄`); }
+    };
+    window.__fxTug = function () {
+        if (!rope || rope.mode !== "held") return null;
+        if (!rope.bite) { const e = rope.p[RN - 1]; return { x: e.x, y: e.y - 6 }; }
+        const c = pc2(), dx = c.x - rope.hx, dy = c.y - rope.hy, d = Math.hypot(dx, dy) || 1, L = RLEN * 0.9, sh = Math.sin(performance.now() / 55) * 5;
+        return { x: rope.hx + (dx / d) * L + sh, y: Math.min(floorY() - 20, rope.hy + (dy / d) * L) };
+    };
+    function ropeTick(k) {
+        const st = stNow(), eff = effNow();
+        if (st === "dragged" && eff === "tug") {
+            const t = toyCenter(); if (!rope || rope.mode !== "held") ropeInit(t.x, t.y);
+            rope.vx = (t.x - rope.hx) / Math.max(0.3, k); rope.vy = (t.y - rope.hy) / Math.max(0.3, k); rope.hx = t.x; rope.hy = t.y;
+            const c = pc2(), e = rope.p[RN - 1];
+            if (!rope.bite && Math.hypot(c.x - e.x, c.y + 6 - e.y) < 44) { rope.bite = true; rope.biteEnd = RN - 1; rope.pull = 0; try { showCompanionReaction("😤"); } catch (x) {} blip(180, 140, 0.12, "sawtooth", 0.03); }
+            if (rope.bite) {
+                const dx = c.x - t.x, dy = c.y - t.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, away = -(rope.vx * ux + rope.vy * uy);
+                if (away > 2.2) rope.pull += Math.min(away, 14) * 0.0035 * k; else rope.pull -= 0.0025 * k;
+                rope.pull = clamp(rope.pull, 0, 1);
+                if (Math.hypot(rope.vx, rope.vy) < 0.4) { iToyX += ux * 0.6 * k; iToyY += uy * 0.6 * k; }
+                if (Math.random() < 0.015) try { showCompanionReaction(Math.random() < 0.5 ? "💢" : "🪢"); } catch (x) {}
+                if (rope.pull >= 1) { ropeWin(); return; }
+            }
+        } else if (rope && rope.mode === "held") { rope = null; }
+        if (rope && rope.mode === "drop") {
+            const now = performance.now(), c = pc2(), mo = mouthPos();
+            if (!rope.bite) {
+                const d0 = Math.hypot(rope.p[0].x - mo.x, rope.p[0].y - mo.y), d1 = Math.hypot(rope.p[RN - 1].x - mo.x, rope.p[RN - 1].y - mo.y); rope.near = d0 < d1 ? 0 : RN - 1;
+                if (Math.min(d0, d1) < 40 && now - rope.dropAt > 500) { rope.bite = true; rope.biteEnd = rope.near; try { showCompanionReaction("😤"); } catch (x) {} blip(200, 150, 0.1, "sawtooth", 0.03); }
+            } else if (now > rope.wt) { rope.wt = now + 1500 + Math.random() * 1400; rope.wx = 70 + Math.random() * (innerWidth - 140); rope.wy = innerHeight - (window.boundaryPadding || 0) - 70 - Math.random() * 50; }
+            if (now - rope.dropAt > 9000) { for (let i = 0; i < 6; i++) burst(rope.p[(i * 3) % RN].x, rope.p[(i * 3) % RN].y, "✨"); rope = null; }
+        }
+        if (rope) ropeStep(k);
+    }
+    function drawRope() {
+        const p = rope.p, n = p.length; g.lineCap = "round"; g.lineJoin = "round"; g.setLineDash([]);
+        const path = (dy) => { g.beginPath(); g.moveTo(p[0].x, p[0].y + dy); for (let i = 1; i < n - 1; i++) { const mx = (p[i].x + p[i + 1].x) / 2, my = (p[i].y + p[i + 1].y) / 2; g.quadraticCurveTo(p[i].x, p[i].y + dy, mx, my + dy); } g.lineTo(p[n - 1].x, p[n - 1].y + dy); };
+        g.strokeStyle = "rgba(0,0,0,.22)"; g.lineWidth = 10; path(4); g.stroke();
+        g.strokeStyle = "#6b4416"; g.lineWidth = 10; path(0); g.stroke();
+        g.strokeStyle = "#d9b26b"; g.lineWidth = 7.6; path(0); g.stroke();
+        for (let i = 0; i < n - 1; i++) { const a = p[i], b = p[i + 1], dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1, tx = dx / d, ty = dy / d, nx = -ty, ny = tx, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            g.strokeStyle = "#8a5a1e"; g.lineWidth = 2.2; g.beginPath(); g.moveTo(mx + nx * 3.4 - tx * 3, my + ny * 3.4 - ty * 3); g.lineTo(mx - nx * 3.4 + tx * 3, my - ny * 3.4 + ty * 3); g.stroke();
+            g.strokeStyle = "rgba(255,240,200,.7)"; g.lineWidth = 1; g.beginPath(); g.moveTo(mx + nx * 3 - tx * 0.4, my + ny * 3 - ty * 0.4); g.lineTo(mx - nx * 3 + tx * 2.6, my - ny * 3 + ty * 2.6); g.stroke(); }
+        const knot = (q, q2) => { const dx = q.x - q2.x, dy = q.y - q2.y, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d; g.strokeStyle = "#b98d4c"; g.lineWidth = 1.6; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(q.x + ux * 5, q.y + uy * 5); g.lineTo(q.x + ux * 14 - uy * i * 4, q.y + uy * 14 + ux * i * 4); g.stroke(); } g.fillStyle = "#b9894a"; g.strokeStyle = "#6b4416"; g.lineWidth = 2; g.beginPath(); g.arc(q.x, q.y, 7, 0, 7); g.fill(); g.stroke(); g.fillStyle = "rgba(255,255,255,.35)"; g.beginPath(); g.arc(q.x - 2, q.y - 2, 2.4, 0, 7); g.fill(); };
+        knot(p[n - 1], p[n - 2]); if (rope.mode !== "held") knot(p[0], p[1]);
+        if (rope.mode === "held" && rope.bite && rope.pull > 0.02) { g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = 5; g.beginPath(); g.arc(rope.hx, rope.hy, 22, 0, 7); g.stroke(); g.strokeStyle = rope.pull > 0.7 ? "#69f0ae" : "#ffd740"; g.lineWidth = 5; g.beginPath(); g.arc(rope.hx, rope.hy, 22, -Math.PI / 2, -Math.PI / 2 + rope.pull * Math.PI * 2); g.stroke(); }
+    }
+
+    /* ----- everyday toy behaviours ----- */
+    let toyT = { fish: 0, mouse: 0, scur: 0, bell: 0, lastX: 0, lastY: 0 };
+    function toyLife(k) {
+        const st = stNow(), eff = effNow(), now = performance.now();
+        if (eff === "bell" && st === "dragged") { const sp = Math.hypot(iToyX - toyT.lastX, iToyY - toyT.lastY) / Math.max(0.3, k); if (sp > 6 && now - toyT.bell > 170) { toyT.bell = now; jingle(); } }
+        toyT.lastX = iToyX; toyT.lastY = iToyY;
+        if (st !== "thrown") { if (eff === "dice" && st === "dragged") { diceSet = false; } return; }
+        const sp = Math.hypot(iToyVX, iToyVY), el = toyEl(), w = el.offsetWidth || 40, h = el.offsetHeight || 40, r = Math.min(w, h) * (P.size || 1) / 2, fl = innerHeight - (window.boundaryPadding || 0) - r - h / 2, onFloor = iToyY >= fl - 6;
+        if (eff === "dice") {
+            if (sp > 1.6) { diceSet = false; if (now - diceT > 85) { diceT = now; diceFace = 1 + Math.floor(Math.random() * 6); el.innerHTML = diceSVG(diceFace); } }
+            else if (!diceSet) { diceSet = true; diceFace = 1 + Math.floor(Math.random() * 6); el.innerHTML = diceSVG(diceFace); try { showCompanionReaction(diceFace === 6 ? "🎉" : diceFace === 1 ? "😬" : "🎲"); } catch (e) {} blip(300, 220, 0.06, "square", 0.03); }
+        }
+        if (eff === "fish" && onFloor && sp < 1.2 && now - toyT.fish > 650) { toyT.fish = now; iToyVY = -(4 + Math.random() * 3.5); iToyVX = (Math.random() - 0.5) * 5; blip(260, 180, 0.07, "triangle", 0.03); }
+        if (eff === "mouse") { if (!tstate.scur) tstate.scur = 0; if (onFloor && sp < 0.9 && now - toyT.mouse > 520 && tstate.scur < 4) { toyT.mouse = now; tstate.scur++; const dir = Math.random() < 0.5 ? -1 : 1; iToyVX = dir * (6 + Math.random() * 3); iToyVY = -2.2; for (let i = 0; i < 3; i++) setTimeout(() => blip(1500 + Math.random() * 400, 1200, 0.03, "square", 0.02), i * 70); } }
+    }
+    const _imp = window.__fxToyImpact;
+    window.__fxToyImpact = function (imp, axis, B) {
+        try { _imp && _imp(imp, axis, B); } catch (e) {}
+        const eff = effNow();
+        if (eff === "bell" && imp > 1.5) jingle();
+        if (eff === "duck" && imp > 2.5) blip(520, 300, 0.12, "square", 0.04);
+        if (eff === "plush" && imp > 2) blip(120, 70, 0.1, "sine", 0.05);
+        if (eff === "tennis" && imp > 2.5) blip(380, 200, 0.05, "triangle", 0.05);
+        if (eff === "log" && imp > 2.5) blip(180, 120, 0.06, "square", 0.04);
+        if (eff === "dice" && imp > 2.5) blip(320, 200, 0.05, "square", 0.03);
+        if (eff === "mouse" && imp > 2.5) blip(1800, 1300, 0.04, "square", 0.02);
+        if (eff === "carrot" || eff === "apple" || eff === "cheese" || eff === "cookie" || eff === "donut") { if (imp > 2.5) blip(240, 160, 0.05, "triangle", 0.03); }
+    };
+    function tugTick(k) { try { ropeTick(k); wandTick(k); toyLife(k); } catch (e) { window.__toyErr = e.message; } }
 
     /* ---------- main loop ---------- */
     let prevState = "tethered", lt = performance.now();
@@ -15990,11 +16120,6 @@ function fxNutEstimate(lines) {
         tstate = { stuck: 0, sx: 0, sy: 0, bounces: 0, split: false, loop: 0, looped: false, born: performance.now() };
         const eff = iToyEffect, c = toyCenter();
         const toy = equippedToy(); setPet((p) => { p.toyUses = p.toyUses || {}; if (toy) p.toyUses[toy.id] = (p.toyUses[toy.id] || 0) + 1; if (!p.fav && toy) { p.fav = toy.id; setTimeout(() => toast(`💕 ${ls("companionName", "Buddy")} loves the ${toy.name}! It's their favorite toy now — playing with it makes them extra happy.`, { ms: 6000 }), 600); } p.stats = p.stats || {}; p.stats.throws = (p.stats.throws || 0) + 1; });
-        if (eff === "bubbles") {
-            const vx = iToyVX, vy = iToyVY; recallInteractiveToy();
-            for (let i = 0; i < 8; i++) addBody({ x: c.x + (Math.random() - 0.5) * 30, y: c.y + (Math.random() - 0.5) * 30, vx: vx * 0.25 + (Math.random() - 0.5) * 3, vy: Math.min(-1, vy * 0.2) - Math.random() * 2, icon: "🫧", kind: "bubble", r: 14 + Math.random() * 8 });
-            try { showCompanionReaction("😍"); } catch (e) {}
-        }
         if (eff === "multi") ["🔴", "🔵"].forEach((ic, i) => addBody({ x: c.x, y: c.y, vx: iToyVX * (0.75 + i * 0.3) + (i ? 3 : -3), vy: iToyVY * (0.85 + i * 0.25), icon: ic, mat: "multi", r: 15, kind: "ball" }));
         if (eff === "glow") { /* trail drawn in overlay */ }
         if (eff === "tug") { recallInteractiveToy(); }
@@ -17002,7 +17127,12 @@ function fxNutEstimate(lines) {
 /* toys, pool, extra bodies */
 #fx3-toy-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
 .fx3-body { position: fixed; left: 0; top: 0; width: 30px; height: 30px; margin: -15px 0 0 -15px; display: flex; align-items: center; justify-content: center; font-size: 26px; line-height: 1; pointer-events: auto; cursor: grab; touch-action: none; z-index: 9996; user-select: none; will-change: transform; }
-.fx3-body.bubble { border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.8), rgba(150,220,255,.25) 40%, rgba(150,220,255,.08)); border: 1px solid rgba(255,255,255,.6); font-size: 0; }
+.fx3-body.bubble { border-radius: 50%; margin: 0; border: 0; font-size: 0; cursor: pointer; background: radial-gradient(circle at 30% 26%, rgba(255,255,255,.95) 0 8%, rgba(255,255,255,0) 20%), radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 56%, rgba(120,200,255,.3) 70%, rgba(255,130,200,.32) 84%, rgba(255,255,255,.6) 100%); box-shadow: inset 0 0 6px rgba(160,220,255,.55), inset 3px 3px 6px rgba(255,140,210,.25), 0 0 4px rgba(255,255,255,.35); animation: bxBubSh 3s linear infinite; }
+@keyframes bxBubSh { to { filter: hue-rotate(360deg); } }
+.bx-pop { position: fixed; z-index: 9997; pointer-events: none; border-radius: 50%; border: 2px solid rgba(200,235,255,.9); animation: bxPop .4s ease-out forwards; }
+.bx-pop i { position: absolute; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1.5px; border-radius: 50%; background: rgba(200,235,255,.95); animation: bxPopD .4s ease-out forwards; }
+@keyframes bxPop { to { transform: scale(1.5); opacity: 0; } }
+@keyframes bxPopD { to { transform: rotate(var(--a)) translateX(1.6em) scale(.4); opacity: 0; } }
 .fx3-body.glow { filter: drop-shadow(0 0 8px #eeff41) drop-shadow(0 0 4px #eeff41); }
 #fx3-pool { position: fixed; height: 70px; z-index: 9990; display: none; pointer-events: none; }
 .fx3-pool-rim { position: absolute; inset: 0; border-radius: 40px / 22px; background: linear-gradient(#ff7043, #f4511e); box-shadow: 0 6px 10px rgba(0,0,0,.35), inset 0 3px 0 rgba(255,255,255,.35); }
