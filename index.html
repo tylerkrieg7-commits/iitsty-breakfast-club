@@ -14936,6 +14936,7 @@ function fxNutEstimate(lines) {
             if (petItems.length && Math.random() < 0.3) { const o = petItems[Math.floor(Math.random() * petItems.length)]; goDo(o.i, o.f); }
             else { pet.tx = clamp(pet.x + (Math.random() - 0.5) * 40, 8, 90); pet.ty = clamp(pet.y + (Math.random() - 0.5) * 14, 60, 90); }
         }, 3500);
+        window.__fx3PetCtl = { pet: pet, el: () => petEl, say: say, heart: heart, scene: () => scene };
         draw(); raf = requestAnimationFrame(tick);
         if (night()) { const R = room(); pet.x = (R.bedX != null ? R.bedX : 8) + 5; pet.y = (R.bedY != null ? R.bedY : 66) + 4; pet.tx = pet.x; pet.ty = pet.y; pet.sleep = true; petEl.classList.add("zz"); }
     }
@@ -17819,7 +17820,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         if (!v.classList.contains("active") || v.querySelector("#bcx-tg")) return;
         var cur = ls("bcx_tg_tab", "jar"); if (!TABS.some(function (t) { return t[0] === cur; })) cur = "jar";
         var c = document.createElement("div"); c.className = "card bcx-tg"; c.id = "bcx-tg";
-        c.innerHTML = '<div class="card-header"><span class="card-title">💞 Together</span><small id="bcx-tgn">' + nextCdLine() + '</small></div><div class="tabs">' + TABS.map(function (t) { return '<button data-t="' + t[0] + '">' + t[1] + "</button>"; }).join("") + '</div><div id="bcx-tgp"></div>';
+        c.innerHTML = '<div class="card-header"><span class="card-title">💞 Together</span><small id="bcx-tgn">' + nextCdLine() + '</small></div><div class="cxt">' + TABS.map(function (t) { return '<button data-t="' + t[0] + '">' + t[1] + "</button>"; }).join("") + '</div><div id="bcx-tgp"></div>';
         var anchor = v.querySelector(":scope > #bcx-club") || v.querySelector(":scope > .card"); if (anchor) anchor.insertAdjacentElement("afterend", c); else v.appendChild(c);
         var show = function (id) { lsSet("bcx_tg_tab", id); c.querySelectorAll(".tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === id); }); TABS.filter(function (t) { return t[0] === id; })[0][2]($("bcx-tgp")); var n = $("bcx-tgn"); if (n) n.innerHTML = nextCdLine(); };
         c.querySelector(".tabs").onclick = function (e) { var b = e.target.closest("[data-t]"); if (b) show(b.dataset.t); };
@@ -18257,7 +18258,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
     function openPanel(tab, mode) {
         if (panel) panel.remove();
         panel = document.createElement("div"); panel.className = "bcx-panel";
-        panel.innerHTML = '<div class="hd"><span>🏡 Pet home</span><button class="b g" id="bp-x">Close</button></div><div class="tabs"></div><div class="bd"></div>';
+        panel.innerHTML = '<div class="hd"><span>🏡 Pet home</span><button class="b g" id="bp-x">Close</button></div><div class="cxt"></div><div class="bd"></div>';
         document.body.appendChild(panel); panel.querySelector("#bp-x").onclick = function () { panel.remove(); panel = null; };
         var TABS = [["rooms", "🗺️ Rooms & doors"], ["skins", "🎨 Door skins"], ["gadgets", "🎛️ Gadgets"], ["friends", "👫 Friends"], ["radio", "📻 Radio"], ["visit", "👀 Visit"]], cur = tab, bd = panel.querySelector(".bd");
         var paint = function () { panel.querySelector(".tabs").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".tabs button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, gadgets: function (b, r) { if (window.bcxGadgets) window.bcxGadgets.panel(b, r); else b.innerHTML = '<div class="card-desc">Gadgets are loading, try again in a moment.</div>'; }, skins: pSkins, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
@@ -18999,7 +19000,8 @@ var ITEMS3=[
 ["fu_q_windmill","q_windmill","Mini Windmill",0,"furn","","",46,"0 0 64 80",'<path d="M21 77L26 30H38L43 77Z" fill="#d7ccc8"/><path d="M26 30H38L32 19Z" fill="#8d6e63"/><path d="M28 77V62C28 57 36 57 36 62V77Z" fill="#8d6e63"/><path d="M23 50H41M24 42H40" stroke="#bcaaa4" stroke-width="1.4"/><g class="hzsp" style="transform-origin:32px 24px"><path d="M32 24L26 2L38 2Z M32 24L54 18L54 30Z M32 24L38 46L26 46Z M32 24L10 30L10 18Z" fill="#fff" stroke="#bcaaa4" stroke-width="1.4"/></g><circle cx="32" cy="24" r="3.6" fill="#8d6e63"/>',PQ],
 ["fu_q_slimeplush","q_slimeplush","Slime Plush",0,"furn","","",38,"0 0 64 64",SHD3(22)+'<g class="hzjg"><path d="M8 52C6 34 18 18 32 18C46 18 58 34 56 52C56 58 8 58 8 52Z" fill="#66bb6a"/><path d="M14 40C14 30 22 24 30 22" stroke="#a5d6a7" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="24" cy="40" r="4.4" fill="#fff"/><circle cx="40" cy="40" r="4.4" fill="#fff"/><circle cx="25" cy="41" r="2" fill="#1b5e20"/><circle cx="39" cy="41" r="2" fill="#1b5e20"/><path d="M26 49Q32 54 38 49" stroke="#1b5e20" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M27 48V51M32 50V53M37 48V51" stroke="#a5d6a7" stroke-width="1.2"/><path d="M12 54H52" stroke="#388e3c" stroke-width="1.4" stroke-dasharray="3 3"/></g>',PQ],
 ["fu_q_bobblehero","q_bobblehero","Bobblehead Hero",0,"furn","","",34,"0 0 64 64",SHD3(18)+'<rect x="18" y="52" width="28" height="7" rx="3" fill="#5d4037"/><path d="M21 52V38C21 31 43 31 43 38V52Z" fill="#78909c"/><path d="M27 38H37V46H27Z" fill="#cfd8dc"/><path d="M44 40L55 26L58 29L48 44Z" fill="#cfd8dc"/><path d="M53 24L59 30L56 33L50 27Z" fill="#8d6e63"/><g class="hzb"><circle cx="32" cy="21" r="12.5" fill="#ffcc80"/><path d="M19 22C18 6 46 6 45 22L45 26H40V20H24V26H19Z" fill="#90a4ae"/><path d="M32 6V16" stroke="#e53935" stroke-width="4" stroke-linecap="round"/><circle cx="27" cy="24" r="1.8" fill="#333"/><circle cx="37" cy="24" r="1.8" fill="#333"/><path d="M27 30Q32 33 37 30" stroke="#8d4a1b" stroke-width="1.6" fill="none"/></g>',PQ],
-["fu_q_crystal","q_crystal","Wizard's Crystal Ball",0,"furn","","light",34,"0 0 64 64",SHD3(18)+'<path d="M18 60L22 48H42L46 60Z" fill="#5d4037"/><path d="M22 48H42" stroke="#8d6e63" stroke-width="3"/><circle cx="32" cy="30" r="18" fill="#7e57c2" fill-opacity=".55" stroke="#b39ddb" stroke-width="2"/><g class="hzsp" style="transform-origin:32px 30px"><path d="M32 30C32 22 40 20 42 26C38 24 36 28 36 30C36 36 28 38 26 32C30 34 32 32 32 30Z" fill="#e1bee7" opacity=".85"/><circle cx="24" cy="24" r="1.6" fill="#fff"/><circle cx="41" cy="36" r="1.4" fill="#fff"/></g><path d="M22 22C24 16 28 13 33 12" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>',PQ]
+["fu_q_crystal","q_crystal","Wizard's Crystal Ball",0,"furn","","light",34,"0 0 64 64",SHD3(18)+'<path d="M18 60L22 48H42L46 60Z" fill="#5d4037"/><path d="M22 48H42" stroke="#8d6e63" stroke-width="3"/><circle cx="32" cy="30" r="18" fill="#7e57c2" fill-opacity=".55" stroke="#b39ddb" stroke-width="2"/><g class="hzsp" style="transform-origin:32px 30px"><path d="M32 30C32 22 40 20 42 26C38 24 36 28 36 30C36 36 28 38 26 32C30 34 32 32 32 30Z" fill="#e1bee7" opacity=".85"/><circle cx="24" cy="24" r="1.6" fill="#fff"/><circle cx="41" cy="36" r="1.4" fill="#fff"/></g><path d="M22 22C24 16 28 13 33 12" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".6"/>',PQ],
+["fu_jukebox","jukebox","Retro Jukebox",350,"furn","","",64,"0 0 80 112",'<ellipse cx="40" cy="109" rx="32" ry="3" fill="#000" opacity=".2"/><path d="M6 106V40C6 14 22 3 40 3C58 3 74 14 74 40V106Z" fill="#7a1f3d" stroke="#cfd8dc" stroke-width="2.4"/><path d="M12 104V40C12 18 25 8 40 8C55 8 68 18 68 40V104" fill="none" class="jkn" stroke="#ff4fa3" stroke-width="3" stroke-linecap="round"/><path d="M17 38C17 24 27 16 40 16C53 16 63 24 63 38Z" fill="#1a0d2b" stroke="#cfd8dc" stroke-width="1.2"/><rect x="15" y="20" width="50" height="22" fill="#1a0d2b"/><defs><clipPath id="jkclip"><rect x="15" y="20" width="50" height="22"/></clipPath></defs><g clip-path="url(#jkclip)"><g class="jkdg"><g class="jkd" data-x="5" transform="translate(5 29)"><circle r="7.6" fill="#15101f" stroke="#3a2d55" stroke-width=".6"/><circle r="5.2" fill="none" stroke="#2c2244" stroke-width=".5"/><circle r="3" class="jkl" fill="#ff4fa3"/><circle r=".9" fill="#fff"/></g><g class="jkd" data-x="22" transform="translate(22 29)"><circle r="7.6" fill="#15101f" stroke="#3a2d55" stroke-width=".6"/><circle r="5.2" fill="none" stroke="#2c2244" stroke-width=".5"/><circle r="3" class="jkl" fill="#ff4fa3"/><circle r=".9" fill="#fff"/></g><g class="jkd" data-x="39" transform="translate(39 29)"><circle r="7.6" fill="#15101f" stroke="#3a2d55" stroke-width=".6"/><circle r="5.2" fill="none" stroke="#2c2244" stroke-width=".5"/><circle r="3" class="jkl" fill="#ff4fa3"/><circle r=".9" fill="#fff"/></g><g class="jkd" data-x="56" transform="translate(56 29)"><circle r="7.6" fill="#15101f" stroke="#3a2d55" stroke-width=".6"/><circle r="5.2" fill="none" stroke="#2c2244" stroke-width=".5"/><circle r="3" class="jkl" fill="#ff4fa3"/><circle r=".9" fill="#fff"/></g><g class="jkd" data-x="73" transform="translate(73 29)"><circle r="7.6" fill="#15101f" stroke="#3a2d55" stroke-width=".6"/><circle r="5.2" fill="none" stroke="#2c2244" stroke-width=".5"/><circle r="3" class="jkl" fill="#ff4fa3"/><circle r=".9" fill="#fff"/></g></g></g><path d="M12 40C12 22 24 12 40 12C56 12 68 22 68 40" fill="none" stroke="#cfd8dc" stroke-width="1.4"/><rect x="14" y="20" width="52" height="22" rx="4" fill="none" stroke="#cfd8dc" stroke-width="1.6"/><path d="M24 29H56" stroke="#fff" stroke-opacity=".08" stroke-width="2"/><circle cx="39" cy="29" r="9.4" fill="none" class="jkn" stroke="#ff4fa3" stroke-width="1.2" opacity=".9"/><rect x="17" y="48" width="46" height="30" rx="7" fill="#2b0f1c" stroke="#cfd8dc" stroke-width="1.6"/><rect class="jkq" x="21" y="60" width="4.4" height="12" rx="1.6" fill="#ffd54f" style="--d:.0s"/><rect class="jkq" x="27" y="52" width="4.4" height="20" rx="1.6" fill="#ffd54f" style="--d:.12s"/><rect class="jkq" x="33" y="63" width="4.4" height="9" rx="1.6" fill="#ffd54f" style="--d:.3s"/><rect class="jkq" x="39" y="50" width="4.4" height="22" rx="1.6" fill="#ffd54f" style="--d:.05s"/><rect class="jkq" x="45" y="57" width="4.4" height="15" rx="1.6" fill="#ffd54f" style="--d:.22s"/><rect class="jkq" x="51" y="53" width="4.4" height="19" rx="1.6" fill="#ffd54f" style="--d:.36s"/><rect class="jkq" x="57" y="61" width="4.4" height="11" rx="1.6" fill="#ffd54f" style="--d:.17s"/><rect class="jkq" x="63" y="55" width="4.4" height="17" rx="1.6" fill="#ffd54f" style="--d:.08s"/><path d="M20 74H60" stroke="#cfd8dc" stroke-opacity=".25" stroke-width="1"/><rect x="17" y="83" width="46" height="14" rx="4" fill="#3a0f24" stroke="#cfd8dc" stroke-width="1.2"/><circle cx="26" cy="90" r="3.4" fill="#ffd54f" class="jkb"/><circle cx="40" cy="90" r="3.4" fill="#4fc3f7" class="jkb" style="--d:.3s"/><circle cx="54" cy="90" r="3.4" fill="#b388ff" class="jkb" style="--d:.6s"/><rect x="10" y="99" width="60" height="7" rx="2" fill="#3a0f24" stroke="#cfd8dc" stroke-width="1.2"/>']
 ];
 ITEMS3.forEach(function(r){ITEMS2.push(r);});
 window.BX_ITEMS3=ITEMS3.map(function(r){return {id:r[0],k:r[1],n:r[2]};});
@@ -19221,10 +19223,11 @@ setTimeout(register,600);setTimeout(register,2500);
         }
         /* ----- playing on the pet TV ----- */
         var P = null;   /* {el, v, it, hls, tm} */
+        function emit(ev, p) { try { var q = p || P; window.dispatchEvent(new CustomEvent("bcx-tv", { detail: { ev: ev, it: q && q.it, v: q && q.v, el: q && q.el } })); } catch (e) { } }
         function loadHls() { if (window.Hls) return Promise.resolve(); if (hlsP) return hlsP; hlsP = new Promise(function (ok2, no) { var s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.13/hls.min.js"; s.onload = ok2; s.onerror = no; document.head.appendChild(s); }); return hlsP; }
         function report(kind) { if (!P || !P.v) return; var it = P.it; try { api("/Sessions/Playing" + (kind === "start" ? "" : kind === "stop" ? "/Stopped" : "/Progress"), { method: "POST", body: { ItemId: it.Id, MediaSourceId: it.Id, PositionTicks: Math.round((P.v.currentTime || 0) * 1e7), IsPaused: !!P.v.paused, PlayMethod: P.hls ? "Transcode" : "DirectStream" } }).catch(function () { }); } catch (e) { } }
         function stop(silent) {
-            if (!P) return; var p = P; report("stop"); clearInterval(p.tm); try { p.v.pause(); p.v.removeAttribute("src"); p.v.load(); } catch (e) { } try { p.h && p.h.destroy(); } catch (e) { } P = null; var r = document.getElementById("jf-rem"); if (r) r.remove();
+            if (!P) return; var p = P; report("stop"); emit("stop", p); clearInterval(p.tm); try { p.v.pause(); p.v.removeAttribute("src"); p.v.load(); } catch (e) { } try { p.h && p.h.destroy(); } catch (e) { } P = null; var r = document.getElementById("jf-rem"); if (r) r.remove();
             try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { }
         }
         function remote() {
@@ -19254,15 +19257,20 @@ setTimeout(register,600);setTimeout(register,2500);
             v.onerror = fall; v.src = direct; v.play().catch(function () { });
             setTimeout(function () { if (P && P.v === v && !tried && v.readyState < 2) fall(); }, 6000);
             v.onended = function () { report("stop"); toast("📺 Finished"); }; P.tm = setInterval(function () { if (!P || !P.v.isConnected) { stop(); return; } report("prog"); }, 15000);
-            report("start"); remote(); toast("🎬 Playing on your TV");
+            report("start"); remote(); toast("🎬 Playing on your TV"); ["play", "pause", "seeked", "ended"].forEach(function (n) { v.addEventListener(n, function () { if (P && P.v === v) emit(n); }); }); emit("start");
         }
         return {
             ready: ok, stop: stop, close: close,
             pick: function (el) { cur = { el: el }; if (sheet) close(); cur = { el: el }; if (ok()) return home(); shell("Jellyfin", '<div class="msg">Signing in…</div>'); auto().then(function (okk) { if (!sheet) return; okk ? home() : loginView(); }); },
             account: function () { cur = cur || {}; if (ok()) return home(); shell("Jellyfin", '<div class="msg">Signing in…</div>'); auto().then(function (okk) { if (!sheet) return; okk ? home() : loginView(); }); },
-            playing: function (el) { return !!(P && P.el === el); }
+            playing: function (el) { return !!(P && P.el === el); },
+            api: api, base: base, did: did, auto: auto, img: img, cfg: cfg, state: function () { return P; },
+            playItem: function (it, el) { cur = { el: el }; play(it); },
+            openItem: function (it, el) { cur = { el: el }; open(it); },
+            sheetFor: function (el) { cur = { el: el }; }
         };
     })();
+    window.BCJF = JF;
     var notesT = 0;
     function radioPlaying() { try { var s = window.BCMusic && BCMusic.state(); return !!(s && s.playing && s.ctx === "radio"); } catch (e) { return false; } }
     function radioToggle(d) {
@@ -19281,7 +19289,7 @@ setTimeout(register,600);setTimeout(register,2500);
         else if (d.k === "radio") { radioToggle(d); setTimeout(function () { el.classList.toggle("g-playing", radioPlaying()); }, 300); }
         else if (d.k === "tv") {
             var n = d.ch && d.ch.length ? d.ch.length : BUILT.length, cur = st.ch == null ? -1 : st.ch, nx = cur + 1;
-            if (nx >= n) nx = -1; try { JF.stop(); } catch (e) { } st.ch = nx; paintTV(el, d, nx);
+            if (nx >= n) nx = -1; try { JF.stop(); } catch (e) { } st.ch = nx; paintTV(el, d, nx); try { window.dispatchEvent(new CustomEvent("bcx-tv", { detail: { ev: nx >= 0 ? "tvon" : "tvoff", el: el } })); } catch (e) { }
             if (nx >= 0 && d.ch && d.ch[nx] && d.ch[nx].t === "jf") { try { JF.pick(el); } catch (e) { toast("Jellyfin isn't ready."); } }
             if (nx >= 0) { var c = d.ch && d.ch.length ? d.ch[nx] : null; if (c && c.t === "site" && c.u) viewer(c.u, c.n); else if (nx === 0 || true) { /* nothing more */ } }
         }
@@ -20018,6 +20026,385 @@ setInterval(function () {
 window.__bcxHaunt = { start: function (p) { startRaid(p !== false); }, ring: function () { var ov = roomOv(); if (ov) startRing(ov); }, quests: questPage, haunt: hauntPage, state: function () { return { ring: ring, st: jget("bcx_haunt", {}), pq: pq() }; }, inWindow: inWindow, hauntDay: hauntDay };
 })();
 </script>
+<script id="bcx-cinema">
+/* ===== Build 66: pet reacts to the TV (+favorites), Movie Night (dim room, warm lights, synced phones, popcorn break), Retro Jukebox (Jellyfin music) ===== */
+(function () {
+"use strict";
+var $ = function (s, r) { return (r || document).querySelector(s); };
+var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+var jget = function (k, d) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } };
+var jset = function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } };
+var lsr = function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+var toast = function (m) { try { window.fxToast && window.fxToast(m); } catch (e) { } };
+var petName = function () { return lsr("companionName", "Buddy"); };
+var me = function () { return lsr("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
+var pname = function (w) { try { var n = window.getHouseholdNames ? window.getHouseholdNames() : {}; return n[w] || (w === "p1" ? "Person 1" : "Person 2"); } catch (e) { return "your partner"; } };
+var KV = function () { return window.bcxKV || null; };
+var JF = function () { return window.BCJF || null; };
+var PC = function () { var c = window.__fx3PetCtl; return c && c.scene && c.scene() && c.scene().isConnected ? c : null; };
+var rnd = function (a, b) { return a + Math.random() * (b - a); };
+var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+function roomCur() { var r = jget("bcx_rooms", null) || {}; return r.cur || "home"; }
+function roomItems() { return (jget("fx3_room", {}) || {}).items || []; }
+function say(t) { var c = PC(); if (c) { try { c.say(t, 2400); } catch (e) { } } }
+function hop(petEl) { if (!petEl) return; petEl.classList.remove("hop"); void petEl.offsetWidth; petEl.classList.add("hop"); }
+var AC = null;
+function tone(f, d, type, v, slide) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); var o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime; o.type = type || "sine"; o.frequency.setValueAtTime(f, t); if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + d); g.gain.setValueAtTime(v || .05, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(AC.destination); o.start(); o.stop(t + d + .02); } catch (e) { } }
+
+/* ---------- CSS ---------- */
+var CSS = [
+/* jukebox art */
+".jkn{stroke:#ff4fa3;opacity:.55}.jkb{opacity:.45}.jkq{transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(.25)}.jkdg{transition:none}.jkd .jkl{transition:fill .4s}",
+".g-jk-on .jkn{opacity:1;animation:jkCol 5s linear infinite}.g-jk-on .jkq{animation:jkEq .55s ease-in-out infinite alternate;animation-delay:var(--d,0s)}.g-jk-on .jkb{opacity:1;animation:jkBlink .9s steps(2) infinite;animation-delay:var(--d,0s)}.g-jk-on svg{filter:drop-shadow(0 0 7px var(--jkc,#ff4fa3))}",
+"@keyframes jkCol{0%,100%{stroke:#ff4fa3}20%{stroke:#ffb74d}40%{stroke:#fff176}55%{stroke:#4fc3f7}75%{stroke:#b388ff}}@keyframes jkEq{from{transform:scaleY(.18)}to{transform:scaleY(1)}}@keyframes jkBlink{50%{opacity:.25}}",
+".fx3-furn.jk-beat svg{animation:jkBeat .16s ease-out}@keyframes jkBeat{40%{transform:scale(1.045)}}",
+/* menu icons */
+".cxi{position:relative;display:inline-block;width:20px;height:18px;vertical-align:middle;margin-right:8px;flex:none}.cxi.m{background:#37474f;border-radius:3px;margin-top:4px;height:13px}.cxi.m:before{content:'';position:absolute;left:0;right:0;top:-5px;height:6px;background:repeating-linear-gradient(115deg,#fff 0 4px,#263238 4px 8px);border-radius:2px 2px 0 0}.cxi.m:after{content:'';position:absolute;left:7px;top:3px;border-left:7px solid #ffd54f;border-top:4px solid transparent;border-bottom:4px solid transparent}",
+".cxi.j{background:#7a1f3d;border:2px solid #cfd8dc;border-radius:10px 10px 2px 2px;box-sizing:border-box}.cxi.j:before{content:'';position:absolute;left:3px;right:3px;top:2px;height:4px;background:#ff4fa3;border-radius:2px;box-shadow:0 0 5px #ff4fa3}.cxi.j:after{content:'';position:absolute;left:3px;right:3px;bottom:2px;height:3px;background:#ffd54f;border-radius:2px}",
+".cx-dot{margin-left:auto;width:9px;height:9px;border-radius:50%;background:#7cff9a;box-shadow:0 0 6px #7cff9a}",
+/* pet bob */
+"#rm-pet.jk-on{transition:translate .11s ease-out,rotate .11s ease-out}",
+/* movie night scene */
+".mv-dim{position:absolute;inset:0;z-index:150;pointer-events:none;background:radial-gradient(ellipse at var(--tvx,50%) var(--tvy,40%),rgba(40,20,60,.05) 0,rgba(10,5,24,.62) 30%,rgba(5,2,14,.86) 80%);transition:opacity .8s;opacity:0;animation:mvIn 1.6s forwards}@keyframes mvIn{to{opacity:1}}.mv-brk .mv-dim{opacity:.35!important;animation:none}",
+".mv-glow{position:absolute;z-index:199;pointer-events:none;width:30%;padding-bottom:26%;border-radius:50%;transform:translate(-50%,-70%);mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,172,64,.75),rgba(255,120,30,.25) 45%,rgba(255,255,255,0) 70%);animation:gFlick 2.6s ease-in-out infinite}",
+".mv-on .bx-halo{background:radial-gradient(circle,rgba(255,172,64,.75),rgba(255,140,40,0) 68%)!important;filter:none!important;animation:bxHalo 1.6s ease-in-out infinite alternate!important}.mv-on .g-glow{background:radial-gradient(circle,rgba(255,172,64,.85) 0,rgba(255,255,255,0) 68%)!important}",
+".mv-tv{z-index:160!important}.mv-tv .g-tv,.mv-tv .g-tvf{filter:brightness(1.15)}",
+"#mv-bar{position:fixed;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2147480600;background:rgba(22,14,36,.94);border:1px solid #4a3a6a;border-radius:16px;padding:8px 10px;display:flex;gap:6px;align-items:center;color:#fff;font:inherit;backdrop-filter:blur(6px)}#mv-bar b{flex:1;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#mv-bar b small{display:block;font-weight:600;opacity:.7}#mv-bar button{border:0;border-radius:10px;padding:8px 10px;font:inherit;font-weight:800;background:#3a2a66;color:#fff}",
+"#mv-brk{position:fixed;inset:0;z-index:2147480650;background:rgba(10,6,20,.55);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;text-align:center;padding:24px;font:inherit;overflow:hidden}#mv-brk h2{margin:0;font-size:1.7rem;text-shadow:0 2px 8px #000}#mv-brk button{font:inherit;border:0;border-radius:14px;padding:13px 24px;font-weight:900;background:linear-gradient(#ffb74d,#f57c00);color:#2b1500}#mv-brk i{position:absolute;top:-30px;font-style:normal;font-size:1.6rem;animation:mvPop linear forwards}@keyframes mvPop{to{transform:translateY(110vh) rotate(300deg)}}",
+/* sheets (movie + jukebox) */
+"#cx-sheet{position:fixed;inset:0;z-index:2147480900;background:#0e0a1a;color:#fff;display:flex;flex-direction:column;font:inherit}#cx-sheet .hd{display:flex;gap:8px;align-items:center;padding:12px;background:#1a1230}#cx-sheet .hd b{flex:1;font-size:1.05rem}#cx-sheet button{font:inherit;border:0;border-radius:10px;padding:9px 13px;font-weight:800;background:#3a2a66;color:#fff}#cx-sheet .bd{flex:1;overflow:auto;padding:12px}#cx-sheet h4{margin:14px 0 6px}#cx-sheet .go{background:linear-gradient(#ff4fa3,#c2185b)}#cx-sheet .msg{opacity:.85;font-size:.9rem;line-height:1.4}",
+"#cx-sheet .card{background:#1a1230;border-radius:14px;padding:12px;margin:8px 0;display:flex;gap:12px;align-items:center}#cx-sheet .card .t{flex:1;min-width:0}#cx-sheet .card small{opacity:.75;display:block}#cx-sheet .cxt{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}#cx-sheet .cxt button.on{background:linear-gradient(#ff4fa3,#c2185b)}#cx-sheet input{width:100%;box-sizing:border-box;font:inherit;padding:10px;border-radius:10px;border:1px solid #4a3a6a;background:#0e0a1a;color:#fff;margin:4px 0}",
+"#cx-sheet .al{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}#cx-sheet .al button{padding:0;background:#1a1230;text-align:left;overflow:hidden;border-radius:10px;font-weight:600}#cx-sheet .al i{display:block;aspect-ratio:1;background:#2a2048 center/cover no-repeat}#cx-sheet .al span{display:block;font-size:.72rem;padding:5px 6px;line-height:1.2;max-height:3.4em;overflow:hidden}",
+"#cx-sheet .tr{display:flex;gap:10px;align-items:center;width:100%;background:#1a1230;margin-bottom:5px;text-align:left;padding:8px 10px}#cx-sheet .tr.now{outline:2px solid #ff4fa3}#cx-sheet .tr small{opacity:.7}",
+"#jk-bar{position:fixed;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:2147480500;background:linear-gradient(#2a1236,#1a0b26);border:1px solid #ff4fa3;box-shadow:0 0 14px rgba(255,79,163,.45);border-radius:16px;padding:7px 10px;display:flex;gap:6px;align-items:center;color:#fff;font:inherit}#jk-bar i{width:38px;height:38px;border-radius:8px;background:#2a2048 center/cover no-repeat;flex:none;animation:jkSp 6s linear infinite}@keyframes jkSp{to{transform:rotate(360deg)}}#jk-bar b{flex:1;min-width:0;font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}#jk-bar b small{display:block;font-weight:600;opacity:.7}#jk-bar button{border:0;border-radius:10px;padding:8px 10px;font:inherit;font-weight:800;background:#3a2a66;color:#fff}",
+"body.mv-on #jk-bar{display:none}"
+].join("");
+var sty = document.createElement("style"); sty.textContent = CSS; document.head.appendChild(sty);
+
+/* =====================================================================
+   1. THE PET WATCHES TV
+   ===================================================================== */
+var tv = { on: false, el: null, it: null, mood: "fun", movie: false, t0: 0, nextBurst: 0, quiet: 0, asleep: false, favKey: null, ticks: 0 };
+var MOODS = [["action", /action|adventure|war|sci|thriller|crime|western|fantasy|superhero/i], ["scary", /horror|mystery|supernatural/i], ["fun", /comedy|animation|family|kids|children|musical|sport/i], ["slow", /drama|documentary|romance|history|biography|music|news|reality|talk/i]];
+function moodOf(genres) { var g = (genres || []).join(" "); for (var i = 0; i < MOODS.length; i++) if (MOODS[i][1].test(g)) return MOODS[i][0]; return "fun"; }
+var fav = function () { return jget("bcx_tvfav", { w: {}, fav: null }); };
+function favKeyOf(it) { return it ? (it.SeriesName || it.Name || "") : ""; }
+function tvSpot() {
+    var el = tv.el && tv.el.isConnected ? tv.el : findTV(); if (!el) return null;
+    var it = roomItems()[+el.dataset.i]; if (!it) return null;
+    return { x: Math.max(8, Math.min(92, it.x)), y: Math.max(60, Math.min(92, it.y + 10)), el: el };
+}
+function isTVItem(it) { var g = (it && it.g) || {}; if (g.kind === "none") return false; return g.kind === "tv" || it.id === "fu_tv" || it.id === "fu_bcx_tv"; }
+function findTV() { var sc = $("#rm-scene"); if (!sc) return null; var its = roomItems(), e = $$(".fx3-furn[data-i]", sc).filter(function (el) { return isTVItem(its[+el.dataset.i]); }); return e[0] || null; }
+function bedSpot() { var R = jget("fx3_room", {}) || {}; return { x: (R.bedX != null ? R.bedX : 8) + 5, y: (R.bedY != null ? R.bedY : 66) + 4 }; }
+function seat() {
+    var c = PC(); if (!c || tv.asleep) return; var p = c.pet;
+    if (tv.movie) { if (!p.sleep && !(p.task && p.task.kind === "nap")) { var b = bedSpot(); p.task = { kind: "nap", x: b.x, y: b.y }; p.tx = b.x; p.ty = b.y; c.el().classList.remove("zz"); } return; }
+    if (p.task && p.task.kind !== "tv") return; var s = tvSpot(); if (!s) return;
+    if (!p.task || p.task.kind !== "tv") { p.sleep = false; c.el().classList.remove("zz"); p.task = { kind: "tv" }; p.tx = s.x; p.ty = s.y; }
+}
+function release() {
+    var c = PC(); tv.asleep = false; if (!c) return; var p = c.pet; if (p.task && (p.task.kind === "tv" || p.task.kind === "nap")) p.task = null;
+    if (p.sleep && !tv.movie) { p.sleep = false; c.el().classList.remove("zz"); }
+}
+function startWatching(it, el, mood) {
+    tv.on = true; tv.el = el || tv.el; tv.it = it || null; tv.mood = mood || "fun"; tv.t0 = Date.now(); tv.quiet = Date.now(); tv.asleep = false; tv.nextBurst = Date.now() + rnd(14000, 30000);
+    tv.favKey = it ? favKeyOf(it) : null; seat();
+    var f = fav(); if (it && f.fav && f.fav === tv.favKey) setTimeout(function () { say("🐾 Ooh, my favorite!"); var c = PC(); if (c) { hop(c.el()); c.heart(c.pet.x, c.pet.y - 12, "💖"); } }, 1200);
+}
+function stopWatching() { tv.on = false; if (tv.movie) return; release(); }
+function wake(say2) {
+    var c = PC(); if (!c) return; tv.asleep = false; tv.quiet = Date.now(); if (tv.movie) { c.pet.sleep = false; c.el().classList.remove("zz"); }
+    else { c.pet.sleep = false; c.el().classList.remove("zz"); c.pet.task = null; }
+    if (say2) say(say2);
+}
+function burst() {
+    var c = PC(); if (!c) return; var pe = c.el(), asleepMovie = tv.movie && c.pet.sleep;
+    var m = tv.mood, isFav = !!(fav().fav && fav().fav === tv.favKey);
+    if (asleepMovie) { say(pick(["👀", "🐾 *ear twitch*", "💭 popcorn?"])); return; }
+    if (tv.asleep) { wake(pick(["😮 !!", "👀 Wait, what?!"])); }
+    if (m === "action") { hop(pe); say(pick(["😲 Whoa!", "‼️", "💥 Did you see that?!"])); c.heart(c.pet.x, c.pet.y - 12, pick(["💥", "‼️", "⚡"])); }
+    else if (m === "scary") { hop(pe); say(pick(["😱", "🫣 *hides*", "👻 Eek!"])); c.heart(c.pet.x, c.pet.y - 12, "😱"); }
+    else if (m === "fun") { hop(pe); say(pick(["😆", "♪ hehe", "🤣"])); c.heart(c.pet.x, c.pet.y - 12, pick(["😆", "✨", "🎶"])); }
+    else { say(pick(["👀", "🥺", "🐾 *leans in*"])); }
+    if (isFav && Math.random() < .6) c.heart(c.pet.x, c.pet.y - 16, "💖");
+    tv.quiet = Date.now(); tv.nextBurst = Date.now() + (m === "action" ? rnd(18000, 42000) : m === "scary" ? rnd(25000, 55000) : m === "fun" ? rnd(16000, 34000) : rnd(40000, 80000));
+}
+function playing() { var P = JF() && JF().state && JF().state(); return !!(P && P.v && !P.v.paused && !P.v.ended); }
+setInterval(function () {
+    var c = PC(); if (!c) return; var now = Date.now();
+    /* keep track of favorite shows */
+    if (tv.on && tv.it && playing() && ++tv.ticks % 15 === 0) { var f = fav(), k = favKeyOf(tv.it); if (k) { var w = f.w[k] = f.w[k] || { n: k, id: tv.it.SeriesId || tv.it.Id, ser: !!tv.it.SeriesId, m: 0 }; w.m += 0.25; var top = Object.keys(f.w).map(function (x) { return f.w[x]; }).sort(function (a, b) { return b.m - a.m; })[0]; if (top && top.m >= 8 && (!f.fav || (f.fav !== top.n && top.m > (f.w[f.fav] ? f.w[f.fav].m : 0) * 1.3))) { f.fav = top.n; setTimeout(function () { toast("🐾 " + petName() + " picked a favorite show: " + top.n + "!"); }, 400); } jset("bcx_tvfav", f); } }
+    if (!tv.on && !tv.movie) return;
+    seat();
+    var watching = tv.movie ? playing() || true : playing() || (tv.it == null);   /* built-in channels have no video to watch */
+    if (!watching) return;
+    var isFav = !!(fav().fav && fav().fav === tv.favKey);
+    if (now >= tv.nextBurst && (playing() || !tv.it)) burst();
+    /* slow shows put the pet to sleep; favorites never do */
+    if (!tv.asleep && !isFav && tv.mood === "slow" && !tv.movie && now - tv.quiet > rnd(55000, 85000) && (playing() || !tv.it)) { tv.asleep = true; var p = c.pet; p.sleep = true; c.el().classList.add("zz"); say("💤 …zzz"); }
+    if (isFav && !tv.movie && Math.random() < .08) { c.heart(c.pet.x, c.pet.y - 14, "💖"); }
+}, 1000);
+window.addEventListener("bcx-tv", function (e) {
+    var d = e.detail || {}, ev = d.ev;
+    if (ev === "start") {
+        var it = d.it; startWatching(it, d.el, "fun");
+        try { var J = JF(), uid = J.cfg().uid; J.api("/Users/" + uid + "/Items/" + it.Id + "?Fields=Genres").then(function (r) { if (r && tv.it && tv.it.Id === it.Id) { tv.mood = moodOf(r.Genres); } }, function () { }); } catch (x) { }
+        onMovieStart(d);
+    } else if (ev === "tvon") { startWatching(null, d.el, "fun"); }
+    else if (ev === "tvoff") { stopWatching(); }
+    else if (ev === "stop") { onMovieStop(); stopWatching(); }
+    else if (ev === "pause") { onVideoState(true); }
+    else if (ev === "play") { onVideoState(false); if (tv.asleep) wake("👀"); }
+    else if (ev === "seeked") { onSeek(); if (tv.asleep) wake("👀"); }
+    else if (ev === "ended") { onEnded(); say("🎬 The end!"); }
+});
+
+/* =====================================================================
+   2. MOVIE NIGHT
+   ===================================================================== */
+var MV = { on: false, armed: 0, id: null, name: "", seq: 0, last: 0, applying: 0, brk: false, poll: 0, hb: 0, doc: null, partner: null };
+var DOC = "mv_room";
+function vid() { var P = JF() && JF().state(); return P && P.v; }
+function writeDoc(extra) {
+    var k = KV(), v = vid(); if (!k || !MV.on || !v) return;
+    MV.seq = Math.max(MV.seq, (MV.doc && MV.doc.seq) || 0) + (extra && extra.bump === false ? 0 : 1);
+    var d = { on: 1, id: MV.id, name: MV.name, pos: v.currentTime || 0, paused: !!v.paused, t: Date.now(), by: me(), seq: MV.seq, brk: MV.brk ? 1 : 0 };
+    MV.doc = d; MV.last = MV.seq; try { k.set(DOC, d); } catch (e) { }
+}
+function onMovieStart(d) {
+    if (!(MV.armed && Date.now() < MV.armed) && !MV.joining) return;
+    var it = d.it; MV.armed = 0; MV.joining = false; MV.on = true; MV.id = it.Id; MV.name = it.Type === "Episode" ? (it.SeriesName || "") + " · " + it.Name : it.Name; tv.movie = true; MV.brk = false;
+    document.body.classList.add("mv-on"); try { window.BCMusic && BCMusic.stop("radio"); } catch (e) { } jukeStop(true);
+    toast("🍿 Movie night! Lights down, " + petName() + " is heading to bed.");
+    var v = d.v; if (MV.seekTo != null) { var to = MV.seekTo; MV.seekTo = null; v.addEventListener("loadedmetadata", function f() { v.removeEventListener("loadedmetadata", f); MV.applying = Date.now(); try { v.currentTime = to; } catch (e) { } }); }
+    bar(); applyScene(); seat();
+    if (!MV.hostJoin) setTimeout(function () { writeDoc(); }, 2500);
+    MV.hostJoin = false; startPoll();
+}
+function onMovieStop() { if (!MV.on) return; endMovie(false); }
+function onVideoState(paused) {
+    if (!MV.on || Date.now() - MV.applying < 2200) return;
+    if (!paused && MV.brk) { MV.brk = false; hideBreak(); }
+    writeDoc();
+}
+function onSeek() { if (!MV.on || Date.now() - MV.applying < 2200) return; writeDoc(); }
+function onEnded() { if (!MV.on) return; setTimeout(function () { endMovie(true); }, 2500); }
+function endMovie(write) {
+    if (!MV.on) return; MV.on = false; tv.movie = false; clearInterval(MV.poll); clearInterval(MV.hb); hideBreak();
+    document.body.classList.remove("mv-on"); var b = $("#mv-bar"); if (b) b.remove(); clearScene();
+    if (write && KV()) { try { KV().set(DOC, { on: 0, id: MV.id, by: me(), t: Date.now(), seq: (MV.seq || 0) + 1 }); } catch (e) { } }
+    var c = PC(); if (c) { c.pet.sleep = false; c.pet.task = null; c.el().classList.remove("zz"); hop(c.el()); say("🐾 That was great!"); }
+    tv.asleep = false;
+}
+function bar() {
+    var b = $("#mv-bar"); if (b) b.remove(); b = document.createElement("div"); b.id = "mv-bar";
+    b.innerHTML = '<button data-m="brk">🍿 Popcorn break</button><b>' + esc(MV.name) + '<small id="mv-who">🎬 Movie night</small></b><button data-m="end">✕ End</button>'; document.body.appendChild(b);
+    b.onclick = function (e) {
+        var m = e.target.getAttribute && e.target.getAttribute("data-m"); if (!m) return;
+        if (m === "end") { if (confirm("End movie night? This also stops it for you only. " + pname(other()) + " can keep watching.")) { try { JF().stop(); } catch (x) { } endMovie(true); } }
+        else if (m === "brk") popcorn(true);
+    };
+}
+function popcorn(local) {
+    var v = vid(); if (!v) return; if (MV.brk) return; MV.brk = true; MV.applying = local ? 0 : Date.now(); try { v.pause(); } catch (e) { }
+    if (local) writeDoc();
+    var o = document.createElement("div"); o.id = "mv-brk"; o.innerHTML = "<h2>🍿 Popcorn break!</h2><div>" + (local ? "The movie is paused for both phones." : esc(pname(other())) + " paused for popcorn.") + '</div><button id="mv-back">▶ Back to the movie</button>'; document.body.appendChild(o);
+    for (var i = 0; i < 16; i++) { var p = document.createElement("i"); p.textContent = "🍿"; p.style.left = rnd(2, 94) + "%"; p.style.animationDuration = rnd(2.4, 4.6) + "s"; p.style.animationDelay = rnd(0, 1.8) + "s"; o.appendChild(p); }
+    tone(660, .12, "triangle", .06); setTimeout(function () { tone(880, .18, "triangle", .06); }, 130);
+    $("#mv-back", o).onclick = function () { MV.brk = false; hideBreak(); var vv = vid(); if (vv) { MV.applying = 0; vv.play().catch(function () { }); } writeDoc(); };
+    var sc = $("#rm-scene"); if (sc) sc.classList.add("mv-brk");
+    var c = PC(); if (c) { c.pet.sleep = false; c.el().classList.remove("zz"); c.pet.task = { kind: "tv" }; var s = tvSpot(); if (s) { c.pet.tx = s.x + 6; c.pet.ty = s.y; } hop(c.el()); say("🍿 POPCORN!!"); c.heart(c.pet.x, c.pet.y - 14, "🍿"); }
+}
+function hideBreak() { var o = $("#mv-brk"); if (o) o.remove(); var sc = $("#rm-scene"); if (sc) sc.classList.remove("mv-brk"); MV.brk = false; var c = PC(); if (c && MV.on) { c.pet.task = null; } }
+/* the room itself: dim, warm lights, TV bright */
+var LIGHTISH = /^(candle|fireplace|lavalamp|stars|lights|rgb|lamp|floorlamp|neon|bulb|edison|pendant|lantern|diya|fairy|mushroom|menorah|h_torch|h_brazier|h_candelabra|q_lighthouse|q_crystal)/;
+function applyScene() {
+    if (!MV.on) return; var sc = $("#rm-scene"); if (!sc || roomCur() !== "home" && false) return;
+    var its = roomItems(); sc.classList.add("mv-on"); var t = findTV();
+    if (!$(".mv-dim", sc)) { var d = document.createElement("div"); d.className = "mv-dim"; sc.appendChild(d); }
+    var dm = $(".mv-dim", sc);
+    if (t) { var it = its[+t.dataset.i]; if (it) { dm.style.setProperty("--tvx", it.x + "%"); dm.style.setProperty("--tvy", it.y + "%"); } t.classList.add("mv-tv"); }
+    $$(".fx3-furn[data-i]", sc).forEach(function (el) {
+        var it = its[+el.dataset.i]; if (!it) return; var k = el.dataset.bx || "", lamp = (window.__BCX_LIGHTS && window.__BCX_LIGHTS[it.id]) || (window.__BXHALO && window.__BXHALO[k]) || LIGHTISH.test(k) || (it.g && it.g.kind === "light") || it.id === "fu_lamp";
+        if (!lamp || el.__mvg) { if (!lamp) return; if (el.__mvg && el.__mvg.isConnected) return; }
+        var g = document.createElement("div"); g.className = "mv-glow"; g.style.left = it.x + "%"; g.style.top = it.y + "%"; sc.appendChild(g); el.__mvg = g;
+    });
+}
+function clearScene() { var sc = $("#rm-scene"); if (!sc) return; sc.classList.remove("mv-on", "mv-brk"); $$(".mv-dim,.mv-glow", sc).forEach(function (n) { n.remove(); }); $$(".mv-tv", sc).forEach(function (n) { n.classList.remove("mv-tv"); }); $$(".fx3-furn", sc).forEach(function (n) { n.__mvg = null; }); }
+setInterval(function () { if (MV.on) applyScene(); }, 900);
+
+/* two phones, one moment */
+function startPoll() {
+    clearInterval(MV.poll); clearInterval(MV.hb);
+    MV.poll = setInterval(pollDoc, 2500);
+    MV.hb = setInterval(function () { if (MV.on && playing()) writeDoc({ bump: false }); }, 12000);
+}
+function pollDoc() {
+    var k = KV(); if (!k || !MV.on) return;
+    k.get(DOC).then(function (d) {
+        if (!d || !MV.on) return; MV.partner = d;
+        var who = $("#mv-who"); var fresh = d.on && d.by === other() && Date.now() - d.t < 25000;
+        if (who) who.textContent = fresh ? "👥 Watching with " + pname(other()) : "🎬 Movie night";
+        if (!d.on) { if (d.by === other() && MV.on) { toast("🎬 " + pname(other()) + " ended movie night"); } return; }
+        if (d.id !== MV.id || d.by === me() || (d.seq || 0) <= (MV.seq || 0)) return;
+        MV.seq = d.seq; var v = vid(); if (!v) return; MV.applying = Date.now();
+        var exp = d.paused ? d.pos : d.pos + (Date.now() - d.t) / 1000;
+        if (Math.abs((v.currentTime || 0) - exp) > 2.5) { try { v.currentTime = exp; } catch (e) { } }
+        if (d.paused && !v.paused) v.pause(); else if (!d.paused && v.paused) v.play().catch(function () { });
+        if (d.brk && !MV.brk) popcorn(false); else if (!d.brk && MV.brk) { hideBreak(); }
+    }, function () { });
+}
+/* partner started movie night while we're in the room: offer to join */
+var offered = "";
+setInterval(function () {
+    var k = KV(); if (!k || MV.on || !PC()) return;
+    k.get(DOC).then(function (d) {
+        if (!d || !d.on || d.by !== other() || Date.now() - d.t > 6 * 60000 || MV.on) return; MV.partner = d;
+        var key = d.id + ":" + d.by; if (offered === key) return; offered = key; toast("🍿 " + pname(other()) + " started movie night: " + d.name + ". Open the 🎬 Movie night menu to join!");
+        var dot = $(".cx-mdot"); if (dot) dot.hidden = false;
+    }, function () { });
+}, 12000);
+
+function joinMovie(d) {
+    var el = findTV(), J = JF(); if (!el) { toast("Put a TV in this room first (✏️ Decorate → Add)."); return; }
+    if (!J || !J.cfg().uid) { toast("Sign in to Jellyfin on the TV first."); J && J.pick(el); return; }
+    var exp = d.paused ? d.pos : d.pos + (Date.now() - d.t) / 1000;
+    J.api("/Users/" + J.cfg().uid + "/Items/" + d.id).then(function (it) { MV.joining = true; MV.hostJoin = true; MV.seekTo = exp; MV.seq = d.seq || 0; MV.doc = d; J.playItem(it, el); }, function () { toast("Couldn't load that movie."); });
+}
+function startMovieNight() {
+    var el = findTV(), J = JF(); if (!el) { toast("📺 Movie night needs a TV. Add one from ✏️ Decorate → Add."); return; }
+    if (!J) { toast("Jellyfin isn't ready yet."); return; }
+    MV.armed = Date.now() + 15 * 60000; toast("🎬 Pick your movie. The room dims when it starts."); J.pick(el);
+}
+function onPetFav() {
+    var f = fav(), k = f.fav, w = k && f.w[k], el = findTV(), J = JF(); if (!w || !el || !J) return;
+    J.api("/Users/" + J.cfg().uid + "/Items/" + w.id).then(function (it) { if (w.ser) J.openItem(it, el); else J.playItem(it, el); }, function () { toast("Couldn't find that on your server."); });
+}
+
+/* =====================================================================
+   3. RETRO JUKEBOX (Jellyfin music)
+   ===================================================================== */
+var JK = { a: null, q: [], i: 0, on: false, ctx: null, an: null, src: null, bins: null, avg: 0, lastBeat: 0, raf: 0, fb: 0, cols: [], fallbackT: 0, cors: true, tab: "mix", loading: false };
+var jkAud = function () { return JK.a; };
+function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h % 360; }
+function colFor(t) { return "hsl(" + hue(t || "x") + ",85%,60%)"; }
+function jkUrl(it, mp3) { var J = JF(), c = J.cfg(); var q = "api_key=" + encodeURIComponent(c.token) + "&DeviceId=" + encodeURIComponent(J.did()) + "&MediaSourceId=" + it.Id; return J.base() + "/Audio/" + it.Id + (mp3 ? "/stream.mp3?audioCodec=mp3&audioBitRate=192000&" : "/stream?static=true&") + q; }
+function jkArt(it, h) { var J = JF(); var id = it.ImageTags && it.ImageTags.Primary ? it.Id : it.AlbumPrimaryImageTag ? it.AlbumId : null; return id ? J.base() + "/Items/" + id + "/Images/Primary?maxHeight=" + (h || 120) + "&quality=80" : ""; }
+function ensureAudio() {
+    if (JK.a) return JK.a; var a = new Audio(); a.preload = "auto"; a.crossOrigin = "anonymous"; a.setAttribute("playsinline", ""); JK.a = a;
+    a.onended = function () { jkNext(); };
+    a.onerror = function () { if (!JK.q.length) return; var it = JK.q[JK.i]; if (JK.cors) { JK.cors = false; a.removeAttribute("crossorigin"); a.crossOrigin = null; JK.an = null; a.src = jkUrl(it); a.play().catch(function () { }); return; } if (!JK.fb) { JK.fb = 1; a.src = jkUrl(it, true); a.play().catch(function () { }); return; } JK.fb = 0; toast("😕 Couldn't play that song, skipping."); jkNext(); };
+    a.onplay = function () { JK.on = true; refresh(); startBeat(); }; a.onpause = function () { if (!a.ended) { JK.on = false; refresh(); } };
+    return a;
+}
+function setupAnalyser() {
+    if (JK.an || !JK.cors) return; try { var a = JK.a, Ctx = window.AudioContext || window.webkitAudioContext; JK.ctx = JK.ctx || new Ctx(); if (JK.ctx.state === "suspended") JK.ctx.resume(); JK.src = JK.src || JK.ctx.createMediaElementSource(a); var an = JK.ctx.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = .6; JK.src.connect(an); an.connect(JK.ctx.destination); JK.an = an; JK.bins = new Uint8Array(an.frequencyBinCount); } catch (e) { JK.an = null; }
+}
+function jkPlay(list, i) {
+    var J = JF(); if (!J || !list || !list.length) return; try { window.BCMusic && BCMusic.stop("radio"); } catch (e) { } if (MV.on) { toast("🍿 Finish movie night first, the jukebox would talk over it."); return; }
+    JK.q = list; JK.i = Math.max(0, Math.min(list.length - 1, i || 0)); JK.fb = 0; var a = ensureAudio(); JK.cols = []; loadTrack(); barJK();
+}
+function loadTrack() {
+    var it = JK.q[JK.i]; if (!it) return; var a = ensureAudio(); setupAnalyser(); a.src = jkUrl(it); a.play().catch(function () { }); JK.fb = 0;
+    jkRoll(it); barJK(); try { if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: it.Name, artist: (it.Artists || [it.AlbumArtist || ""])[0] || "", album: it.Album || "" }); } catch (e) { }
+}
+function jkNext() { if (!JK.q.length) return; JK.i = (JK.i + 1) % JK.q.length; loadTrack(); }
+function jkPrev() { if (!JK.q.length) return; if (JK.a && JK.a.currentTime > 4) { JK.a.currentTime = 0; return; } JK.i = (JK.i - 1 + JK.q.length) % JK.q.length; loadTrack(); }
+function jkToggle() { var a = JK.a; if (!a) return; if (a.paused) { a.play().catch(function () { }); } else a.pause(); }
+function jukeStop(quiet) { if (JK.a) { try { JK.a.pause(); JK.a.removeAttribute("src"); JK.a.load(); } catch (e) { } } JK.on = false; JK.q = []; var b = $("#jk-bar"); if (b) b.remove(); refresh(); stopBeat(); if (!quiet) toast("🎵 Jukebox off"); }
+function barJK() {
+    var it = JK.q[JK.i]; if (!it) return; var b = $("#jk-bar");
+    if (!b) { b = document.createElement("div"); b.id = "jk-bar"; document.body.appendChild(b); b.onclick = function (e) { var m = e.target.getAttribute && e.target.getAttribute("data-j"); if (m === "p") jkPrev(); else if (m === "n") jkNext(); else if (m === "t") jkToggle(); else if (m === "x") jukeStop(); else if (m === "o") jukeSheet(); }; }
+    b.innerHTML = '<i data-j="o" style="background-image:url(\'' + jkArt(it) + '\')"></i><b data-j="o">' + esc(it.Name) + "<small>" + esc((it.Artists && it.Artists[0]) || it.AlbumArtist || it.Album || "") + '</small></b><button data-j="p">⏮</button><button data-j="t">' + (JK.on ? "⏸" : "▶") + '</button><button data-j="n">⏭</button><button data-j="x">✕</button>';
+}
+/* the cabinet: roll the disks along, glow in the song's colors, bob the pet */
+function jkRoll(it) {
+    var col = colFor(it.Name + (it.Album || "")); JK.cols.push(col); if (JK.cols.length > 6) JK.cols.shift();
+    $$(".fx3-furn svg .jkdg").forEach(function (g) {
+        var disks = $$(".jkd", g); if (disks.length < 5) return; var first = !g.__init;
+        if (first) { g.__init = 1; var base = JK.q.slice(Math.max(0, JK.i - 1), JK.i + 3).map(function (x) { return colFor(x.Name + (x.Album || "")); }); disks.forEach(function (d, n) { var l = $(".jkl", d); if (l) l.style.fill = n === 2 ? col : (base[n] || "#7a6aa8"); }); return; }
+        g.style.transition = "transform .7s cubic-bezier(.4,0,.2,1)"; g.style.transform = "translateX(-17px)";
+        setTimeout(function () {
+            g.style.transition = "none"; g.style.transform = "none"; var f = $(".jkd", g); g.appendChild(f); var all = $$(".jkd", g);
+            all.forEach(function (d, n) { d.setAttribute("transform", "translate(" + (5 + n * 17) + " 29)"); }); var nx = JK.q[(JK.i + 2) % JK.q.length]; var l = $(".jkl", all[4]); if (l) l.style.fill = colFor(nx ? nx.Name + (nx.Album || "") : "z");
+            var lc = $(".jkl", all[2]); if (lc) lc.style.fill = col;
+        }, 740);
+    });
+    $$(".fx3-furn").forEach(function (el) { if (isJK(el)) el.style.setProperty("--jkc", col); });
+}
+function isJK(el) { var it = roomItems()[+el.dataset.i]; return !!(it && it.id === "fu_jukebox"); }
+function beat() {
+    var c = PC(); if (c) { var pe = c.el(); if (pe && !c.pet.sleep) { pe.classList.add("jk-on"); JK.flip = !JK.flip; pe.style.translate = "0 -8px"; pe.style.rotate = JK.flip ? "6deg" : "-6deg"; setTimeout(function () { pe.style.translate = "0 0"; pe.style.rotate = "0deg"; }, 130); } }
+    $$("#rm-scene .fx3-furn").forEach(function (el) { if (isJK(el)) { el.classList.remove("jk-beat"); void el.offsetWidth; el.classList.add("jk-beat"); } });
+}
+function startBeat() {
+    stopBeat(); JK.raf = requestAnimationFrame(function loop() {
+        if (!JK.on) return; JK.raf = requestAnimationFrame(loop);
+        if (!JK.an) return; JK.an.getByteFrequencyData(JK.bins); var e = 0; for (var i = 1; i < 7; i++) e += JK.bins[i]; e /= 6; JK.avg = JK.avg * .93 + e * .07; var now = performance.now();
+        if (e > JK.avg * 1.28 && e > 70 && now - JK.lastBeat > 280) { JK.lastBeat = now; beat(); }
+    });
+    clearInterval(JK.fallbackT); JK.fallbackT = setInterval(function () { if (JK.on && (!JK.an || JK.a && JK.a.currentTime && performance.now() - JK.lastBeat > 900)) { JK.lastBeat = performance.now(); beat(); } }, 520);
+}
+function stopBeat() { cancelAnimationFrame(JK.raf); clearInterval(JK.fallbackT); var c = PC(); if (c && c.el()) { c.el().style.translate = "0 0"; c.el().style.rotate = "0deg"; } }
+function refresh() { $$(".fx3-furn[data-i]").forEach(function (el) { if (isJK(el)) { el.classList.toggle("g-jk-on", !!JK.on); } }); var b = $("#jk-bar [data-j=t]"); if (b) b.textContent = JK.on ? "⏸" : "▶"; }
+setInterval(function () { refresh(); var pe = $("#rm-pet"); if (pe && !JK.on) { pe.classList.remove("jk-on"); } $$("#rm-scene .fx3-furn svg .jkdg").forEach(function (g) { if (!g.__init && JK.q.length) jkRoll(JK.q[JK.i]); }); }, 800);
+
+/* jukebox sheet: pick from your Jellyfin music */
+function sheet(title, body) { var s = $("#cx-sheet"); if (s) s.remove(); s = document.createElement("div"); s.id = "cx-sheet"; s.innerHTML = '<div class="hd"><b>' + title + '</b><button data-x>✕</button></div><div class="bd">' + body + "</div>"; document.body.appendChild(s); $("[data-x]", s).onclick = function () { s.remove(); }; return s; }
+function jukeSheet(tab) {
+    var J = JF(); if (!J) { toast("Jellyfin isn't ready yet."); return; }
+    var s = sheet("🎵 Jukebox", '<div class="msg">Signing in…</div>');
+    var go = function () {
+        if (!J.cfg().uid) { $(".bd", s).innerHTML = '<div class="msg">Sign in to Jellyfin first (tap your room TV → Jellyfin), then come back.</div>'; return; }
+        tab = tab || JK.tab || "mix"; JK.tab = tab; draw();
+    };
+    J.auto ? J.auto().then(function () { go(); }, go) : go();
+    function draw() {
+        var it = JK.q[JK.i], np = it ? '<div class="card"><div class="t"><b>' + esc(it.Name) + "</b><small>" + esc((it.Artists && it.Artists[0]) || it.AlbumArtist || "") + '</small></div><button data-j="p">⏮</button><button data-j="t">' + (JK.on ? "⏸" : "▶") + '</button><button data-j="n">⏭</button></div>' : "";
+        $(".bd", s).innerHTML = np + '<div class="cxt">' + [["mix", "🎲 Mix"], ["albums", "💿 Albums"], ["lists", "📜 Playlists"], ["find", "🔎 Search"]].map(function (t) { return '<button data-t="' + t[0] + '" class="' + (tab === t[0] ? "on" : "") + '">' + t[1] + "</button>"; }).join("") + '</div><div id="cx-b"><div class="msg">Loading…</div></div>';
+        $(".bd", s).onclick = function (e) { var t = e.target.closest("[data-t]"); if (t) { tab = t.dataset.t; JK.tab = tab; draw(); return; } var j = e.target.closest("[data-j]"); if (j) { var m = j.dataset.j; if (m === "p") jkPrev(); else if (m === "n") jkNext(); else if (m === "t") jkToggle(); setTimeout(draw, 500); } };
+        var b = $("#cx-b", s), uid = J.cfg().uid, F = "&Fields=Album,AlbumArtist,Artists&EnableImageTypes=Primary&ImageTypeLimit=1";
+        var songs = function (items, label) { b.innerHTML = (label ? "<h4>" + label + "</h4>" : "") + (items.length ? items.map(function (t, n) { return '<button class="tr' + (JK.q[JK.i] && JK.q[JK.i].Id === t.Id ? " now" : "") + '" data-n="' + n + '"><span>' + (n + 1) + '.</span><div style="flex:1;min-width:0"><b>' + esc(t.Name) + "</b><small>" + esc((t.Artists && t.Artists[0]) || t.AlbumArtist || "") + "</small></div></button>"; }).join("") : '<div class="msg">Nothing here.</div>'); b.onclick = function (e) { var x = e.target.closest("[data-n]"); if (x) { jkPlay(items, +x.dataset.n); setTimeout(draw, 300); } }; };
+        var covers = function (items, kind) { b.innerHTML = items.length ? '<div class="al">' + items.map(function (a) { return '<button data-id="' + a.Id + '"><i style="background-image:url(\'' + jkArt(a, 220) + '\')"></i><span>' + esc(a.Name) + "</span></button>"; }).join("") + "</div>" : '<div class="msg">Nothing here.</div>'; b.onclick = function (e) { var x = e.target.closest("[data-id]"); if (!x) return; var al = items.filter(function (q) { return q.Id === x.dataset.id; })[0]; b.innerHTML = '<div class="msg">Loading…</div>'; J.api("/Users/" + uid + "/Items?ParentId=" + al.Id + "&IncludeItemTypes=Audio&Recursive=true&SortBy=ParentIndexNumber,IndexNumber,SortName&Limit=300" + F).then(function (r) { var tr = (r && r.Items) || []; songs(tr, esc(al.Name) + ' <button data-all style="float:right" class="go">▶ Play all</button>'); b.onclick = function (ev) { if (ev.target.closest("[data-all]")) { jkPlay(tr, 0); setTimeout(draw, 300); return; } var x2 = ev.target.closest("[data-n]"); if (x2) { jkPlay(tr, +x2.dataset.n); setTimeout(draw, 300); } }; }, fail); }; };
+        var fail = function (e) { b.innerHTML = '<div class="msg">Couldn\'t load your music (' + esc(e && e.message || "network") + ").</div>"; };
+        if (tab === "mix") J.api("/Users/" + uid + "/Items?IncludeItemTypes=Audio&Recursive=true&SortBy=Random&Limit=40" + F).then(function (r) { var tr = (r && r.Items) || []; b.innerHTML = '<p><button class="go" data-mix>🎲 Shuffle my music</button></p><div class="msg">Starts a random mix of your Jellyfin songs.</div>'; b.onclick = function (e) { if (e.target.closest("[data-mix]") && tr.length) { jkPlay(tr, 0); setTimeout(draw, 300); } }; }, fail);
+        else if (tab === "albums") J.api("/Users/" + uid + "/Items?IncludeItemTypes=MusicAlbum&Recursive=true&SortBy=SortName&Limit=90&EnableImageTypes=Primary").then(function (r) { covers((r && r.Items) || []); }, fail);
+        else if (tab === "lists") J.api("/Users/" + uid + "/Items?IncludeItemTypes=Playlist&Recursive=true&SortBy=SortName&Limit=60&EnableImageTypes=Primary").then(function (r) { covers((r && r.Items) || []); }, fail);
+        else { b.innerHTML = '<input id="cx-q" placeholder="Song, artist or album…"><div id="cx-r"></div>'; $("#cx-q", s).onkeydown = function (e) { if (e.key !== "Enter") return; var q = this.value.trim(); if (!q) return; $("#cx-r", s).innerHTML = '<div class="msg">Searching…</div>'; J.api("/Users/" + uid + "/Items?SearchTerm=" + encodeURIComponent(q) + "&IncludeItemTypes=Audio&Recursive=true&Limit=60" + F).then(function (r) { var tr = (r && r.Items) || [], rb = $("#cx-r", s); rb.innerHTML = tr.length ? tr.map(function (t, n) { return '<button class="tr" data-n="' + n + '"><span>' + (n + 1) + '.</span><div style="flex:1;min-width:0"><b>' + esc(t.Name) + "</b><small>" + esc((t.Artists && t.Artists[0]) || "") + "</small></div></button>"; }).join("") : '<div class="msg">No songs found.</div>'; rb.onclick = function (ev) { var x = ev.target.closest("[data-n]"); if (x) { jkPlay(tr, +x.dataset.n); setTimeout(draw, 300); } }; }, fail); }; }
+    }
+}
+
+/* =====================================================================
+   4. MENU + TAPS
+   ===================================================================== */
+function movieSheet() {
+    var f = fav(), w = f.fav && f.w[f.fav], d = MV.partner, live = d && d.on && d.by === other() && Date.now() - d.t < 6 * 60000;
+    var s = sheet("🎬 Movie night",
+        '<div class="msg">Pick a movie from your Jellyfin library. The room dims, the lamps and lights glow warm, ' + esc(petName()) + " curls up on the bed, and you can pause for a popcorn break. If " + esc(pname(other())) + " joins on their phone you both watch the same moment.</div>" +
+        (MV.on ? '<div class="card"><div class="t"><b>Now showing</b><small>' + esc(MV.name) + '</small></div><button data-a="end">End</button></div>' : '<p><button class="go" data-a="start">🍿 Start movie night</button></p>') +
+        (live && !MV.on ? '<div class="card"><div class="t"><b>👥 ' + esc(pname(other())) + " is watching</b><small>" + esc(d.name) + '</small></div><button class="go" data-a="join">Join</button></div>' : "") +
+        "<h4>🐾 " + esc(petName()) + "'s favorite show</h4>" + (w ? '<div class="card"><div class="t"><b>' + esc(w.n) + "</b><small>" + esc(petName()) + ' picked this one. Watch it and they go wild!</small></div><button data-a="fav">▶ Put it on</button></div>' : '<div class="msg">' + esc(petName()) + " hasn't picked a favorite yet. Watch things on the TV and they'll choose one.</div>") +
+        '<h4>How ' + esc(petName()) + " reacts</h4><div class=\"msg\">⚡ Action: jumps at the big moments · 😱 Scary: hides · 😆 Comedy and cartoons: wiggles · 🥱 Slow dramas: falls asleep.</div>");
+    s.onclick = function (e) { var a = e.target.closest("[data-a]"); if (!a) return; var m = a.dataset.a; s.remove(); if (m === "start") startMovieNight(); else if (m === "join") joinMovie(d); else if (m === "fav") onPetFav(); else if (m === "end") { try { JF().stop(); } catch (x) { } endMovie(true); } };
+    var dot = $(".cx-mdot"); if (dot) dot.hidden = true;
+}
+function addMenu() {
+    var mn = $(".bcx-mn"); if (!mn || mn.querySelector("[data-cx]")) return;
+    mn.insertAdjacentHTML("beforeend", '<button data-cx="m"><b class="cxi m"></b>Movie night<span class="cx-dot cx-mdot" hidden></span></button><button data-cx="j"><b class="cxi j"></b>Jukebox</button>');
+}
+setInterval(addMenu, 900);
+document.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("[data-cx]");
+    if (b) { e.stopPropagation(); var mn = $(".bcx-mn"); if (mn) { mn.hidden = true; var tb = $(".bcx-tb"); if (tb) tb.classList.remove("open"); } if (b.dataset.cx === "m") movieSheet(); else { var el = $$("#rm-scene .fx3-furn[data-i]").filter(isJK)[0]; if (!el && !JK.q.length) { toast("🎵 Add a Retro Jukebox from the Room Shop, then tap it. Opening the music picker anyway."); } jukeSheet(); } return; }
+    var f = e.target.closest && e.target.closest(".fx3-furn[data-i]"); if (!f || !isJK(f)) return; var ov = f.closest(".fx3-room-ov"); if (!ov || ov.querySelector(".fx3-room-tools")) return;
+    e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); jukeSheet();
+}, true);
+window.__bcxCinema = { tv: tv, mv: MV, jk: JK, moodOf: moodOf, movieSheet: movieSheet, jukeSheet: jukeSheet, burst: burst, popcorn: function () { popcorn(true); }, play: jkPlay };
+})();
+</script>
+
 
 
 <script>(function(){var d=false;function fin(){if(d)return;d=true;requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.__bcBootDone&&window.__bcBootDone()},700)})})}if(document.readyState==="complete")fin();else addEventListener("load",fin)})()</script>
