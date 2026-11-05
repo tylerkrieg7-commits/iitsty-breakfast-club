@@ -19767,6 +19767,8 @@ var lsr = function (k, d) { try { var v = localStorage.getItem(k); return v == n
 var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 var toast = function (m) { try { window.fxToast && window.fxToast(m); } catch (e) { } };
 var petName = function () { return lsr("companionName", "Buddy"); };
+var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+function pe() { return PEMO[lsr("companionType", "dog")] || pe() + ""; }
 var me = function () { return lsr("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
 var pname = function (w) { try { var n = window.getHouseholdNames ? window.getHouseholdNames() : {}; return n[w] || (w === "p1" ? "Person 1" : "Person 2"); } catch (e) { return "your partner"; } };
 var AC = null;
@@ -19835,6 +19837,28 @@ var CSS = [
 ].join("");
 var sty = document.createElement("style"); sty.textContent = CSS; document.head.appendChild(sty);
 
+var sty2 = document.createElement("style"); sty2.textContent = [
+".hz-note{position:absolute;width:26px;height:32px;z-index:41;transform:translate(-50%,0) rotate(-7deg);cursor:pointer;background:#efe0b4;border:1px solid #8d6e63;border-radius:2px;box-shadow:0 0 10px #ffb300,0 2px 3px rgba(0,0,0,.4);animation:hzNote 1.6s ease-in-out infinite}.hz-note:before{content:'';position:absolute;left:50%;top:-5px;width:12px;height:8px;margin-left:-6px;background:rgba(200,200,200,.8);transform:rotate(4deg)}.hz-note i{position:absolute;left:4px;right:4px;top:8px;height:2px;background:#8d6e63;box-shadow:0 5px #8d6e63,0 10px #8d6e63,0 15px #8d6e63}@keyframes hzNote{50%{box-shadow:0 0 18px #ff6d00,0 2px 3px rgba(0,0,0,.4);transform:translate(-50%,0) rotate(-3deg)}}",
+".pap{background:#efe0b4;color:#3e2a14;border-radius:4px;padding:18px 16px;box-shadow:0 6px 18px rgba(0,0,0,.5);font-family:Georgia,serif;transform:rotate(-1deg);background-image:linear-gradient(transparent 27px,rgba(141,110,99,.25) 28px);background-size:100% 28px}.pap .mon{width:64px;height:64px;margin:0 auto 6px}.pap .mon svg{width:100%;height:100%}.pap p{font-size:1.05rem;line-height:28px;margin:6px 0 10px}.pap b{display:block;text-align:right;font-style:italic}.pap.sm{padding:10px;margin:8px 0}.pap.sm .mon{width:36px;height:36px;float:left;margin:0 10px 4px 0}.pap.sm p{font-size:.85rem;line-height:1.3;margin:0 0 4px}",
+/* raid graphics */
+"#hz-ov .moon{overflow:visible}#hz-ov .moon:before{content:'';position:absolute;inset:-60%;background:radial-gradient(circle,rgba(255,248,200,.22),transparent 65%)}#hz-ov .moon i{position:absolute;left:30%;top:24%;width:18%;height:18%;border-radius:50%;background:rgba(160,140,70,.35);box-shadow:26px 22px 0 -2px rgba(160,140,70,.3),-4px 34px 0 -4px rgba(160,140,70,.28)}",
+"#hz-ov .cl{position:absolute;height:9vmin;border-radius:50px;background:rgba(80,60,130,.35);filter:blur(5px);animation:hzCl 60s linear infinite}#hz-ov .cl.c1{width:42vmin;top:16%;left:-50vmin}#hz-ov .cl.c2{width:30vmin;top:30%;left:-40vmin;animation-duration:85s;animation-delay:-30s;opacity:.7}@keyframes hzCl{to{transform:translateX(160vw)}}",
+"#hz-ov .bat{position:absolute;font-size:22px;filter:drop-shadow(0 0 3px #000);animation:hzBat 14s linear infinite}#hz-ov .bat.b1{top:12%;left:-8%}#hz-ov .bat.b2{top:22%;left:-8%;animation-duration:19s;animation-delay:-6s;font-size:16px}#hz-ov .bat.b3{top:8%;left:-8%;animation-duration:24s;animation-delay:-13s;font-size:26px}@keyframes hzBat{0%{transform:translate(0,0) scaleX(1)}25%{transform:translate(30vw,26px) scaleX(-1)}50%{transform:translate(60vw,-10px) scaleX(1)}75%{transform:translate(90vw,30px) scaleX(-1)}100%{transform:translate(120vw,0) scaleX(1)}}",
+"#hz-ov .yard{position:absolute;left:0;right:0;bottom:19%;height:19vh;pointer-events:none}#hz-ov .yard svg{width:100%;height:100%;display:block}",
+"#hz-ov .fog{position:absolute;left:-20%;right:-20%;bottom:10%;height:22%;background:radial-gradient(ellipse at 30% 60%,rgba(170,150,230,.22),transparent 60%),radial-gradient(ellipse at 75% 70%,rgba(150,130,210,.2),transparent 60%);animation:hzFog 14s ease-in-out infinite alternate;pointer-events:none}@keyframes hzFog{to{transform:translateX(9%)}}",
+"#hz-ov .lite{position:absolute;inset:0;background:#dfe8ff;opacity:0;pointer-events:none;z-index:4}#hz-ov.zap .lite{animation:hzZap .5s}@keyframes hzZap{0%{opacity:0}8%{opacity:.7}16%{opacity:.1}28%{opacity:.5}100%{opacity:0}}",
+"#hz-ov .ff{position:absolute;width:5px;height:5px;border-radius:50%;background:#d8ff6a;box-shadow:0 0 8px 2px #b6ff00;animation:hzFf 6s ease-in-out infinite alternate;opacity:.8}@keyframes hzFf{to{transform:translate(36px,-28px);opacity:.15}}",
+"#hz-ov .hs .pk{position:absolute;left:-30px;bottom:-2px;font-size:30px;filter:drop-shadow(0 0 8px #ff9800);animation:hzPk 2.4s ease-in-out infinite alternate}#hz-ov .hs .pk.p2{left:auto;right:-26px;font-size:24px;animation-delay:-1.2s}@keyframes hzPk{to{filter:drop-shadow(0 0 14px #ffb300)}}#hz-ov .hs .ch:after{content:'';position:absolute;left:1px;top:-16px;width:12px;height:12px;border-radius:50%;background:rgba(200,190,230,.35);filter:blur(3px);animation:hzSm 3.2s ease-out infinite}@keyframes hzSm{to{transform:translate(8px,-34px) scale(2.2);opacity:0}}",
+"#hz-ov .hs .rf{background:linear-gradient(135deg,#3a2a66,#231845)}#hz-ov .hs .bd{background:linear-gradient(#2a1d52,#1b1238)}",
+"#hz-ov .mob.k-wraith{filter:drop-shadow(0 0 9px #b388ff)}#hz-ov .mob.k-slime{filter:drop-shadow(0 0 6px #66bb6a)}#hz-ov .mob.k-boss{filter:drop-shadow(0 0 16px #66ff88)}#hz-ov .mob.k-mimic{filter:drop-shadow(0 0 5px #e91e63)}#hz-ov .mob.k-slime:after,#hz-ov .mob.k-goblin:after,#hz-ov .mob.k-skeleton:after{content:'';position:absolute;left:8%;right:8%;bottom:-5px;height:7px;border-radius:50%;background:rgba(0,0,0,.4)}#hz-ov .mob.flash{filter:brightness(2.4)!important}",
+"#hz-ov .candy{position:absolute;font-size:28px;z-index:6;cursor:pointer;transform:translateX(-50%);transition:top .7s cubic-bezier(.3,1.4,.5,1);animation:hzCandy .8s ease-in-out infinite alternate;filter:drop-shadow(0 0 8px #ff80ab)}@keyframes hzCandy{to{rotate:14deg;scale:1.15}}",
+"#hz-ov .rg{position:absolute;left:12%;right:12%;bottom:2.5%;height:11px;border-radius:7px;background:#0f0a20;border:2px solid #5a3f86;z-index:5;overflow:hidden}#hz-ov .rg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9800,#ff5252);transition:width .25s}#hz-ov .rgl{position:absolute;left:0;right:0;bottom:5.5%;text-align:center;font-size:.72rem;opacity:.75;z-index:5;pointer-events:none}",
+"#hz-bomb{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);z-index:7;font:inherit;font-weight:900;font-size:1.15rem;border:0;border-radius:16px;padding:12px 22px;background:linear-gradient(#ffb74d,#f57c00);color:#2b1500;box-shadow:0 0 22px #ff9800;animation:hzBomb .6s ease-in-out infinite alternate}@keyframes hzBomb{to{transform:translateX(-50%) scale(1.1)}}#hz-ov.bomb{animation:hzBoom .5s}@keyframes hzBoom{0%{filter:brightness(3)}30%{transform:translate(6px,-4px)}60%{transform:translate(-6px,4px)}100%{filter:none}}",
+"#hz-ov .cmb{position:absolute;right:14px;top:96px;z-index:5;font-weight:900;font-size:1.3rem;color:#ffb74d;text-shadow:0 2px 6px #000;pointer-events:none}"
+].join("");
+document.head.appendChild(sty2);
+
+
 /* ---------- the doorbell ---------- */
 var ring = { on: false, since: 0, last: 0 }, raid = null;
 function chime() { try { window.BXDING && BXDING(); } catch (e) { } }
@@ -19850,15 +19874,15 @@ function say(ov, t) { var b = ov && $("#rm-say", ov); if (!b) return; b.textCont
 function startRing(ov) {
     ring.on = true; ring.since = ring.last = Date.now(); markDoor(ov, true);
     chime(); setTimeout(chime, 700); tone(70, 1.1, "sawtooth", .05, 45); buzz([80, 60, 80]);
-    toast("🔔 Ding-dong… something is at the front door. 🌙 Tap the door to answer!"); say(ov, "🐾 *growls at the door*");
+    toast("🔔 Ding-dong… something is at the front door. 🌙 Tap the door to answer!"); say(ov, pe() + " *growls at the door*");
 }
 function stopRing(ov) { ring.on = false; ov = ov || $(".fx3-room-ov"); if (ov) markDoor(ov, false); }
 function ignoreIt() {
     var st = jget("bcx_haunt", {}); st.ign = st.ign || {}; st.ign[MK()] = 1; jset("bcx_haunt", st);
-    var ov = $(".fx3-room-ov"); stopRing(ov); toast("👋 The monsters grumbled and shuffled off… they'll be back next month."); say(ov, "🐾 phew…");
+    var ov = $(".fx3-room-ov"); stopRing(ov); leaveNote(); toast("👋 The monsters grumbled and left something on your door…"); say(ov, pe() + " phew…");
 }
 function tick() {
-    var ov = roomOv(), mk = MK(), st = jget("bcx_haunt", {});
+    var ov = roomOv(), mk = MK(), st = jget("bcx_haunt", {}); if (ov) showNote(ov);
     if (raid) return;
     if (ring.on) {
         if (!ov || !inWindow()) { stopRing(); return; }
@@ -19899,15 +19923,54 @@ function petHTML() {
     return '<span style="font-size:42px">' + ({ dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖" }[t] || "🐾") + "</span>";
 }
 
+
+/* ---------- spooky notes left at the door (Dungeon Dwellers monsters) ---------- */
+var NOTES = [
+  { m: "slime", t: "Squish squish. We oozed under your door and left a puddle. Watch your step next month. Blorp.", s: "The Slimes" },
+  { m: "slime", t: "Your doorknob tasted like victory. Hide your slippers. We are very, very sticky.", s: "Big Blorp" },
+  { m: "goblin", t: "We took ONE sock off your porch. Next month we take the other one. Heh heh heh.", s: "Gnarg and the Goblins" },
+  { m: "goblin", t: "We rang your bell 40 times. You didn't come. So we counted your cookies instead. There are fewer now.", s: "Goblin Gang" },
+  { m: "skeleton", t: "Rattle rattle. It's cold out here with no skin. Tell {pet} I'm coming for the bone. The BIG one.", s: "Sir Bonesworth" },
+  { m: "skeleton", t: "I knocked so hard my finger fell off. Please return it. It's by your welcome mat. I'm not mad. (I'm a little mad.)", s: "A Skeleton With Nine Fingers" },
+  { m: "wraith", t: "I drifted through your wall at midnight. Your hallway is VERY chilly. Mind the cold spots.", s: "The Wraith" },
+  { m: "wraith", t: "{pet} looked right at me last night. {pet} knows. {pet} always knows. Whooo's there? Just me.", s: "Something in your ceiling" },
+  { m: "mimic", t: "Don't open the chest by your door. Open it. Don't open it. OPEN IT. (It's friendly. Mostly.)", s: "Definitely Not a Mimic" },
+  { m: "mimic", t: "I am a doormat. Please step on me. Come on. Just one little step. I dare you.", s: "A Totally Normal Doormat" },
+  { m: "boss", t: "YOU DID NOT ANSWER. THE HOLLOW KING DOES NOT KNOCK TWICE. SEE YOU NEXT MONTH.", s: "The Hollow King" },
+  { m: "boss", t: "Your yard will be mine. Tell {pet} I said 'good pet'. Then I'm taking my crown back.", s: "The Hollow King (still mad)" }
+];
+function noteTxt(n) { return n.t.replace(/\{pet\}/g, petName()); }
+function leaveNote() {
+    var st = jget("bcx_haunt", {}); if (st.pend != null) return; st.got = st.got || [];
+    var left = []; for (var i = 0; i < NOTES.length; i++) if (st.got.indexOf(i) < 0) left.push(i);
+    if (!left.length) left = NOTES.map(function (_, i) { return i; });
+    st.pend = left[Math.floor(Math.random() * left.length)]; jset("bcx_haunt", st);
+}
+function showNote(ov) {
+    var st = jget("bcx_haunt", {}); var scene = ov && $("#rm-scene", ov); if (!scene) return;
+    var ex = $(".hz-note", scene);
+    if (st.pend == null) { if (ex) ex.remove(); return; }
+    var d = $(".bcx-door.front", scene); if (!d) return;
+    if (!ex) { ex = document.createElement("div"); ex.className = "hz-note"; ex.innerHTML = "<i></i>"; scene.appendChild(ex); }
+    ex.style.left = d.style.left; ex.style.top = "calc(" + d.style.top + " - 44px)";
+}
+function readNote() {
+    var st = jget("bcx_haunt", {}); var i = st.pend; if (i == null) return; var n = NOTES[i]; st.got = st.got || []; if (st.got.indexOf(i) < 0) st.got.push(i); delete st.pend; jset("bcx_haunt", st);
+    var ov = $(".fx3-room-ov"); var scene = ov && $("#rm-scene", ov); var ex = scene && $(".hz-note", scene); if (ex) ex.remove();
+    var s = sheet("📜 A note on your door", '<div class="pap"><div class="mon">' + MOB[n.m].svg + '</div><p>' + esc(noteTxt(n)) + '</p><b>- ' + esc(n.s) + '</b></div><div class="msg" style="margin-top:12px">Notes found: ' + st.got.length + "/" + NOTES.length + ". Find them all by ignoring the doorbell, or by losing a raid.</div>");
+    tone(300, .5, "sawtooth", .03, 120); buzz([30, 40, 30]);
+}
+document.addEventListener("click", function (e) { var n = e.target.closest && e.target.closest(".hz-note"); if (!n) return; e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); readNote(); }, true);
+
 /* ---------- the raid ---------- */
 function startRaid(practice) {
     if (raid) return; stopRing();
     var kv = window.bcxKV, st = jget("bcx_haunt", {}), mk = MK();
     var ov = document.createElement("div"); ov.id = "hz-ov";
-    ov.innerHTML = '<div class="st"></div><div class="moon"></div><div class="hill"></div><div class="gnd"></div><div class="top"><span id="hz-h"></span><span id="hz-w"></span><button id="hz-x">✕ Leave</button></div><div class="boss" id="hz-b" hidden>👑 The Hollow King<div class="bar"><i></i></div><small id="hz-c"></small></div><div class="fld" id="hz-f"><div class="hs" id="hz-hs"><div class="ch"></div><div class="rf"></div><div class="bd"></div><div class="w l"></div><div class="w r"></div><div class="dr"></div></div><div class="pet" id="hz-p">' + petHTML() + "</div></div>";
+    ov.innerHTML = '<div class="st"></div><div class="moon"><i></i></div><div class="cl c1"></div><div class="cl c2"></div><div class="bat b1">🦇</div><div class="bat b2">🦇</div><div class="bat b3">🦇</div><div class="hill"></div><div class="yard"><svg viewBox="0 0 400 80" preserveAspectRatio="none"><path d="M0 80V52C40 44 80 56 130 50C190 44 240 56 300 48C340 44 370 50 400 46V80Z" fill="#150e2c"/><g fill="#1d1438"><path d="M30 70V48C30 40 44 40 44 48V70Z"/><path d="M70 70V52C70 46 80 46 80 52V70Z"/><path d="M310 70V46C310 38 326 38 326 46V70Z"/><path d="M350 70V54C350 48 360 48 360 54V70Z"/><path d="M168 70V50L174 44L180 50V70Z"/><path d="M226 70V50L232 44L238 50V70Z"/></g><g stroke="#241a45" stroke-width="3" fill="none" stroke-linecap="round"><path d="M16 70V30M16 40L6 30M16 36L26 26M16 30L16 20"/><path d="M384 70V26M384 38L374 28M384 32L394 22M384 26L384 16"/></g><g stroke="#2d2152" stroke-width="2"><path d="M96 74V58M104 74V56M112 74V58M120 74V56M128 74V58M96 62H128"/><path d="M262 74V58M270 74V56M278 74V58M286 74V56M294 74V58M262 62H294"/></g><g fill="#33275e"><circle cx="37" cy="52" r="1.6"/><circle cx="75" cy="55" r="1.4"/><circle cx="318" cy="50" r="1.6"/></g></svg></div><div class="gnd"></div><div class="ff" style="left:8%;bottom:24%;animation-delay:-1s"></div><div class="ff" style="left:24%;bottom:30%;animation-delay:-3s"></div><div class="ff" style="left:44%;bottom:22%;animation-delay:-2s"></div><div class="ff" style="left:62%;bottom:28%;animation-delay:-4s"></div><div class="ff" style="left:78%;bottom:25%;animation-delay:-1s"></div><div class="ff" style="left:90%;bottom:32%;animation-delay:-5s"></div><div class="fog"></div><div class="lite"></div><div class="rg"><i id="hz-rg"></i></div><div class="rgl">🎃 smash meter: keep defending to fill it</div><button id="hz-bomb" hidden>🎃 PUMPKIN BOMB!</button><div class="cmb" id="hz-cmb"></div><div class="top"><span id="hz-h"></span><span id="hz-w"></span><button id="hz-x">✕ Leave</button></div><div class="boss" id="hz-b" hidden>👑 The Hollow King<div class="bar"><i></i></div><small id="hz-c"></small></div><div class="fld" id="hz-f"><div class="hs" id="hz-hs"><div class="ch"></div><div class="rf"></div><div class="bd"></div><div class="w l"></div><div class="w r"></div><div class="dr"></div><div class="pk">🎃</div><div class="pk p2">🎃</div></div><div class="pet" id="hz-p">' + petHTML() + "</div></div>";
     document.body.appendChild(ov);
     var F = $("#hz-f", ov), HS = $("#hz-hs", ov), PET = $("#hz-p", ov);
-    var R = { ov: ov, practice: practice, hearts: 5, max: 5, wave: -1, mobs: [], queue: [], clock: 0, t0: performance.now(), over: false, myDmg: 0, pDmg: 0, pOn: false, boss: null, slow: 1, bite: 0, spawnT: 0, bossSummon: 0, W: 0, H: 0, petX: 0, kills: 0 };
+    var R = { ov: ov, practice: practice, hearts: 5, max: 5, wave: -1, mobs: [], queue: [], clock: 0, t0: performance.now(), over: false, myDmg: 0, pDmg: 0, pOn: false, boss: null, slow: 1, bite: 0, spawnT: 0, bossSummon: 0, W: 0, H: 0, petX: 0, kills: 0, combo: 0, lastKill: 0, best: 0, rage: 0, candy: 0, lt: 7 };
     raid = R;
     function size() { var r = F.getBoundingClientRect(); R.W = r.width; R.H = r.height; HS.style.left = R.W / 2 + "px"; R.gy = R.H * 0.83; R.petX = R.petX || R.W / 2 - 60; }
     size(); window.addEventListener("resize", size);
@@ -19921,7 +19984,7 @@ function startRaid(practice) {
         else c.textContent = "Practice raid: no prizes";
     }
     function newMob(kind, fromLeft) {
-        var d = MOB[kind], el = document.createElement("div"); el.className = "mob"; el.innerHTML = d.svg;
+        var d = MOB[kind], el = document.createElement("div"); el.className = "mob k-" + kind; el.innerHTML = d.svg;
         var m = { kind: kind, d: d, el: el, hp: d.hp, x: fromLeft ? -d.w : R.W + d.w, dir: fromLeft ? 1 : -1, ph: Math.random() * 6, y0: 0, dead: false, hopT: 0 };
         el.style.width = d.w + "px"; el.style.height = d.h + "px"; F.appendChild(el);
         if (kind !== "boss") el.addEventListener("pointerdown", function (e) { e.preventDefault(); hit(m, 1, e.clientX, e.clientY); });
@@ -19932,12 +19995,36 @@ function startRaid(practice) {
         if (m.dead || R.over) return; m.hp -= dmg; m.el.classList.add("flash"); setTimeout(function () { m.el.classList.remove("flash"); }, 90);
         var r = F.getBoundingClientRect(); fx((cx == null ? m.x : cx - r.left), (cy == null ? R.gy - 40 : cy - r.top), m.hp <= 0 ? "💥" : "BONK", m.hp <= 0 ? "#fff" : "#ffd54f");
         tone(m.hp <= 0 ? 190 : 330, .09, "square", .05, m.hp <= 0 ? 90 : 220);
-        if (m.hp <= 0) { m.dead = true; R.kills++; m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); }
+        if (m.hp <= 0) { m.dead = true; R.kills++; onKill(m); m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); }
     }
     function bossHit(dmg, cx, cy) {
         if (!R.boss || R.over) return; R.myDmg += dmg; R.boss.el.classList.add("flash"); setTimeout(function () { R.boss && R.boss.el.classList.remove("flash"); }, 90);
         var r = F.getBoundingClientRect(); fx(cx == null ? R.boss.x : cx - r.left, cy == null ? R.gy - 100 : cy - r.top, "-1", "#ff8a80"); tone(140, .1, "sawtooth", .07, 80); buzz(15); bossBar();
     }
+
+    function rageUI() { var i = $("#hz-rg", ov), b = $("#hz-bomb", ov); if (i) i.style.width = R.rage + "%"; if (b) b.hidden = R.rage < 100 || R.over; }
+    function onKill(m) {
+        var now = performance.now(); R.combo = now - R.lastKill < 1500 ? R.combo + 1 : 1; R.lastKill = now; if (R.combo > R.best) R.best = R.combo;
+        var cb = $("#hz-cmb", ov); if (cb) cb.textContent = R.combo >= 3 ? "🔥 x" + R.combo : "";
+        if (R.combo >= 3) { fx(m.x, R.gy - 90, "COMBO x" + R.combo, "#ff9800"); tone(380 + R.combo * 35, .07, "triangle", .05); }
+        if (R.combo >= 5 && R.combo % 5 === 0) { R.rage = Math.min(100, R.rage + 12); }
+        R.rage = Math.min(100, R.rage + (m.kind === "mimic" ? 14 : 8)); rageUI();
+        if (Math.random() < .2 || m.kind === "mimic") dropCandy(m.x);
+    }
+    function dropCandy(x) {
+        var c = document.createElement("div"); c.className = "candy"; c.textContent = pick2(["🍬", "🍭", "🍫", "🧁"]); c.style.left = Math.max(20, Math.min(R.W - 20, x)) + "px"; c.style.top = (R.gy - 150) + "px"; F.appendChild(c);
+        requestAnimationFrame(function () { c.style.top = (R.gy - 34) + "px"; });
+        var gone = false; function take(e) { e.preventDefault(); if (gone) return; gone = true; R.candy++; c.remove(); tone(880, .1, "triangle", .06, 1320); if (R.hearts < R.max) { R.hearts++; hearts(); fx(parseFloat(c.style.left), R.gy - 60, "+❤️", "#ff8a80"); } else { R.rage = Math.min(100, R.rage + 15); rageUI(); fx(parseFloat(c.style.left), R.gy - 60, "+🍬", "#ffd54f"); } }
+        c.addEventListener("pointerdown", take); setTimeout(function () { if (!gone) { gone = true; c.remove(); } }, 4800);
+    }
+    function pick2(a) { return a[Math.floor(Math.random() * a.length)]; }
+    $("#hz-bomb", ov).onclick = function () {
+        if (R.rage < 100 || R.over) return; R.rage = 0; ov.classList.remove("bomb"); void ov.offsetWidth; ov.classList.add("bomb"); setTimeout(function () { ov.classList.remove("bomb"); }, 520);
+        tone(60, .7, "sawtooth", .1, 30); tone(200, .3, "square", .06, 40); buzz([100, 40, 200]); banner("🎃 BOOM!");
+        R.mobs.slice().forEach(function (m) { if (m.kind !== "boss" && !m.dead) hit(m, 99, null, null); });
+        if (R.boss) { R.myDmg += 4; bossBar(); fx(R.boss.x, R.gy - 120, "-4", "#ff8a80"); }
+        R.rage = 0; rageUI();
+    };
     var bossNeed = function () { return coop() ? 40 : 22; };
     var bossLeft = function () { return bossNeed() - R.myDmg - (coop() ? R.pDmg : 0); };
     function bossBar() { var b = $("#hz-b i", ov); b.style.width = Math.max(0, bossLeft() / bossNeed() * 100) + "%"; if (bossLeft() <= 0) finish(true); }
@@ -19948,7 +20035,8 @@ function startRaid(practice) {
         R.clock = 0;
     }
     function finish(win) {
-        if (R.over) return; R.over = true; sync(false);
+        if (R.over) return; R.over = true; sync(false); rageUI();
+        if (!win && !practice) leaveNote();
         var e = document.createElement("div"); e.className = "end";
         if (win) {
             tone(523, .2, "triangle", .08); setTimeout(function () { tone(659, .2, "triangle", .08); }, 180); setTimeout(function () { tone(784, .4, "triangle", .08); }, 360); buzz([60, 40, 60, 40, 150]);
@@ -19962,9 +20050,10 @@ function startRaid(practice) {
             tone(110, .8, "sawtooth", .08, 50); buzz(300);
             e.innerHTML = "<h2>🏚️ The house fell…</h2><div>The monsters got inside. Try again, it only takes a minute.</div><div><button id=\"hz-r\">Try again</button><button class=\"s\" id=\"hz-d\">Back to the room</button></div>";
         }
+        var h2 = e.querySelector("h2"); if (h2) h2.insertAdjacentHTML("afterend", "<div style=\"opacity:.9\">🔥 Best combo x" + R.best + " · 🍬 Candy " + R.candy + " · 👾 " + R.kills + " monsters</div>");
         ov.appendChild(e); $("#hz-d", e).onclick = close; var rr = $("#hz-r", e); if (rr) rr.onclick = function () { close(); startRaid(practice); };
     }
-    function close() { R.over = true; cancelAnimationFrame(R.raf); clearInterval(R.syncT); window.removeEventListener("resize", size); sync(false); ov.remove(); raid = null; var o = $(".fx3-room-ov"); if (o) { say(o, "🐾 *shakes off the dust*"); } }
+    function close() { R.over = true; cancelAnimationFrame(R.raf); clearInterval(R.syncT); window.removeEventListener("resize", size); sync(false); ov.remove(); raid = null; var o = $(".fx3-room-ov"); if (o) { say(o, pe() + " *shakes off the dust*"); } }
     $("#hz-x", ov).onclick = function () { if (R.over || confirm("Leave the raid? The monsters will be back next month.")) close(); };
     /* two phones, one boss: each phone shares how much boss damage it dealt */
     function sync(on) {
@@ -19979,6 +20068,7 @@ function startRaid(practice) {
     var last = performance.now();
     function loop(now) {
         if (R.over) return; var dt = Math.min(.05, (now - last) / 1000); last = now; R.clock += dt;
+        R.lt -= dt; if (R.lt <= 0) { R.lt = 9 + Math.random() * 14; ov.classList.remove('zap'); void ov.offsetWidth; ov.classList.add('zap'); tone(55, .8, 'sawtooth', .06, 28); }
         R.slow = R.pOn && !practice ? 1 : 0.82; if (R.wave >= 0 && !R.pOn && !practice) { R.max = Math.max(R.max, 7); }
         /* spawn */
         while (R.queue.length && R.clock >= R.queue[0].at) { var q = R.queue.shift(); newMob(q.k, q.left); }
@@ -20022,7 +20112,7 @@ function hauntPage() {
     var s = sheet("👻 Haunted house night",
         '<div class="msg">One evening a month, monsters from Dungeon Dwellers come knocking. When ' + esc(petName()) + ' growls at the front door, tap the door to answer, or ignore it and they wander off. Defend the house (tap the monsters, ' + esc(petName()) + ' helps) and win a spooky prize. With ' + esc(pname(other())) + ' on at the same time you fight one shared boss; alone the monsters are slower.</div>' +
         "<h4>Next haunted night</h4><div>" + (nx ? "🌙 " + esc(fmtDate(nx)) : "—") + (st.done && st.done[mk] ? "<br><small>You already won this month's.</small>" : "") + "</div>" +
-        "<h4>Prizes (" + got + "/" + PRIZES.length + ")</h4><div class=\"grid\">" + PRIZES.map(function (p) { var o = has(p); return '<div class="pz ' + (o ? "got" : "lock") + '"><div class="a">' + art(p) + "</div>" + (o ? esc(p.n) : "???") + "</div>"; }).join("") + "</div>" +
+        "<h4>📜 Door notes (" + ((jget("bcx_haunt", {}).got || []).length) + "/" + NOTES.length + ")</h4><div class=\"msg\">" + ((jget("bcx_haunt", {}).got || []).map(function (i) { return "<div class=\"pap sm\"><div class=\"mon\">" + MOB[NOTES[i].m].svg + "</div><p>" + esc(noteTxt(NOTES[i])) + "</p><b>- " + esc(NOTES[i].s) + "</b></div>"; }).join("") || "None yet. Ignore the doorbell or lose a raid to get one.") + "</div><h4>Prizes (" + got + "/" + PRIZES.length + ")</h4><div class=\"grid\">" + PRIZES.map(function (p) { var o = has(p); return '<div class="pz ' + (o ? "got" : "lock") + '"><div class="a">' + art(p) + "</div>" + (o ? esc(p.n) : "???") + "</div>"; }).join("") + "</div>" +
         '<h4>Practice</h4><div class="msg">Try a raid any time. Practice raids give no prizes.</div><p><button class="go" id="hz-pr">⚔️ Practice raid</button></p>' + ((st.wins || 0) ? '<small>Raids won: ' + st.wins + "</small>" : ""));
     $("#hz-pr", s).onclick = function () { s.remove(); startRaid(true); };
 }
@@ -20073,7 +20163,7 @@ function deliver(q) {
     ownFurn(q.id2); try { window.loadAccessoriesShop && window.loadAccessoriesShop(); } catch (e) { }
     tone(660, .15, "triangle", .08); setTimeout(function () { tone(880, .25, "triangle", .08); }, 150); buzz([40, 30, 80]);
     toast("🎁 " + petName() + " is thrilled! New furniture: " + q.n); update(); try { window.__bcxStyles && __bcxStyles.onEvent("quest"); } catch (x) { }
-    var o = $(".fx3-room-ov"); if (o) { var pe = $("#rm-pet", o); if (pe) { pe.classList.remove("hop"); void pe.offsetWidth; pe.classList.add("hop"); } say(o, "🐾 Thank you!! ✨"); }
+    var o = $(".fx3-room-ov"); if (o) { var pe = $("#rm-pet", o); if (pe) { pe.classList.remove("hop"); void pe.offsetWidth; pe.classList.add("hop"); } say(o, pe() + " Thank you!! ✨"); }
 }
 function questPage() {
     var s = update();
@@ -20110,7 +20200,7 @@ var nudged = 0;
 setInterval(function () {
     var ov = roomOv(); if (!ov || raid || ring.on || Date.now() - nudged < 6 * 3600000) return;
     var s = pq(), r = readyList(); if (!r.length) return; if (s.said[r[0].id]) return;
-    s.said[r[0].id] = 1; jset("bcx_pq", s); nudged = Date.now(); say(ov, "🐾 Psst… I think my request is ready! 📜");
+    s.said[r[0].id] = 1; jset("bcx_pq", s); nudged = Date.now(); say(ov, pe() + " Psst… I think my request is ready! 📜");
 }, 4000);
 window.__bcxHaunt = { start: function (p) { startRaid(p !== false); }, ring: function () { var ov = roomOv(); if (ov) startRing(ov); }, quests: questPage, haunt: hauntPage, state: function () { return { ring: ring, st: jget("bcx_haunt", {}), pq: pq() }; }, inWindow: inWindow, hauntDay: hauntDay };
 })();
@@ -20390,7 +20480,7 @@ function jkPlay(plId) {
     m.play(plId || "all", "jukebox").then(function (ok) { if (ok) toast("🎵 Jukebox on"); });
 }
 function jukeStop(quiet) { var m = M(); if (m) m.stop("jukebox"); if (!quiet) toast("🎵 Jukebox off"); }
-function isJK(el) { var it = roomItems()[+el.dataset.i]; return !!(it && (it.id === "fu_jukebox" || it.id === "fu_spiritbox" || it.id === "fu_gramophone" || it.id === "fu_jukebox_diner")); }
+function isJK(el) { var it = roomItems()[+el.dataset.i]; return !!(it && (it.id === "fu_jukebox" || it.id === "fu_gramophone" || it.id === "fu_jukebox_diner")); }
 function jkRoll(name) {
     var col = colFor(name); JK.cols.push(col); if (JK.cols.length > 6) JK.cols.shift(); var tr = (M() && M().tracks) ? M().tracks() : [];
     $$(".fx3-furn svg .jkdg").forEach(function (g) {
@@ -20486,6 +20576,9 @@ var lsr = function (k, d) { try { var v = localStorage.getItem(k); return v == n
 var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 var toast = function (m) { try { window.fxToast && window.fxToast(m); } catch (e) { } };
 var petName = function () { return lsr("companionName", "Buddy"); };
+var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+var pe = function () { return PEMO[lsr("companionType", "dog")] || "🐾"; };
+var pnoise = function () { return ({ dog: "Woof!", cat: "Meow!", bird: "Tweet!", fox: "Yip!", bunny: "*thump*", penguin: "Squawk!", robot: "Beep boop!", frog: "Ribbit!", pig: "Oink!", owl: "Hoot!", lion: "Roar!", tiger: "Rawr!", dragon: "Rawr!", ghost: "Boo!", hamster: "Squeak!", unicorn: "Neigh!" })[lsr("companionType", "dog")] || "!"; };
 var rnd = function (a, b) { return a + Math.random() * (b - a); };
 var pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
 var roomItems = function () { return (jget("fx3_room", {}) || {}).items || []; };
@@ -20669,14 +20762,30 @@ function stylesSheet(tab) {
     };
 }
 
-/* ---------------- spirit box: whispers while it plays ---------------- */
-var WORDS = ["HELLO", "BEHIND", "LISTEN", "STAY", "COLD", "FRIEND", "LOOK", "HERE", "MOON", "WOOF", "BONE", "LATER"];
-setInterval(function () {
-    var on = $$(".fx3-furn.g-jk-on svg .sbt"); if (!on.length) return;
-    on.forEach(function (t) { t.textContent = pick(WORDS); t.setAttribute("fill", "#ffd54f"); setTimeout(function () { t.textContent = "SCAN"; t.setAttribute("fill", "#8dff6a"); }, 2400); });
-    var c = PC(); if (c && Math.random() < .5) { try { c.say(pick(["👂 …did you hear that?", "🐾 *ears up*", "👻 …"]), 2200); } catch (e) { } }
-}, 11000);
-
+/* ---------------- spirit box: static sweep + whispers (no music) ---------------- */
+var SB = { on: false, tick: 0, hold: 0, nextW: 0 };
+function sbWords() { return ["BEHIND YOU", "COLD", "HELP", "HERE", "LISTEN", "TURN AROUND", "COME CLOSER", "MINE", "LEAVE", "FRIEND", "STAY", "WHO", "LOOK", "RUN", "TRAPPED", "HELLO", petName().toUpperCase()]; }
+function sbEls() { return $$('.fx3-furn[data-fid="fu_spiritbox"]'); }
+function sbSpeak(w) { try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(w.toLowerCase()); u.pitch = .1; u.rate = .55; u.volume = .55; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } }
+function sbStart() {
+    SB.on = true; SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick);
+    SB.tick = setInterval(function () {
+        var els = sbEls(); if (!SB.on || !els.length) { sbStop(); return; }
+        var now = Date.now(), word = now < SB.hold;
+        if (!word) { noise(.14, rnd(900, 5200), rnd(200, 2200), .03); if (Math.random() < .3) tone(rnd(300, 2200), .04, "square", .008); els.forEach(function (el) { var t = el.querySelector(".sbt"); if (t) { t.textContent = (87 + Math.random() * 20).toFixed(1); t.setAttribute("fill", "#8dff6a"); } }); }
+        if (!word && now > SB.nextW) {
+            SB.nextW = now + rnd(9000, 22000); var w = pick(sbWords()); SB.hold = now + 3200;
+            noise(.5, 4000, 400, .06); setTimeout(function () { sbSpeak(w); }, 350);
+            els.forEach(function (el) { var t = el.querySelector(".sbt"); if (t) { t.textContent = w; t.setAttribute("fill", "#ffd54f"); } });
+            toast('👻 The spirit box crackles: "' + w + '"');
+            var c = PC(); if (c) { try { c.say(pick([pe() + " *ears perk up*", pe() + " " + pnoise(), "👂 …did you hear that?"]), 2400); c.heart(c.pet.x, c.pet.y - 12, "👻"); } catch (e) { } }
+            var d = od(); d.evp = (d.evp || 0) + 1; jset("bcx_ouija", d); if (d.evp === 5) onEvent("ouija");
+        }
+    }, 260);
+    toast("📻 Spirit box on. Listen for whispers in the static…");
+}
+function sbStop() { SB.on = false; clearInterval(SB.tick); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } sbEls().forEach(function (el) { el.classList.remove("g-jk-on"); var t = el.querySelector(".sbt"); if (t) { t.textContent = "SCAN"; t.setAttribute("fill", "#8dff6a"); } }); }
+setInterval(function () { sbEls().forEach(function (el) { el.classList.toggle("g-jk-on", SB.on); }); if (SB.on && !sbEls().length) sbStop(); }, 500);
 
 /* ---------------- toilets: tap to flush ---------------- */
 var TOI = { fu_bcx_toilet: "water", fu_toilet_july4: "fire", fu_toilet_gold: "gold", fu_toilet_xmas: "xmas", fu_toilet_castle: "dust", fu_toilet_rocket: "rocket", fu_toilet_heart: "heart", fu_toilet_pixel: "pixel", fu_toilet_sea: "sea", fu_h_jacktoilet: "ghost" };
@@ -20686,7 +20795,7 @@ function flush(el, id) {
     if (el.__fl) return; el.__fl = 1; setTimeout(function () { el.__fl = 0; }, 2200);
     var r = el.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * .45, t = TOI[id] || "water";
     el.classList.remove("tf-shake"); void el.offsetWidth; el.classList.add("tf-shake"); noise(1.4, 3000, 300, .1);
-    var c = PC(); if (c) { try { c.say(pick(["🚽 Flush!", "💦 Whoosh!", "🐾 …!"]), 1800); } catch (e) { } }
+    var c = PC(); if (c) { try { c.say(pick(["🚽 Flush!", "💦 Whoosh!", pe() + " …!"]), 1800); } catch (e) { } }
     if (t === "fire") {
         var cols = ["#ff3b3b", "#ffffff", "#3b6bff", "#ffd54f"];
         for (var b = 0; b < 4; b++) (function (b) { setTimeout(function () { var bx = cx + rnd(-90, 90), by = Math.max(50, cy - rnd(120, 240)); noise(.25, 5000, 600, .08); tone(rnd(300, 600), .3, "sawtooth", .03, 80); for (var i = 0; i < 18; i++) { var a = i / 18 * 6.283, d = rnd(40, 70), col = cols[(i + b) % 4]; var p = document.createElement("div"); p.className = "tf-p"; p.style.cssText = "left:" + bx + "px;top:" + by + "px;width:6px;height:6px;border-radius:50%;background:" + col + ";box-shadow:0 0 8px " + col; document.body.appendChild(p); var an = p.animate([{ transform: "translate(0,0)", opacity: 1 }, { transform: "translate(" + Math.cos(a) * d + "px," + Math.sin(a) * d + "px)", opacity: 1, offset: .55 }, { transform: "translate(" + Math.cos(a) * d * 1.1 + "px," + (Math.sin(a) * d + 60) + "px)", opacity: 0 }], { duration: 1100, easing: "ease-out" }); an.onfinish = (function (p) { return function () { p.remove(); }; })(p); } }, b * 260); })(b);
@@ -20709,41 +20818,60 @@ var OU = null, BANK = ["TREAT", "BEHIND", "LISTEN", "STAY", "WALK", "BONE", "FRI
 function od() { var s = jget("bcx_ouija", null) || {}; s.caught = s.caught || 0; s.sess = s.sess || 0; return s; }
 function ouijaGame() {
     if (OU) return; var ov = document.createElement("div"); ov.id = "ou-ov"; var board = window.BXART ? BXART.svg("ouija") : "";
-    var pet = ""; try { var t = lsr("companionType", "dog"); pet = window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : '<span style="font-size:48px">' + ({ dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖" }[t] || "🐾") + "</span>"; } catch (e) { }
+    var pet = ""; try { var t = lsr("companionType", "dog"); pet = window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : '<span style="font-size:48px">' + (PEMO[t] || "🐾") + "</span>"; } catch (e) { }
     ov.innerHTML = '<div class="top"><span>🕯️ Spirit board · 👻 <b id="ou-n">0</b></span><button id="ou-x">✕ Close</button></div><div id="ou-b">' + board + '</div><div id="ou-msg"></div><div class="ask"><input id="ou-q" placeholder="Ask the spirits…" maxlength="80"><button class="go" id="ou-go">Ask</button></div><div class="q"></div><div id="ou-pet">' + pet + '</div><div id="ou-say"></div>';
     document.body.appendChild(ov); OU = { ov: ov, n: 0, busy: false, tm: 0, gh: 0 };
-    var Q = ["Is anyone here?", "Will we win the next raid?", "Who's a good " + (lsr("companionType", "dog") === "cat" ? "kitty" : "boy") + "?", "What does " + petName() + " want?"];
-    $(".q", ov).innerHTML = Q.map(function (q) { return "<button>" + esc(q) + "</button>"; }).join("");
-    var P = $("#ou-b .ouP", ov), msg = $("#ou-msg", ov), pe = $("#ou-pet", ov), say = $("#ou-say", ov);
+    var PN = petName();
+    var QP = ["Is anyone here?", "Is this house haunted?", "Will we win the next haunted night?", "Who's the best pet ever?", "What does " + PN + " want right now?", "What does " + PN + " dream about?", "Is " + PN + " secretly a ghost?", "What's the ghost's name?", "Where is the hidden treasure?", "What's for dinner tonight?", "Who is the scariest monster?", "Is a slime friendly?", "Do skeletons get cold?", "Is the Hollow King lonely?", "Will I find something rare soon?", "How many ghosts are in this room?", "When will I get the gold style?", "What's the secret word?", "Should we buy the golden toilet?", "What is " + PN + "'s favorite snack?", "Does " + PN + " like me?", "Is a mimic hiding in my room?", "Will it snow this winter?", "What should we watch tonight?", "Do goblins pay rent?", "Am I the main character?", "Can " + PN + " see you?", "Who left the note on my door?", "What's the best monster?", "Will I win the lottery?"];
+    function qrow() { var a = QP.slice(), o = []; while (o.length < 4) o.push(a.splice(Math.floor(Math.random() * a.length), 1)[0]); $(".q", ov).innerHTML = o.map(function (q) { return "<button>" + esc(q) + "</button>"; }).join("") + '<button data-dice="1">🎲 More</button>'; $$(".q button", ov).forEach(function (b) { b.onclick = function () { if (b.dataset.dice) { qrow(); return; } $("#ou-q", ov).value = b.textContent; ask(b.textContent); }; }); }
+    var P = $("#ou-b .ouP", ov), msg = $("#ou-msg", ov), pel = $("#ou-pet", ov), say = $("#ou-say", ov);
     function psay(t) { say.textContent = t; say.classList.add("on"); clearTimeout(psay.t); psay.t = setTimeout(function () { say.classList.remove("on"); }, 2200); }
-    function hop() { pe.classList.remove("hop"); void pe.offsetWidth; pe.classList.add("hop"); }
+    function hop() { pel.classList.remove("hop"); void pel.offsetWidth; pel.classList.add("hop"); }
     function go(key) { var p = POS[key] || POS.YES; if (P) P.style.transform = "translate(" + (p[0] - 60) + "px," + (p[1] - 42) + "px)"; tone(180 + Math.random() * 60, .5, "sine", .03, 140); }
     function wait(ms) { return new Promise(function (r) { OU.tm = setTimeout(r, ms); }); }
+    var NM = petName().toUpperCase().replace(/[^A-Z]/g, "").slice(0, 10) || "BUDDY";
+    var MON = ["SLIME", "GOBLIN", "SKELETON", "WRAITH", "MIMIC", "HOLLOW KING"];
+    function w(a) { return pick(a).split(""); }
+    function answerFor(q, r) {
+        var l = q.toLowerCase();
+        if (r < 6) return ["GOODBYE"];
+        if (/how many/.test(l)) return [String(1 + Math.floor(Math.random() * 9))];
+        if (/^when|when will/.test(l)) return w(["TONIGHT", "SOON", "NEVER", "MIDNIGHT", "TUESDAY", "LATER", "NOW"]);
+        if (/^where|where is/.test(l)) return w(["BEHIND", "UNDER BED", "KITCHEN", "ATTIC", "DOOR", "CLOSET", "LOOK UP"]);
+        if (/who left the note|who.*scariest|best monster|which monster/.test(l)) return w(MON);
+        if (/who|name/.test(l)) return w([NM, NM, "BOO", "STEVE", "CASPER", "NOBODY", "YOU", "MOON"]);
+        if (/snack|dinner|eat|food|treat|hungry/.test(l)) return w(["BACON", "PIZZA", "CHEESE", "BONES", "TACOS", "CAKE", "COOKIES", "CANDY"]);
+        if (/watch|show|movie/.test(l)) return w(["SCARY", "COMEDY", "CARTOONS", "ZOMBIES", "DOGS", "SPACE"]);
+        if (/secret word/.test(l)) return w(["BOO", "XYZZY", "PUMPKIN", "CHEESE", "SPOOKY", NM]);
+        if (/want|dream|think|feel/.test(l)) return w(["SNACKS", "NAP", "PLAY", "WALK", "BELLY RUBS", "ADVENTURE", "YOU", "FLY"]);
+        if (/what|which|should/.test(l) && !isYN.test(l)) return w(["BEHIND", "PLAY", "LISTEN", "HELLO", "COLD", "FRIEND", "HERE", "NAP", "RUN", "BOO"]);
+        if (/gold|rare|lottery/.test(l)) return r < 50 ? ["YES"] : r < 85 ? ["NO"] : "SOON".split("");
+        if (/love|like me|good|best/.test(l)) return r < 82 ? ["YES"] : "OBVIOUSLY".split("");
+        return r < 44 ? ["YES"] : r < 78 ? ["NO"] : w(["MAYBE", "ASK LATER", "DOUBTFUL", "PROBABLY"]);
+    }
     var isYN = /^(is|are|will|do|does|can|should|did|has|have|am|was|would|could)\b/i;
     async function ask(q) {
-        if (!OU || OU.busy) return; q = (q || "").trim(); if (!q) { psay("🐾 *sniffs the board*"); return; }
+        if (!OU || OU.busy) return; q = (q || "").trim(); if (!q) { psay(pe() + " *sniffs the board*"); return; }
         OU.busy = true; msg.textContent = ""; psay("👀"); hop(); tone(90, 1, "sawtooth", .03, 60);
         var seed = 0; for (var i = 0; i < q.length; i++) seed = (seed * 31 + q.charCodeAt(i)) >>> 0; var r = (seed + Math.floor(Math.random() * 1000)) % 100;
         for (var k = 0; k < 3; k++) { go(pick(Object.keys(POS))); await wait(850); if (!OU) return; }
-        var ans;
-        if (isYN.test(q)) ans = r < 44 ? ["YES"] : r < 78 ? ["NO"] : "MAYBE".split("");
-        else ans = pick(BANK).split("");
+        var ans = answerFor(q, r);
         for (var a = 0; a < ans.length; a++) { go(ans[a]); await wait(a === 0 ? 1100 : 900); if (!OU) return; if (ans[a].length === 1) msg.textContent += ans[a]; else msg.textContent = ans[a]; }
-        await wait(500); go("GOODBYE"); hop(); psay(pick(["Woof!", "🐾 !!", "👻 whoa…", "*tail wag*"])); OU.busy = false; $("#ou-q", ov).value = "";
+        await wait(500); go("GOODBYE"); hop(); psay(pick([pnoise(), pe() + " !!", "👻 whoa…", "*tail wag*"])); OU.busy = false; $("#ou-q", ov).value = "";
     }
     $("#ou-go", ov).onclick = function () { ask($("#ou-q", ov).value); };
     $("#ou-q", ov).onkeydown = function (e) { if (e.key === "Enter") ask(this.value); };
-    $$(".q button", ov).forEach(function (b) { b.onclick = function () { $("#ou-q", ov).value = b.textContent; ask(b.textContent); }; });
+    qrow();
     function spawn() {
         if (!OU) return; var g = document.createElement("div"); g.className = "ou-gh"; g.innerHTML = ghostSVG(); var W = innerWidth, H = innerHeight, left = Math.random() < .5;
         g.style.left = (left ? rnd(0, W * .25) : rnd(W * .6, W - 60)) + "px"; g.style.top = rnd(H * .12, H * .72) + "px"; g.style.setProperty("--dx", (left ? 1 : -1) * rnd(120, W * .5) + "px"); g.style.setProperty("--dy", rnd(-120, 80) + "px"); g.style.setProperty("--t", rnd(4.5, 7) + "s");
-        var gone = false; g.onpointerdown = function (e) { e.preventDefault(); if (gone) return; gone = true; g.classList.add("pop"); setTimeout(function () { g.remove(); }, 420); OU.n++; $("#ou-n", ov).textContent = OU.n; tone(520, .15, "square", .04, 880); hop(); psay(pick(["BOO right back!", "Got it!", "🐾 Woof!"])); var d = od(); d.caught++; jset("bcx_ouija", d); if (OU.n === 5) { onEvent("ouija"); } };
+        var gone = false; g.onpointerdown = function (e) { e.preventDefault(); if (gone) return; gone = true; g.classList.add("pop"); setTimeout(function () { g.remove(); }, 420); OU.n++; $("#ou-n", ov).textContent = OU.n; tone(520, .15, "square", .04, 880); hop(); psay(pick(["BOO right back!", "Got it!", pe() + " " + pnoise()])); var d = od(); d.caught++; jset("bcx_ouija", d); if (OU.n === 5) { onEvent("ouija"); } };
         ov.appendChild(g); setTimeout(function () { g.remove(); }, 7200);
         OU.gh = setTimeout(spawn, rnd(5500, 11000));
     }
     OU.gh = setTimeout(spawn, 3500);
     $("#ou-x", ov).onclick = function () { clearTimeout(OU.tm); clearTimeout(OU.gh); var d = od(); d.sess++; jset("bcx_ouija", d); ov.remove(); OU = null; };
-    psay("🐾 *sits beside the board*");
+    psay(pe() + " *sits beside the board*");
 }
 /* a ghost drifts through the pet room now and then */
 setInterval(function () {
@@ -20751,11 +20879,12 @@ setInterval(function () {
     if (Math.random() > .3) return; sc.__ouA = 1; setTimeout(function () { sc.__ouA = 0; }, 20000);
     var g = document.createElement("div"); g.className = "ou-amb"; g.innerHTML = ghostSVG(); g.style.left = rnd(5, 40) + "%"; g.style.top = rnd(18, 55) + "%"; sc.appendChild(g);
     var c = PC(); if (c) { try { c.say("👻 …did you see that?", 2400); } catch (e) { } }
-    g.onpointerdown = function (e) { e.preventDefault(); e.stopPropagation(); g.remove(); tone(520, .15, "square", .04, 880); var d = od(); d.caught++; jset("bcx_ouija", d); toast("👻 You caught a ghost! (" + d.caught + " total)"); var c2 = PC(); if (c2) { try { c2.heart(c2.pet.x, c2.pet.y - 12, "👻"); c2.say("🐾 Woof!", 1800); } catch (x) { } } if (d.caught === 5 || d.caught === 15 || d.caught === 30) onEvent("ouija"); };
+    g.onpointerdown = function (e) { e.preventDefault(); e.stopPropagation(); g.remove(); tone(520, .15, "square", .04, 880); var d = od(); d.caught++; jset("bcx_ouija", d); toast("👻 You caught a ghost! (" + d.caught + " total)"); var c2 = PC(); if (c2) { try { c2.heart(c2.pet.x, c2.pet.y - 12, "👻"); c2.say(pe() + " " + pnoise(), 1800); } catch (x) { } } if (d.caught === 5 || d.caught === 15 || d.caught === 30) onEvent("ouija"); };
     setTimeout(function () { g.remove(); }, 7200);
 }, 25000);
 document.addEventListener("click", function (e) {
-    var f = e.target.closest && e.target.closest(".fx3-furn[data-i]"); if (f) { var it = roomItems()[+f.dataset.i]; if (it && TOI[it.id]) { var ov0 = f.closest(".fx3-room-ov"); if (ov0 && !ov0.querySelector(".fx3-room-tools")) { e.stopPropagation(); e.preventDefault(); flush(f, it.id); return; } } if (it && it.id === "fu_ouija") { var ov = f.closest(".fx3-room-ov"); if (ov && !ov.querySelector(".fx3-room-tools")) { e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); ouijaGame(); return; } } }
+    var f = e.target.closest && e.target.closest(".fx3-furn[data-i]"); if (f) { var it = roomItems()[+f.dataset.i]; if (it && it.id === "fu_spiritbox") { var ovs = f.closest(".fx3-room-ov"); if (ovs && !ovs.querySelector(".fx3-room-tools")) { e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); if (SB.on) sbStop(); else sbStart(); return; } }
+    if (it && TOI[it.id]) { var ov0 = f.closest(".fx3-room-ov"); if (ov0 && !ov0.querySelector(".fx3-room-tools")) { e.stopPropagation(); e.preventDefault(); flush(f, it.id); return; } } if (it && it.id === "fu_ouija") { var ov = f.closest(".fx3-room-ov"); if (ov && !ov.querySelector(".fx3-room-tools")) { e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); ouijaGame(); return; } } }
     var b = e.target.closest && e.target.closest("[data-sk]"); if (!b || !b.classList.contains("sk-menu")) return; e.stopPropagation(); var mn = $(".bcx-mn"); if (mn) { mn.hidden = true; var tb = $(".bcx-tb"); if (tb) tb.classList.remove("open"); } stylesSheet();
 }, true);
 setInterval(function () { var mn = $(".bcx-mn"); if (mn && !mn.querySelector(".sk-menu")) mn.insertAdjacentHTML("beforeend", '<button class="sk-menu" data-sk="1"><b class="cxi" style="background:linear-gradient(135deg,#ffd54f,#ff4fa3,#4fc3f7);border-radius:6px"></b>Styles</button>'); }, 900);
