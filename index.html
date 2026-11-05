@@ -20176,7 +20176,7 @@ function writeDoc(extra) {
 function onMovieStart(d) {
     if (!(MV.armed && Date.now() < MV.armed) && !MV.joining) return;
     var it = d.it; MV.armed = 0; MV.joining = false; MV.on = true; MV.id = it.Id; MV.name = it.Type === "Episode" ? (it.SeriesName || "") + " · " + it.Name : it.Name; tv.movie = true; MV.brk = false;
-    document.body.classList.add("mv-on"); try { window.BCMusic && BCMusic.stop("radio"); } catch (e) { } jukeStop(true);
+    document.body.classList.add("mv-on"); try { window.BCMusic && BCMusic.stop(); } catch (e) { }
     toast("🍿 Movie night! Lights down, " + petName() + " is heading to bed.");
     var v = d.v; if (MV.seekTo != null) { var to = MV.seekTo; MV.seekTo = null; v.addEventListener("loadedmetadata", function f() { v.removeEventListener("loadedmetadata", f); MV.applying = Date.now(); try { v.currentTime = to; } catch (e) { } }); }
     bar(); applyScene(); seat();
@@ -20284,96 +20284,72 @@ function onPetFav() {
 }
 
 /* =====================================================================
-   3. RETRO JUKEBOX (Jellyfin music)
+   3. RETRO JUKEBOX (plays the same workout music as the radio)
    ===================================================================== */
-var JK = { a: null, q: [], i: 0, on: false, ctx: null, an: null, src: null, bins: null, avg: 0, lastBeat: 0, raf: 0, fb: 0, cols: [], fallbackT: 0, cors: true, tab: "mix", loading: false };
-var jkAud = function () { return JK.a; };
+var JK = { on: false, name: "", lastBeat: 0, bpm: 110, flip: false, cols: [], tab: "mix" };
+var M = function () { return window.BCMusic || null; };
 function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0; return h % 360; }
 function colFor(t) { return "hsl(" + hue(t || "x") + ",85%,60%)"; }
-function jkUrl(it, mp3) { var J = JF(), c = J.cfg(); var q = "api_key=" + encodeURIComponent(c.token) + "&DeviceId=" + encodeURIComponent(J.did()) + "&MediaSourceId=" + it.Id; return J.base() + "/Audio/" + it.Id + (mp3 ? "/stream.mp3?audioCodec=mp3&audioBitRate=192000&" : "/stream?static=true&") + q; }
-function jkArt(it, h) { var J = JF(); var id = it.ImageTags && it.ImageTags.Primary ? it.Id : it.AlbumPrimaryImageTag ? it.AlbumId : null; return id ? J.base() + "/Items/" + id + "/Images/Primary?maxHeight=" + (h || 120) + "&quality=80" : ""; }
-function ensureAudio() {
-    if (JK.a) return JK.a; var a = new Audio(); a.preload = "auto"; a.crossOrigin = "anonymous"; a.setAttribute("playsinline", ""); JK.a = a;
-    a.onended = function () { jkNext(); };
-    a.onerror = function () { if (!JK.q.length) return; var it = JK.q[JK.i]; if (JK.cors) { JK.cors = false; a.removeAttribute("crossorigin"); a.crossOrigin = null; JK.an = null; a.src = jkUrl(it); a.play().catch(function () { }); return; } if (!JK.fb) { JK.fb = 1; a.src = jkUrl(it, true); a.play().catch(function () { }); return; } JK.fb = 0; toast("😕 Couldn't play that song, skipping."); jkNext(); };
-    a.onplay = function () { JK.on = true; refresh(); startBeat(); }; a.onpause = function () { if (!a.ended) { JK.on = false; refresh(); } };
-    return a;
+function jkState() { var m = M(), s = m && m.state(); return s || { playing: false }; }
+function jkPlay(plId) {
+    var m = M(); if (!m) { toast("Music isn't ready yet"); return; }
+    if (MV.on) { toast("🍿 Finish movie night first, the jukebox would talk over it."); return; }
+    m.play(plId || "all", "jukebox").then(function (ok) { if (ok) toast("🎵 Jukebox on"); });
 }
-function setupAnalyser() {
-    if (JK.an || !JK.cors) return; try { var a = JK.a, Ctx = window.AudioContext || window.webkitAudioContext; JK.ctx = JK.ctx || new Ctx(); if (JK.ctx.state === "suspended") JK.ctx.resume(); JK.src = JK.src || JK.ctx.createMediaElementSource(a); var an = JK.ctx.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = .6; JK.src.connect(an); an.connect(JK.ctx.destination); JK.an = an; JK.bins = new Uint8Array(an.frequencyBinCount); } catch (e) { JK.an = null; }
-}
-function jkPlay(list, i) {
-    var J = JF(); if (!J || !list || !list.length) return; try { window.BCMusic && BCMusic.stop("radio"); } catch (e) { } if (MV.on) { toast("🍿 Finish movie night first, the jukebox would talk over it."); return; }
-    JK.q = list; JK.i = Math.max(0, Math.min(list.length - 1, i || 0)); JK.fb = 0; var a = ensureAudio(); JK.cols = []; loadTrack(); barJK();
-}
-function loadTrack() {
-    var it = JK.q[JK.i]; if (!it) return; var a = ensureAudio(); setupAnalyser(); a.src = jkUrl(it); a.play().catch(function () { }); JK.fb = 0;
-    jkRoll(it); barJK(); try { if ("mediaSession" in navigator) navigator.mediaSession.metadata = new MediaMetadata({ title: it.Name, artist: (it.Artists || [it.AlbumArtist || ""])[0] || "", album: it.Album || "" }); } catch (e) { }
-}
-function jkNext() { if (!JK.q.length) return; JK.i = (JK.i + 1) % JK.q.length; loadTrack(); }
-function jkPrev() { if (!JK.q.length) return; if (JK.a && JK.a.currentTime > 4) { JK.a.currentTime = 0; return; } JK.i = (JK.i - 1 + JK.q.length) % JK.q.length; loadTrack(); }
-function jkToggle() { var a = JK.a; if (!a) return; if (a.paused) { a.play().catch(function () { }); } else a.pause(); }
-function jukeStop(quiet) { if (JK.a) { try { JK.a.pause(); JK.a.removeAttribute("src"); JK.a.load(); } catch (e) { } } JK.on = false; JK.q = []; var b = $("#jk-bar"); if (b) b.remove(); refresh(); stopBeat(); if (!quiet) toast("🎵 Jukebox off"); }
-function barJK() {
-    var it = JK.q[JK.i]; if (!it) return; var b = $("#jk-bar");
-    if (!b) { b = document.createElement("div"); b.id = "jk-bar"; document.body.appendChild(b); b.onclick = function (e) { var m = e.target.getAttribute && e.target.getAttribute("data-j"); if (m === "p") jkPrev(); else if (m === "n") jkNext(); else if (m === "t") jkToggle(); else if (m === "x") jukeStop(); else if (m === "o") jukeSheet(); }; }
-    b.innerHTML = '<i data-j="o" style="background-image:url(\'' + jkArt(it) + '\')"></i><b data-j="o">' + esc(it.Name) + "<small>" + esc((it.Artists && it.Artists[0]) || it.AlbumArtist || it.Album || "") + '</small></b><button data-j="p">⏮</button><button data-j="t">' + (JK.on ? "⏸" : "▶") + '</button><button data-j="n">⏭</button><button data-j="x">✕</button>';
-}
-/* the cabinet: roll the disks along, glow in the song's colors, bob the pet */
-function jkRoll(it) {
-    var col = colFor(it.Name + (it.Album || "")); JK.cols.push(col); if (JK.cols.length > 6) JK.cols.shift();
+function jukeStop(quiet) { var m = M(); if (m) m.stop("jukebox"); if (!quiet) toast("🎵 Jukebox off"); }
+function isJK(el) { var it = roomItems()[+el.dataset.i]; return !!(it && it.id === "fu_jukebox"); }
+function jkRoll(name) {
+    var col = colFor(name); JK.cols.push(col); if (JK.cols.length > 6) JK.cols.shift(); var tr = (M() && M().tracks) ? M().tracks() : [];
     $$(".fx3-furn svg .jkdg").forEach(function (g) {
-        var disks = $$(".jkd", g); if (disks.length < 5) return; var first = !g.__init;
-        if (first) { g.__init = 1; var base = JK.q.slice(Math.max(0, JK.i - 1), JK.i + 3).map(function (x) { return colFor(x.Name + (x.Album || "")); }); disks.forEach(function (d, n) { var l = $(".jkl", d); if (l) l.style.fill = n === 2 ? col : (base[n] || "#7a6aa8"); }); return; }
+        var disks = $$(".jkd", g); if (disks.length < 5) return;
+        if (!g.__init) { g.__init = 1; disks.forEach(function (d, n) { var l = $(".jkl", d); if (l) l.style.fill = n === 2 ? col : colFor(String((tr[Math.floor(Math.random() * Math.max(1, tr.length))] || {}).name || n)); }); return; }
         g.style.transition = "transform .7s cubic-bezier(.4,0,.2,1)"; g.style.transform = "translateX(-17px)";
         setTimeout(function () {
             g.style.transition = "none"; g.style.transform = "none"; var f = $(".jkd", g); g.appendChild(f); var all = $$(".jkd", g);
-            all.forEach(function (d, n) { d.setAttribute("transform", "translate(" + (5 + n * 17) + " 29)"); }); var nx = JK.q[(JK.i + 2) % JK.q.length]; var l = $(".jkl", all[4]); if (l) l.style.fill = colFor(nx ? nx.Name + (nx.Album || "") : "z");
+            all.forEach(function (d, n) { d.setAttribute("transform", "translate(" + (5 + n * 17) + " 29)"); });
+            var l4 = $(".jkl", all[4]); if (l4) l4.style.fill = colFor(String((tr[Math.floor(Math.random() * Math.max(1, tr.length))] || {}).name || "z") + Math.random());
             var lc = $(".jkl", all[2]); if (lc) lc.style.fill = col;
         }, 740);
     });
-    $$(".fx3-furn").forEach(function (el) { if (isJK(el)) el.style.setProperty("--jkc", col); });
+    $$(".fx3-furn").forEach(function (el) { if (el.dataset.i != null && isJK(el)) el.style.setProperty("--jkc", col); });
 }
-function isJK(el) { var it = roomItems()[+el.dataset.i]; return !!(it && it.id === "fu_jukebox"); }
 function beat() {
     var c = PC(); if (c) { var pe = c.el(); if (pe && !c.pet.sleep) { pe.classList.add("jk-on"); JK.flip = !JK.flip; pe.style.translate = "0 -8px"; pe.style.rotate = JK.flip ? "6deg" : "-6deg"; setTimeout(function () { pe.style.translate = "0 0"; pe.style.rotate = "0deg"; }, 130); } }
     $$("#rm-scene .fx3-furn").forEach(function (el) { if (isJK(el)) { el.classList.remove("jk-beat"); void el.offsetWidth; el.classList.add("jk-beat"); } });
 }
-function startBeat() {
-    stopBeat(); JK.raf = requestAnimationFrame(function loop() {
-        if (!JK.on) return; JK.raf = requestAnimationFrame(loop);
-        if (!JK.an) return; JK.an.getByteFrequencyData(JK.bins); var e = 0; for (var i = 1; i < 7; i++) e += JK.bins[i]; e /= 6; JK.avg = JK.avg * .93 + e * .07; var now = performance.now();
-        if (e > JK.avg * 1.28 && e > 70 && now - JK.lastBeat > 280) { JK.lastBeat = now; beat(); }
-    });
-    clearInterval(JK.fallbackT); JK.fallbackT = setInterval(function () { if (JK.on && (!JK.an || JK.a && JK.a.currentTime && performance.now() - JK.lastBeat > 900)) { JK.lastBeat = performance.now(); beat(); } }, 520);
+function barJK(s) {
+    var b = $("#jk-bar"); if (!s || !s.now) { if (b) b.remove(); return; }
+    var key = s.now.id + (s.playing ? "p" : "s");
+    if (!b) { b = document.createElement("div"); b.id = "jk-bar"; document.body.appendChild(b); b.onclick = function (e) { var m = e.target.getAttribute && e.target.getAttribute("data-j"), mm = M(); if (!mm) return; if (m === "p") mm.prev(); else if (m === "n") mm.next(); else if (m === "t") mm.toggle(); else if (m === "x") jukeStop(); else if (m === "o") jukeSheet(); }; }
+    if (b.__k === key) return; b.__k = key;
+    b.innerHTML = '<i data-j="o" style="background:' + colFor(s.now.name) + '"></i><b data-j="o">' + esc(s.now.name) + "<small>🎵 Jukebox</small></b><button data-j=\"p\">⏮</button><button data-j=\"t\">" + (s.playing ? "⏸" : "▶") + '</button><button data-j="n">⏭</button><button data-j="x">✕</button>';
 }
-function stopBeat() { cancelAnimationFrame(JK.raf); clearInterval(JK.fallbackT); var c = PC(); if (c && c.el()) { c.el().style.translate = "0 0"; c.el().style.rotate = "0deg"; } }
-function refresh() { $$(".fx3-furn[data-i]").forEach(function (el) { if (isJK(el)) { el.classList.toggle("g-jk-on", !!JK.on); } }); var b = $("#jk-bar [data-j=t]"); if (b) b.textContent = JK.on ? "⏸" : "▶"; }
-setInterval(function () { refresh(); var pe = $("#rm-pet"); if (pe && !JK.on) { pe.classList.remove("jk-on"); } $$("#rm-scene .fx3-furn svg .jkdg").forEach(function (g) { if (!g.__init && JK.q.length) jkRoll(JK.q[JK.i]); }); }, 800);
+setInterval(function () {
+    var s = jkState(), on = !!(s.playing && s.ctx === "jukebox"), nm = s.now ? s.now.name : "";
+    if (on !== JK.on) { JK.on = on; if (!on) { var c = PC(); if (c && c.el()) { c.el().style.translate = "0 0"; c.el().style.rotate = "0deg"; } } }
+    if (on && nm !== JK.name) { JK.name = nm; JK.bpm = 92 + hue(nm) % 40; jkRoll(nm); }
+    $$(".fx3-furn[data-i]").forEach(function (el) { if (isJK(el)) el.classList.toggle("g-jk-on", on); });
+    if (s.ctx === "jukebox" && s.now) barJK(s); else barJK(null);
+    if (on && !$$("#rm-scene .fx3-furn svg .jkdg").every(function (g) { return g.__init; })) jkRoll(nm);
+}, 700);
+setInterval(function () { if (JK.on) { var now = performance.now(); if (now - JK.lastBeat > 60000 / JK.bpm - 20) { JK.lastBeat = now; beat(); } } }, 60);
 
-/* jukebox sheet: pick from your Jellyfin music */
 function sheet(title, body) { var s = $("#cx-sheet"); if (s) s.remove(); s = document.createElement("div"); s.id = "cx-sheet"; s.innerHTML = '<div class="hd"><b>' + title + '</b><button data-x>✕</button></div><div class="bd">' + body + "</div>"; document.body.appendChild(s); $("[data-x]", s).onclick = function () { s.remove(); }; return s; }
-function jukeSheet(tab) {
-    var J = JF(); if (!J) { toast("Jellyfin isn't ready yet."); return; }
-    var s = sheet("🎵 Jukebox", '<div class="msg">Signing in…</div>');
-    var go = function () {
-        if (!J.cfg().uid) { $(".bd", s).innerHTML = '<div class="msg">Sign in to Jellyfin first (tap your room TV → Jellyfin), then come back.</div>'; return; }
-        tab = tab || JK.tab || "mix"; JK.tab = tab; draw();
+function jukeSheet() {
+    var m = M(); if (!m) { toast("Music isn't ready yet"); return; }
+    var all = m.tracks(), pls = m.playlists(), st = m.state(), now = st.ctx === "jukebox" && st.now ? st.now : null;
+    var sh = (jget("bcx_shuffle", null), lsr("bcx_shuffle", "0") === "1");
+    var s = sheet("🎵 Jukebox",
+        '<div class="msg">The jukebox plays the same songs as your radio and workout player. Add or manage songs in Workout → 🎧 Workout music.</div>' +
+        (now ? '<div class="card"><div class="t"><b>' + esc(now.name) + "</b><small>" + (st.playing ? "Playing" : "Paused") + '</small></div><button data-a="p">⏮</button><button data-a="t">' + (st.playing ? "⏸" : "▶") + '</button><button data-a="n">⏭</button><button data-a="x">✕</button></div>' : "") +
+        (all.length ? '<p><button class="go" data-a="all">▶ Play all my songs (' + all.length + ')</button> <button data-a="sh">' + (sh ? "🔀 Shuffle: on" : "🔀 Shuffle: off") + "</button></p>" : '<div class="msg">No songs yet. Add some in Workout → 🎧 Workout music.</div>') +
+        (pls.length ? "<h4>Playlists</h4>" + pls.map(function (p) { return '<div class="card"><div class="t"><b>' + esc(p.name) + "</b><small>" + (p.ids ? p.ids.length : 0) + ' songs</small></div><button data-a="pl" data-id="' + esc(p.id) + '">▶ Play</button></div>'; }).join("") : ""));
+    s.onclick = function (e) {
+        var a = e.target.closest("[data-a]"); if (!a) return; var k = a.dataset.a;
+        if (k === "all") jkPlay("all"); else if (k === "pl") jkPlay(a.dataset.id); else if (k === "p") m.prev(); else if (k === "n") m.next(); else if (k === "t") m.toggle(); else if (k === "x") jukeStop();
+        else if (k === "sh") { m.setShuffle(!(lsr("bcx_shuffle", "0") === "1")); jukeSheet(); return; }
+        setTimeout(jukeSheet, 500);
     };
-    J.auto ? J.auto().then(function () { go(); }, go) : go();
-    function draw() {
-        var it = JK.q[JK.i], np = it ? '<div class="card"><div class="t"><b>' + esc(it.Name) + "</b><small>" + esc((it.Artists && it.Artists[0]) || it.AlbumArtist || "") + '</small></div><button data-j="p">⏮</button><button data-j="t">' + (JK.on ? "⏸" : "▶") + '</button><button data-j="n">⏭</button></div>' : "";
-        $(".bd", s).innerHTML = np + '<div class="cxt">' + [["mix", "🎲 Mix"], ["albums", "💿 Albums"], ["lists", "📜 Playlists"], ["find", "🔎 Search"]].map(function (t) { return '<button data-t="' + t[0] + '" class="' + (tab === t[0] ? "on" : "") + '">' + t[1] + "</button>"; }).join("") + '</div><div id="cx-b"><div class="msg">Loading…</div></div>';
-        $(".bd", s).onclick = function (e) { var t = e.target.closest("[data-t]"); if (t) { tab = t.dataset.t; JK.tab = tab; draw(); return; } var j = e.target.closest("[data-j]"); if (j) { var m = j.dataset.j; if (m === "p") jkPrev(); else if (m === "n") jkNext(); else if (m === "t") jkToggle(); setTimeout(draw, 500); } };
-        var b = $("#cx-b", s), uid = J.cfg().uid, F = "&Fields=Album,AlbumArtist,Artists&EnableImageTypes=Primary&ImageTypeLimit=1";
-        var songs = function (items, label) { b.innerHTML = (label ? "<h4>" + label + "</h4>" : "") + (items.length ? items.map(function (t, n) { return '<button class="tr' + (JK.q[JK.i] && JK.q[JK.i].Id === t.Id ? " now" : "") + '" data-n="' + n + '"><span>' + (n + 1) + '.</span><div style="flex:1;min-width:0"><b>' + esc(t.Name) + "</b><small>" + esc((t.Artists && t.Artists[0]) || t.AlbumArtist || "") + "</small></div></button>"; }).join("") : '<div class="msg">Nothing here.</div>'); b.onclick = function (e) { var x = e.target.closest("[data-n]"); if (x) { jkPlay(items, +x.dataset.n); setTimeout(draw, 300); } }; };
-        var covers = function (items, kind) { b.innerHTML = items.length ? '<div class="al">' + items.map(function (a) { return '<button data-id="' + a.Id + '"><i style="background-image:url(\'' + jkArt(a, 220) + '\')"></i><span>' + esc(a.Name) + "</span></button>"; }).join("") + "</div>" : '<div class="msg">Nothing here.</div>'; b.onclick = function (e) { var x = e.target.closest("[data-id]"); if (!x) return; var al = items.filter(function (q) { return q.Id === x.dataset.id; })[0]; b.innerHTML = '<div class="msg">Loading…</div>'; J.api("/Users/" + uid + "/Items?ParentId=" + al.Id + "&IncludeItemTypes=Audio&Recursive=true&SortBy=ParentIndexNumber,IndexNumber,SortName&Limit=300" + F).then(function (r) { var tr = (r && r.Items) || []; songs(tr, esc(al.Name) + ' <button data-all style="float:right" class="go">▶ Play all</button>'); b.onclick = function (ev) { if (ev.target.closest("[data-all]")) { jkPlay(tr, 0); setTimeout(draw, 300); return; } var x2 = ev.target.closest("[data-n]"); if (x2) { jkPlay(tr, +x2.dataset.n); setTimeout(draw, 300); } }; }, fail); }; };
-        var fail = function (e) { b.innerHTML = '<div class="msg">Couldn\'t load your music (' + esc(e && e.message || "network") + ").</div>"; };
-        if (tab === "mix") J.api("/Users/" + uid + "/Items?IncludeItemTypes=Audio&Recursive=true&SortBy=Random&Limit=40" + F).then(function (r) { var tr = (r && r.Items) || []; b.innerHTML = '<p><button class="go" data-mix>🎲 Shuffle my music</button></p><div class="msg">Starts a random mix of your Jellyfin songs.</div>'; b.onclick = function (e) { if (e.target.closest("[data-mix]") && tr.length) { jkPlay(tr, 0); setTimeout(draw, 300); } }; }, fail);
-        else if (tab === "albums") J.api("/Users/" + uid + "/Items?IncludeItemTypes=MusicAlbum&Recursive=true&SortBy=SortName&Limit=90&EnableImageTypes=Primary").then(function (r) { covers((r && r.Items) || []); }, fail);
-        else if (tab === "lists") J.api("/Users/" + uid + "/Items?IncludeItemTypes=Playlist&Recursive=true&SortBy=SortName&Limit=60&EnableImageTypes=Primary").then(function (r) { covers((r && r.Items) || []); }, fail);
-        else { b.innerHTML = '<input id="cx-q" placeholder="Song, artist or album…"><div id="cx-r"></div>'; $("#cx-q", s).onkeydown = function (e) { if (e.key !== "Enter") return; var q = this.value.trim(); if (!q) return; $("#cx-r", s).innerHTML = '<div class="msg">Searching…</div>'; J.api("/Users/" + uid + "/Items?SearchTerm=" + encodeURIComponent(q) + "&IncludeItemTypes=Audio&Recursive=true&Limit=60" + F).then(function (r) { var tr = (r && r.Items) || [], rb = $("#cx-r", s); rb.innerHTML = tr.length ? tr.map(function (t, n) { return '<button class="tr" data-n="' + n + '"><span>' + (n + 1) + '.</span><div style="flex:1;min-width:0"><b>' + esc(t.Name) + "</b><small>" + esc((t.Artists && t.Artists[0]) || "") + "</small></div></button>"; }).join("") : '<div class="msg">No songs found.</div>'; rb.onclick = function (ev) { var x = ev.target.closest("[data-n]"); if (x) { jkPlay(tr, +x.dataset.n); setTimeout(draw, 300); } }; }, fail); }; }
-    }
 }
 
 /* =====================================================================
@@ -20397,7 +20373,7 @@ function addMenu() {
 setInterval(addMenu, 900);
 document.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("[data-cx]");
-    if (b) { e.stopPropagation(); var mn = $(".bcx-mn"); if (mn) { mn.hidden = true; var tb = $(".bcx-tb"); if (tb) tb.classList.remove("open"); } if (b.dataset.cx === "m") movieSheet(); else { var el = $$("#rm-scene .fx3-furn[data-i]").filter(isJK)[0]; if (!el && !JK.q.length) { toast("🎵 Add a Retro Jukebox from the Room Shop, then tap it. Opening the music picker anyway."); } jukeSheet(); } return; }
+    if (b) { e.stopPropagation(); var mn = $(".bcx-mn"); if (mn) { mn.hidden = true; var tb = $(".bcx-tb"); if (tb) tb.classList.remove("open"); } if (b.dataset.cx === "m") movieSheet(); else { var el = $$("#rm-scene .fx3-furn[data-i]").filter(isJK)[0]; if (!el) toast("🎵 Add a Retro Jukebox from the Room Shop to see the disks spin. Opening the music picker."); jukeSheet(); } return; }
     var f = e.target.closest && e.target.closest(".fx3-furn[data-i]"); if (!f || !isJK(f)) return; var ov = f.closest(".fx3-room-ov"); if (!ov || ov.querySelector(".fx3-room-tools")) return;
     e.stopPropagation(); e.stopImmediatePropagation(); e.preventDefault(); jukeSheet();
 }, true);
