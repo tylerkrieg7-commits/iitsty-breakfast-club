@@ -216,6 +216,21 @@ input,select{font:inherit;background:#0c0820;color:var(--ink);border:2px solid v
 .lp-wh{position:relative;width:130px;height:130px}.lp-wh .wh{width:100%;height:100%;filter:drop-shadow(0 6px 0 #0007);transition:none}.lp-wh .ptr{position:absolute;top:-10px;left:50%;transform:translateX(-50%);font-size:22px;color:#fde047;z-index:2;text-shadow:0 2px 0 #0008}
 .lp-wh .wh.go{animation:lpw 2.2s cubic-bezier(.12,.7,.2,1)}@keyframes lpw{from{transform:rotate(0)}to{transform:rotate(var(--rot))}}
 .lp-side{display:flex;flex-direction:column;gap:8px}.lp-res{background:#ffffff0d;border:2px solid #ffffff1a;border-radius:16px;padding:10px 16px;text-align:center}.lp-res small{display:block;font-size:10px;color:var(--mut);font-weight:800}.lp-res b{font-size:40px;line-height:1.1;color:#fde047;text-shadow:0 3px 0 #0006}
+/* build 86: big art pass */
+.op-wrap{position:relative;max-width:460px;margin:0 auto;container-type:inline-size}.op-svg{display:block;width:100%;height:auto;filter:drop-shadow(0 14px 18px #000b)}
+.op-deckov{position:absolute;left:33.1%;top:27.1%;width:33.8%;height:36.4%;display:flex;align-items:center;justify-content:center}
+.op-wrap .op-deck{gap:2.4cqw;min-height:0;perspective:600px}
+.op-wrap .op-card{width:10.4cqw;height:14.6cqw;border-radius:1.9cqw;box-shadow:0 .9cqw 0 #0006,0 1.6cqw 2.6cqw #0007}
+.op-wrap .op-card.back{border-width:.7cqw;font-size:5.6cqw}.op-wrap .op-card.face{border-width:.4cqw}.op-wrap .op-card.face b{font-size:5.6cqw}.op-wrap .op-card.face i{font-size:2.5cqw}.op-wrap .op-card.face i.tl{top:.9cqw;left:1.1cqw}.op-wrap .op-card.face i.br{bottom:.9cqw;right:1.1cqw}.op-wrap .op-card.sorry b.sr{font-size:2.9cqw}
+.op-pulse{animation:oppu 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes oppu{50%{transform:scale(1.25);opacity:.55}}
+.op-under{max-width:460px;margin:10px auto 0;display:flex;flex-direction:column;gap:7px}
+.op-lgs{display:flex;gap:8px}.op-lg{flex:1;min-width:0;display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:14px;background:linear-gradient(160deg,#241c4a,#150f33);border:2px solid #ffffff1a;box-shadow:0 3px 0 #0006}
+.op-lg.cur.a{border-color:var(--a);box-shadow:0 0 12px var(--a),0 3px 0 #0006}.op-lg.cur.b{border-color:var(--b);box-shadow:0 0 12px var(--b),0 3px 0 #0006}
+.op-lg .av{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:12px;color:#fff;border:2px solid #fff;flex:none;box-shadow:0 2px 0 #0006}.op-lg .av.a{background:var(--a)}.op-lg .av.b{background:var(--b)}
+.op-lg b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}.op-lg em{font-style:normal;font-size:11px;font-weight:800;color:#86efac}
+.lp-board{margin:10px auto;max-width:440px;border-radius:22px;overflow:hidden;box-shadow:0 0 0 3px #120d2b,0 0 0 5px #22c55e55,0 14px 28px #000a}.lp-svg{display:block;width:100%;height:auto}
+.lp-car.cur{animation:lpcb .8s ease-in-out infinite alternate}@keyframes lpcb{to{transform:translate(0,-3px)}}
+.lp-wh{position:relative;width:150px;height:158px}.lp-wh svg{width:100%;height:100%;overflow:visible}.lpw{transform-origin:0 0}.lpw.go{animation:lpw2 2.2s cubic-bezier(.12,.7,.2,1)}@keyframes lpw2{from{transform:rotate(0)}to{transform:rotate(var(--rot))}}
 .lp-ctl{margin-top:8px}.lp-log{font-size:11px;line-height:1.35;color:#cfc9ee;margin-top:8px;background:#0005;border-radius:10px;padding:6px 10px}
 /* build 41: Property Tycoon - themes, up to 4 players, landscape */
 :root{--c:#4ade80;--d:#fbbf24}
@@ -1448,6 +1463,131 @@ reg("tycoon",{title:"Property Tycoon",icon:"🏙️",desc:"2-4 players, bots, 13
     if(!window.PT_BT||window.PT_BT.key!==key){if(window.PT_BT)clearTimeout(window.PT_BT.t);var code=R.code,sq0=d.seq;
       window.PT_BT={key:key,t:setTimeout(function(){if(!R||R.code!==code||R.doc.seq!==sq0||R.doc.winner)return;ptBot(ctx("a"))},(st.phase==="roll"?1500:1100)+Math.random()*500)}}}
  }});
+/* ======================= BUILD 86: big art pass for Oops! Slide Home and Life Path ======================= */
+/* ---- Oops! Slide Home: a classic slide-race board ---- */
+function opBoard(c,st,cardHTML,hint,ctl){
+  var M=16,S=40,me=c.me,SIDEC=["#f5b50a","#2f7be5","#1fae52","#e5483f"],DIR=[[1,0],[0,1],[-1,0],[0,-1]];
+  var cx=function(col){return M+col*S+20},cy=function(row){return M+row*S+20};
+  var trk=function(i){var p=SP[i];return[cx(p[1]),cy(p[0])]};
+  var side=function(i){return i<10?0:i<20?1:i<30?2:3};
+  var STC={a:[cx(2),cy(3)],b:[cx(8),cy(7)]},STO=[[-17,12],[17,12],[0,-8]];
+  var posXY=function(s,v,k){
+    if(v<0){var o=STO[k%3];return[STC[s][0]+o[0],STC[s][1]+o[1]+4,.74]}
+    if(v<40){var t=trk(sgl(s,v));return[t[0],t[1]+15,.78]}
+    if(v<45)return s==="a"?[cx(v-39),cy(1)+15,.78]:[cx(49-v),cy(9)+15,.78];
+    var h=s==="a"?[cx(6),cy(1)]:[cx(4),cy(9)];return[h[0]+(k-1)*11,h[1]+9,.5]};
+  var pawn=function(s,n,p,fade){var x=p[0],y=p[1],sc=p[2];
+    return'<g transform="translate('+(x-20*sc).toFixed(1)+' '+(y-47*sc).toFixed(1)+') scale('+sc+')"'+(fade?' opacity=".45"':'')+'><ellipse cx="20" cy="47" rx="14" ry="4.2" fill="#000" opacity=".35"/><path d="M20 3a8.5 8.5 0 0 1 5 15.4c3.2 2.1 6.2 6.8 6.2 12.8 0 2.8-.9 4.8-2.4 6.3H33v7H7v-7h4.2C9.7 36 8.8 34 8.8 31.2c0-6 3-10.7 6.2-12.8A8.5 8.5 0 0 1 20 3z" fill="url(#opg'+s+')" stroke="#120a2e" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 38.5h18" stroke="#fff" stroke-opacity=".4" stroke-width="1.6"/><ellipse cx="15.5" cy="10.5" rx="3.4" ry="2.4" fill="#fff" opacity=".75"/><text x="20" y="31" text-anchor="middle" font-size="12.5" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2.6" paint-order="stroke" style="font-family:inherit">'+n+'</text></g>'};
+  var grad=function(s){return'<radialGradient id="opg'+s+'" cx=".32" cy=".28" r=".85"><stop offset="0" style="stop-color:color-mix(in srgb,var(--'+s+') 35%,#fff)"/><stop offset=".5" style="stop-color:var(--'+s+')"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--'+s+') 50%,#000)"/></radialGradient>'};
+  var o='<svg viewBox="0 0 472 472" class="op-svg" role="img" aria-label="Slide race board"><defs>'+grad("a")+grad("b")+
+    '<linearGradient id="opbd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#efe1bd"/></linearGradient>'+
+    '<linearGradient id="opfd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6f4ff"/><stop offset=".5" stop-color="#fff8e4"/><stop offset="1" stop-color="#ffe9f0"/></linearGradient>'+
+    '<radialGradient id="opfl" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#1f8a4c"/><stop offset="1" stop-color="#0c4a28"/></radialGradient>'+
+    '<pattern id="opdots" width="10" height="10" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#000" opacity=".06"/></pattern>'+
+    '<filter id="opsh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="2" stdDeviation="1.6" flood-color="#000" flood-opacity=".35"/></filter></defs>'+
+    '<rect x="2" y="2" width="468" height="468" rx="28" fill="#1b1433"/><rect x="2" y="2" width="468" height="468" rx="28" fill="none" stroke="#7c3aed" stroke-opacity=".55" stroke-width="2"/>'+
+    '<rect x="8" y="8" width="456" height="456" rx="22" fill="url(#opbd)"/><rect x="8" y="8" width="456" height="456" rx="22" fill="url(#opdots)"/>'+
+    '<rect x="'+(M+S)+'" y="'+(M+S)+'" width="'+9*S+'" height="'+9*S+'" rx="12" fill="url(#opfd)" stroke="#00000030" stroke-width="2"/>'+
+    '<polygon points="'+(M+S)+','+(M+S)+' '+(M+10*S)+','+(M+S)+' '+(M+S)+','+(M+10*S)+'" style="fill:color-mix(in srgb,var(--a) 20%,transparent)"/>'+
+    '<polygon points="'+(M+10*S)+','+(M+10*S)+' '+(M+10*S)+','+(M+S)+' '+(M+S)+','+(M+10*S)+'" style="fill:color-mix(in srgb,var(--b) 20%,transparent)"/>';
+  /* track squares */
+  SP.forEach(function(p,i){var x=M+p[1]*S+2,y=M+p[0]*S+2,sd=side(i),own=i===0?"a":i===20?"b":"",f=own?"var(--"+own+")":"color-mix(in srgb,"+SIDEC[sd]+" 20%,#fff)";
+    o+='<rect x="'+x+'" y="'+y+'" width="'+(S-4)+'" height="'+(S-4)+'" rx="6" fill="'+f+'" stroke="#2a1f55" stroke-width="1.6" filter="url(#opsh)"/>';
+    if(own){var t=trk(i);o+='<text x="'+t[0]+'" y="'+(t[1]-3)+'" text-anchor="middle" font-size="8" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2.2" paint-order="stroke">START</text><text x="'+t[0]+'" y="'+(t[1]+9)+'" text-anchor="middle" font-size="12" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2.6" paint-order="stroke">'+own.toUpperCase()+'</text>'}});
+  /* slides */
+  Object.keys(SLIDE).forEach(function(k){k=+k;var len=SLIDE[k],sd=side(k),col=SIDEC[sd],d=DIR[sd],p0=trk(k),p1=trk((k+len)%40),tip=[p1[0]+d[0]*17,p1[1]+d[1]*17],pp=[-d[1],d[0]];
+    o+='<g filter="url(#opsh)"><line x1="'+p0[0]+'" y1="'+p0[1]+'" x2="'+p1[0]+'" y2="'+p1[1]+'" stroke="'+col+'" stroke-width="13" stroke-linecap="round"/>'+
+      '<line x1="'+p0[0]+'" y1="'+p0[1]+'" x2="'+p1[0]+'" y2="'+p1[1]+'" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 8"/>'+
+      '<circle cx="'+p0[0]+'" cy="'+p0[1]+'" r="9.5" fill="#fff" stroke="'+col+'" stroke-width="4.5"/>'+
+      '<polygon points="'+tip[0]+','+tip[1]+' '+(p1[0]-d[0]*3+pp[0]*12)+','+(p1[1]-d[1]*3+pp[1]*12)+' '+(p1[0]-d[0]*3-pp[0]*12)+','+(p1[1]-d[1]*3-pp[1]*12)+'" fill="'+col+'" stroke="#120a2e" stroke-width="1.4" stroke-linejoin="round"/></g>'});
+  /* safety lanes + homes + start circles */
+  ["a","b"].forEach(function(s){
+    for(var v=40;v<45;v++){var q=s==="a"?[cx(v-39),cy(1)]:[cx(49-v),cy(9)];
+      o+='<rect x="'+(q[0]-18)+'" y="'+(q[1]-18)+'" width="36" height="36" rx="6" style="fill:color-mix(in srgb,var(--'+s+') 30%,#fff);stroke:var(--'+s+')" stroke-width="2.2" filter="url(#opsh)"/>'+
+        '<path d="M'+(q[0]+(s==="a"?-4:4))+' '+(q[1]-7)+'l'+(s==="a"?8:-8)+' 7l'+(s==="a"?-8:8)+' 7" fill="none" style="stroke:var(--'+s+')" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>'}
+    var h=s==="a"?[cx(6),cy(1)]:[cx(4),cy(9)],sc=STC[s];
+    o+='<circle cx="'+h[0]+'" cy="'+h[1]+'" r="21" style="fill:var(--'+s+')" stroke="#fff" stroke-width="3.5" filter="url(#opsh)"/><path d="M'+(h[0]-10)+' '+(h[1]+1)+'l10-9 10 9v8h-6v-5h-8v5h-6z" fill="#fff" opacity=".95"/>'+
+      '<text x="'+h[0]+'" y="'+(h[1]+(s==="a"?36:-26))+'" text-anchor="middle" font-size="8.5" font-weight="900" style="fill:var(--'+s+')" stroke="#fff" stroke-width="3" paint-order="stroke">HOME</text>';
+    var t0=trk(s==="a"?0:20);
+    o+='<line x1="'+sc[0]+'" y1="'+sc[1]+'" x2="'+(t0[0]+(s==="a"?10:-10))+'" y2="'+(t0[1]+(s==="a"?10:-10))+'" style="stroke:var(--'+s+')" stroke-width="3" stroke-dasharray="2 6" stroke-linecap="round" opacity=".7"/>'+
+      '<circle cx="'+sc[0]+'" cy="'+sc[1]+'" r="33" fill="#fff" style="stroke:var(--'+s+')" stroke-width="5" filter="url(#opsh)"/><circle cx="'+sc[0]+'" cy="'+sc[1]+'" r="26" fill="none" style="stroke:var(--'+s+')" stroke-width="1.5" stroke-dasharray="3 4" opacity=".6"/>'+
+      '<text x="'+sc[0]+'" y="'+(sc[1]-18)+'" text-anchor="middle" font-size="8" font-weight="900" style="fill:var(--'+s+')">START</text>'});
+  /* card table */
+  o+='<rect x="156" y="128" width="160" height="172" rx="18" fill="url(#opfl)" stroke="#f5b50a" stroke-width="3.5"/><rect x="162" y="134" width="148" height="160" rx="13" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="1.4" stroke-dasharray="4 5"/>'+
+    '<text x="236" y="119" text-anchor="middle" font-size="17" font-weight="900" font-style="italic" fill="#c2255c" stroke="#fff" stroke-width="4" paint-order="stroke" style="letter-spacing:.5px">OOPS! SLIDE HOME</text>'+
+    '<text x="236" y="318" text-anchor="middle" font-size="9" font-weight="800" fill="#4c3b8a" opacity=".8">Race 3 pawns home!</text>';
+  /* move hints */
+  if(c.myTurn&&st.phase==="pick"&&st.moves){var seen={};st.moves.forEach(function(m){var d=null,oth=c.opp;
+      if(m.type==="out")d=trk(sgl(me,0));else if(m.type==="sorry"||m.type==="swap"){var ov=st.pw[oth][m.opp];d=trk(sgl(oth,ov))}
+      else if(m.to>=0&&m.to<40)d=trk(sgl(me,m.to));else if(m.to>=40&&m.to<45)d=me==="a"?[cx(m.to-39),cy(1)]:[cx(49-m.to),cy(9)];else if(m.to===45)d=me==="a"?[cx(6),cy(1)]:[cx(4),cy(9)];
+      if(!d)return;var key=d[0]+","+d[1];if(seen[key])return;seen[key]=1;
+      o+='<circle cx="'+d[0]+'" cy="'+d[1]+'" r="16" fill="none" stroke="#fde047" stroke-width="3" stroke-dasharray="5 4" class="op-pulse"/>'})}
+  /* pawns */
+  ["a","b"].forEach(function(s){var startN=0,homeN=0;st.pw[s].forEach(function(v,j){var k=v<0?startN++:v===45?homeN++:0;o+=pawn(s,j+1,posXY(s,v,k))})});
+  o+='</svg>';
+  var cnt=function(s){return st.pw[s].filter(function(v){return v===45}).length},nm=function(s){return esc(c.names[s])};
+  var leg=['a','b'].map(function(s){return'<div class="op-lg '+s+(c.doc.turn===s&&!c.doc.winner?" cur":"")+'"><span class="av '+s+'">'+ini(c.names[s])+'</span><b>'+nm(s)+'</b><em>'+cnt(s)+'/3 home</em></div>'}).join("");
+  return'<div class="op-wrap">'+o+'<div class="op-deckov">'+cardHTML+'</div></div><div class="op-under"><div class="op-lgs">'+leg+'</div><div class="op-hint">'+hint+'</div><div class="op-ctl">'+ctl+'</div><div class="op-log">'+st.log.slice(-2).map(esc).join("<br>")+'</div></div>'}
+
+/* ---- Life Path: a winding-road journey board ---- */
+var LPP=(function(){var a=[];for(var i=0;i<36;i++){var r=Math.floor(i/6),k=i%6,col=r%2?5-k:k;a.push([46+col*61.6,66+r*84+Math.sin((r*6+k)*.95)*13])}return a})();
+function lpSmooth(P){var d="M"+P[0][0].toFixed(1)+" "+P[0][1].toFixed(1);for(var i=0;i<P.length-1;i++){var p0=P[i-1]||P[i],p1=P[i],p2=P[i+1],p3=P[i+2]||p2;
+    d+="C"+(p1[0]+(p2[0]-p0[0])/6).toFixed(1)+" "+(p1[1]+(p2[1]-p0[1])/6).toFixed(1)+" "+(p2[0]-(p3[0]-p1[0])/6).toFixed(1)+" "+(p2[1]-(p3[1]-p1[1])/6).toFixed(1)+" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1)}return d}
+function lpScenery(){
+  var o='',rnd=seedRng(86),P=LPP,i,x,y;
+  o+='<rect width="400" height="560" fill="url(#lpsky)"/><circle cx="330" cy="38" r="22" fill="#fff6b0" opacity=".95"/><circle cx="330" cy="38" r="34" fill="#fff6b0" opacity=".25"/>';
+  [[60,30,34],[150,52,26],[250,24,30]].forEach(function(c){o+='<g fill="#fff" opacity=".9"><ellipse cx="'+c[0]+'" cy="'+c[1]+'" rx="'+c[2]+'" ry="'+c[2]*.38+'"/><ellipse cx="'+(c[0]+c[2]*.45)+'" cy="'+(c[1]-6)+'" rx="'+c[2]*.5+'" ry="'+c[2]*.3+'"/><ellipse cx="'+(c[0]-c[2]*.5)+'" cy="'+(c[1]-3)+'" rx="'+c[2]*.45+'" ry="'+c[2]*.26+'"/></g>'});
+  o+='<polygon points="0,118 40,66 74,96 118,44 168,104 214,60 262,108 312,52 356,96 400,70 400,130 0,130" fill="#8b7fd6"/><polygon points="118,44 104,64 118,58 130,66" fill="#fff"/><polygon points="312,52 298,70 312,64 326,72" fill="#fff"/><polygon points="40,66 30,82 40,76 52,84" fill="#fff"/>'+
+    '<polygon points="0,126 60,92 110,118 170,86 230,120 290,90 350,118 400,98 400,150 0,150" fill="#6a9a5b"/>';
+  o+='<path d="M0 128Q80 104 160 124T320 118T400 122V560H0Z" fill="url(#lpgr)"/>';
+  /* river and lake */
+  o+='<path d="M372 140C300 190 330 250 250 270S120 330 160 400S60 470 30 560" fill="none" stroke="#8fd3ff" stroke-width="30" stroke-linecap="round" opacity=".9"/><path d="M372 140C300 190 330 250 250 270S120 330 160 400S60 470 30 560" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 14" stroke-linecap="round" opacity=".6"/>';
+  o+='<ellipse cx="62" cy="330" rx="50" ry="26" fill="#8fd3ff" stroke="#f3e2a9" stroke-width="7"/><ellipse cx="50" cy="326" rx="18" ry="6" fill="#fff" opacity=".4"/>';
+  /* road */
+  var d=lpSmooth(P);
+  o+='<path d="'+d+'" fill="none" stroke="#000" stroke-opacity=".28" stroke-width="40" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)"/><path d="'+d+'" fill="none" stroke="#52525b" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/><path d="'+d+'" fill="none" stroke="#d6d3d1" stroke-width="42" stroke-linecap="round" stroke-linejoin="round" opacity=".0"/><path d="'+d+'" fill="none" stroke="#fde047" stroke-width="2.4" stroke-dasharray="9 9" stroke-linecap="round"/>';
+  /* decorations in the bands between road rows */
+  var tree=function(x,y,s,k){o+=k?'<g transform="translate('+x+' '+y+') scale('+s+')"><rect x="-2" y="0" width="4" height="9" fill="#7c4a1d"/><circle cx="0" cy="-4" r="9" fill="#2f9e44"/><circle cx="-3" cy="-7" r="4" fill="#5cc26a" opacity=".7"/></g>':'<g transform="translate('+x+' '+y+') scale('+s+')"><rect x="-2" y="2" width="4" height="8" fill="#7c4a1d"/><polygon points="0,-16 -9,2 9,2" fill="#1f7a3a"/><polygon points="0,-9 -11,8 11,8" fill="#2f9e44"/></g>'};
+  var house=function(x,y,s,c){o+='<g transform="translate('+x+' '+y+') scale('+s+')"><rect x="-9" y="-6" width="18" height="12" fill="'+c+'" stroke="#00000044"/><polygon points="-11,-6 0,-16 11,-6" fill="#b4412c" stroke="#00000044"/><rect x="-2.5" y="0" width="5" height="6" fill="#5b3a1d"/><rect x="3" y="-4" width="4" height="4" fill="#bde6ff"/></g>'};
+  var HC=["#ffd6a5","#ffadad","#caffbf","#a0c4ff","#fdffb6","#ffc6ff"];
+  for(var r=0;r<5;r++){var by=66+r*84+42,avoid=r%2?46:354;
+    for(var j=0;j<7;j++){x=34+j*55+rnd()*18;y=by+(rnd()-.5)*26;if(Math.abs(x-avoid)<46)continue;
+      var q=rnd();if(q<.38)tree(x,y,.9+rnd()*.5,0);else if(q<.62)tree(x,y,.9+rnd()*.4,1);else if(q<.82)house(x,y,.9+rnd()*.3,HC[Math.floor(rnd()*6)]);else o+='<g transform="translate('+x+' '+y+')"><circle r="3.2" fill="#ff6b9d"/><circle cx="7" cy="3" r="2.6" fill="#ffd43b"/><circle cx="-6" cy="3" r="2.6" fill="#fff"/></g>'}}
+  /* beach umbrella by the lake, big home at the end */
+  o+='<g transform="translate(92 342)"><path d="M0 0V-22" stroke="#7c4a1d" stroke-width="2"/><path d="M-16 -22Q0 -38 16 -22Z" fill="#ef4444"/><path d="M-5 -22Q0 -36 5 -22Z" fill="#fff" opacity=".8"/></g><g transform="translate(34 322)"><path d="M0 14C-2 4 2 -6 4 -12" stroke="#8a5a2b" stroke-width="3" fill="none"/><path d="M4 -12q-14 -2 -18 6M4 -12q12 -6 18 2M4 -12q-4 -10 -14 -10M4 -12q8 -10 16 -8" stroke="#2f9e44" stroke-width="3" fill="none" stroke-linecap="round"/></g>';
+  return o}
+function lpBoard(st,c){
+  var LPCc={start:["#34d399","#047857"],pay:["#fb923c","#c2410c"],pay2:["#e7e5e4","#a8a29e"],wed:["#f472b6","#be185d"],house:["#fbbf24","#b45309"],luck:["#a78bfa","#6d28d9"],baby:["#7dd3fc","#0369a1"],promo:["#4ade80","#15803d"],tax:["#cbd5e1","#64748b"],vac:["#22d3ee","#0e7490"],charity:["#fda4af","#be123c"],lotto:["#fde047","#a16207"],retire:["#f87171","#b91c1c"]};
+  var o='<svg viewBox="0 0 400 560" class="lp-svg" role="img" aria-label="Life path board"><defs><linearGradient id="lpsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#77c9ff"/><stop offset=".25" stop-color="#c7ecff"/><stop offset=".26" stop-color="#9fe08a"/></linearGradient><linearGradient id="lpgr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8fdc7b"/><stop offset="1" stop-color="#4ea65a"/></linearGradient>'+
+    '<filter id="lpsh" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2.5" stdDeviation="1.8" flood-color="#000" flood-opacity=".4"/></filter></defs>'+lpScenery();
+  LP.forEach(function(t,i){var p=LPP[i],cl=LPCc[t]||LPCc.pay2,sz=t==="start"||t==="retire"?44:36,id="lpt"+i,plain=t==="pay2";
+    o+='<g transform="translate('+p[0].toFixed(1)+' '+p[1].toFixed(1)+')" filter="url(#lpsh)"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+cl[0]+'"/><stop offset="1" stop-color="'+cl[1]+'"/></linearGradient></defs>'+
+      '<rect x="'+-sz/2+'" y="'+-sz/2+'" width="'+sz+'" height="'+sz+'" rx="'+(plain?18:10)+'" fill="url(#'+id+')" stroke="#fff" stroke-width="'+(plain?2:3)+'"/>'+
+      (plain?'':'<rect x="'+(-sz/2+3)+'" y="'+(-sz/2+3)+'" width="'+(sz-6)+'" height="'+(sz/2-3)+'" rx="7" fill="#fff" opacity=".22"/>')+
+      (LPE[t]&&!plain?'<text y="'+(t==="start"||t==="retire"?8:6)+'" text-anchor="middle" font-size="'+(t==="start"||t==="retire"?22:18)+'">'+LPE[t]+'</text>':'')+
+      '<text x="'+(-sz/2+4)+'" y="'+(-sz/2+11)+'" font-size="8" font-weight="900" fill="'+(plain?"#57534e":"#fff")+'" stroke="'+(plain?"none":"#00000066")+'" stroke-width="1.6" paint-order="stroke">'+(i+1)+'</text>'+
+      (t==="start"?'<text y="'+(sz/2+10)+'" text-anchor="middle" font-size="8.5" font-weight="900" fill="#fff" stroke="#047857" stroke-width="3" paint-order="stroke">START</text>':'')+
+      (t==="retire"?'<text y="'+(sz/2+10)+'" text-anchor="middle" font-size="8.5" font-weight="900" fill="#fff" stroke="#b91c1c" stroke-width="3" paint-order="stroke">RETIRE</text>':'')+'</g>'});
+  /* cars with peg families */
+  var car=function(s,p,i,dx,dy){var cur=c.doc.turn===s&&!c.doc.winner,n=1+(p.spouse?1:0)+Math.min(p.kids,4),x=LPP[i][0]+dx,y=LPP[i][1]+dy-4,pegs='',PC=["#60a5fa","#f472b6","#fde047","#fde047","#86efac","#fda4af"];
+    for(var k=0;k<n;k++){var px=(k-(n-1)/2)*6.2;pegs+='<circle cx="'+px.toFixed(1)+'" cy="-9" r="3.3" fill="'+PC[k]+'" stroke="#120a2e" stroke-width="1"/>'}
+    return'<g transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+')" class="lp-car'+(cur?" cur":"")+'" filter="url(#lpsh)"><ellipse cx="0" cy="13" rx="15" ry="3.6" fill="#000" opacity=".3"/>'+
+      '<rect x="-15" y="-3" width="30" height="14" rx="5" style="fill:var(--'+s+')" stroke="#120a2e" stroke-width="1.8"/><path d="M-9 -3l3-7h12l3 7z" style="fill:color-mix(in srgb,var(--'+s+') 70%,#fff)" stroke="#120a2e" stroke-width="1.6" stroke-linejoin="round"/><rect x="-6" y="-9" width="5" height="5" fill="#bde6ff" opacity=".9"/><rect x="1" y="-9" width="5" height="5" fill="#bde6ff" opacity=".9"/>'+
+      '<circle cx="-9" cy="11" r="3.8" fill="#27272a" stroke="#fff" stroke-width="1.2"/><circle cx="9" cy="11" r="3.8" fill="#27272a" stroke="#fff" stroke-width="1.2"/>'+pegs+'<text y="6.5" text-anchor="middle" font-size="7.5" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2" paint-order="stroke">'+esc(ini(c.names[s]))+'</text></g>'};
+  var pa=st.p.a,pb=st.p.b,same=pa.pos===pb.pos;
+  o+=car("a",pa,pa.pos,same?-14:0,same?-6:-8)+car("b",pb,pb.pos,same?14:0,same?4:-8);
+  return o+'</svg>'}
+function lpWheel(spin,anim){
+  var rot=spin?(1080-(spin-.5)*36):0,seg='',pegs='',cols=["#ef4444","#f59e0b","#22c55e","#3b82f6","#a855f7"],i;
+  for(i=1;i<=10;i++){var a0=((i-1)*36-90)*Math.PI/180,a1=(i*36-90)*Math.PI/180,am=(a0+a1)/2;
+    seg+='<path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="'+cols[(i-1)%5]+'" stroke="#fff" stroke-width="2"/><path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="url(#lpws)" opacity=".5"/><text x="'+(62*Math.cos(am)).toFixed(1)+'" y="'+(62*Math.sin(am)+7).toFixed(1)+'" text-anchor="middle" font-size="21" font-weight="900" fill="#fff" stroke="#00000088" stroke-width="3" paint-order="stroke" transform="rotate('+((i-.5)*36).toFixed(1)+' '+(62*Math.cos(am)).toFixed(1)+' '+(62*Math.sin(am)).toFixed(1)+')">'+i+'</text>'}
+  for(i=0;i<20;i++){var a=i*18*Math.PI/180;pegs+='<circle cx="'+(99*Math.cos(a)).toFixed(1)+'" cy="'+(99*Math.sin(a)).toFixed(1)+'" r="3.2" fill="#fff8d6" stroke="#7c5a10" stroke-width="1"/>'}
+  return'<div class="lp-wh"><svg viewBox="-110 -118 220 232"><defs><radialGradient id="lpws" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient><linearGradient id="lpgd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#d4a017"/><stop offset="1" stop-color="#7c5a10"/></linearGradient></defs>'+
+    '<ellipse cx="0" cy="104" rx="84" ry="9" fill="#000" opacity=".35"/><circle r="106" fill="url(#lpgd)" stroke="#5a3f08" stroke-width="2"/><circle r="93" fill="#1b1433"/>'+pegs+
+    '<g class="lpw'+(anim&&spin?" go":"")+'" style="--rot:'+rot+'deg;transform:rotate('+rot+'deg)">'+seg+'</g>'+
+    '<circle r="17" fill="url(#lpgd)" stroke="#5a3f08" stroke-width="2"/><ellipse cx="-4" cy="-6" rx="7" ry="4" fill="#fff" opacity=".6"/>'+
+    '<g><polygon points="-11,-116 11,-116 0,-82" fill="#ef4444" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="-3" cy="-107" rx="3" ry="5" fill="#fff" opacity=".5"/></g></svg></div>'}
+
 /* ---- Oops! Slide Home (a Sorry-style race) ---- */
 var SP=(function(){var o=[],i;for(i=0;i<11;i++)o.push([0,i]);for(i=1;i<=9;i++)o.push([i,10]);for(i=10;i>=0;i--)o.push([10,i]);for(i=9;i>=1;i--)o.push([i,0]);return o})();
 var SS={a:0,b:20},SLIDE={5:3,25:3};
@@ -1497,8 +1637,7 @@ reg("oops",{title:"Oops! Slide Home",icon:"🛝",desc:"Race 3 pawns home, bump y
   else if(st.phase==="draw")ctl='<button class="pri" id="draw" style="width:100%">🃏 Draw a card</button>';
   else if(st.phase==="nomove")ctl='<button class="pri" id="passmv" style="width:100%">No legal move · pass</button>';
   else ctl=st.moves.map(function(m,k){return'<button data-m="'+k+'" style="width:100%;margin-top:3px;font-size:12px;padding:7px">'+esc(m.txt)+'</button>'}).join("");
-  el.innerHTML='<div class="op-board"><svg width="0" height="0" style="position:absolute"><defs><radialGradient id="pga" cx=".35" cy=".3"><stop offset="0" stop-color="#ffd1e3"/><stop offset=".5" stop-color="#ff4d8d"/><stop offset="1" stop-color="#9d1750"/></radialGradient><radialGradient id="pgb" cx=".35" cy=".3"><stop offset="0" stop-color="#d4f1ff"/><stop offset=".5" stop-color="#35c8ff"/><stop offset="1" stop-color="#0f5f94"/></radialGradient></defs></svg>'+cellHTML+
-   '<div class="op-mid">'+cardHTML+'<div class="op-hint">'+(st.card==null?"Draw a card to begin":st.card===4?"Back 4":st.card===2?"Out or +2, then draw again":st.card===11?"+11 or swap places":st.card===10?"+10 or back 1":st.card===1?"Out or +1":st.card==="S"?"Take a pawn from start to bump one":"Move "+st.card)+'</div><div class="op-ctl">'+ctl+'</div>'+lane("a")+lane("b")+'<div class="op-log">'+st.log.slice(-2).map(esc).join("<br>")+'</div></div></div>';
+  el.innerHTML=opBoard(c,st,cardHTML,(st.card==null?"Draw a card to begin":st.card===4?"Back 4":st.card===2?"Out or +2, then draw again":st.card===11?"+11 or swap places":st.card===10?"+10 or back 1":st.card===1?"Out or +1":st.card==="S"?"Take a pawn from start to bump one":"Move "+st.card),ctl);
   var d=$("#draw",el);if(d)d.onclick=function(){var deck=[1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,7,7,7,7,8,8,8,8,10,10,10,10,11,11,11,11,12,12,12,12,"S","S","S","S"],card=deck[Math.floor(Math.random()*deck.length)],n=N(st);n.card=card;n.moves=sMoves(n,me,card);n.phase=n.moves.length?"pick":"nomove";n.log.push(nm(me)+" drew "+(card==="S"?"SORRY!":card));c.move(n,me)};
   var pm=$("#passmv",el);if(pm)pm.onclick=function(){var n=N(st);n.phase="draw";n.moves=[];n.log.push(nm(me)+" had no move.");c.move(n,card2(st)?me:opp)};
   function card2(s){return false}
@@ -1526,15 +1665,14 @@ reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses. Ret
   var chip=function(x){return'<span class="lch">'+x+'</span>'};
   var card=function(s){var p=st.p[s];return'<div class="lp-pc '+s+(c.doc.turn===s&&!c.doc.winner?" cur":"")+'"><div class="hd"><span class="av">'+ini(c.names[s])+'</span><div class="nn"><b>'+nm(s)+(p.retired?" 🏁":"")+'</b><small>'+(p.path?(p.path==="College"?"🎓 ":"🛠️ ")+p.path:"Choosing a path…")+'</small></div></div><div class="cash">$'+p.cash+'k</div><div class="chs">'+chip("💼 $"+p.salary+"k")+(p.spouse?chip("💍"):"")+(p.kids?chip("👶 ×"+p.kids):"")+(p.house?chip("🏠 $"+p.house+"k"):"")+chip("⭐ "+p.pts)+(p.debt?chip('<span style="color:#fca5a5">debt $'+p.debt+"k</span>"):"")+'</div></div>'};
   var rot=st.spin?(1080-(st.spin-0.5)*36):0;
-  var wheel='<div class="lp-wh"><div class="ptr">▼</div><svg viewBox="-100 -100 200 200" class="wh'+(lan&&st.spin?" go":"")+'" style="--rot:'+rot+'deg;transform:rotate('+rot+'deg)">'+[1,2,3,4,5,6,7,8,9,10].map(function(n,i){var a0=(i*36-90)*Math.PI/180,a1=((i+1)*36-90)*Math.PI/180,am=(a0+a1)/2,cols=["#ef4444","#f59e0b","#22c55e","#3b82f6","#a855f7"];
-    return'<path d="M0 0L'+(95*Math.cos(a0)).toFixed(1)+' '+(95*Math.sin(a0)).toFixed(1)+'A95 95 0 0 1 '+(95*Math.cos(a1)).toFixed(1)+' '+(95*Math.sin(a1)).toFixed(1)+'Z" fill="'+cols[i%5]+'" stroke="#fff" stroke-width="2"/><text x="'+(66*Math.cos(am)).toFixed(1)+'" y="'+(66*Math.sin(am)+7).toFixed(1)+'" text-anchor="middle" font-size="20" font-weight="900" fill="#fff" stroke="#0006" stroke-width=".8">'+n+'</text>'}).join("")+'<circle r="16" fill="#1b1433" stroke="#fff" stroke-width="3"/></svg></div>';
+  var wheel=lpWheel(st.spin,lan&&st.spin);
   var ctl="";
   if(c.doc.winner){}else if(!c.myTurn)ctl='<div class="mut" style="text-align:center">⏳ '+nm(c.doc.turn)+' is playing…</div>';
   else if(st.phase==="fork")ctl='<div class="card">Pick your start:</div><div class="bar"><button class="pri" data-f="col" style="flex:1">🎓 College<br><small>$80k salary · $60k debt</small></button><button class="pri" data-f="car" style="flex:1">🛠️ Career<br><small>$50k salary · no debt</small></button></div>';
   else if(st.phase==="house")ctl='<div class="card">A house is for sale!</div>'+LPH.map(function(h,i){return'<button data-h="'+i+'" style="width:100%;margin:3px 0"'+(mp.cash<h[1]?" disabled":"")+'>🏠 '+h[0]+' · $'+h[1]+'k</button>'}).join("")+'<button data-h="-1" style="width:100%">No thanks</button>';
   else if(mp.retired)ctl='<button class="pri" id="spin" style="width:100%">Wait for partner…</button>';
   else ctl='<button class="pri" id="spin" style="width:100%">🎡 Spin the wheel</button>';
-  el.innerHTML='<div class="lp-pcs">'+card("a")+card("b")+'</div><div class="lp-map">'+cells+'</div><div class="lp-act">'+wheel+'<div class="lp-side"><div class="lp-res">'+(st.spin?'<small>You spun</small><b>'+st.spin+'</b>':'<small>Spin to move</small><b>🎡</b>')+'</div></div></div><div class="lp-ctl">'+ctl+'</div><div class="lp-log">'+st.log.slice(-4).map(esc).join("<br>")+'</div>';
+  el.innerHTML='<div class="lp-pcs">'+card("a")+card("b")+'</div><div class="lp-board">'+lpBoard(st,c)+'</div><div class="lp-act">'+wheel+'<div class="lp-side"><div class="lp-res">'+(st.spin?'<small>You spun</small><b>'+st.spin+'</b>':'<small>Spin to move</small><b>🎡</b>')+'</div></div></div><div class="lp-ctl">'+ctl+'</div><div class="lp-log">'+st.log.slice(-4).map(esc).join("<br>")+'</div>';
   var done=function(n,next){ /* end-of-game check */
     if(n.p.a.retired&&n.p.b.retired){var sa=lpScore(n.p.a),sb=lpScore(n.p.b);c.move(n,next,sa===sb?"draw":sa>sb?"a":"b");return}
     c.move(n,next)};
