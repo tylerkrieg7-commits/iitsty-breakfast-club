@@ -9312,6 +9312,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                 let allItems = [...defaultAccessories, ...customAccs, ...customToys];
 
                 container.innerHTML = "";
+                let __accHtml = "";
 
                 allItems.forEach((acc) => {
                     let isEquipped = equipped.some((e) => e.id === acc.id);
@@ -9327,7 +9328,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
 
                     let previewHtml = (acc.type === "text" || acc.type === "toy")
                             ? `<div style="font-size:2rem; margin-bottom:5px;">${window.BXEMO && BXEMO.has(acc.data) ? BXEMO.svg(acc.data) : acc.data}</div>`
-                            : `<img src="${acc.data}" style="width:40px; height:40px; object-fit:contain; margin-bottom:5px;">`;
+                            : `<img loading="lazy" decoding="async" src="${acc.data}" style="width:40px; height:40px; object-fit:contain; margin-bottom:5px;">`;
 
                     let deleteBtn = !acc.id.startsWith("def_")
                         ? `<button class="btn-reset-day" style="padding:2px 6px; font-size:0.7rem;" onclick="deleteCustomAccessoryDirect('${acc.id}')" title="Delete">🗑️</button>`
@@ -9343,7 +9344,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                         actionBtn = `<button class="btn-action" style="flex:1; padding:2px; font-size:0.7rem; background:${isEquipped ? "var(--success-color)" : "#444"};" onclick="toggleAccessoryEquip('${acc.id}')" ${btnDisabled}>${isEquipped ? "Unequip" : "Equip"}</button>`;
                     }
 
-                    container.innerHTML += `<div class="acc-shop-item">
+                    __accHtml += `<div class="acc-shop-item">
                         ${overlay}
                         ${previewHtml}
                         <div style="font-size:0.75rem; font-weight:bold; margin-bottom:6px;">${acc.name}</div>
@@ -9354,6 +9355,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                         </div>
                     </div>`;
                 });
+                container.innerHTML = __accHtml;
             }
 
 
@@ -15474,7 +15476,7 @@ function fxNutEstimate(lines) {
         if (it.kind === "acc" || it.kind === "toy") giveAcc(it.id); else if (it.kind === "pet") unlockType(it.type); else if (it.kind === "door") { try { window.BXDOORS.own(it.dk); } catch (e) {} } else window.fx3Own && window.fx3Own(it.id);
         try { window.loadAccessoriesShop(); window.fx3RenderPetCard && window.fx3RenderPetCard(); } catch (e) {}
     }
-    const pv = (it, big) => it.html ? `<div class="fx3-pv ${big ? "big" : ""}">${it.html}</div>` : it.svg ? `<div class="fx3-pv ${big ? "big" : ""}">${it.svg}</div>` : it.css ? `<div class="fx3-pv sw ${big ? "big" : ""}" style="background:${it.css}"></div>` : accImg(it.icon) ? `<div class="fx3-pv ${big ? "big" : ""}"><img src="${it.icon}" alt="" style="width:80%;height:80%;object-fit:contain"></div>` : `<div class="fx3-pv ${big ? "big" : ""}">${window.BXEMO && BXEMO.has(it.icon) ? BXEMO.svg(it.icon, "78%") : esc(it.icon || "🎁")}</div>`;
+    const pv = (it, big) => it.html ? `<div class="fx3-pv ${big ? "big" : ""}">${it.html}</div>` : it.svg ? `<div class="fx3-pv ${big ? "big" : ""}">${it.svg}</div>` : it.css ? `<div class="fx3-pv sw ${big ? "big" : ""}" style="background:${it.css}"></div>` : accImg(it.icon) ? `<div class="fx3-pv ${big ? "big" : ""}"><img loading="lazy" decoding="async" src="${it.icon}" alt="" style="width:80%;height:80%;object-fit:contain"></div>` : `<div class="fx3-pv ${big ? "big" : ""}">${window.BXEMO && BXEMO.has(it.icon) ? BXEMO.svg(it.icon, "78%") : esc(it.icon || "🎁")}</div>`;
     const lvlNow = () => Math.max(F.petLvl(), ...(jget("fx3_pets", []) || []).map((x) => parseInt((x.data || {}).compLvl || "1", 10) || 1));
     function buy(it, price) {
         price = price == null ? it.cost : price;
@@ -16986,7 +16988,7 @@ function fxNutEstimate(lines) {
     const all = () => { try { return [...defaultAccessories, ...jget("customAccessories", []), ...jget("customToys", [])]; } catch (e) { return []; } };
     const SLOT_NAME = { head: "Head", face: "Face", neck: "Neck", back: "Back", hand: "Paw", side: "Beside", free: "Anywhere" };
     const slotOf = (a) => { try { if (window.fx3SlotOf) return window.fx3SlotOf(a); } catch (e) {} return (jget("fx3_slot_override", {}) || {})[a.id] || a.slot || "free"; };
-    const icon = (a) => /^(data:|https?:|blob:)/.test(a.data || "") ? `<img src="${a.data}" alt="">` : esc(a.data || "❔");
+    const icon = (a) => /^(data:|https?:|blob:)/.test(a.data || "") ? `<img loading="lazy" decoding="async" src="${a.data}" alt="">` : esc(a.data || "❔");
 
     // remove duplicate copies of the same item (a duplicate made one copy impossible to take off)
     function dedupe() {
