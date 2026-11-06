@@ -6923,6 +6923,494 @@ ACH.push(
     });
 })();
 
+// ================= BUILD 89: Case Files, Realm Quest, Detective Night =================
+function bBtn(c, list, x, y, w, h, label, fn, o) {
+    o = o || {}; const col = o.col || '#7e57c2', off = !!o.off;
+    fillRR(c, x, y + 3, w, h, 9, '#0006');
+    c.fillStyle = off ? '#4a4a55' : vgrad(c, y, y + h, [o.col2 || col, col]); rr(c, x, y, w, h, 9); c.fill();
+    c.lineWidth = o.sel ? 3 : 1.5; c.strokeStyle = o.sel ? '#ffeb3b' : '#ffffff55'; c.stroke();
+    if(label) T(c, label, x + w / 2, y + h / 2 + 1, o.size || 13, off ? '#999' : (o.tc || '#fff'), 'center', null, 800);
+    if(fn && !off) list.push({x, y, w, h, fn});
+}
+function bHit(list, x, y) { for(let i = list.length - 1; i >= 0; i--) { const b = list[i]; if(x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return true; } } return false; }
+function wrapLines(c, s, w, size, weight) { c.font = `${weight || 600} ${size}px ${FONT_UI}`; const out = []; let cur = ''; s.split(' ').forEach(wd => { const t = cur ? cur + ' ' + wd : wd; if(c.measureText(t).width > w && cur) { out.push(cur); cur = wd; } else cur = t; }); if(cur) out.push(cur); return out; }
+const MM_ROOMS = [['Library', '📚'], ['Kitchen', '🍳'], ['Cellar', '🍷'], ['Study', '🖋️'], ['Garden', '🌷'], ['Ballroom', '💃']];
+const MM_WEAP = [['Candlestick', '🕯️'], ['Dagger', '🗡️'], ['Rope', '🪢'], ['Wrench', '🔧'], ['Poison', '🧪'], ['Trophy', '🏆']];
+const MM_SUS = ['Ada', 'Bruno', 'Celia', 'Dmitri', 'Esme', 'Felix'];
+const MM_HAIR = [['black', '#2b2230'], ['red', '#c0502b'], ['blond', '#e8c75a'], ['gray', '#a8adb5'], ['brown', '#6b4428']];
+const MM_ACC = ['glasses', 'hat', 'scarf', 'gloves', 'cufflinks'];
+const MM_ACCT = {glasses: 'a shard of lens glass', hat: 'a feather from a hat', scarf: 'threads from a scarf', gloves: 'a smudged glove print', cufflinks: 'a dropped cufflink'};
+const SKIN = ['#f1c7a0', '#d9a079', '#b87a52', '#f7d9bd', '#8d5a3b', '#e8b890'];
+
+// ---------- CASE FILES (murder mystery) ----------
+(function() {
+    const W = 360, H = 640, AP0 = 10, CASES = 5;
+    let S = null;
+    function newCase(n, score, prev) {
+        const sus = MM_SUS.map((nm, i) => ({n: nm, sk: SKIN[i], q: 0, mark: 0, room: 0, hair: 0, acc: 0}));
+        /* unique hair+accessory combos, so the traces point at exactly one person */
+        const combos = []; MM_HAIR.forEach((h, i) => MM_ACC.forEach((a, j) => combos.push([i, j]))); shuffle(combos);
+        sus.forEach((s, i) => { s.hair = combos[i][0]; s.acc = combos[i][1]; });
+        const G = rndi(0, 5), MR = rndi(0, 5), MW = rndi(0, 5);
+        const wr = shuffle([0, 1, 2, 3, 4, 5].filter(x => x !== MW)), wIn = []; for(let r = 0, k = 0; r < 6; r++) wIn[r] = r === MR ? MW : wr[k++];
+        sus.forEach((s, i) => { s.room = i === G ? MR : pick([0, 1, 2, 3, 4, 5].filter(r => r !== MR)); });
+        const victims = ['Lord Blackwood', 'Madame Verity', 'Sir Alaric', 'Lady Pemberton', 'Old Mr. Finch'];
+        const el = MM_SUS.map((_, i) => i).filter(i => i !== G);
+        S = Object.assign(S || {}, {phase: 'play', n, score, G, MR, MW, sus, wIn, ap: AP0, log: [], searched: [0, 0, 0, 0, 0, 0], victim: victims[(n + rndi(0, 4)) % 5], sel: {s: -1, w: -1, r: -1}, res: null, btns: [], f: 0, pending: 0});
+        /* each suspect's statement, prepared in advance */
+        const cl = sus[G];
+        sus.forEach((s, i) => {
+            if(i === G) {
+                const kinds = [() => `"I was in the ${MM_ROOMS[pick([0, 1, 2, 3, 4, 5].filter(r => r !== MR))][0]} all evening. Never saw a thing."`, () => { const o = pick(el); return `"I saw ${sus[o].n} sneaking into the ${MM_ROOMS[MR][0]}!"`; }, () => `"I heard a scream from the ${MM_ROOMS[pick([0, 1, 2, 3, 4, 5].filter(r => r !== MR))][0]}, I think."`];
+                s.say = pick(kinds)(); s.lie = 1;
+            } else {
+                const t = rndi(0, 3), o = pick(MM_SUS.map((_, k) => k).filter(k => k !== G && k !== i));
+                if(t === 0) { const d = pick([0, 1, 2, 3, 4, 5].filter(r => r !== MR)); s.say = `"I heard a scream from the ${MM_ROOMS[MR][0]} or the ${MM_ROOMS[d][0]}."`; if(Math.random() < 0.5) s.say = `"I heard a scream from the ${MM_ROOMS[d][0]} or the ${MM_ROOMS[MR][0]}."`; }
+                else if(t === 1) s.say = `"Someone with ${MM_HAIR[cl.hair][0]} hair rushed past me, looking pale."`;
+                else if(t === 2) s.say = `"I saw ${sus[o].n} in the ${MM_ROOMS[sus[o].room][0]} the whole time."`;
+                else s.say = `"A person wearing ${MM_ACC[cl.acc] === 'cufflinks' ? 'cufflinks' : MM_ACC[cl.acc]} was acting strangely near the ${MM_ROOMS[MR][0]}."`;
+            }
+        });
+        addLog(`Case ${n}/${CASES}: ${S.victim} has been murdered! Search rooms (2) and question suspects (1).`, '#ffd54f');
+    }
+    function addLog(s, col) { S.log.push({s, col: col || '#e8eaf6'}); if(S.log.length > 30) S.log.shift(); }
+    function search(r) {
+        if(S.searched[r] || S.ap < 2) { sfx('error'); return; }
+        S.ap -= 2; S.searched[r] = 1; sfx('select');
+        const w = MM_WEAP[S.wIn[r]];
+        if(r === S.MR) {
+            addLog(`${MM_ROOMS[r][0]}: ${w[1]} a ${w[0]} lies here, and the carpet is stained with blood!`, '#ff8a80');
+            addLog(`Traces: a ${MM_HAIR[S.sus[S.G].hair][0]} hair, and ${MM_ACCT[MM_ACC[S.sus[S.G].acc]]}.`, '#ff8a80');
+            S.found = 1;
+        } else addLog(`${MM_ROOMS[r][0]}: just a ${w[0]} ${w[1]}. Nothing suspicious.`, '#b0bec5');
+    }
+    function question(i) {
+        const s = S.sus[i];
+        if(s.q) { s.mark = (s.mark + 1) % 3; sfx('click'); return; }
+        if(S.ap < 1) { sfx('error'); return; }
+        S.ap--; s.q = 1; sfx('select'); addLog(`${s.n}: ${s.say}`, '#b3e5fc');
+    }
+    function accuse() {
+        const a = S.sel; if(a.s < 0 || a.w < 0 || a.r < 0) return;
+        const okS = a.s === S.G, okW = a.w === S.MW, okR = a.r === S.MR, n = okS + okW + okR;
+        const pts = okS * 150 + okW * 75 + okR * 75 + (n === 3 ? 100 + S.ap * 25 : 0);
+        S.score += pts; A.setScore(S.score); S.res = {okS, okW, okR, n, pts}; S.phase = 'result'; n === 3 ? (sfx('levelup'), FX.confetti(40)) : sfx('lose');
+        if(S.n === 3 && n === 3) unlock('mm_solve');
+    }
+    function face(c, x, y, s, sz, sel) {
+        c.save(); c.translate(x, y); c.scale(sz, sz);
+        ell2(c, 0, 4, 21, 8, '#0004');
+        c.beginPath(); c.arc(0, -4, 20, Math.PI, 0); c.lineTo(20, 12); c.lineTo(-20, 12); c.closePath(); c.fillStyle = MM_HAIR[s.hair][1]; c.fill(); c.lineWidth = 2; c.strokeStyle = '#1b1230'; c.stroke();
+        c.beginPath(); c.ellipse(0, 2, 15, 17, 0, 0, TAU); c.fillStyle = s.sk; c.fill(); c.stroke();
+        c.beginPath(); c.arc(0, -8, 16, Math.PI * 1.02, Math.PI * 1.98); c.lineTo(14, -8); c.quadraticCurveTo(0, -2, -14, -8); c.closePath(); c.fillStyle = MM_HAIR[s.hair][1]; c.fill();
+        c.fillStyle = '#1b1230'; [-1, 1].forEach(e => { c.beginPath(); c.arc(e * 6, 3, 2, 0, TAU); c.fill(); });
+        c.strokeStyle = '#1b1230'; c.lineWidth = 1.6; c.beginPath(); c.arc(0, 9, 4, 0.2 * Math.PI, 0.8 * Math.PI); c.stroke();
+        const a = MM_ACC[s.acc];
+        if(a === 'glasses') { c.lineWidth = 1.6; [-1, 1].forEach(e => { c.beginPath(); c.arc(e * 6, 3, 4.6, 0, TAU); c.stroke(); }); c.beginPath(); c.moveTo(-1.5, 3); c.lineTo(1.5, 3); c.stroke(); }
+        else if(a === 'hat') { c.fillStyle = '#5d4037'; c.beginPath(); c.ellipse(0, -11, 22, 5, 0, 0, TAU); c.fill(); c.stroke(); c.beginPath(); c.roundRect(-12, -26, 24, 16, 5); c.fill(); c.stroke(); c.fillStyle = '#e53935'; c.fillRect(-12, -14, 24, 4); }
+        else if(a === 'scarf') { c.fillStyle = '#43a047'; c.beginPath(); c.roundRect(-16, 12, 32, 7, 3); c.fill(); c.stroke(); c.fillRect(6, 17, 7, 11); c.strokeRect(6, 17, 7, 11); }
+        else if(a === 'gloves') { c.fillStyle = '#fafafa'; [-1, 1].forEach(e => { c.beginPath(); c.arc(e * 19, 22, 5, 0, TAU); c.fill(); c.stroke(); }); }
+        else { c.fillStyle = '#ffd54f'; [-1, 1].forEach(e => { c.beginPath(); c.arc(e * 14, 22, 3.2, 0, TAU); c.fill(); c.stroke(); }); }
+        c.restore();
+    }
+    function ell2(c, x, y, rx, ry, col) { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, TAU); c.fillStyle = col; c.fill(); }
+    function drawBg(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#22143a', '#150c26']); c.fillRect(0, 0, W, H);
+        c.fillStyle = '#ffffff08'; for(let i = 0; i < 12; i++) c.fillRect(0, 60 + i * 52, W, 1);
+    }
+    function drawAcc(c) {
+        S.btns = []; drawBg(c); const a = S.sel;
+        T(c, 'WHO DID IT?', W / 2, 24, 18, '#ffd54f', 'center', null, 900);
+        const col = (label, items, key, x, mk) => { T(c, label, x + 52, 56, 11, '#b39ddb', 'center', null, 800); items.forEach((it, i) => { const y = 70 + i * 66; bBtn(c, S.btns, x, y, 104, 58, '', () => { a[key] = i; sfx('select'); }, {col: a[key] === i ? '#7e57c2' : '#37284f', sel: a[key] === i}); mk(it, i, x, y); }); };
+        col('SUSPECT', S.sus, 's', 8, (s, i, x, y) => { face(c, x + 26, y + 30, s, 0.9); T(c, s.n, x + 74, y + 29, 12, '#fff', 'center', null, 800); });
+        col('WEAPON', MM_WEAP, 'w', 128, (w, i, x, y) => { EMO(c, w[1], x + 28, y + 29, 26); T(c, w[0], x + 76, y + 29, 10, '#fff', 'center', null, 800); });
+        col('ROOM', MM_ROOMS, 'r', 248, (r, i, x, y) => { EMO(c, r[1], x + 28, y + 29, 26); T(c, r[0], x + 76, y + 29, 10.5, '#fff', 'center', null, 800); });
+        const ready = a.s >= 0 && a.w >= 0 && a.r >= 0;
+        bBtn(c, S.btns, 20, 480, 320, 54, ready ? `ACCUSE ${S.sus[a.s].n.toUpperCase()}!` : 'Pick a suspect, weapon and room', accuse, {col: '#d32f2f', off: !ready, size: 15});
+        bBtn(c, S.btns, 20, 548, 320, 44, 'Back to the investigation', () => { S.phase = 'play'; }, {col: '#455a64'});
+    }
+    function draw(c) {
+        S.f++;
+        if(S.phase === 'accuse') return drawAcc(c);
+        S.btns = []; drawBg(c);
+        T(c, `CASE ${S.n} OF ${CASES}`, 14, 18, 11, '#b39ddb', 'left', null, 800); T(c, `🔎 ${S.ap} clues left`, W - 14, 18, 12, S.ap <= 2 ? '#ff8a80' : '#ffd54f', 'right', null, 800);
+        T(c, `Who killed ${S.victim}?`, W / 2, 46, 17, '#fff', 'center', null, 900);
+        /* suspects */
+        T(c, 'SUSPECTS · tap to question · tap again to cross off', W / 2, 74, 9.5, '#b39ddb', 'center', null, 800);
+        S.sus.forEach((s, i) => {
+            const x = 10 + i * 56, y = 84;
+            fillRR(c, x, y, 52, 78, 10, s.mark === 1 ? '#3a1a1a' : s.mark === 2 ? '#1c3a24' : '#33244d'); rr(c, x, y, 52, 78, 10); c.lineWidth = s.q ? 2.2 : 1.2; c.strokeStyle = s.q ? '#80cbc4' : '#ffffff33'; c.stroke();
+            face(c, x + 26, y + 32, s, 0.95);
+            T(c, s.n, x + 26, y + 68, 10.5, '#fff', 'center', null, 800);
+            if(s.mark === 1) { c.strokeStyle = '#ff5252'; c.lineWidth = 3.5; c.beginPath(); c.moveTo(x + 8, y + 8); c.lineTo(x + 44, y + 58); c.moveTo(x + 44, y + 8); c.lineTo(x + 8, y + 58); c.stroke(); }
+            if(s.mark === 2) T(c, '?', x + 44, y + 12, 15, '#ffd54f', 'center', null, 900);
+            if(s.q) T(c, '💬', x + 8, y + 10, 10);
+            S.btns.push({x, y, w: 52, h: 78, fn: () => question(i)});
+        });
+        /* rooms */
+        T(c, 'ROOMS · tap to search (2 clues)', W / 2, 180, 9.5, '#b39ddb', 'center', null, 800);
+        MM_ROOMS.forEach((r, i) => {
+            const x = 10 + (i % 3) * 116, y = 192 + Math.floor(i / 3) * 56, sr = S.searched[i], blood = sr && i === S.MR;
+            bBtn(c, S.btns, x, y, 108, 48, '', () => search(i), {col: blood ? '#7a1f2b' : sr ? '#2d3d34' : '#3a2c5c', col2: blood ? '#a8323f' : sr ? '#3b5246' : '#4d3a7a'});
+            EMO(c, r[1], x + 24, y + 24, 24); T(c, r[0], x + 70, y + 18, 11.5, '#fff', 'center', null, 800);
+            if(sr) { EMO(c, MM_WEAP[S.wIn[i]][1], x + 70, y + 35, 13); if(blood) EMO(c, '🩸', x + 96, y + 10, 12); } else T(c, '🔍', x + 70, y + 35, 12);
+        });
+        /* notebook */
+        fillRR(c, 10, 312, W - 20, 196, 12, '#0e0820'); rr(c, 10, 312, W - 20, 196, 12); c.lineWidth = 1.3; c.strokeStyle = '#ffffff22'; c.stroke();
+        T(c, '📓 DETECTIVE NOTEBOOK', 22, 327, 10.5, '#ffd54f', 'left', null, 900);
+        const lines = []; S.log.forEach(l => wrapLines(c, l.s, W - 48, 11).forEach((t, k) => lines.push({t: (k ? '   ' : '• ') + t, col: l.col})));
+        const show = lines.slice(-11); show.forEach((l, i) => T(c, l.t, 22, 345 + i * 14.4, 11, l.col, 'left', null, 600));
+        /* bottom */
+        bBtn(c, S.btns, 20, 530, 320, 54, '🕵️ MAKE YOUR ACCUSATION', () => { S.phase = 'accuse'; sfx('click'); }, {col: '#c62828', size: 15});
+        T(c, S.found ? 'You found the murder scene. Check the traces!' : 'Find the room with blood to learn the weapon and culprit traits', W / 2, 604, 9.5, '#9fa8da', 'center', null, 700);
+        T(c, 'Tip: witnesses can lie. The killer was alone with the victim.', W / 2, 622, 9, '#7986cb', 'center', null, 600);
+        if(S.phase === 'result') {
+            const r = S.res; S.btns = []; c.fillStyle = 'rgba(0,0,0,.72)'; c.fillRect(0, 0, W, H);
+            fillRR(c, 20, 90, W - 40, 410, 18, '#f4ead2'); rr(c, 20, 90, W - 40, 410, 18); c.lineWidth = 4; c.strokeStyle = '#5b3a1d'; c.stroke();
+            PX(c, r.n === 3 ? 'CASE CLOSED!' : r.n ? 'PARTLY RIGHT' : 'WRONG!', W / 2, 122, 16, r.n === 3 ? '#2e7d32' : '#c62828');
+            face(c, 86, 195, S.sus[S.G], 1.6); T(c, S.sus[S.G].n + ' did it', 190, 168, 14, '#3a2410', 'left', null, 900); T(c, `in the ${MM_ROOMS[S.MR][0]} with the ${MM_WEAP[S.MW][0]}`, 190, 190, 11, '#3a2410', 'left', null, 700);
+            EMO(c, MM_WEAP[S.MW][1], 306, 190, 24);
+            [['Culprit', r.okS], ['Weapon', r.okW], ['Room', r.okR]].forEach((x, i) => { T(c, x[1] ? '✅' : '❌', 70, 262 + i * 34, 18); T(c, x[0], 100, 262 + i * 34, 14, '#3a2410', 'left', null, 800); });
+            T(c, `+${r.pts} points`, W / 2, 380, 22, '#c26a00', 'center', null, 900); T(c, `Total ${S.score}`, W / 2, 410, 14, '#3a2410', 'center', null, 800);
+            bBtn(c, S.btns, 60, 432, 240, 46, S.n >= CASES ? 'See final result' : 'Next case', () => { if(S.n >= CASES) finish(); else newCase(S.n + 1, S.score); }, {col: '#2e7d32'});
+        }
+    }
+    function finish() { A.over({win: S.score >= 900, title: S.score >= 900 ? 'MASTER DETECTIVE!' : 'CASES CLOSED', score: S.score, hsKey: 'mm_hs', pts: Math.floor(S.score / 40), reason: 'Case Files', sub: `${CASES} murders investigated`, sub2: `Score ${S.score}`}); if(S.score >= 900) unlock('mm_master'); }
+    defGame({
+        dbg: () => S, id: 'casefiles', name: 'Case Files', icon: '🕵️', color: '#7e57c2', cat: 'puzzle', isNew: true, w: W, h: H, noPause: false,
+        desc: 'A murder at the manor! Search rooms, question the suspects, spot the liar and name the killer, the weapon and the room. Five new cases every run, never the same twice.',
+        tip: 'Search rooms · question suspects · accuse', help: ['Searching costs 2 clues, questions cost 1', 'The murder room has blood. It also holds the weapon and traces of the killer', 'Suspects tell what they saw, but the killer lies', 'Tap a suspect again to cross them off', 'Solve all three parts for the biggest score'],
+        best: () => LS.int('mm_hs') ? fmt(LS.int('mm_hs')) : '',
+        init() { S = null; newCase(1, 0); A.setScore(0); },
+        update() {}, draw,
+        pdown(x, y) { audio(); if(!bHit(S.btns, x, y)) return; }
+    });
+    ACH.push({id: 'mm_solve', icon: '🔍', name: 'Sharp Eye', desc: 'Solve the third case in Case Files perfectly.'}, {id: 'mm_master', icon: '🕵️', name: 'Master Detective', desc: 'Score 900+ in Case Files.'});
+})();
+
+// ---------- REALM QUEST (fantasy dungeon crawler) ----------
+(function() {
+    const W = 360, H = 640, TS = 36, COLS = 10, ROWS = 13, MY = 52, FLOORS = 6;
+    const CLASSES = [
+        {id: 'knight', n: 'Knight', e: '🛡️', hp: 26, atk: 3, def: 1, ab: 'Shield Bash', abd: 'Stuns every enemy next to you', col: '#5c6bc0'},
+        {id: 'mage', n: 'Mage', e: '🧙', hp: 17, atk: 2, def: 0, ab: 'Fireball', abd: 'Burns everything within 2 tiles', col: '#ab47bc'},
+        {id: 'rogue', n: 'Rogue', e: '🥷', hp: 20, atk: 3, def: 0, ab: 'Shadow Dash', abd: 'Leap up to 4 tiles to any open tile', col: '#26a69a'}
+    ];
+    const MON = {
+        bat: {e: '🦇', hp: 4, atk: 2, xp: 3, sp: 2, n: 'Bat'}, slime: {e: '🟢', hp: 7, atk: 2, xp: 4, sp: 1, n: 'Slime'}, goblin: {e: '👺', hp: 9, atk: 3, xp: 6, sp: 1, n: 'Goblin'},
+        skel: {e: '💀', hp: 12, atk: 4, xp: 8, sp: 1, n: 'Skeleton'}, orc: {e: '👹', hp: 20, atk: 6, xp: 14, sp: 1, n: 'Orc'}, dragon: {e: '🐉', hp: 70, atk: 9, xp: 100, sp: 1, n: 'Dragon', boss: 1}
+    };
+    const FLOORMON = [['bat', 'slime'], ['bat', 'slime', 'goblin'], ['slime', 'goblin', 'skel'], ['goblin', 'skel', 'bat'], ['skel', 'orc', 'goblin'], ['orc', 'skel']];
+    let S = null;
+    const key = (x, y) => y * COLS + x, inb = (x, y) => x >= 0 && y >= 0 && x < COLS && y < ROWS;
+    function gen(fl) {
+        const g = []; for(let y = 0; y < ROWS; y++) { g[y] = []; for(let x = 0; x < COLS; x++) g[y][x] = 1; }
+        let x = rndi(1, COLS - 2), y = ROWS - 2; const sx = x, sy = y; g[y][x] = 0; let n = 1; const want = 62 + fl * 2;
+        const rooms = []; let guard = 0;
+        while(n < want && guard++ < 4000) { const d = pick([[1, 0], [-1, 0], [0, 1], [0, -1]]); const nx = x + d[0], ny = y + d[1]; if(nx < 1 || ny < 1 || nx > COLS - 2 || ny > ROWS - 2) continue; x = nx; y = ny; if(g[y][x]) { g[y][x] = 0; n++; } if(Math.random() < 0.04) { for(let a = 0; a < 2; a++) for(let b = 0; b < 2; b++) if(inb(x + a, y + b) && x + a < COLS - 1 && y + b < ROWS - 1 && g[y + b][x + a]) { g[y + b][x + a] = 0; n++; } } }
+        /* far floor tile = stairs */
+        const bfs = distMap(g, sx, sy); let best = null, bd = -1; for(let yy = 0; yy < ROWS; yy++) for(let xx = 0; xx < COLS; xx++) { const d = bfs[key(xx, yy)]; if(d != null && d > bd) { bd = d; best = [xx, yy]; } }
+        const floors = []; for(let yy = 0; yy < ROWS; yy++) for(let xx = 0; xx < COLS; xx++) if(!g[yy][xx] && !(xx === sx && yy === sy) && !(xx === best[0] && yy === best[1])) floors.push([xx, yy]);
+        shuffle(floors);
+        const boss = fl === FLOORS;
+        const ents = [], items = [];
+        const nm = boss ? 5 : 4 + fl, far = floors.filter(f => (bfs[key(f[0], f[1])] || 0) > 4);
+        for(let i = 0; i < nm && far.length; i++) { const f = far.pop(); const t = pick(FLOORMON[fl - 1]); ents.push(mk(t, f[0], f[1], fl)); }
+        if(boss) ents.push(mk('dragon', best[0], best[1], fl));
+        const spots = floors.filter(f => !ents.some(e => e.x === f[0] && e.y === f[1]));
+        const placeI = (t, k) => { for(let i = 0; i < k && spots.length; i++) { const f = spots.pop(); items.push({t, x: f[0], y: f[1]}); } };
+        placeI('gold', 5); placeI('potion', 2 + (fl % 2)); if(fl % 2 === 0) placeI('sword', 1); if(fl % 2 === 1) placeI('armor', 1);
+        return {g, sx, sy, st: best, ents, items, boss, seen: {}};
+    }
+    function mk(t, x, y, fl) { const d = MON[t], sc = 1 + (fl - 1) * 0.12; return {t, x, y, hp: Math.round(d.hp * sc), max: Math.round(d.hp * sc), atk: d.atk + Math.floor((fl - 1) / 2), stun: 0, awake: 0, bob: rnd(0, 6)}; }
+    function distMap(g, sx, sy) { const d = {}; d[key(sx, sy)] = 0; const q = [[sx, sy]]; while(q.length) { const [x, y] = q.shift(); [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const nx = x + dx, ny = y + dy; if(inb(nx, ny) && !g[ny][nx] && d[key(nx, ny)] == null) { d[key(nx, ny)] = d[key(x, y)] + 1; q.push([nx, ny]); } }); } return d; }
+    function lvl(fl) { S.map = gen(fl); S.fl = fl; S.px = S.map.sx; S.py = S.map.sy; S.path = []; reveal(); S.turnAnim = 0; msg(fl === FLOORS ? 'The Dragon\'s lair! Slay it to win.' : `Floor ${fl}. Find the stairs ⬇️`); }
+    function msg(t) { S.log.push(t); if(S.log.length > 6) S.log.shift(); S.mt = 220; }
+    function reveal() { for(let y = 0; y < ROWS; y++) for(let x = 0; x < COLS; x++) if(Math.hypot(x - S.px, y - S.py) <= 3.6) S.map.seen[key(x, y)] = 1; }
+    function entAt(x, y) { return S.map.ents.find(e => e.x === x && e.y === y && e.hp > 0); }
+    function visible(x, y) { return Math.hypot(x - S.px, y - S.py) <= 3.6; }
+    function dmgHero(d, who) { const r = Math.max(1, d - S.def); S.hp -= r; S.shake = 6; FX.burst(S.px * TS + TS / 2, MY + S.py * TS + TS / 2, ['#ff5252', '#fff'], 8, 2.4, {life: 22}); sfx('hit'); if(S.hp <= 0) die(who); return r; }
+    function die(who) { if(S.over) return; S.over = 1; setTimeout(() => A.over({title: 'YOU FELL', score: tally(), hsKey: 'rq_hs', pts: Math.floor(tally() / 40), reason: 'Realm Quest', sub: `Slain by a ${who} on floor ${S.fl}`, sub2: `${S.kills} monsters · ${S.gold} gold`}), 350); }
+    function tally() { return S.gold * 10 + S.fl * 100 + S.kills * 15 + (S.won ? 1000 : 0); }
+    function gainXp(x) { S.xp += x; while(S.xp >= S.lv * 8) { S.xp -= S.lv * 8; S.lv++; S.max += 3; S.hp = Math.min(S.max, S.hp + 5); if(S.lv % 2 === 0) S.atk++; msg(`⭐ Level ${S.lv}! Stronger.`); sfx('levelup'); FX.text('LEVEL UP', S.px * TS + TS / 2, MY + S.py * TS - 8, '#ffea00', 12); } }
+    function hit(e, d) {
+        e.hp -= d; e.flash = 6; sfx('pop'); FX.burst(e.x * TS + TS / 2, MY + e.y * TS + TS / 2, ['#ffd54f', '#fff'], 6, 2, {life: 16});
+        FX.text('-' + d, e.x * TS + TS / 2, MY + e.y * TS, '#fff', 11);
+        if(e.hp <= 0) { S.kills++; gainXp(MON[e.t].xp); sfx('coin'); FX.burst(e.x * TS + TS / 2, MY + e.y * TS + TS / 2, ['#8bc34a', '#ffeb3b'], 14, 3, {life: 28}); if(e.t === 'dragon') { S.won = 1; msg('🐉 The dragon falls! The realm is saved!'); win(); } else if(Math.random() < 0.3) S.map.items.push({t: 'gold', x: e.x, y: e.y}); }
+    }
+    function win() { S.over = 1; unlock('rq_win'); setTimeout(() => A.over({win: true, title: 'DRAGON SLAIN!', score: tally(), hsKey: 'rq_hs', pts: Math.floor(tally() / 30) + 8, reason: 'Realm Quest', sub: 'The realm is safe', sub2: `${S.gold} gold · ${S.kills} slain`}), 700); }
+    function enemyTurn() {
+        S.map.ents.forEach(e => {
+            if(e.hp <= 0) return; if(e.stun > 0) { e.stun--; return; }
+            const dist = Math.abs(e.x - S.px) + Math.abs(e.y - S.py);
+            if(!e.awake && dist <= 6 && visible(e.x, e.y)) { e.awake = 1; }
+            if(!e.awake && dist <= 3) e.awake = 1;
+            if(!e.awake) return;
+            for(let k = 0; k < MON[e.t].sp; k++) {
+                const d = Math.abs(e.x - S.px) + Math.abs(e.y - S.py);
+                if(d === 1) { const r = dmgHero(e.atk, MON[e.t].n); msg(`${MON[e.t].e} ${MON[e.t].n} hits you for ${r}`); break; }
+                const opts = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [e.x + dx, e.y + dy]).filter(([nx, ny]) => inb(nx, ny) && !S.map.g[ny][nx] && !entAt(nx, ny) && !(nx === S.px && ny === S.py)).sort((a, b) => (Math.abs(a[0] - S.px) + Math.abs(a[1] - S.py)) - (Math.abs(b[0] - S.px) + Math.abs(b[1] - S.py)));
+                if(opts.length && (Math.abs(opts[0][0] - S.px) + Math.abs(opts[0][1] - S.py)) < d) { e.x = opts[0][0]; e.y = opts[0][1]; }
+            }
+        });
+        if(S.cd > 0) S.cd--;
+    }
+    function stepTo(nx, ny) {
+        if(!inb(nx, ny) || S.map.g[ny][nx]) return false;
+        const e = entAt(nx, ny);
+        if(e) { const d = S.atk + rndi(0, 2); hit(e, d); if(e.hp > 0) msg(`You hit the ${MON[e.t].n} for ${d}`); S.bump = [nx - S.px, ny - S.py]; S.bt = 8; }
+        else {
+            S.px = nx; S.py = ny; reveal();
+            const it = S.map.items.findIndex(i => i.x === nx && i.y === ny);
+            if(it >= 0) { const i = S.map.items.splice(it, 1)[0]; sfx('coin'); if(i.t === 'gold') { const v = rndi(5, 12) + S.fl * 2; S.gold += v; msg(`💰 +${v} gold`); } else if(i.t === 'potion') { S.hp = Math.min(S.max, S.hp + 12); msg('🧪 Potion: +12 HP'); FX.text('+HP', nx * TS + TS / 2, MY + ny * TS, '#69f0ae', 12); } else if(i.t === 'sword') { S.atk++; msg('⚔️ A sharper blade! +1 attack'); } else { S.def++; msg('🛡️ Sturdy armor! +1 defense'); } }
+            if(nx === S.map.st[0] && ny === S.map.st[1] && !S.map.boss) { S.gold += 5; sfx('levelup'); lvl(S.fl + 1); return true; }
+        }
+        enemyTurn(); return true;
+    }
+    function pathTo(tx, ty) {
+        const start = key(S.px, S.py), prev = {}; prev[start] = -1; const q = [[S.px, S.py]];
+        while(q.length) { const [x, y] = q.shift(); if(x === tx && y === ty) break; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const nx = x + dx, ny = y + dy; if(inb(nx, ny) && !S.map.g[ny][nx] && S.map.seen[key(nx, ny)] && prev[key(nx, ny)] == null) { prev[key(nx, ny)] = key(x, y); q.push([nx, ny]); } }); }
+        if(prev[key(tx, ty)] == null) return null; const p = []; let k = key(tx, ty); while(k !== start) { p.unshift([k % COLS, Math.floor(k / COLS)]); k = prev[k]; } return p;
+    }
+    function ability() {
+        if(S.cd > 0 || S.over) { sfx('error'); return; }
+        const c = S.cls;
+        if(c.id === 'knight') { let n = 0; S.map.ents.forEach(e => { if(e.hp > 0 && Math.abs(e.x - S.px) + Math.abs(e.y - S.py) === 1) { e.stun = 2; hit(e, S.atk); n++; } }); if(!n) { msg('Nobody next to you to bash'); return; } msg('🛡️ Shield Bash!'); FX.shake(5); }
+        else if(c.id === 'mage') { let n = 0; S.map.ents.forEach(e => { if(e.hp > 0 && Math.hypot(e.x - S.px, e.y - S.py) <= 2.2) { hit(e, S.atk + 4); n++; } }); S.fire = 14; msg(n ? '🔥 Fireball!' : '🔥 Fireball fizzles on empty air'); sfx('boom'); FX.shake(4); }
+        else { S.dash = 1; msg('Tap an open tile within 4 to dash'); return; }
+        S.cd = 8; S.path = []; enemyTurn();
+    }
+    function init() {
+        S = {f: 0, phase: 'pick', cls: null, btns: [], log: [], mt: 0, shake: 0, over: 0, gold: 0, kills: 0, xp: 0, lv: 1, cd: 0, path: [], pt: 0, dash: 0, fire: 0};
+    }
+    function start(cl) { S.cls = cl; S.phase = 'play'; S.hp = S.max = cl.hp; S.atk = cl.atk; S.def = cl.def; lvl(1); }
+    function update() {
+        S.f++; if(S.shake > 0) S.shake--; if(S.mt > 0) S.mt--; if(S.bt > 0) S.bt--; if(S.fire > 0) S.fire--;
+        if(S.phase !== 'play' || S.over) return;
+        if(S.path.length && ++S.pt >= 7) {
+            S.pt = 0; const nx = S.path[0][0], ny = S.path[0][1];
+            if(S.map.ents.some(e => e.hp > 0 && e.awake && visible(e.x, e.y) && !(Math.abs(e.x - nx) + Math.abs(e.y - ny) === 0))) { const ae = S.map.ents.find(e => e.hp > 0 && e.awake && visible(e.x, e.y)); if(ae && S.path.length > 1) { S.path = []; return; } }
+            S.path.shift(); stepTo(nx, ny);
+        }
+        S.map.ents.forEach(e => { e.bob += 0.1; if(e.flash > 0) e.flash--; });
+    }
+    function tile(c, x, y, wall, seen, vis) {
+        const px = x * TS, py = MY + y * TS;
+        if(!seen) { c.fillStyle = '#05030a'; c.fillRect(px, py, TS, TS); return; }
+        if(wall) { c.fillStyle = vgrad(c, py, py + TS, ['#4a4458', '#2c2736']); c.fillRect(px, py, TS, TS); c.fillStyle = '#ffffff10'; c.fillRect(px, py, TS, 3); c.strokeStyle = '#00000044'; c.lineWidth = 1; c.strokeRect(px + 0.5, py + 0.5, TS - 1, TS - 1); if((x * 3 + y) % 4 === 0) { c.fillStyle = '#00000033'; c.fillRect(px + 8, py + 18, 12, 2); } }
+        else { c.fillStyle = (x + y) % 2 ? '#6e6552' : '#665d4a'; c.fillRect(px, py, TS, TS); c.fillStyle = '#00000018'; if((x * 7 + y * 5) % 6 === 0) c.fillRect(px + 10, py + 14, 3, 3); c.strokeStyle = '#00000022'; c.strokeRect(px + 0.5, py + 0.5, TS - 1, TS - 1); }
+        if(!vis) { c.fillStyle = 'rgba(5,3,10,.55)'; c.fillRect(px, py, TS, TS); }
+    }
+    function draw(c) {
+        S.btns = []; c.fillStyle = '#0b0714'; c.fillRect(0, 0, W, H);
+        if(S.phase === 'pick') {
+            c.fillStyle = vgrad(c, 0, H, ['#2a1a4a', '#0b0714']); c.fillRect(0, 0, W, H);
+            PX(c, 'REALM QUEST', W / 2, 60, 22, '#ffd54f'); T(c, 'Choose your hero', W / 2, 100, 14, '#b39ddb', 'center', null, 800);
+            CLASSES.forEach((cl, i) => { const y = 130 + i * 140; bBtn(c, S.btns, 20, y, 320, 124, '', () => start(cl), {col: cl.col, col2: '#2a1a4a'}); EMO(c, cl.e, 66, y + 48, 48); T(c, cl.n, 190, y + 28, 19, '#fff', 'center', null, 900); T(c, `HP ${cl.hp} · ATK ${cl.atk} · DEF ${cl.def}`, 190, y + 54, 11, '#e1bee7', 'center', null, 800); T(c, cl.ab + ': ' + cl.abd, 212, y + 80, 10, '#ffe082', 'center', null, 700); });
+            T(c, `Descend ${FLOORS} floors and slay the dragon`, W / 2, 565, 11, '#9575cd', 'center', null, 700);
+            return;
+        }
+        c.save(); if(S.shake) c.translate(rnd(-2, 2), rnd(-2, 2));
+        for(let y = 0; y < ROWS; y++) for(let x = 0; x < COLS; x++) tile(c, x, y, S.map.g[y][x], S.map.seen[key(x, y)], visible(x, y));
+        /* stairs */
+        if(S.map.seen[key(S.map.st[0], S.map.st[1])] && !S.map.boss) { const sx = S.map.st[0] * TS, sy = MY + S.map.st[1] * TS; c.fillStyle = '#1a1424'; c.fillRect(sx + 3, sy + 3, TS - 6, TS - 6); c.fillStyle = '#ffd54f'; for(let i = 0; i < 4; i++) c.fillRect(sx + 6, sy + 7 + i * 6, TS - 12 - i * 3, 3); EMO(c, '⬇️', sx + TS / 2, sy + TS / 2, 14); }
+        S.map.items.forEach(i => { if(S.map.seen[key(i.x, i.y)]) EMO(c, {gold: '💰', potion: '🧪', sword: '⚔️', armor: '🛡️'}[i.t], i.x * TS + TS / 2, MY + i.y * TS + TS / 2 + Math.sin(S.f * 0.07 + i.x) * 1.5, 19); });
+        /* path preview */
+        S.path.forEach(p => { c.fillStyle = 'rgba(255,235,59,.22)'; c.fillRect(p[0] * TS + 10, MY + p[1] * TS + 10, TS - 20, TS - 20); });
+        S.map.ents.forEach(e => { if(e.hp <= 0 || !visible(e.x, e.y)) return; const px = e.x * TS + TS / 2, py = MY + e.y * TS + TS / 2 + Math.sin(e.bob) * 1.5, big = e.t === 'dragon' ? 38 : 24; c.globalAlpha = e.flash > 0 && e.flash % 2 ? 0.4 : 1; ell3(c, px, py + 13, 11, 4); EMO(c, MON[e.t].e, px, py, big); c.globalAlpha = 1; if(e.stun > 0) T(c, '💫', px, py - 16, 12); const w = e.t === 'dragon' ? 40 : 26; fillRR(c, px - w / 2, py - 20, w, 4, 2, '#000a'); fillRR(c, px - w / 2, py - 20, w * clamp(e.hp / e.max, 0, 1), 4, 2, '#ef5350'); });
+        const hx = S.px * TS + TS / 2 + (S.bt > 0 ? S.bump[0] * 6 * (S.bt / 8) : 0), hy = MY + S.py * TS + TS / 2 + (S.bt > 0 ? S.bump[1] * 6 * (S.bt / 8) : 0);
+        ell3(c, hx, hy + 13, 11, 4); c.fillStyle = 'rgba(255,235,59,.18)'; c.beginPath(); c.arc(hx, hy, 17, 0, TAU); c.fill(); EMO(c, S.cls.e, hx, hy, 26);
+        if(S.fire > 0) { c.globalAlpha = S.fire / 14; c.beginPath(); c.arc(hx, hy, 2.2 * TS * (1 - S.fire / 14) + 10, 0, TAU); c.fillStyle = 'rgba(255,120,30,.45)'; c.fill(); c.strokeStyle = '#ffb74d'; c.lineWidth = 3; c.stroke(); c.globalAlpha = 1; }
+        if(S.dash) { for(let y = 0; y < ROWS; y++) for(let x = 0; x < COLS; x++) if(!S.map.g[y][x] && S.map.seen[key(x, y)] && !entAt(x, y) && Math.abs(x - S.px) + Math.abs(y - S.py) <= 4 && (x !== S.px || y !== S.py)) { c.fillStyle = 'rgba(38,166,154,.38)'; c.fillRect(x * TS + 2, MY + y * TS + 2, TS - 4, TS - 4); } }
+        c.restore();
+        /* HUD */
+        c.fillStyle = vgrad(c, 0, MY, ['#1b1233', '#0e0820']); c.fillRect(0, 0, W, MY);
+        T(c, S.cls.e + ' ' + S.cls.n + '  Lv ' + S.lv, 10, 14, 12, '#fff', 'left', null, 800); T(c, `Floor ${S.fl}/${FLOORS}`, W / 2, 14, 12, '#ffd54f', 'center', null, 800); T(c, `💰 ${S.gold}`, W - 10, 14, 12, '#ffe082', 'right', null, 800);
+        fillRR(c, 10, 28, 150, 14, 7, '#000a'); fillRR(c, 12, 30, Math.max(6, 146 * clamp(S.hp / S.max, 0, 1)), 10, 5, S.hp / S.max < 0.34 ? '#ef5350' : '#66bb6a'); T(c, `${Math.max(0, S.hp)}/${S.max}`, 85, 36, 9, '#fff', 'center', null, 800);
+        T(c, `⚔️ ${S.atk}   🛡️ ${S.def}`, 190, 36, 11, '#b39ddb', 'left', null, 800);
+        fillRR(c, 260, 28, 90, 14, 7, '#000a'); fillRR(c, 262, 30, Math.max(0, 86 * S.xp / (S.lv * 8)), 10, 5, '#4fc3f7'); T(c, 'XP', 305, 36, 8.5, '#fff', 'center', null, 800);
+        /* bottom */
+        const by = MY + ROWS * TS;
+        c.fillStyle = vgrad(c, by, H, ['#241a3d', '#0e0820']); c.fillRect(0, by, W, H - by);
+        S.log.slice(-3).forEach((l, i) => T(c, l, 12, by + 14 + i * 15, 11.5, i === Math.min(2, S.log.length - 1) ? '#fff' : '#9fa8da', 'left', null, 700));
+        bBtn(c, S.btns, 10, by + 56, 200, 44, S.cd > 0 ? `${S.cls.ab} (${S.cd})` : '✨ ' + S.cls.ab, ability, {col: S.cls.col, off: S.cd > 0, sel: S.dash});
+        bBtn(c, S.btns, 220, by + 56, 130, 44, 'Rest (skip turn)', () => { S.path = []; S.dash = 0; if(S.hp < S.max && Math.random() < 0.5) S.hp++; enemyTurn(); }, {col: '#455a64', size: 11});
+    }
+    function ell3(c, x, y, rx, ry) { c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, TAU); c.fillStyle = '#0005'; c.fill(); }
+    function tapMap(x, y) {
+        const tx = Math.floor(x / TS), ty = Math.floor((y - MY) / TS); if(!inb(tx, ty) || S.over) return;
+        if(S.dash) { S.dash = 0; if(!S.map.g[ty][tx] && S.map.seen[key(tx, ty)] && !entAt(tx, ty) && Math.abs(tx - S.px) + Math.abs(ty - S.py) <= 4 && (tx !== S.px || ty !== S.py)) { S.px = tx; S.py = ty; reveal(); S.cd = 8; msg('🥷 Shadow Dash!'); FX.burst(tx * TS + TS / 2, MY + ty * TS + TS / 2, ['#26a69a', '#fff'], 12, 3, {life: 22}); sfx('whoosh'); enemyTurn(); } else msg('Dash cancelled'); return; }
+        S.path = [];
+        if(Math.abs(tx - S.px) + Math.abs(ty - S.py) === 1) { stepTo(tx, ty); return; }
+        if(tx === S.px && ty === S.py) { enemyTurn(); return; }
+        let p = pathTo(tx, ty);
+        if(!p) { let best = null, bd = 1e9; for(let yy = 0; yy < ROWS; yy++) for(let xx = 0; xx < COLS; xx++) if(!S.map.g[yy][xx] && S.map.seen[key(xx, yy)] && (xx !== S.px || yy !== S.py)) { const d = Math.abs(xx - tx) + Math.abs(yy - ty); if(d < bd) { bd = d; best = [xx, yy]; } } if(best) p = pathTo(best[0], best[1]); }
+        if(p) { S.path = p; S.pt = 7; } else sfx('error');
+    }
+    defGame({
+        dbg: () => S, id: 'realmquest', name: 'Realm Quest', icon: '🐉', color: '#8e24aa', cat: 'action', isNew: true, w: W, h: H, noPause: false,
+        desc: 'A turn-based fantasy dungeon crawler. Pick a Knight, Mage or Rogue, delve six floors of goblins, skeletons and orcs, grab loot, level up and slay the dragon.',
+        tip: 'Tap a tile to walk · tap a monster to attack', help: ['Tap a tile to walk there, tap next to a monster to attack', 'Monsters move when you move', 'Your special ability recharges every 8 turns', 'Find the ⬇️ stairs on each floor', 'Floor 6 hides the dragon'],
+        best: () => LS.int('rq_hs') ? fmt(LS.int('rq_hs')) : '',
+        init, update, draw,
+        pdown(x, y) { audio(); if(bHit(S.btns, x, y)) return; if(S.phase === 'play' && y >= MY && y < MY + ROWS * TS) tapMap(x, y); }
+    });
+    ACH.push({id: 'rq_win', icon: '🐉', name: 'Dragon Slayer', desc: 'Slay the dragon in Realm Quest.'});
+})();
+
+// ---------- DETECTIVE NIGHT (Clue-style deduction board game vs 3 rivals) ----------
+(function() {
+    const W = 360, H = 640;
+    const SUS = [['Ada', '#e91e63'], ['Bruno', '#2196f3'], ['Celia', '#9c27b0'], ['Dmitri', '#ff9800'], ['Esme', '#4caf50'], ['Felix', '#795548']];
+    const WEP = MM_WEAP, ROOMS = [['Library', '📚'], ['Kitchen', '🍳'], ['Cellar', '🍷'], ['Study', '🖋️'], ['Garden', '🌷'], ['Ballroom', '💃'], ['Conservatory', '🪴'], ['Lounge', '🛋️'], ['Hall', '🚪']];
+    const NAMES = ['You', 'Inspector Fox', 'Dr. Quill', 'Miss Marlow'], PCOL = ['#ffd54f', '#ef5350', '#42a5f5', '#66bb6a'];
+    /* card ids: 0-5 suspects, 6-11 weapons, 12-20 rooms */
+    const cname = id => id < 6 ? SUS[id][0] : id < 12 ? WEP[id - 6][0] : ROOMS[id - 12][0];
+    const cemo = id => id < 6 ? '👤' : id < 12 ? WEP[id - 6][1] : ROOMS[id - 12][1];
+    let S = null;
+    function init() {
+        const deck = shuffle([...Array(21).keys()]);
+        const sol = [pick([0, 1, 2, 3, 4, 5]), pick([6, 7, 8, 9, 10, 11]), pick([12, 13, 14, 15, 16, 17, 18, 19, 20])];
+        const rest = deck.filter(x => !sol.includes(x)), hands = [[], [], [], []]; rest.forEach((x, i) => hands[i % 4].push(x));
+        S = {f: 0, btns: [], sol, hands, room: [4, 0, 2, 8], phase: 'roll', turn: 0, die: 0, log: [], sel: {s: -1, w: -1}, nb: {}, known: [new Set(hands[0]), new Set(hands[1]), new Set(hands[2]), new Set(hands[3])], view: 'board', turns: 0, dead: [0, 0, 0, 0], pend: null, timer: 0, seen: {}, over: 0, shown: null, moved: -1};
+        hands[0].forEach(x => S.seen[x] = 0);
+        say('Find the murderer, weapon and room hidden in the envelope. You hold ' + hands[0].length + ' cards.');
+        A.setScore(0);
+    }
+    function say(t) { S.log.push(t); if(S.log.length > 40) S.log.shift(); }
+    function dist(a, b) { const ax = a % 3, ay = Math.floor(a / 3), bx = b % 3, by = Math.floor(b / 3); let d = Math.abs(ax - bx) + Math.abs(ay - by); const corner = i => i === 0 || i === 2 || i === 6 || i === 8; if(corner(a) && corner(b) && a !== b) d = Math.min(d, 1); return d; }
+    function roll() { if(S.phase !== 'roll') return; S.die = rndi(1, 6); S.phase = 'move'; sfx('select'); say(`🎲 You rolled a ${S.die}. Tap a room within reach, or stay.`); }
+    function moveTo(r) { if(S.phase !== 'move') return; if(dist(S.room[0], r) > S.die && r !== S.room[0]) { sfx('error'); return; } S.room[0] = r; S.moved = r; sfx('move'); S.sel = {s: -1, w: -1}; S.phase = 'suggest'; say(`You stand in the ${ROOMS[r][0]}. Make a suggestion or skip.`); }
+    function suggest(by, s, w, r) {
+        say(`${by === 0 ? 'You' : NAMES[by]} suggest${by === 0 ? '' : 's'}: ${SUS[s][0]}, ${WEP[w - 6][0]}, ${ROOMS[r - 12][0]}.`);
+        const sug = [s, w, r + 0]; sug[2] = r; /* r is card id */
+        resolve(by, sug, 1);
+    }
+    function resolve(by, sug, i) {
+        for(; i <= 3; i++) {
+            const seat = (by + i) % 4, m = S.hands[seat].filter(x => sug.includes(x));
+            if(!m.length) { say(`${NAMES[seat]} can't refute.`); continue; }
+            if(seat === 0) { /* player must pick */ if(m.length === 1) { showRef(by, 0, m[0]); S.timer = 40; return afterRef(by, sug, 0, m[0]); } S.pend = {by, sug, m, i}; S.phase = 'pick'; say(`You hold ${m.length} matching cards. Choose one to show ${NAMES[by]}.`); return; }
+            const pick1 = m.find(x => S.known[by].has(x)) != null && by !== 0 ? m.find(x => S.known[by].has(x)) : pick(m);
+            return afterRef(by, sug, seat, pick1);
+        }
+        /* nobody refuted */
+        say('No one could refute!');
+        if(by === 0) { const left = sug.filter(x => !S.hands[0].includes(x)); say(left.length ? `So ${left.map(cname).join(', ')} may be in the envelope...` : 'You hold all three yourself. Interesting.'); S.nb.hint = 1; }
+        else { const left = sug.filter(x => !S.hands[by].includes(x)); if(left.length === 3 || sug.every(x => S.hands[by].includes(x) || true)) botNoRef(by, sug); }
+        nextTurn();
+    }
+    function showRef(by, seat, card) { }
+    function afterRef(by, sug, seat, card) {
+        if(by === 0) { say(`${NAMES[seat]} shows you: ${cemo(card)} ${cname(card)}.`); S.seen[card] = seat; S.known[0].add(card); S.shown = {seat, card, t: 150}; sfx('coin'); }
+        else { say(`${seat === 0 ? 'You show' : NAMES[seat] + ' shows'} ${NAMES[by]} a card.`); S.known[by].add(card); }
+        nextTurn();
+    }
+    function botNoRef(by, sug) { S.bot = S.bot || {}; S.bot[by] = sug.filter(x => !S.hands[by].includes(x)); }
+    function nextTurn() { S.turns++; do { S.turn = (S.turn + 1) % 4; } while(S.turn !== 0 && S.dead[S.turn]); if(S.turn === 0) { S.phase = 'roll'; say('Your turn.'); } else { S.phase = 'wait'; S.timer = 70; } }
+    function botTurn(b) {
+        const kn = S.known[b], un = (lo, hi) => { const a = []; for(let i = lo; i <= hi; i++) if(!kn.has(i)) a.push(i); return a; };
+        const us = un(0, 5), uw = un(6, 11), ur = un(12, 20);
+        /* knows the answer? */
+        if(S.bot && S.bot[b] && S.bot[b].length === 3) { return botAccuse(b, S.bot[b]); }
+        if(us.length === 1 && uw.length === 1 && ur.length === 1) return botAccuse(b, [us[0], uw[0], ur[0]]);
+        const die = rndi(1, 6), cur = S.room[b], reach = [...Array(9).keys()].filter(r => dist(cur, r) <= die), pr = reach.filter(r => !kn.has(12 + r)), to = pick(pr.length ? pr : reach);
+        S.room[b] = to; say(`${NAMES[b]} rolls ${die} and enters the ${ROOMS[to][0]}.`);
+        const s = pick(us.length ? us : [0, 1, 2, 3, 4, 5]), w = pick(uw.length ? uw : [6, 7, 8, 9, 10, 11]);
+        S.phase = 'wait'; suggest(b, s, w, 12 + to);
+        if(S.phase === 'wait') { /* resolve ran nextTurn already */ }
+    }
+    function botAccuse(b, t) {
+        say(`${NAMES[b]} makes an ACCUSATION: ${t.map(cname).join(', ')}!`);
+        const ok = t.every((x, i) => x === S.sol[i]);
+        if(ok) { S.over = 1; S.phase = 'end'; S.res = {win: 0, who: b}; setTimeout(() => A.over({title: `${NAMES[b].toUpperCase()} WINS`, score: 0, pts: 2, reason: 'Detective Night', sub: `${NAMES[b]} solved it first`, sub2: `${cname(S.sol[0])}, ${cname(S.sol[1])}, ${cname(S.sol[2])}`}), 900); }
+        else { S.dead[b] = 1; say(`...but they're wrong and are out of the game!`); nextTurn(); if(S.dead.slice(1).every(x => x)) say('All your rivals are out!'); }
+    }
+    function accusePlayer(s, w, r) {
+        const t = [s, w, r], ok = t.every((x, i) => x === S.sol[i]); S.over = 1; S.phase = 'end';
+        const sc = ok ? Math.max(200, 1500 - S.turns * 25 - (S.dead.slice(1).filter(x => x).length ? 0 : 0)) : 0; A.setScore(sc);
+        if(ok) { unlock('dn_win'); sfx('levelup'); FX.confetti(60); }
+        setTimeout(() => A.over(ok ? {win: true, title: 'CASE SOLVED!', score: sc, hsKey: 'dn_hs', pts: 10 + Math.floor(sc / 100), reason: 'Detective Night', sub: `${cname(S.sol[0])} · ${cname(S.sol[1])} · ${cname(S.sol[2])}`, sub2: `Solved in ${Math.ceil(S.turns / 4)} rounds`} : {title: 'WRONG ACCUSATION', score: 0, pts: 1, reason: 'Detective Night', sub: `It was ${cname(S.sol[0])} with the ${cname(S.sol[1])} in the ${cname(S.sol[2])}`, sub2: 'You are out of the game'}), 700);
+    }
+    function update() {
+        S.f++; if(S.over) return; if(S.shown && S.shown.t > 0) S.shown.t--;
+        if(S.phase === 'wait' && S.turn !== 0) { if(--S.timer <= 0) { const b = S.turn; S.phase = 'botrun'; botTurn(b); if(S.phase === 'botrun') S.phase = 'wait'; } }
+        else if(S.phase === 'wait' && S.turn === 0) S.phase = 'roll';
+    }
+    function mark(id) { S.nb[id] = ((S.nb[id] || 0) + 1) % 3; sfx('click'); }
+    function drawCard(c, id, x, y, w, h, o) { o = o || {}; fillRR(c, x, y + 2, w, h, 7, '#0005'); fillRR(c, x, y, w, h, 7, o.col || '#f6edd8'); rr(c, x, y, w, h, 7); c.lineWidth = o.sel ? 3 : 1.4; c.strokeStyle = o.sel ? '#ffd54f' : '#5b3a1d'; c.stroke(); EMO(c, cemo(id), x + w / 2, y + h * 0.38, Math.min(26, h * 0.42)); T(c, cname(id), x + w / 2, y + h - 11, Math.min(10, w / 6.2), '#3a2410', 'center', null, 800); }
+    function drawNotebook(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#2a1a4a', '#120a20']); c.fillRect(0, 0, W, H); T(c, '📓 NOTEBOOK', W / 2, 22, 16, '#ffd54f', 'center', null, 900); T(c, 'Tap a name to cycle  ·  ✕ ruled out  ·  ❓ suspect', W / 2, 42, 10, '#b39ddb', 'center', null, 700);
+        const sec = (title, lo, hi, x, y) => { T(c, title, x + 52, y, 10.5, '#ffd54f', 'center', null, 900); for(let id = lo; id <= hi; id++) { const yy = y + 10 + (id - lo) * 28, m = S.nb[id] || 0, seen = id in S.seen, mine = S.hands[0].includes(id), out = mine || seen || m === 1; fillRR(c, x, yy, 108, 25, 6, out ? '#1c3a24' : m === 2 ? '#5a3b00' : '#33244d'); T(c, cname(id), x + 6, yy + 13, 11, out ? '#a5d6a7' : '#fff', 'left', null, 700); T(c, mine ? '✋' : seen ? '👁️' : m === 1 ? '✕' : m === 2 ? '❓' : '', x + 98, yy + 13, 12, '#fff'); S.btns.push({x, y: yy, w: 108, h: 25, fn: () => { if(!mine && !seen) mark(id); }}); } };
+        sec('SUSPECTS', 0, 5, 8, 66); sec('WEAPONS', 6, 11, 126, 66); sec('ROOMS', 12, 20, 244, 66);
+        T(c, '✋ in your hand   👁️ shown to you', W / 2, 360, 10.5, '#9fa8da', 'center', null, 700);
+        const cl = []; for(let i = 0; i < 21; i++) cl.push(i);
+        const left = [0, 1, 2].map(k => { const lo = k ? (k === 1 ? 6 : 12) : 0, hi = k ? (k === 1 ? 11 : 20) : 5, a = []; for(let i = lo; i <= hi; i++) { const out = S.hands[0].includes(i) || (i in S.seen) || S.nb[i] === 1; if(!out) a.push(i); } return a; });
+        T(c, 'STILL POSSIBLE', W / 2, 388, 11, '#ffd54f', 'center', null, 900);
+        left.forEach((a, k) => { T(c, ['Who:', 'How:', 'Where:'][k], 14, 414 + k * 40, 11, '#b39ddb', 'left', null, 800); wrapLines(c, a.map(cname).join(', ') || '—', 270, 11).slice(0, 2).forEach((l, i) => T(c, l, 72, 410 + k * 40 + i * 14, 11, a.length === 1 ? '#69f0ae' : '#fff', 'left', null, 700)); });
+        bBtn(c, S.btns, 20, 560, 320, 48, 'Back to the board', () => { S.view = 'board'; }, {col: '#455a64'});
+    }
+    function drawAccuse(c) {
+        c.fillStyle = vgrad(c, 0, H, ['#3a1010', '#120a20']); c.fillRect(0, 0, W, H); T(c, '⚖️ ACCUSATION', W / 2, 24, 18, '#ff8a80', 'center', null, 900); T(c, 'A wrong accusation knocks you out. Be sure!', W / 2, 46, 10.5, '#ffab91', 'center', null, 700);
+        const a = S.sel; if(a.r == null) a.r = -1;
+        const col = (lbl, lo, hi, key, x, w) => { T(c, lbl, x + w / 2, 66, 11, '#ffd54f', 'center', null, 900); for(let id = lo; id <= hi; id++) { const y = 78 + (id - lo) * 46, on = a[key] === id; bBtn(c, S.btns, x, y, w, 40, '', () => { a[key] = id; sfx('select'); }, {col: on ? '#7e57c2' : '#37284f', sel: on}); EMO(c, cemo(id), x + 18, y + 20, 18); T(c, cname(id), x + 36 + (w - 36) / 2, y + 20, key === 'r' ? 10 : 11, '#fff', 'center', null, 800); } };
+        col('WHO', 0, 5, 's', 8, 110); col('HOW', 6, 11, 'w', 125, 110); col('WHERE', 12, 20, 'r', 242, 110);
+        const ok = a.s >= 0 && a.w >= 0 && a.r >= 0;
+        bBtn(c, S.btns, 20, 500, 320, 50, ok ? 'ACCUSE!' : 'Choose all three', () => accusePlayer(a.s, a.w, a.r), {col: '#d32f2f', off: !ok, size: 16});
+        bBtn(c, S.btns, 20, 560, 320, 42, 'Cancel', () => { S.view = 'board'; }, {col: '#455a64'});
+    }
+    function draw(c) {
+        S.btns = [];
+        if(S.view === 'notebook') return drawNotebook(c); if(S.view === 'accuse') return drawAccuse(c);
+        c.fillStyle = vgrad(c, 0, H, ['#1a1030', '#0d0818']); c.fillRect(0, 0, W, H);
+        T(c, '🕯️ DETECTIVE NIGHT', 14, 16, 12, '#ffd54f', 'left', null, 900); 
+        /* mansion */
+        const bx = 12, by = 32, cw = 112, ch = 84;
+        for(let i = 0; i < 9; i++) {
+            const x = bx + (i % 3) * (cw + 3), y = by + Math.floor(i / 3) * (ch + 3), reach = S.phase === 'move' && (dist(S.room[0], i) <= S.die);
+            c.fillStyle = vgrad(c, y, y + ch, [(i % 2) ? '#6d4a2a' : '#5a3d22', '#3c2814']); rr(c, x, y, cw, ch, 10); c.fill(); c.lineWidth = reach ? 3 : 1.5; c.strokeStyle = reach ? '#ffd54f' : '#00000066'; c.stroke();
+            EMO(c, ROOMS[i][1], x + 18, y + 18, 22); T(c, ROOMS[i][0], x + cw / 2 + 12, y + 17, 9.5, '#ffe9b8', 'center', null, 800);
+            for(let p = 0; p < 4; p++) if(S.room[p] === i) { const px = x + 22 + p * 22, py = y + 56; c.fillStyle = PCOL[p]; c.beginPath(); c.arc(px, py, 9, 0, TAU); c.fill(); c.lineWidth = 2; c.strokeStyle = '#1b1230'; c.stroke(); T(c, p === 0 ? 'Y' : String(p), px, py + 1, 10, '#1b1230', 'center', null, 900); if(S.dead[p]) T(c, '✕', px, py - 12, 12, '#ff5252'); }
+            if(S.phase === 'move') S.btns.push({x, y, w: cw, h: ch, fn: () => moveTo(i)});
+            if(S.phase === 'suggest' && S.room[0] === i) { c.strokeStyle = '#69f0ae'; c.lineWidth = 3; rr(c, x, y, cw, ch, 10); c.stroke(); }
+        }
+        /* log */
+        fillRR(c, 12, 300, W - 24, 108, 10, '#0008');
+        const lines = []; S.log.forEach(l => wrapLines(c, l, W - 50, 10.5, 600).forEach((t, k) => lines.push((k ? '  ' : '• ') + t)));
+        lines.slice(-7).forEach((l, i) => T(c, l, 22, 315 + i * 14.4, 10.5, i === Math.min(6, lines.length - 1) ? '#fff' : '#9fa8da', 'left', null, 600));
+        /* controls */
+        const cy = 416;
+        if(S.phase === 'roll') bBtn(c, S.btns, 12, cy, 336, 52, '🎲 ROLL THE DIE', roll, {col: '#2e7d32', size: 16});
+        else if(S.phase === 'move') { bBtn(c, S.btns, 12, cy, 200, 52, `Rolled ${S.die} · tap a lit room`, null, {col: '#37284f', off: true, size: 12}); bBtn(c, S.btns, 220, cy, 128, 52, 'Stay put', () => moveTo(S.room[0]), {col: '#455a64'}); }
+        else if(S.phase === 'suggest') {
+            const r = S.room[0], a = S.sel;
+            T(c, `Suggest in the ${ROOMS[r][0]}:`, 12, cy + 4, 11, '#ffd54f', 'left', null, 800);
+            for(let i = 0; i < 6; i++) bBtn(c, S.btns, 12 + i * 56, cy + 14, 52, 30, SUS[i][0], () => { a.s = i; sfx('select'); }, {col: a.s === i ? '#7e57c2' : '#37284f', size: 10, sel: a.s === i});
+            for(let i = 0; i < 6; i++) bBtn(c, S.btns, 12 + i * 56, cy + 48, 52, 30, WEP[i][1] + '', () => { a.w = 6 + i; sfx('select'); }, {col: a.w === 6 + i ? '#7e57c2' : '#37284f', size: 15, sel: a.w === 6 + i});
+            bBtn(c, S.btns, 12, cy + 84, 200, 40, a.s >= 0 && a.w >= 0 ? `Suggest ${SUS[a.s][0]} + ${WEP[a.w - 6][0]}` : 'Pick a suspect and a weapon', () => { S.phase = 'wait'; suggest(0, a.s, a.w, 12 + r); }, {col: '#2e7d32', off: !(a.s >= 0 && a.w >= 0), size: 11});
+            bBtn(c, S.btns, 220, cy + 84, 128, 40, 'Skip', () => { say('You skip your suggestion.'); nextTurn(); }, {col: '#455a64'});
+        }
+        else if(S.phase === 'pick') { T(c, `Show ${NAMES[S.pend.by]} one of these:`, 12, cy + 6, 11, '#ffd54f', 'left', null, 800); S.pend.m.forEach((id, i) => { const x = 12 + i * 86; drawCard(c, id, x, cy + 18, 80, 80, {sel: 1}); S.btns.push({x, y: cy + 18, w: 80, h: 80, fn: () => { const p = S.pend; S.pend = null; S.phase = 'wait'; say(`You show ${NAMES[p.by]} ${cname(id)}.`); S.known[p.by].add(id); nextTurn(); }}); }); }
+        else if(S.phase === 'wait' || S.phase === 'botrun') T(c, S.turn === 0 ? '…' : `${NAMES[S.turn]} is playing…`, W / 2, cy + 26, 12, '#b39ddb', 'center', null, 700);
+        /* hand */
+        T(c, 'YOUR CARDS', 12, 548, 10, '#b39ddb', 'left', null, 800);
+        const h = S.hands[0], cwid = Math.min(62, (W - 24 - (h.length - 1) * 4) / h.length); h.forEach((id, i) => drawCard(c, id, 12 + i * (cwid + 4), 556, cwid, 62));
+        /* top-right buttons placed over log header */
+        bBtn(c, S.btns, 196, 2, 72, 26, '📓 Notes', () => { S.view = 'notebook'; sfx('click'); }, {col: '#5e35b1', size: 10});
+        if(S.phase !== 'end') bBtn(c, S.btns, 276, 2, 72, 26, '⚖️ Accuse', () => { S.view = 'accuse'; S.sel = {s: -1, w: -1, r: -1}; sfx('click'); }, {col: '#c62828', size: 10});
+        if(S.shown && S.shown.t > 0) { c.fillStyle = 'rgba(0,0,0,.6)'; c.fillRect(0, 0, W, H); const k = clamp((150 - S.shown.t) / 12, 0, 1); c.save(); c.translate(W / 2, 270); c.scale(0.7 + 0.3 * k, 0.7 + 0.3 * k); drawCard(c, S.shown.card, -60, -80, 120, 160, {sel: 1}); T(c, `${NAMES[S.shown.seat]} shows you`, 0, -100, 13, '#fff', 'center', null, 900); T(c, 'It is NOT in the envelope', 0, 100, 11, '#69f0ae', 'center', null, 800); c.restore(); }
+    }
+    defGame({
+        dbg: () => S, id: 'detective', name: 'Detective Night', icon: '🔦', color: '#ff7043', cat: 'board', isNew: true, w: W, h: H, noPause: false,
+        desc: 'A Clue-style deduction board game against three rival detectives. Roam the mansion, make suggestions, read what the others show you and name the killer, weapon and room first.',
+        tip: 'Roll · move · suggest · deduce · accuse', help: ['Roll and tap a lit room to move there', 'In a room, suggest a suspect and weapon', 'Rivals clockwise show a matching card, if they have one', 'Use the notebook to rule cards out', 'Accuse only when sure. A wrong guess knocks you out'],
+        best: () => LS.int('dn_hs') ? fmt(LS.int('dn_hs')) : '',
+        init, update, draw,
+        pdown(x, y) { audio(); bHit(S.btns, x, y); }
+    });
+    ACH.push({id: 'dn_win', icon: '🔦', name: 'Elementary', desc: 'Solve the case in Detective Night.'});
+})();
+
 // ---------- ANGLERS' POND ----------
 (function() {
     const W = 300, H = 450;
