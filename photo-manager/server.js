@@ -49,7 +49,7 @@ function sendFile(res, file, type, extra, req) {
 let HIDX = { v: -1, m: null };
 function byHash(h) { if (HIDX.v !== LIB.version || !HIDX.m) { HIDX = { v: LIB.version, m: new Map() }; Object.values(LIB.items).forEach(i => HIDX.m.set(i.hash, i)); } return HIDX.m.get(h); }
 const shownItems = () => { const o = {}; Object.keys(LIB.items).forEach(k => { if (!/^dd-voice/.test(k)) o[k] = LIB.items[k]; }); return o; };
-const PM_BUILD = 25;   /* shown on the phones, so you can tell when the PC copy is out of date */
+const PM_BUILD = 26;   /* shown on the phones, so you can tell when the PC copy is out of date */
 const manifest = () => ({ pm: PM_BUILD, version: LIB.version || 0, updated: LIB.updated || 0, files: Object.values(LIB.items).map(i => ({ app: i.app, slot: i.slot, hash: i.hash, type: i.type, size: i.size, meta: i.meta || {} })) });
 
 /* ---------------- the phone link (Cloudflare quick tunnel) ---------------- */

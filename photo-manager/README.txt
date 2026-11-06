@@ -117,3 +117,7 @@ Windows, press Win+R, type shell:startup, and put a shortcut to "Start Tray Help
 UPDATING FROM AN OLDER VERSION
 Unzip over the old folder (keep the "library" folder), then double-click "Start Photo Manager.bat" again so
 Docker rebuilds.
+
+
+BUILD 26 NOTE
+Exercise pictures: one picture per exercise name is used on every day and in every program that exercise appears in, so you only add it once. The list now matches the rebuilt programs (mini stepper moves, new Ty's Special moves). Old exercise names are kept at the bottom marked (retired) so earlier pictures are not lost.

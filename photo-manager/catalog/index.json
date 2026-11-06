@@ -448,433 +448,565 @@
   {
    "name": "Exercise pictures",
    "free": "exercise:",
-   "note": "Your own exercises: add one and type the exact exercise name",
+   "note": "One picture per exercise name is used everywhere that exercise appears (every day and every program). Add your own exercises with the exact name.",
    "slots": [
     {
      "id": "exercise:About Iitstys Breakfast Club",
      "label": "About Iitstys Breakfast Club",
-     "info": "1 sets · Target: Read & Check · Note: Welcome!\nIn: Welcome Guide & Overview 🚀 → Welcome Guide & App Overview",
+     "info": "1 sets · Target: Read & Check · Note: Welcome!\nIn: Welcome Guide & Overview 🚀 → Welcome Guide & App Overview\nOne picture here is used everywhere this exercise appears.",
      "q": "About Iitstys Breakfast Club exercise"
     },
     {
      "id": "exercise:Acknowledge & Complete Welcome Checklist",
      "label": "Acknowledge & Complete Welcome Checklist",
-     "info": "1 sets · Target: Required · Note: Check off this box.\nIn: Welcome Guide & Overview 🚀 → Welcome Guide & App Overview",
+     "info": "1 sets · Target: Required · Note: Check off this box.\nIn: Welcome Guide & Overview 🚀 → Welcome Guide & App Overview\nOne picture here is used everywhere this exercise appears.",
      "q": "Acknowledge & Complete Welcome Checklist exercise"
     },
     {
      "id": "exercise:Active Rest & Core Recovery",
      "label": "Active Rest & Core Recovery",
-     "info": "1 sets · Target: Off · Note: Allow muscles and lower back to rest and rebuild.\nIn: Kit Kat's Special (Waist and Trim) → Day 4: Rest Day",
+     "info": "1 sets · Target: Off · Note: Allow muscles and lower back to rest and rebuild.\nIn: Kit Kat's Special (Waist and Trim) → Day 4: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Active Rest & Core Recovery exercise"
     },
     {
      "id": "exercise:Bicycle Crunches",
      "label": "Bicycle Crunches",
-     "info": "3 sets · Target: 20 reps · Note: Keep movement slow and deliberate.\nIn: Ty's Special → Day 6: Full Body & Abs",
+     "info": "3 sets · Target: 20 reps · Note: Keep movement slow and deliberate.\nIn: Ty's Special → Day 6: Full Body & Abs\nOne picture here is used everywhere this exercise appears.",
      "q": "Bicycle Crunches exercise"
     },
     {
      "id": "exercise:Chin-ups",
      "label": "Chin-ups",
-     "info": "4 sets · Target: Max reps · Note: Underhand grip focuses heavily on biceps and back.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\n    Tone & Sculpt → Day 3: Core & Total Body Polish",
+     "info": "4 sets · Target: Max reps · Note: Underhand grip focuses heavily on biceps and back.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs; Tone & Sculpt → Day 3: Core & Total Body Polish\nOne picture here is used everywhere this exercise appears.",
      "q": "Chin-ups exercise"
+    },
+    {
+     "id": "exercise:Close-Grip Push-ups",
+     "label": "Close-Grip Push-ups",
+     "info": "3 sets · Target: To failure · Note: Hands under your shoulders, elbows tucked close. Hits the triceps for bigger arms.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
+     "q": "Close-Grip Push-ups exercise"
     },
     {
      "id": "exercise:Concentration Curls",
      "label": "Concentration Curls",
-     "info": "3 sets · Target: 12 reps/arm · Note: Seated, isolating the bicep peak.\nIn: Ty's Special → Day 5: Biceps & Upper Body",
+     "info": "3 sets · Target: 12 reps/arm · Note: Seated, isolating the bicep peak.\nIn: Ty's Special → Day 5: Biceps & Upper Body\nOne picture here is used everywhere this exercise appears.",
      "q": "Concentration Curls exercise"
+    },
+    {
+     "id": "exercise:Dead Hangs",
+     "label": "Dead Hangs",
+     "info": "3 sets · Target: 30-45 sec hold · Note: Hang from the pull-up bar with shoulders active. Builds grip and forearm strength and decompresses the spine.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dead Hangs exercise"
     },
     {
      "id": "exercise:Deficit Push-ups",
      "label": "Deficit Push-ups",
-     "info": "3 sets · Target: To failure · Note: Hands on dumbbells for deeper chest stretch.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)",
+     "info": "3 sets · Target: To failure · Note: Hands on dumbbells for deeper chest stretch.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
      "q": "Deficit Push-ups exercise"
     },
     {
      "id": "exercise:Dumbbell Arnold Press",
      "label": "Dumbbell Arnold Press",
-     "info": "3 sets · Target: 15 reps · Note: Seated or standing, rotate dumbbells through full shoulder extension to burn upper body calories.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn",
+     "info": "3 sets · Target: 15 reps · Note: Seated or standing, rotate dumbbells through full shoulder extension to burn upper body calories.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Arnold Press exercise"
     },
     {
      "id": "exercise:Dumbbell Bent-over Rows",
      "label": "Dumbbell Bent-over Rows",
-     "info": "3 sets · Target: 12 reps · Note: Keep back flat and pull to hip.\nIn: Ty's Special → Day 5: Biceps & Upper Body\n    Tone & Sculpt → Day 6: Upper Body Sculpt",
+     "info": "3 sets · Target: 12 reps · Note: Keep back flat and pull to hip.\nIn: Ty's Special → Day 5: Biceps & Upper Body; Tone & Sculpt → Day 6: Upper Body Sculpt\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Bent-over Rows exercise"
     },
     {
      "id": "exercise:Dumbbell Bicep Curl to Shoulder Press",
      "label": "Dumbbell Bicep Curl to Shoulder Press",
-     "info": "4 sets · Target: 12 reps · Note: Smooth compound sculpting movement standing or sitting on stepper.\nIn: Tone & Sculpt → Day 3: Core & Total Body Polish",
+     "info": "4 sets · Target: 12 reps · Note: Smooth compound sculpting movement standing or sitting on stepper.\nIn: Tone & Sculpt → Day 3: Core & Total Body Polish\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Bicep Curl to Shoulder Press exercise"
     },
     {
      "id": "exercise:Dumbbell Bicep Curls",
      "label": "Dumbbell Bicep Curls",
-     "info": "3 sets · Target: 10-12 reps · Note: Control lowering phase for 3 seconds.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\n    Tone & Sculpt → Day 1: Upper Body Definition & Pulls",
+     "info": "3 sets · Target: 10-12 reps · Note: Control lowering phase for 3 seconds.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs; Tone & Sculpt → Day 1: Upper Body Definition & Pulls\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Bicep Curls exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Calf Raises",
+     "label": "Dumbbell Calf Raises",
+     "info": "3 sets · Target: 20 reps · Note: Hold dumbbells at your sides and rise onto your toes, pausing at the top. Rounds out the legs day.\nIn: Ty's Special → Day 3: Legs & Core Focus\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Calf Raises exercise"
     },
     {
      "id": "exercise:Dumbbell Floor Flyes",
      "label": "Dumbbell Floor Flyes",
-     "info": "3 sets · Target: 12 reps · Note: Control the movement on the way down.\nIn: Ty's Special → Day 6: Full Body & Abs",
+     "info": "3 sets · Target: 12 reps · Note: Control the movement on the way down.\nIn: Ty's Special → Day 6: Full Body & Abs\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Floor Flyes exercise"
     },
     {
      "id": "exercise:Dumbbell Floor Press",
      "label": "Dumbbell Floor Press",
-     "info": "3 sets · Target: 15 reps · Note: Fast-paced pressing on mat to keep heart rate elevated.\nIn: Fat Loss & Shred → Day 6: Full Body Circuit",
+     "info": "3 sets · Target: 15 reps · Note: Fast-paced pressing on mat to keep heart rate elevated.\nIn: Fat Loss & Shred → Day 6: Full Body Circuit\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Floor Press exercise"
     },
     {
      "id": "exercise:Dumbbell Floor Press on Mat",
      "label": "Dumbbell Floor Press on Mat",
-     "info": "4 sets · Target: 12-15 reps · Note: Lie on mat, press dumbbells up squeezing chest at peak for 1 second to build chest shape.\nIn: Tone & Sculpt → Day 1: Upper Body Definition & Pulls",
+     "info": "4 sets · Target: 12-15 reps · Note: Lie on mat, press dumbbells up squeezing chest at peak for 1 second to build chest shape.\nIn: Tone & Sculpt → Day 1: Upper Body Definition & Pulls\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Floor Press on Mat exercise"
     },
     {
      "id": "exercise:Dumbbell Goblet Squat Pulsing",
      "label": "Dumbbell Goblet Squat Pulsing",
-     "info": "3 sets · Target: 15 reps · Note: Hold one dumbbell at chest, perform deep lower-half pulses to shape glutes and tone legs.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Metabolic Stepper Intervals & Core Tightening",
+     "info": "3 sets · Target: 15 reps · Note: Hold one dumbbell at chest, perform deep lower-half pulses to shape glutes and tone legs.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Mini Stepper Intervals & Core Tightening\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Goblet Squat Pulsing exercise"
     },
     {
-     "id": "exercise:Dumbbell Goblet Squat to Stepper Step-Up",
-     "label": "Dumbbell Goblet Squat to Stepper Step-Up",
-     "info": "4 sets · Target: 12-15 reps · Note: Squat with dumbbell at chest, then step onto stepper for maximum lower-body calorie expenditure.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn",
-     "q": "Dumbbell Goblet Squat to Stepper Step-Up exercise"
+     "id": "exercise:Dumbbell Goblet Squat to Calf Raise",
+     "label": "Dumbbell Goblet Squat to Calf Raise",
+     "info": "4 sets · Target: 12-15 reps · Note: Hold a dumbbell at your chest, squat deep, then rise onto your toes at the top for a full lower-body burn.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Goblet Squat to Calf Raise exercise"
     },
     {
      "id": "exercise:Dumbbell Goblet Squats",
      "label": "Dumbbell Goblet Squats",
-     "info": "4 sets · Target: 12-15 reps · Note: Hold one heavy dumbbell vertically at chest.\nIn: Ty's Special → Day 3: Legs & Core Focus\n    Tone & Sculpt → Day 5: Lower Body & Core Tone",
+     "info": "4 sets · Target: 12-15 reps · Note: Hold one heavy dumbbell vertically at chest.\nIn: Ty's Special → Day 3: Legs & Core Focus; Tone & Sculpt → Day 5: Lower Body & Core Tone\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Goblet Squats exercise"
     },
     {
      "id": "exercise:Dumbbell Lateral Raises",
      "label": "Dumbbell Lateral Raises",
-     "info": "3 sets · Target: 12-15 reps · Note: Added to round out shoulder width and development.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\n    Tone & Sculpt → Day 1: Upper Body Definition & Pulls\n    Tone & Sculpt → Day 6: Upper Body Sculpt",
+     "info": "3 sets · Target: 12-15 reps · Note: Added to round out shoulder width and development.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps); Tone & Sculpt → Day 1: Upper Body Definition & Pulls; Tone & Sculpt → Day 6: Upper Body Sculpt\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Lateral Raises exercise"
     },
     {
      "id": "exercise:Dumbbell Lunges",
      "label": "Dumbbell Lunges",
-     "info": "3 sets · Target: 12 reps/leg · Note: Keep torso upright.\nIn: Ty's Special → Day 6: Full Body & Abs",
+     "info": "3 sets · Target: 12 reps/leg · Note: Keep torso upright.\nIn: Ty's Special → Day 6: Full Body & Abs\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Lunges exercise"
+    },
+    {
+     "id": "exercise:Dumbbell One-Arm Rows",
+     "label": "Dumbbell One-Arm Rows",
+     "info": "3 sets · Target: 10 reps/arm · Note: Brace one hand on a sturdy surface and row the dumbbell to your hip. Builds the back that supports your pulling and curls.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell One-Arm Rows exercise"
     },
     {
      "id": "exercise:Dumbbell Overhead Press",
      "label": "Dumbbell Overhead Press",
-     "info": "3 sets · Target: 12 reps · Note: Seated shoulder shaping.\nIn: Tone & Sculpt → Day 6: Upper Body Sculpt",
+     "info": "3 sets · Target: 12 reps · Note: Seated shoulder shaping.\nIn: Tone & Sculpt → Day 6: Upper Body Sculpt\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Overhead Press exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Overhead Tricep Extension",
+     "label": "Dumbbell Overhead Tricep Extension",
+     "info": "4 sets · Target: 15 reps · Note: Hold one dumbbell overhead with both hands, lower behind your head, then extend. Tones the back of the arms.\nIn: Tone & Sculpt → Day 1: Upper Body Definition & Pulls\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Overhead Tricep Extension exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Rear Delt Flyes",
+     "label": "Dumbbell Rear Delt Flyes",
+     "info": "3 sets · Target: 15 reps · Note: Hinge forward and raise light dumbbells out to the sides, squeezing your shoulder blades. Balances the shoulders and posture.\nIn: Ty's Special → Day 5: Biceps & Upper Body\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Rear Delt Flyes exercise"
     },
     {
      "id": "exercise:Dumbbell Renegade Rows on Mat",
      "label": "Dumbbell Renegade Rows on Mat",
-     "info": "3 sets · Target: 12 total reps · Note: High plank position holding dumbbells, pulling up alternately to tighten core and upper body tone.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration\n    Fat Loss & Shred → Day 1: Cardio-Metabolic Burner",
+     "info": "4 sets · Target: 12 total reps · Note: High plank on mat holding dumbbells, alternating rows to torch core and upper back.\nIn: Fat Loss & Shred → Day 1: Cardio-Metabolic Burner\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Renegade Rows on Mat exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Reverse Lunges",
+     "label": "Dumbbell Reverse Lunges",
+     "info": "3 sets · Target: 10 reps/leg · Note: Step one foot back and lower until both knees bend, then drive through the front heel. Builds quads and glutes with a pair of dumbbells.\nIn: Ty's Special → Day 3: Legs & Core Focus; Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming; Fat Loss & Shred → Day 2: Legs & Core Shred\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Reverse Lunges exercise"
     },
     {
      "id": "exercise:Dumbbell Romanian Deadlifts",
      "label": "Dumbbell Romanian Deadlifts",
-     "info": "3 sets · Target: 12 reps · Note: Focus on stretching the hamstrings.\nIn: Ty's Special → Day 3: Legs & Core Focus\n    Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming\n    Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\n    Tone & Sculpt → Day 5: Lower Body & Core Tone",
+     "info": "3 sets · Target: 12 reps · Note: Focus on stretching the hamstrings.\nIn: Ty's Special → Day 3: Legs & Core Focus; Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming; Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core; Tone & Sculpt → Day 5: Lower Body & Core Tone\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Romanian Deadlifts exercise"
     },
     {
      "id": "exercise:Dumbbell Russian Twists",
      "label": "Dumbbell Russian Twists",
-     "info": "3 sets · Target: 20 total reps · Note: Targets side abs/obliques.\nIn: Ty's Special → Day 3: Legs & Core Focus\n    Fat Loss & Shred → Day 5: Active Conditioning & Core",
+     "info": "3 sets · Target: 20 total reps · Note: Targets side abs/obliques.\nIn: Ty's Special → Day 3: Legs & Core Focus; Fat Loss & Shred → Day 5: Active Conditioning & Core\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Russian Twists exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Side Lunges",
+     "label": "Dumbbell Side Lunges",
+     "info": "3 sets · Target: 10 reps/side · Note: Step wide to one side, sit back into that hip, then push back to center. Works legs and glutes while keeping your heart rate up.\nIn: Fat Loss & Shred → Day 5: Active Conditioning & Core\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Side Lunges exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Split Squats",
+     "label": "Dumbbell Split Squats",
+     "info": "3 sets · Target: 10 reps/leg · Note: Staggered stance with both feet on the floor. Lower the back knee toward the mat holding a dumbbell at your chest to shape glutes and legs.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting; Fat Loss & Shred → Day 6: Full Body Circuit; Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Split Squats exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Squat to Calf Raise",
+     "label": "Dumbbell Squat to Calf Raise",
+     "info": "4 sets · Target: 12 reps · Note: Hold one dumbbell at your chest, squat deep, then rise onto your toes at the top. Works legs and glutes without building arms or shoulders.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Squat to Calf Raise exercise"
     },
     {
      "id": "exercise:Dumbbell Sumo Deadlifts",
      "label": "Dumbbell Sumo Deadlifts",
-     "info": "3 sets · Target: 12 reps · Note: Added for focused glute isolation and outer hip toning using a wide stance with a dumbbell.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting",
+     "info": "3 sets · Target: 12 reps · Note: Added for focused glute isolation and outer hip toning using a wide stance with a dumbbell.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Sumo Deadlifts exercise"
     },
     {
      "id": "exercise:Dumbbell Swings",
      "label": "Dumbbell Swings",
-     "info": "4 sets · Target: 20 reps · Note: Hold one dumbbell vertically, hinge at hips and drive glutes forward explosively.\nIn: Fat Loss & Shred → Day 2: Stepper & Core Shred",
+     "info": "4 sets · Target: 20 reps · Note: Hold one dumbbell vertically, hinge at hips and drive glutes forward explosively.\nIn: Fat Loss & Shred → Day 2: Legs & Core Shred\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Swings exercise"
     },
     {
      "id": "exercise:Dumbbell Thrusters",
      "label": "Dumbbell Thrusters",
-     "info": "3 sets · Target: 12 reps · Note: Added for complete full-body conditioning and power.\nIn: Ty's Special → Day 6: Full Body & Abs\n    Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\n    Fat Loss & Shred → Day 1: Cardio-Metabolic Burner\n    Fat Loss & Shred → Day 6: Full Body Circuit",
+     "info": "3 sets · Target: 12 reps · Note: Added for complete full-body conditioning and power.\nIn: Ty's Special → Day 6: Full Body & Abs; Fat Loss & Shred → Day 1: Cardio-Metabolic Burner; Fat Loss & Shred → Day 6: Full Body Circuit\nOne picture here is used everywhere this exercise appears.",
      "q": "Dumbbell Thrusters exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Tricep Kickbacks",
+     "label": "Dumbbell Tricep Kickbacks",
+     "info": "3 sets · Target: 15 reps · Note: Hinge forward, elbow pinned to your side, and extend the dumbbell back. Tones the back of the arms.\nIn: Tone & Sculpt → Day 6: Upper Body Sculpt\nOne picture here is used everywhere this exercise appears.",
+     "q": "Dumbbell Tricep Kickbacks exercise"
     },
     {
      "id": "exercise:Floor Dumbbell Press",
      "label": "Floor Dumbbell Press",
-     "info": "4 sets · Target: 10-12 reps · Note: Lying flat on floor to target chest.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)",
+     "info": "4 sets · Target: 10-12 reps · Note: Lying flat on floor to target chest.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
      "q": "Floor Dumbbell Press exercise"
+    },
+    {
+     "id": "exercise:Floor Dumbbell Skull Crushers",
+     "label": "Floor Dumbbell Skull Crushers",
+     "info": "3 sets · Target: 12 reps · Note: Lie on the mat, lower the dumbbells toward your forehead with elbows pointed up, then press back up. Direct triceps work.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
+     "q": "Floor Dumbbell Skull Crushers exercise"
     },
     {
      "id": "exercise:Floor Planks",
      "label": "Floor Planks",
-     "info": "3 sets · Target: 45-60 sec hold · Note: Maintain solid core line.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs",
+     "info": "3 sets · Target: 45-60 sec hold · Note: Maintain solid core line.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\nOne picture here is used everywhere this exercise appears.",
      "q": "Floor Planks exercise"
     },
     {
      "id": "exercise:Full Body Recovery & Rest",
      "label": "Full Body Recovery & Rest",
-     "info": "1 sets · Target: Off · Note: Take a complete rest day or light stretching to recover from the first training block.\nIn: Ty's Special → Day 4: Rest Day",
+     "info": "1 sets · Target: Off · Note: Take a complete rest day or light stretching to recover from the first training block.\nIn: Ty's Special → Day 4: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Full Body Recovery & Rest exercise"
     },
     {
      "id": "exercise:Full Rest & Hydration",
      "label": "Full Rest & Hydration",
-     "info": "1 sets · Target: Off · Note: Second weekly rest day to ensure complete structural recovery.\nIn: Kit Kat's Special (Waist and Trim) → Day 7: Rest Day",
+     "info": "1 sets · Target: Off · Note: Second weekly rest day to ensure complete structural recovery.\nIn: Kit Kat's Special (Waist and Trim) → Day 7: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Full Rest & Hydration exercise"
     },
     {
      "id": "exercise:Hammer Curls",
      "label": "Hammer Curls",
-     "info": "3 sets · Target: 12 reps · Note: Builds bicep thickness and forearms.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\n    Tone & Sculpt → Day 6: Upper Body Sculpt",
+     "info": "3 sets · Target: 12 reps · Note: Builds bicep thickness and forearms.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs; Tone & Sculpt → Day 6: Upper Body Sculpt\nOne picture here is used everywhere this exercise appears.",
      "q": "Hammer Curls exercise"
     },
     {
      "id": "exercise:Hanging Active Decompression & Knee Tucks",
      "label": "Hanging Active Decompression & Knee Tucks",
-     "info": "3 sets · Target: 12 reps · Note: Hang strictly from the pull-up bar to decompress spine, then tuck knees up smoothly to isolate lower core tightening.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Metabolic Stepper Intervals & Core Tightening\n    Fat Loss & Shred → Day 6: Full Body Circuit",
+     "info": "3 sets · Target: 12 reps · Note: Hang strictly from the pull-up bar to decompress spine, then tuck knees up smoothly to isolate lower core tightening.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Mini Stepper Intervals & Core Tightening; Fat Loss & Shred → Day 6: Full Body Circuit\nOne picture here is used everywhere this exercise appears.",
      "q": "Hanging Active Decompression & Knee Tucks exercise"
     },
     {
      "id": "exercise:Hanging Knee Raises",
      "label": "Hanging Knee Raises",
-     "info": "3 sets · Target: 12-15 reps · Note: Use pull-up bar to target lower abs.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs\n    Fat Loss & Shred → Day 1: Cardio-Metabolic Burner\n    Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core",
+     "info": "3 sets · Target: 12-15 reps · Note: Use pull-up bar to target lower abs.\nIn: Ty's Special → Day 1: Pull & Biceps Focus + Abs; Fat Loss & Shred → Day 1: Cardio-Metabolic Burner; Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\nOne picture here is used everywhere this exercise appears.",
      "q": "Hanging Knee Raises exercise"
     },
     {
      "id": "exercise:Hanging Knee Tuck Twists",
      "label": "Hanging Knee Tuck Twists",
-     "info": "3 sets · Target: 12 total reps · Note: Hang from pull-up bar, draw knees upward and twist toward alternate elbows for waist trimming.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting",
+     "info": "3 sets · Target: 12 total reps · Note: Hang from pull-up bar, draw knees upward and twist toward alternate elbows for waist trimming.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting\nOne picture here is used everywhere this exercise appears.",
      "q": "Hanging Knee Tuck Twists exercise"
     },
     {
      "id": "exercise:Hanging Leg Tuck Twist",
      "label": "Hanging Leg Tuck Twist",
-     "info": "3 sets · Target: 10 reps · Note: Pull knees up toward alternating elbows.\nIn: Ty's Special → Day 5: Biceps & Upper Body\n    Fat Loss & Shred → Day 2: Stepper & Core Shred\n    Tone & Sculpt → Day 3: Core & Total Body Polish",
+     "info": "3 sets · Target: 10 reps · Note: Pull knees up toward alternating elbows.\nIn: Ty's Special → Day 5: Biceps & Upper Body; Fat Loss & Shred → Day 2: Legs & Core Shred; Tone & Sculpt → Day 3: Core & Total Body Polish\nOne picture here is used everywhere this exercise appears.",
      "q": "Hanging Leg Tuck Twist exercise"
     },
     {
      "id": "exercise:Hanging Straight Leg Raises",
      "label": "Hanging Straight Leg Raises",
-     "info": "3 sets · Target: 10-12 reps · Note: Strict hanging leg raises on the pull-up bar to forge extreme lower abdominal core control.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\n    Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn",
+     "info": "3 sets · Target: 10-12 reps · Note: Hang from the bar and raise straight legs smoothly with no swinging. Strong lower-abs finisher.\nIn: Ty's Special → Day 6: Full Body & Abs; Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening; Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn\nOne picture here is used everywhere this exercise appears.",
      "q": "Hanging Straight Leg Raises exercise"
     },
     {
      "id": "exercise:Hollow Body Hold",
      "label": "Hollow Body Hold",
-     "info": "3 sets · Target: 30-45 sec hold · Note: Core actively engaged throughout.\nIn: Ty's Special → Day 6: Full Body & Abs",
+     "info": "3 sets · Target: 30-45 sec hold · Note: Core actively engaged throughout.\nIn: Ty's Special → Day 6: Full Body & Abs\nOne picture here is used everywhere this exercise appears.",
      "q": "Hollow Body Hold exercise"
-    },
-    {
-     "id": "exercise:Incline Push-Ups on Stepper",
-     "label": "Incline Push-Ups on Stepper",
-     "info": "3 sets · Target: 12-15 reps · Note: Hands placed on stepper, body straight on mat. Tones chest and front shoulders cleanly.\nIn: Tone & Sculpt → Day 3: Core & Total Body Polish",
-     "q": "Incline Push-Ups on Stepper exercise"
     },
     {
      "id": "exercise:Lying Leg Raises",
      "label": "Lying Leg Raises",
-     "info": "3 sets · Target: 15 reps · Note: Keep lower back pressed flat against floor.\nIn: Ty's Special → Day 3: Legs & Core Focus",
+     "info": "3 sets · Target: 15 reps · Note: Keep lower back pressed flat against floor.\nIn: Ty's Special → Day 3: Legs & Core Focus\nOne picture here is used everywhere this exercise appears.",
      "q": "Lying Leg Raises exercise"
     },
     {
      "id": "exercise:Mat Burpees with Dumbbells",
      "label": "Mat Burpees with Dumbbells",
-     "info": "3 sets · Target: 10 reps · Note: Drop to mat, kick back into push-up, jump in, and press dumbbells overhead.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn",
+     "info": "3 sets · Target: 10 reps · Note: Drop to mat, kick back into push-up, jump in, and press dumbbells overhead.\nIn: Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Burpees with Dumbbells exercise"
     },
     {
      "id": "exercise:Mat Dead Bugs",
      "label": "Mat Dead Bugs",
-     "info": "3 sets · Target: 15 reps · Note: Reinforces deep core bracing and waist control.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Metabolic Stepper Intervals & Core Tightening\n    Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\n    Tone & Sculpt → Day 5: Lower Body & Core Tone",
+     "info": "3 sets · Target: 15 reps · Note: Reinforces deep core bracing and waist control.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Mini Stepper Intervals & Core Tightening; Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening; Tone & Sculpt → Day 5: Lower Body & Core Tone\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Dead Bugs exercise"
+    },
+    {
+     "id": "exercise:Mat Dumbbell Glute Bridges",
+     "label": "Mat Dumbbell Glute Bridges",
+     "info": "3 sets · Target: 15 reps · Note: Lie on the mat with feet flat and a dumbbell resting on your hips. Squeeze your glutes hard at the top.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming; Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mat Dumbbell Glute Bridges exercise"
     },
     {
      "id": "exercise:Mat Hollow Body Hold",
      "label": "Mat Hollow Body Hold",
-     "info": "3 sets · Target: 30-45 sec hold · Note: Complete structural core tightening on yoga mat, flattening lower back completely.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration\n    Fat Loss & Shred → Day 5: Active Conditioning & Core",
+     "info": "3 sets · Target: 30-45 sec hold · Note: Complete structural core tightening on yoga mat, flattening lower back completely.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration; Fat Loss & Shred → Day 5: Active Conditioning & Core\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Hollow Body Hold exercise"
     },
     {
      "id": "exercise:Mat Lying Leg Lowers",
      "label": "Mat Lying Leg Lowers",
-     "info": "3 sets · Target: 12-15 reps · Note: Lying flat on yoga mat, slowly lower straight legs down toward the floor while keeping lower back pressed flat to torch lower belly fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration",
+     "info": "3 sets · Target: 12-15 reps · Note: Lying flat on yoga mat, slowly lower straight legs down toward the floor while keeping lower back pressed flat to torch lower belly fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Lying Leg Lowers exercise"
     },
     {
      "id": "exercise:Mat Mountain Climbers",
      "label": "Mat Mountain Climbers",
-     "info": "4 sets · Target: 40 total reps · Note: Fast-paced alternating knee drives in plank position to maximize calorie burn.\nIn: Fat Loss & Shred → Day 1: Cardio-Metabolic Burner\n    Fat Loss & Shred → Day 6: Full Body Circuit",
+     "info": "4 sets · Target: 40 total reps · Note: Fast-paced alternating knee drives in plank position to maximize calorie burn.\nIn: Fat Loss & Shred → Day 1: Cardio-Metabolic Burner; Fat Loss & Shred → Day 6: Full Body Circuit\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Mountain Climbers exercise"
     },
     {
      "id": "exercise:Mat Plank Shoulder Taps",
      "label": "Mat Plank Shoulder Taps",
-     "info": "3 sets · Target: 30 total reps · Note: Maintain high plank position on mat, tapping alternate shoulders to control core rotation.\nIn: Fat Loss & Shred → Day 5: Active Conditioning & Core",
+     "info": "3 sets · Target: 30 total taps · Note: High plank, tap opposite shoulders slowly while keeping hips still. Core and shoulder stability on push day.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps); Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration; Fat Loss & Shred → Day 5: Active Conditioning & Core\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Plank Shoulder Taps exercise"
+    },
+    {
+     "id": "exercise:Mat Push-ups",
+     "label": "Mat Push-ups",
+     "info": "3 sets · Target: 12-15 reps · Note: Hands on the mat under your shoulders, body in a straight line. Drop to your knees if you need to.\nIn: Fat Loss & Shred → Day 2: Legs & Core Shred; Tone & Sculpt → Day 3: Core & Total Body Polish\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mat Push-ups exercise"
     },
     {
      "id": "exercise:Mat Reverse Crunches",
      "label": "Mat Reverse Crunches",
-     "info": "3 sets · Target: 15 reps · Note: Lying on yoga mat, lift hips slightly off the floor using lower abs to target stubborn lower belly fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Metabolic Stepper Intervals & Core Tightening",
+     "info": "3 sets · Target: 15 reps · Note: Lying on yoga mat, lift hips slightly off the floor using lower abs to target stubborn lower belly fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Mini Stepper Intervals & Core Tightening\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Reverse Crunches exercise"
     },
     {
      "id": "exercise:Mat Russian Twists with Light Dumbbell",
      "label": "Mat Russian Twists with Light Dumbbell",
-     "info": "4 sets · Target: 20 total reps · Note: Twist side-to-side slowly on mat to carve waistline definition and obliques.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting",
+     "info": "4 sets · Target: 20 total reps · Note: Twist side-to-side slowly on mat to carve waistline definition and obliques.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Russian Twists with Light Dumbbell exercise"
     },
     {
      "id": "exercise:Mat Side Plank Hip Lifts",
      "label": "Mat Side Plank Hip Lifts",
-     "info": "3 sets · Target: 12 reps/side · Note: Target obliques and waist definition with controlled side lifts.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming\n    Tone & Sculpt → Day 3: Core & Total Body Polish",
+     "info": "3 sets · Target: 12 reps/side · Note: Target obliques and waist definition with controlled side lifts.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming; Tone & Sculpt → Day 3: Core & Total Body Polish\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Side Plank Hip Lifts exercise"
+    },
+    {
+     "id": "exercise:Mat Single-Leg Glute Bridges",
+     "label": "Mat Single-Leg Glute Bridges",
+     "info": "4 sets · Target: 12 reps/leg · Note: Feet flat on the mat, one leg extended, dumbbell on your hips. Squeeze the glute at the top and keep hips level.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting; Tone & Sculpt → Day 5: Lower Body & Core Tone\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mat Single-Leg Glute Bridges exercise"
     },
     {
      "id": "exercise:Mat Vacuum Core Holds",
      "label": "Mat Vacuum Core Holds",
-     "info": "4 sets · Target: 30 sec hold · Note: On yoga mat, exhale all air and pull stomach inward toward spine as tightly as possible to shrink waistline and engage transverse abdominis.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming\n    Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration\n    Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\n    Tone & Sculpt → Day 5: Lower Body & Core Tone",
+     "info": "4 sets · Target: 30 sec hold · Note: On yoga mat, exhale all air and pull stomach inward toward spine as tightly as possible to shrink waistline and engage transverse abdominis.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming; Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration; Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core; Tone & Sculpt → Day 5: Lower Body & Core Tone\nOne picture here is used everywhere this exercise appears.",
      "q": "Mat Vacuum Core Holds exercise"
     },
     {
      "id": "exercise:Mid-Week Recovery",
      "label": "Mid-Week Recovery",
-     "info": "1 sets · Target: Off · Note: Complete rest or light stretching to recover tissue from high-intensity conditioning.\nIn: Fat Loss & Shred → Day 4: Rest Day",
+     "info": "1 sets · Target: Off · Note: Complete rest or light stretching to recover tissue from high-intensity conditioning.\nIn: Fat Loss & Shred → Day 4: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Mid-Week Recovery exercise"
+    },
+    {
+     "id": "exercise:Mini Stepper Fast Climbs",
+     "label": "Mini Stepper Fast Climbs",
+     "info": "4 sets · Target: 45 sec continuous · Note: Pedal the mini stair stepper fast with a tall chest and light hands on the rail to spike your heart rate and burn fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Mini Stepper Intervals & Core Tightening; Fat Loss & Shred → Day 2: Legs & Core Shred\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mini Stepper Fast Climbs exercise"
+    },
+    {
+     "id": "exercise:Mini Stepper Fast Pace",
+     "label": "Mini Stepper Fast Pace",
+     "info": "4 sets · Target: 45 sec continuous · Note: Pedal the mini stair stepper at a fast, steady pace to keep your heart rate high.\nIn: Fat Loss & Shred → Day 1: Cardio-Metabolic Burner\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mini Stepper Fast Pace exercise"
+    },
+    {
+     "id": "exercise:Mini Stepper Interval Sprints",
+     "label": "Mini Stepper Interval Sprints",
+     "info": "5 sets · Target: 45 sec · Note: Pedal the mini stair stepper as fast as you can control for 45 seconds, then rest briefly. High-speed intervals for fat loss.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening; Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mini Stepper Interval Sprints exercise"
+    },
+    {
+     "id": "exercise:Mini Stepper Quick-Pace Finish",
+     "label": "Mini Stepper Quick-Pace Finish",
+     "info": "3 sets · Target: 45 sec · Note: Light, quick pedaling on the mini stair stepper to finish with a high-energy metabolic burn.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mini Stepper Quick-Pace Finish exercise"
+    },
+    {
+     "id": "exercise:Mini Stepper Steady Climb",
+     "label": "Mini Stepper Steady Climb",
+     "info": "1 sets · Target: 20 mins · Note: Steady, moderate pace on the mini stair stepper where you can still talk. The steady session that adds the most weekly calorie burn.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration; Fat Loss & Shred → Day 5: Active Conditioning & Core\nOne picture here is used everywhere this exercise appears.",
+     "q": "Mini Stepper Steady Climb exercise"
+    },
+    {
+     "id": "exercise:Optional: Easy Mini Stepper Walk",
+     "label": "Optional: Easy Mini Stepper Walk",
+     "info": "1 sets · Target: 15-20 mins · Note: Light pace on the mini stair stepper for easy calorie burn and recovery. Skip it if you feel run down.\nIn: Ty's Special → Day 4: Rest Day; Ty's Special → Day 7: Rest Day\nOne picture here is used everywhere this exercise appears.",
+     "q": "Optional: Easy Mini Stepper Walk exercise"
     },
     {
      "id": "exercise:Overhead Dumbbell Tricep Extension",
      "label": "Overhead Dumbbell Tricep Extension",
-     "info": "3 sets · Target: 12 reps · Note: Focus on full extension.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)",
+     "info": "3 sets · Target: 12 reps · Note: Focus on full extension.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
      "q": "Overhead Dumbbell Tricep Extension exercise"
     },
     {
      "id": "exercise:Pull-ups",
      "label": "Pull-ups",
-     "info": "3 sets · Target: Max reps · Note: Overhand grip to target upper back and biceps.\nIn: Ty's Special → Day 5: Biceps & Upper Body\n    Tone & Sculpt → Day 1: Upper Body Definition & Pulls",
+     "info": "3 sets · Target: Max reps · Note: Overhand grip to target upper back and biceps.\nIn: Ty's Special → Day 5: Biceps & Upper Body; Tone & Sculpt → Day 1: Upper Body Definition & Pulls\nOne picture here is used everywhere this exercise appears.",
      "q": "Pull-ups exercise"
     },
     {
      "id": "exercise:Rest & Recovery",
      "label": "Rest & Recovery",
-     "info": "1 sets · Target: Off · Note: Take a break to allow your muscle fibers to repair and tone.\nIn: Tone & Sculpt → Day 4: Rest Day",
+     "info": "1 sets · Target: Off · Note: Take a break to allow your muscle fibers to repair and tone.\nIn: Tone & Sculpt → Day 4: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Rest & Recovery exercise"
     },
     {
      "id": "exercise:Seated Dumbbell Shoulder Press",
      "label": "Seated Dumbbell Shoulder Press",
-     "info": "3 sets · Target: 10 reps · Note: Keep core engaged.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)",
+     "info": "3 sets · Target: 10 reps · Note: Keep core engaged.\nIn: Ty's Special → Day 2: Push (Chest, Shoulders, Triceps)\nOne picture here is used everywhere this exercise appears.",
      "q": "Seated Dumbbell Shoulder Press exercise"
-    },
-    {
-     "id": "exercise:Stepper Bulgarian Split Squats",
-     "label": "Stepper Bulgarian Split Squats",
-     "info": "3 sets · Target: 10 reps/leg · Note: Rear foot on stepper, lower down into deep lunging motion for individual leg shaping and glute lift.\nIn: Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting\n    Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core",
-     "q": "Stepper Bulgarian Split Squats exercise"
-    },
-    {
-     "id": "exercise:Stepper Continuous Step-Climbs",
-     "label": "Stepper Continuous Step-Climbs",
-     "info": "1 sets · Target: 20 mins · Note: Sustained steady-state metabolic stepper session to maximize weekly caloric fat burn.\nIn: Kit Kat's Special (Waist and Trim) → Day 6: Full-Body Fat Burn & Core Integration",
-     "q": "Stepper Continuous Step-Climbs exercise"
-    },
-    {
-     "id": "exercise:Stepper Decline Push-Ups",
-     "label": "Stepper Decline Push-Ups",
-     "info": "3 sets · Target: 12-15 reps · Note: Feet elevated on stepper, hands flat on mat to target upper chest and shoulders.\nIn: Fat Loss & Shred → Day 2: Stepper & Core Shred",
-     "q": "Stepper Decline Push-Ups exercise"
-    },
-    {
-     "id": "exercise:Stepper Dumbbell Glute Bridges",
-     "label": "Stepper Dumbbell Glute Bridges",
-     "info": "4 sets · Target: 15-20 reps · Note: Place feet elevated on stepper, lay on mat with dumbbell on hips. Squeeze glutes hard at top.\nIn: Tone & Sculpt → Day 2: Glute & Leg Sculpting + Core\n    Tone & Sculpt → Day 5: Lower Body & Core Tone",
-     "q": "Stepper Dumbbell Glute Bridges exercise"
-    },
-    {
-     "id": "exercise:Stepper Elevated Glute Bridges",
-     "label": "Stepper Elevated Glute Bridges",
-     "info": "3 sets · Target: 15 reps · Note: Added for extra targeted glute activation using the stepper.\nIn: Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming\n    Kit Kat's Special (Waist and Trim) → Day 5: Glute Isolation & Waist Sculpting",
-     "q": "Stepper Elevated Glute Bridges exercise"
-    },
-    {
-     "id": "exercise:Stepper High-Knee Climbs",
-     "label": "Stepper High-Knee Climbs",
-     "info": "4 sets · Target: 45 sec continuous · Note: Fast rhythmic step-ups driving knees up to elevate heart rate and burn fat.\nIn: Kit Kat's Special (Waist and Trim) → Day 1: Metabolic Stepper Intervals & Core Tightening\n    Fat Loss & Shred → Day 2: Stepper & Core Shred",
-     "q": "Stepper High-Knee Climbs exercise"
-    },
-    {
-     "id": "exercise:Stepper Lateral Toe Taps",
-     "label": "Stepper Lateral Toe Taps",
-     "info": "3 sets · Target: 45 sec · Note: Rapid side-to-side foot taps over stepper edge for agility and calorie burn.\nIn: Fat Loss & Shred → Day 5: Active Conditioning & Core",
-     "q": "Stepper Lateral Toe Taps exercise"
-    },
-    {
-     "id": "exercise:Stepper Quick Alternate Tap-Downs",
-     "label": "Stepper Quick Alternate Tap-Downs",
-     "info": "5 sets · Target: 45 sec · Note: High-speed cardio intervals stepping up and down to maximize metabolic conditioning and fat loss.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\n    Fat Loss & Shred → Day 3: Full Body Density & Calorie Burn",
-     "q": "Stepper Quick Alternate Tap-Downs exercise"
-    },
-    {
-     "id": "exercise:Stepper Quick Toe Taps",
-     "label": "Stepper Quick Toe Taps",
-     "info": "3 sets · Target: 45 sec · Note: Added for a high-energy metabolic finish.\nIn: Kit Kat's Special (Waist and Trim) → Day 3: Metabolic Conditioning & Core Tightening\n    Fat Loss & Shred → Day 1: Cardio-Metabolic Burner",
-     "q": "Stepper Quick Toe Taps exercise"
-    },
-    {
-     "id": "exercise:Stepper Steady Climbing",
-     "label": "Stepper Steady Climbing",
-     "info": "1 sets · Target: 25 mins · Note: Low-impact endurance burn on stepper to sustain weekly fat loss deficit.\nIn: Fat Loss & Shred → Day 5: Active Conditioning & Core",
-     "q": "Stepper Steady Climbing exercise"
-    },
-    {
-     "id": "exercise:Stepper Tricep Dips",
-     "label": "Stepper Tricep Dips",
-     "info": "4 sets · Target: 15 reps · Note: Hands placed on stepper edge behind you, bend elbows to 90 degrees to tone arms.\nIn: Tone & Sculpt → Day 1: Upper Body Definition & Pulls\n    Tone & Sculpt → Day 6: Upper Body Sculpt",
-     "q": "Stepper Tricep Dips exercise"
-    },
-    {
-     "id": "exercise:Stepper Weighted Step-Ups",
-     "label": "Stepper Weighted Step-Ups",
-     "info": "3 sets · Target: 10 reps/leg · Note: Added to build single-leg strength and quads using the stepper.\nIn: Ty's Special → Day 3: Legs & Core Focus\n    Kit Kat's Special (Waist and Trim) → Day 2: Glute Toning & Waist Slimming\n    Fat Loss & Shred → Day 6: Full Body Circuit",
-     "q": "Stepper Weighted Step-Ups exercise"
     },
     {
      "id": "exercise:Weekly Recovery & Reset",
      "label": "Weekly Recovery & Reset",
-     "info": "1 sets · Target: Off · Note: Second mandatory rest day of the week to prep for the next training cycle.\nIn: Ty's Special → Day 7: Rest Day",
+     "info": "1 sets · Target: Off · Note: Second mandatory rest day of the week to prep for the next training cycle.\nIn: Ty's Special → Day 7: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Weekly Recovery & Reset exercise"
     },
     {
      "id": "exercise:Weekly Rest",
      "label": "Weekly Rest",
-     "info": "1 sets · Target: Off · Note: Complete rest day to finalize muscle recovery.\nIn: Tone & Sculpt → Day 7: Rest Day",
+     "info": "1 sets · Target: Off · Note: Complete rest day to finalize muscle recovery.\nIn: Tone & Sculpt → Day 7: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Weekly Rest exercise"
     },
     {
      "id": "exercise:Weekly Rest & Reset",
      "label": "Weekly Rest & Reset",
-     "info": "1 sets · Target: Off · Note: Complete rest day to allow systemic recovery.\nIn: Fat Loss & Shred → Day 7: Rest Day",
+     "info": "1 sets · Target: Off · Note: Complete rest day to allow systemic recovery.\nIn: Fat Loss & Shred → Day 7: Rest Day\nOne picture here is used everywhere this exercise appears.",
      "q": "Weekly Rest & Reset exercise"
-    },
-    {
-     "id": "exercise:Weighted Stepper Step-Ups",
-     "label": "Weighted Stepper Step-Ups",
-     "info": "4 sets · Target: 12 reps/leg · Note: Hold light dumbbells at sides, drive upward through the leading heel on the stepper.\nIn: Fat Loss & Shred → Day 2: Stepper & Core Shred",
-     "q": "Weighted Stepper Step-Ups exercise"
     },
     {
      "id": "exercise:Zottman Curls",
      "label": "Zottman Curls",
-     "info": "3 sets · Target: 10 reps · Note: Curl palms up, rotate at top, lower palms down.\nIn: Ty's Special → Day 5: Biceps & Upper Body",
+     "info": "3 sets · Target: 10 reps · Note: Curl palms up, rotate at top, lower palms down.\nIn: Ty's Special → Day 5: Biceps & Upper Body\nOne picture here is used everywhere this exercise appears.",
      "q": "Zottman Curls exercise"
+    },
+    {
+     "id": "exercise:Dumbbell Goblet Squat to Stepper Step-Up",
+     "label": "Dumbbell Goblet Squat to Stepper Step-Up (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Dumbbell Goblet Squat to Stepper Step-Up exercise"
+    },
+    {
+     "id": "exercise:Incline Push-Ups on Stepper",
+     "label": "Incline Push-Ups on Stepper (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Incline Push-Ups on Stepper exercise"
+    },
+    {
+     "id": "exercise:Stepper Bulgarian Split Squats",
+     "label": "Stepper Bulgarian Split Squats (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Bulgarian Split Squats exercise"
+    },
+    {
+     "id": "exercise:Stepper Continuous Step-Climbs",
+     "label": "Stepper Continuous Step-Climbs (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Continuous Step-Climbs exercise"
+    },
+    {
+     "id": "exercise:Stepper Decline Push-Ups",
+     "label": "Stepper Decline Push-Ups (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Decline Push-Ups exercise"
+    },
+    {
+     "id": "exercise:Stepper Dumbbell Glute Bridges",
+     "label": "Stepper Dumbbell Glute Bridges (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Dumbbell Glute Bridges exercise"
+    },
+    {
+     "id": "exercise:Stepper Elevated Glute Bridges",
+     "label": "Stepper Elevated Glute Bridges (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Elevated Glute Bridges exercise"
+    },
+    {
+     "id": "exercise:Stepper High-Knee Climbs",
+     "label": "Stepper High-Knee Climbs (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper High-Knee Climbs exercise"
+    },
+    {
+     "id": "exercise:Stepper Lateral Toe Taps",
+     "label": "Stepper Lateral Toe Taps (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Lateral Toe Taps exercise"
+    },
+    {
+     "id": "exercise:Stepper Quick Alternate Tap-Downs",
+     "label": "Stepper Quick Alternate Tap-Downs (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Quick Alternate Tap-Downs exercise"
+    },
+    {
+     "id": "exercise:Stepper Quick Toe Taps",
+     "label": "Stepper Quick Toe Taps (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Quick Toe Taps exercise"
+    },
+    {
+     "id": "exercise:Stepper Steady Climbing",
+     "label": "Stepper Steady Climbing (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Steady Climbing exercise"
+    },
+    {
+     "id": "exercise:Stepper Tricep Dips",
+     "label": "Stepper Tricep Dips (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Tricep Dips exercise"
+    },
+    {
+     "id": "exercise:Stepper Weighted Step-Ups",
+     "label": "Stepper Weighted Step-Ups (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Stepper Weighted Step-Ups exercise"
+    },
+    {
+     "id": "exercise:Weighted Stepper Step-Ups",
+     "label": "Weighted Stepper Step-Ups (retired)",
+     "info": "Retired: no longer in any program. Kept so an old picture is not lost.",
+     "q": "Weighted Stepper Step-Ups exercise"
     }
    ],
    "one": "exercise picture"
