@@ -302,7 +302,7 @@ canvas#c,#townCv,#mapCv{touch-action:none}
       <div><b>Drag</b> left/right — aim your cast</div>
       <div><b>Tap</b> — cast your line</div>
       <div><b>Hold</b> your finger — reel up · <b>Let go</b> — sink</div>
-      <div><b>❗ appears</b> — TAP or LET GO to set the hook!</div>
+      <div><b>Nibbles</b> — small dips are the fish testing your bait. Wait! Tap or let go only on the BIG dip ❗ (tapping early spooks it)</div>
       <div><b>Fight</b> — hold to lift the green zone, release to drop it. Watch the line tension!</div>
       <div><b>Bottom bar</b> — tap a bait to equip it. Gear buttons (🔴 🪶 🧊) are on the right.</div>
       <div><b>🏘️ Town</b> — tap a building to walk there: shops, boatyard, cottage, lighthouse</div>
@@ -311,7 +311,7 @@ canvas#c,#townCv,#mapCv{touch-action:none}
     </div>
     <div class="how" id="how-kb">
       <div><b>Move mouse</b> — aim your cast · <b>Click/Space</b> cast</div>
-      <div><b>❗ appears</b> — Click, Space or let go to set the hook!</div>
+      <div><b>Nibbles</b> — small dips are the fish testing your bait. Wait! Click, Space or let go only on the BIG dip ❗ (clicking early spooks it)</div>
       <div><b>Hold</b> — reel up · <b>Release</b> — sink</div>
       <div><b>Fight</b> — hold to lift the green zone. Watch line tension!</div>
       <div><b>1–0</b> bait · <b>B</b> town · <b>J</b> cottage · <b>M</b> map · <b>V/F/I</b> gear</div>
@@ -1489,7 +1489,7 @@ function drawFlash(){if(WX.flash>0.01){ctx.fillStyle=`rgba(220,230,255,${WX.flas
 /* ===== lure, fish AI, strike, fight, hook ===== */
 const curBait=()=>BAITS[S.bait]||BAITS[0];
 const FLYB=['river','lake','pond','swamp'];
-hook.mode='norm';hook.strike=null;hook.flyBonus=0;hook.hole=false;hook.drill=0;
+hook.mode='norm';hook.strike=null;hook.nibSeq=null;hook.dipT=0;hook.flyBonus=0;hook.hole=false;hook.drill=0;
 let flyG=null;
 function lureFor0(f){
   const b=curBait(),rs=rodStats(),sp=f.sp,tg=sp.tags;let l=b.lure+rs.luck+(BUFF.t>0?BUFF.luck:0);
@@ -1519,7 +1519,28 @@ function onNibble(f){
   if(f.sp.thief&&Math.random()<.55){stealBait(f);return}
   const rs=rodStats();let win=1.2*rs.strike;if(hook.mode==='bob')win*=1.8;if(hook.mode==='ice')win*=1.3;if(hook.mode==='fly')win*=.9;
   if(SET.autoSet){bite(f);return}
-  hook.strike={f,t:win,tot:win};f.state='striking';f.nib=0;hook.bangT=win;hook.jig=.8;sfx.bite();
+  const pat=nibblePattern(f);
+  if(pat.n===0){startReal(f,win);return}
+  f.state='striking';f.nib=0;hook.nibSeq={f,n:pat.n,g:pat.g,k:0,t:pat.g[0],win,heavy:pat.heavy,grace:.3};
+}
+/* nibble timing: every fish has its own rhythm of small dips, then one BIG dip (the strike). Tapping early spooks it. */
+function nibblePattern(f){
+  const sp=f.sp,sz=clamp(sp.len*f.sc/200,0,1.2),big=!!sp.boss||sp.diff>.7||sz>.7,small=!big&&sz<.3&&sp.diff<.45;let n,g=[];
+  if(small){n=2;g=[.3,.22,.32]}
+  else if(big){n=1+(Math.random()<.5?1:0);for(let i=0;i<n;i++)g.push(rnd(.9,1.4));g.push(rnd(1.1,1.8))}
+  else{n=1+Math.floor(Math.random()*3);for(let i=0;i<n;i++)g.push(rnd(.45,.8));g.push(rnd(.5,.9))}
+  if(hook.mode==='bob'&&n>0){n--;g.shift()}
+  return{n,g,heavy:big};
+}
+function startReal(f,win){hook.strike={f,t:win,tot:win};f.state='striking';f.nib=0;hook.bangT=win;hook.jig=.8;sfx.bite()}
+function nibTick(dt){
+  const q=hook.nibSeq;if(!q)return;if(q.grace>0)q.grace-=dt;q.t-=dt;if(q.t>0)return;
+  if(q.k<q.n){q.k++;hook.dipT=.4;hook.jig=q.heavy?.9:.5;FX.bump=q.heavy?1:.6;bubble(hook.x,hook.y-4,rnd(2,4));vib(q.heavy?24:10);tone(q.heavy?220:420,.07,'square',.06);q.t=q.g[q.k]}
+  else{hook.nibSeq=null;startReal(q.f,q.win)}
+}
+function spookNib(){
+  const q=hook.nibSeq;hook.nibSeq=null;if(!q)return;const f=q.f;f.state='wild';flee(f,hook.x,3);f.cool=8;hook.dipT=0;
+  toast('🐟 Too early! Wait for the BIG dip ❗');sfx.lose();
 }
 function setHook(){const s=hook.strike;if(!s)return;hook.strike=null;bite(s.f)}
 function missStrike(){const s=hook.strike;hook.strike=null;if(!s)return;const f=s.f;f.state='wild';flee(f,hook.x,3);f.cool=8;toast('💨 Missed the strike! Tap or let go the moment ❗ appears');sfx.lose()}
@@ -1535,7 +1556,7 @@ function updateFish(dt){
     if(sp.night){const full=fullMoon();f.alpha=clamp(f.alpha+((night>(.6-.25*full)&&WX.kind!=='fog')||night>.85?dt*.4:-dt*.4),0,1)}
     if(f.state==='striking'){f.x=hook.x-f.dir*m*.46;f.y=hook.y;f.by=f.y;continue}
     let chasing=false;
-    if(inFish&&!hook.strike&&f.cool<=0&&f.alpha>.6&&f.state==='wild'&&(hook.mode!=='fly'||sp.d[0]<=6)){
+    if(inFish&&!hook.strike&&!hook.nibSeq&&f.cool<=0&&f.alpha>.6&&f.state==='wild'&&(hook.mode!=='fly'||sp.d[0]<=6)){
       const L=lureFor(f),mx=f.x+f.dir*m*.46,dx=hook.x-mx,dy=hook.y-f.y,d=Math.hypot(dx,dy);
       if(L>=sp.shy){
         if(d<attractRad(f)){
@@ -1689,6 +1710,8 @@ function retrieve(){hook.state='idle';hook.fish=null;hook.strike=null;splash(hoo
 function updateHook(dt){
   const rs=rodStats();let bt=.1;if(hook.bangT>0)hook.bangT-=dt;if(hook.jig>0)hook.jig-=dt*2;
   const st=hook.state;
+  if(hook.dipT>0)hook.dipT-=dt;
+  if(hook.nibSeq&&st!=='fish'){const nf=hook.nibSeq.f;hook.nibSeq=null;if(nf.state==='striking')nf.state='wild'}
   if(st==='idle'){hook.x=tip.x+Math.sin(TM*1.7)*3;hook.y=tip.y+40+Math.sin(TM*2.3)*2}
   else if(st==='drill'){
     hook.x=tip.x;hook.y=tip.y+40;bt=.3+Math.sin(TM*30)*.1;
@@ -1703,8 +1726,9 @@ function updateHook(dt){
   else if(st==='fish'){
     bt=.3;if(hook.mode!=='ice')hook.x+=clamp(clamp(hook.tx,BX+70,VW-24)-hook.x,-150*dt,150*dt);
     let md=Math.min(rs.depth,MAXD-1.2);if(hook.mode==='bob')md=Math.min(md,S.gear.bobD);if(hook.mode==='fly')md=Math.min(md,5);
-    const sy=waveY(hook.x,TM)+3,maxY=SURF+md*PXM,up=holding&&!ignoreHold&&!hook.strike;
+    const sy=waveY(hook.x,TM)+3,maxY=SURF+md*PXM,up=holding&&!ignoreHold&&!hook.strike&&!hook.nibSeq;
     if(hook.strike){hook.strike.t-=dt;if(hook.strike.t<=0)missStrike();bt=.6}
+    else if(hook.nibSeq){nibTick(dt);bt=.45}
     else hook.y+=(up?-rs.reel:rs.sink*(hook.mode==='fly'?.3:1))*dt;
     if(hook.y>=maxY){hook.y=maxY;if(!hook.maxMsg&&hook.mode==='norm'){hook.maxMsg=1;toast(rs.depth>=MAXD-1.2?'You hit the bottom!':'Line fully extended — your rod can\'t go deeper')}}
     if(up&&hook.y<=sy+1){retrieve()}
@@ -2565,8 +2589,9 @@ function drawHookStuff(){
   drawHookStuff0();
   const c=ctx,st=hook.state;
   if((st==='fish'||st==='fight')&&hook.mode==='bob'){
-    const wy=waveY(hook.x,TM)+(hook.strike?5+Math.sin(TM*30)*2:Math.sin(TM*3)*1.5);
+    const wy=waveY(hook.x,TM)+(hook.strike?5+Math.sin(TM*30)*2:Math.sin(TM*3)*1.5+(hook.dipT>0?hook.dipT*18:0));
     c.save();c.translate(hook.x,wy-4);c.fillStyle='#fff';c.beginPath();c.arc(0,0,7,Math.PI,TAU);c.fill();c.fillStyle='#e8402f';c.beginPath();c.arc(0,0,7,0,Math.PI);c.fill();c.fillStyle='#fff';c.fillRect(-1.5,-14,3,8);c.restore()}
+  if(st==='fish'&&hook.dipT>0){const u=1-hook.dipT/.4;c.save();c.strokeStyle='rgba(255,255,255,'+(.7*(1-u))+')';c.lineWidth=2;c.beginPath();c.ellipse(hook.x,waveY(hook.x,TM)+2,8+u*26,2.5+u*5,0,0,TAU);c.stroke();c.restore()}
   if(st==='fish'&&hook.mode==='fly'){c.save();c.translate(hook.x,waveY(hook.x,TM)-2);c.fillStyle='#ffd166';c.beginPath();c.moveTo(-8,0);c.quadraticCurveTo(0,-9,8,0);c.fill();c.strokeStyle='#fff';c.lineWidth=1;c.beginPath();c.moveTo(-8,0);c.lineTo(-13,-5);c.stroke();c.restore()}
   if(st==='drill'){const x=BX+30,y=SURF-22,u=hook.drill;c.save();c.translate(x,y);c.strokeStyle='#cfe8ff';c.lineWidth=5;c.beginPath();c.moveTo(0,-70);c.lineTo(0,0);c.stroke();c.fillStyle='#ffd166';c.beginPath();c.moveTo(-8,-70);c.lineTo(8,-70);c.lineTo(0,-84);c.fill();c.strokeStyle='#ffd166';c.lineWidth=4;c.beginPath();c.arc(0,-20,26,-Math.PI/2,-Math.PI/2+TAU*u);c.stroke();c.fillStyle='#fff';c.font='800 12px sans-serif';c.textAlign='center';c.fillText('HOLD TO DRILL',0,-100);c.restore()}
   if(!(hook.mode==='ice'||hook.hole)||SCN.plat!=='floe')return;
@@ -2975,7 +3000,7 @@ function hudTick(){
     case'flycast':h='Time your presses on the green zone';break;
     case'drill':h='<b>Hold</b> to drill…';break;
     case'cast':h='';break;
-    case'fish':h=hook.strike?'<b>❗ TAP or LET GO NOW!</b>':holding&&!ignoreHold?'Reeling up…':'<b>Hold</b> to reel up · release to sink · when ❗ appears, tap or let go!';break;
+    case'fish':h=hook.strike?'<b>❗ TAP or LET GO NOW!</b>':hook.nibSeq?'<b>🐟 Nibbling… wait for the BIG dip ❗</b>':holding&&!ignoreHold?'Reeling up…':'<b>Hold</b> to reel up · release to sink · when ❗ appears, tap or let go!';break;
     case'fight':h=fight&&fight.tension>.7?'<b>⚠ LET GO — line is straining!</b>':'<b>HOLD</b> to raise the green zone — tap during hard pulls to ease tension';break;
     case'reveal':h='Landing your catch…';break;default:h=''}
   if(h!==hintCache){hintCache=h;const e=$('hint');e.innerHTML=T(h);e.style.display=h?'block':'none'}
@@ -3018,6 +3043,7 @@ function pressStart(){
   if(!started||modalOpen)return;initAudio();
   if(hook.state==='card'){if(!cardShown)revealNow();return}
   holding=true;if(fight&&hook.state==='fight')fight.pumpT=.25;
+  if(hook.state==='fish'&&hook.nibSeq){if(hook.nibSeq.grace<=0)spookNib();return}
   if(hook.state==='fish'&&hook.strike){setHook();return}
   if(hook.state==='flycast'){flyPress();return}
   if(hook.state==='idle')startCast();
