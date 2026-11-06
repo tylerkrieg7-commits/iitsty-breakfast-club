@@ -120,4 +120,4 @@ Docker rebuilds.
 
 
 BUILD 26 NOTE
-Exercise pictures: one picture per exercise name is used on every day and in every program that exercise appears in, so you only add it once. The list now matches the rebuilt programs (mini stepper moves, new Ty's Special moves). Old exercise names are kept at the bottom marked (retired) so earlier pictures are not lost.
+Exercise pictures: one picture per exercise name is used on every day and in every program that exercise appears in, so you only add it once. The list now matches the rebuilt programs (mini stepper moves, new Ty's Special moves).  Exercises that are no longer in any program are not listed.
