@@ -20766,9 +20766,56 @@ function stylesSheet(tab) {
 var SB = { on: false, tick: 0, hold: 0, nextW: 0 };
 function sbWords() { return ["BEHIND YOU", "COLD", "HELP", "HERE", "LISTEN", "TURN AROUND", "COME CLOSER", "MINE", "LEAVE", "FRIEND", "STAY", "WHO", "LOOK", "RUN", "TRAPPED", "HELLO", petName().toUpperCase()]; }
 function sbEls() { return $$('.fx3-furn[data-fid="fu_spiritbox"]'); }
-function sbSpeak(w) { try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(w.toLowerCase()); u.pitch = .1; u.rate = .55; u.volume = .55; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } }
+/* Piper (the Dungeon Dwellers voice engine): same website, so the saved voice and engine are shared. Used only when Dungeon Dwellers already has Piper on and the voice downloaded; otherwise the phone's own voice whispers. */
+var PP = { ready: null, ph: null, ox: null, chain: Promise.resolve(), cache: {}, pend: {}, off: 0, warm: 0, cfg: null, url: null, j: {} };
+var HFB = "https://huggingface.co/rhasspy/piper-voices/resolve/main/", PCDN = "https://cdn.jsdelivr.net/gh/Poket-Jony/piper-tts-web@950f1f5c8278296a6698cc11e8b976594dad6687/dist/";
+var LOWM = ["2427", "17", "1748", "5909", "6037", "922", "6701"];
+function ppC() { var c = jget("dd_piper_cfg", {}); return c && c.on && c.model ? c : null; }
+function ppHf(m) { var p = m.split("-"); return HFB + p[0].split("_")[0] + "/" + p.join("/") + "/" + m; }
+function ppRec(t, n) { try { return window.BCAssets && BCAssets.rec ? BCAssets.rec(t, n) : null; } catch (e) { return null; } }
+async function ppHave(c) { try { if (window.BCAssets && BCAssets.load) await BCAssets.load(); if (ppRec("dd-voice-model", c.model + ".onnx")) return true; var ch = await caches.open("dd-piper-voices"); return !!(await ch.match(ppHf(c.model) + ".onnx")); } catch (e) { return false; } }
+async function ppFile(rel, type) {
+    if (PP.j[rel]) return PP.j[rel]; var r = ppRec("dd-piper-engine", rel), blob = r && r.blob;
+    if (!blob) { var ch = await caches.open("dd-piper-voices"), bases = [new URL("piper/", location.href).href, PCDN]; for (var i = 0; i < bases.length && !blob; i++) { var u = bases[i] + rel, hit = await ch.match(u); if (hit) { blob = await hit.blob(); break; } try { var res = await fetch(u); if (!res.ok) throw 0; blob = await res.blob(); try { await ch.put(u, new Response(blob)); } catch (e) { } } catch (e) { } } }
+    if (!blob) throw new Error("no piper file"); return (PP.j[rel] = URL.createObjectURL(new Blob([blob], { type: type })));
+}
+function ppCall(w, type, data, ms) { return new Promise(function (ok, no) { var t = setTimeout(function () { PP.off++; try { PP.ph && PP.ph.terminate(); PP.ox && PP.ox.terminate(); } catch (x) { } PP.ph = PP.ox = null; PP.ready = null; no(new Error("slow")); }, ms || 60000); w.onmessage = function (e) { clearTimeout(t); ok(e.data); }; w.onerror = function (e) { clearTimeout(t); no(new Error("err")); }; w.postMessage({ type: type, data: data }); }); }
+function ppBoot(c) {
+    if (PP.ready) return PP.ready;
+    PP.ready = (async function () {
+        var rc = ppRec("dd-voice-model", c.model + ".onnx.json"), ch = await caches.open("dd-piper-voices");
+        if (rc) PP.cfg = JSON.parse(await rc.blob.text()); else { var hit = await ch.match(ppHf(c.model) + ".onnx.json"); if (!hit) throw new Error("no cfg"); PP.cfg = await hit.json(); }
+        var rm = ppRec("dd-voice-model", c.model + ".onnx"), blob; if (rm) blob = rm.blob; else { var h2 = await ch.match(ppHf(c.model) + ".onnx"); if (!h2) throw new Error("no model"); blob = await h2.blob(); }
+        PP.url = URL.createObjectURL(blob);
+        var F = await Promise.all([ppFile("worker/PhonemizeWebWorker.js", "text/javascript"), ppFile("piper/piper_phonemize.wasm", "application/wasm"), ppFile("piper/piper_phonemize.data", "application/octet-stream"), ppFile("worker/OnnxWebWorker.js", "text/javascript"), ppFile("onnx/ort-wasm-simd-threaded.wasm", "application/wasm")]);
+        PP.ph = new Worker(F[0], { type: "module" }); PP.ph.postMessage({ type: "constructor", data: {} }); await ppCall(PP.ph, "loadModule", [F[1], F[2]], 180000);
+        PP.ox = new Worker(F[3], { type: "module" }); PP.ox.postMessage({ type: "constructor", data: { basePath: { wasm: F[4] }, numThreads: self.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1 } }); await ppCall(PP.ox, "loadSession", [[PP.cfg, PP.url]], 180000);
+    })();
+    PP.ready.catch(function () { PP.ready = null; PP.off++; });
+    return PP.ready;
+}
+function ppSay(word) {
+    var c = ppC(); if (!c || PP.off >= 2) return Promise.reject(new Error("off"));
+    if (PP.cache[word]) return Promise.resolve(PP.cache[word]); if (PP.pend[word]) return PP.pend[word];
+    return (PP.pend[word] = ppBoot(c).then(function () {
+        var p = PP.chain.then(async function () {
+            var inf = Object.assign({}, PP.cfg.inference || {}); inf.length_scale = (inf.length_scale || 1) * 1.55; inf.noise_scale = .9; var vd = [Object.assign({}, PP.cfg, { inference: inf }), PP.url];
+            var map = PP.cfg.speaker_id_map || {}, sp = 0, n = +PP.cfg.num_speakers || 1; if (n > 1) { for (var i = 0; i < LOWM.length; i++) if (map[LOWM[i]] != null) { sp = map[LOWM[i]]; break; } }
+            var ph = await ppCall(PP.ph, "phonemize", [word.toLowerCase() + ".", vd]); var r = await ppCall(PP.ox, "generate", [ph, vd, sp]); return PP.cache[word] = r.file;
+        }); PP.chain = p.catch(function () { }); return p;
+    })).finally(function () { delete PP.pend[word]; });
+}
+function ppWarm() { if (PP.warm || !ppC()) return; PP.warm = 1; ppHave(ppC()).then(function (ok) { if (!ok) { PP.off = 9; return; } var ws = sbWords(), i = 0; (function next() { if (i >= ws.length || !SB.on) { PP.warm = 0; return; } ppSay(ws[i++]).then(function () { setTimeout(next, 300); }, function () { PP.warm = 0; }); })(); }); }
+function ppPlay(b) {
+    try { var a = new Audio(URL.createObjectURL(b)); a.volume = .85; a.playbackRate = .92; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var src = AC.createMediaElementSource(a), lp = AC.createBiquadFilter(), g = AC.createGain(), d = AC.createDelay(), fb = AC.createGain(); lp.type = "lowpass"; lp.frequency.value = 2600; g.gain.value = .7; d.delayTime.value = .19; fb.gain.value = .38; src.connect(lp); lp.connect(g); g.connect(AC.destination); lp.connect(d); d.connect(fb); fb.connect(d); d.connect(AC.destination); } catch (e) { } a.play().catch(function () { }); } catch (e) { }
+}
+function sbSpeak(w) {
+    var fall = function () { try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(w.toLowerCase()); u.pitch = .1; u.rate = .55; u.volume = .55; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } };
+    if (PP.cache[w]) { ppPlay(PP.cache[w]); return; }
+    if (ppC() && PP.off < 2) { ppSay(w).then(ppPlay, fall); } else fall();
+}
 function sbStart() {
-    SB.on = true; SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick);
+    SB.on = true; SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick); ppWarm();
     SB.tick = setInterval(function () {
         var els = sbEls(); if (!SB.on || !els.length) { sbStop(); return; }
         var now = Date.now(), word = now < SB.hold;
