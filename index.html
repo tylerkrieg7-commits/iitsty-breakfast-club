@@ -20769,6 +20769,7 @@ function sbEls() { return $$('.fx3-furn[data-fid="fu_spiritbox"]'); }
 /* Piper (the Dungeon Dwellers voice engine): same website, so the saved voice and engine are shared. Used only when Dungeon Dwellers already has Piper on and the voice downloaded; otherwise the phone's own voice whispers. */
 var PP = { ready: null, ph: null, ox: null, chain: Promise.resolve(), cache: {}, pend: {}, off: 0, warm: 0, cfg: null, url: null, j: {} };
 var HFB = "https://huggingface.co/rhasspy/piper-voices/resolve/main/", PCDN = "https://cdn.jsdelivr.net/gh/Poket-Jony/piper-tts-web@950f1f5c8278296a6698cc11e8b976594dad6687/dist/";
+var HIF = ["16", "8080", "100", "7959", "479", "2577"];
 var LOWM = ["2427", "17", "1748", "5909", "6037", "922", "6701"];
 function ppC() { var c = jget("dd_piper_cfg", {}); return c && c.on && c.model ? c : null; }
 function ppHf(m) { var p = m.split("-"); return HFB + p[0].split("_")[0] + "/" + p.join("/") + "/" + m; }
@@ -20794,25 +20795,42 @@ function ppBoot(c) {
     PP.ready.catch(function () { PP.ready = null; PP.off++; });
     return PP.ready;
 }
-function ppSay(word) {
-    var c = ppC(); if (!c || PP.off >= 2) return Promise.reject(new Error("off"));
-    if (PP.cache[word]) return Promise.resolve(PP.cache[word]); if (PP.pend[word]) return PP.pend[word];
-    return (PP.pend[word] = ppBoot(c).then(function () {
+function ppSay(word, vo) {
+    vo = vo || "m"; var ck = word + "|" + vo; var c = ppC(); if (!c || PP.off >= 2) return Promise.reject(new Error("off"));
+    if (PP.cache[ck]) return Promise.resolve(PP.cache[ck]); if (PP.pend[ck]) return PP.pend[ck];
+    return (PP.pend[ck] = ppBoot(c).then(function () {
         var p = PP.chain.then(async function () {
-            var inf = Object.assign({}, PP.cfg.inference || {}); inf.length_scale = (inf.length_scale || 1) * 1.55; inf.noise_scale = .9; var vd = [Object.assign({}, PP.cfg, { inference: inf }), PP.url];
-            var map = PP.cfg.speaker_id_map || {}, sp = 0, n = +PP.cfg.num_speakers || 1; if (n > 1) { for (var i = 0; i < LOWM.length; i++) if (map[LOWM[i]] != null) { sp = map[LOWM[i]]; break; } }
-            var ph = await ppCall(PP.ph, "phonemize", [word.toLowerCase() + ".", vd]); var r = await ppCall(PP.ox, "generate", [ph, vd, sp]); return PP.cache[word] = r.file;
+            var inf = Object.assign({}, PP.cfg.inference || {}); inf.length_scale = (inf.length_scale || 1) * (vo === "f" ? 1.9 : 1.55); inf.noise_scale = vo === "f" ? 1.1 : .9; inf.noise_w = 1; var vd = [Object.assign({}, PP.cfg, { inference: inf }), PP.url];
+            var map = PP.cfg.speaker_id_map || {}, sp = 0, n = +PP.cfg.num_speakers || 1; if (n > 1) { var L = vo === "f" ? HIF : LOWM; for (var i = 0; i < L.length; i++) if (map[L[i]] != null) { sp = map[L[i]]; break; } }
+            var ph = await ppCall(PP.ph, "phonemize", [word.toLowerCase() + ".", vd]); var r = await ppCall(PP.ox, "generate", [ph, vd, sp]); return PP.cache[ck] = r.file;
         }); PP.chain = p.catch(function () { }); return p;
-    })).finally(function () { delete PP.pend[word]; });
+    })).finally(function () { delete PP.pend[ck]; });
 }
-function ppWarm() { if (PP.warm || !ppC()) return; PP.warm = 1; ppHave(ppC()).then(function (ok) { if (!ok) { PP.off = 9; return; } var ws = sbWords(), i = 0; (function next() { if (i >= ws.length || !SB.on) { PP.warm = 0; return; } ppSay(ws[i++]).then(function () { setTimeout(next, 300); }, function () { PP.warm = 0; }); })(); }); }
-function ppPlay(b) {
-    try { var a = new Audio(URL.createObjectURL(b)); a.volume = .85; a.playbackRate = .92; try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var src = AC.createMediaElementSource(a), lp = AC.createBiquadFilter(), g = AC.createGain(), d = AC.createDelay(), fb = AC.createGain(); lp.type = "lowpass"; lp.frequency.value = 2600; g.gain.value = .7; d.delayTime.value = .19; fb.gain.value = .38; src.connect(lp); lp.connect(g); g.connect(AC.destination); lp.connect(d); d.connect(fb); fb.connect(d); d.connect(AC.destination); } catch (e) { } a.play().catch(function () { }); } catch (e) { }
+function ppWarm() { if (PP.warm || !ppC()) return; PP.warm = 1; ppHave(ppC()).then(function (ok) { if (!ok) { PP.off = 9; return; } var ws = sbWords(), jobs = []; ws.forEach(function (w) { jobs.push([w, "m"]); }); ws.forEach(function (w, k) { if (k % 2 === 0) jobs.push([w, "f"]); }); var i = 0; (function next() { if (i >= jobs.length || !SB.on) { PP.warm = 0; return; } var j = jobs[i++]; ppSay(j[0], j[1]).then(function () { setTimeout(next, 300); }, function () { PP.warm = 0; }); })(); }); }
+function irBuf(sec, decay) { var n = Math.floor(AC.sampleRate * sec), b = AC.createBuffer(2, n, AC.sampleRate); for (var c = 0; c < 2; c++) { var d = b.getChannelData(c); for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, decay); } return b; }
+/* five creepy voice styles, picked at random so it never sounds the same twice */
+var STYLES = ["demon", "whisper", "child", "radio", "choir"];
+function ppPlay(b, style) {
+    try {
+        style = style || pick(STYLES); var url = URL.createObjectURL(b), a = new Audio(url); AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume();
+        var mk = function (rate, vol) { var el = new Audio(url); el.playbackRate = rate; el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; var s = AC.createMediaElementSource(el), g = AC.createGain(); g.gain.value = vol; s.connect(g); return { el: el, out: g }; };
+        var wet = AC.createConvolver(); wet.buffer = irBuf(style === "choir" ? 3.2 : 2.2, 2.6); var wg = AC.createGain(); wg.gain.value = style === "whisper" ? .9 : .6; wet.connect(wg); wg.connect(AC.destination);
+        var master = AC.createGain(); master.gain.value = .9; master.connect(AC.destination); master.connect(wet);
+        var lay = [];
+        if (style === "demon") { lay = [mk(.74, 1), mk(.56, .7)]; var d = AC.createWaveShaper(), cv = new Float32Array(256); for (var i = 0; i < 256; i++) { var x = i / 128 - 1; cv[i] = Math.tanh(x * 2.2); } d.curve = cv; lay.forEach(function (l) { l.out.connect(d); }); d.connect(master); }
+        else if (style === "whisper") { var hp = AC.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 1400; var l1 = mk(.9, 1.6); l1.out.connect(hp); hp.connect(master); lay = [l1]; var nb = AC.createBufferSource(), nn = AC.createBuffer(1, AC.sampleRate * 3, AC.sampleRate), nd = nn.getChannelData(0); for (var j = 0; j < nd.length; j++) nd[j] = (Math.random() * 2 - 1) * .05; nb.buffer = nn; nb.connect(master); nb.start(); }
+        else if (style === "child") { var lf = AC.createOscillator(), lg = AC.createGain(), tr = AC.createGain(); lf.frequency.value = 6; lg.gain.value = .45; tr.gain.value = .55; lf.connect(lg); lg.connect(tr.gain); lf.start(); var l2 = mk(1.0, 1.2); l2.out.connect(tr); tr.connect(master); lay = [l2]; }
+        else if (style === "radio") { var bp = AC.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1500; bp.Q.value = 1.4; var l3 = mk(.84, 1.7); l3.out.connect(bp); bp.connect(master); lay = [l3]; noise(2.6, 4000, 800, .05); }
+        else { var vs = [.8, .6, 1.0]; vs.forEach(function (r, k) { var l = mk(r, .55); var dl = AC.createDelay(); dl.delayTime.value = k * .09; l.out.connect(dl); dl.connect(master); lay.push(l); }); }
+        lay.forEach(function (l) { l.el.play().catch(function () { }); });
+    } catch (e) { }
 }
 function sbSpeak(w) {
-    var fall = function () { try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(w.toLowerCase()); u.pitch = .1; u.rate = .55; u.volume = .55; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } };
-    if (PP.cache[w]) { ppPlay(PP.cache[w]); return; }
-    if (ppC() && PP.off < 2) { ppSay(w).then(ppPlay, fall); } else fall();
+    var fall = function () { try { if (!window.speechSynthesis) return; var u = new SpeechSynthesisUtterance(w.toLowerCase()); u.pitch = .1; u.rate = .5; u.volume = .6; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch (e) { } };
+    var st = pick(STYLES), vo = st === "child" ? "f" : "m", ck = w + "|" + vo;
+    if (PP.cache[ck]) { ppPlay(PP.cache[ck], st); return; }
+    if (PP.cache[w + "|m"]) { ppPlay(PP.cache[w + "|m"], st === "child" ? "demon" : st); return; }
+    if (ppC() && PP.off < 2) { ppSay(w, vo).then(function (b) { ppPlay(b, st); }, fall); } else fall();
 }
 function sbStart() {
     SB.on = true; SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick); ppWarm();
