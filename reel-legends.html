@@ -302,7 +302,7 @@ canvas#c,#townCv,#mapCv{touch-action:none}
       <div><b>Drag</b> left/right — aim your cast</div>
       <div><b>Tap</b> — cast your line</div>
       <div><b>Hold</b> your finger — reel up · <b>Let go</b> — sink</div>
-      <div><b>❗ appears</b> — TAP fast to set the hook!</div>
+      <div><b>❗ appears</b> — TAP or LET GO to set the hook!</div>
       <div><b>Fight</b> — hold to lift the green zone, release to drop it. Watch the line tension!</div>
       <div><b>Bottom bar</b> — tap a bait to equip it. Gear buttons (🔴 🪶 🧊) are on the right.</div>
       <div><b>🏘️ Town</b> — tap a building to walk there: shops, boatyard, cottage, lighthouse</div>
@@ -311,7 +311,7 @@ canvas#c,#townCv,#mapCv{touch-action:none}
     </div>
     <div class="how" id="how-kb">
       <div><b>Move mouse</b> — aim your cast · <b>Click/Space</b> cast</div>
-      <div><b>❗ appears</b> — Click/Space fast to set the hook!</div>
+      <div><b>❗ appears</b> — Click, Space or let go to set the hook!</div>
       <div><b>Hold</b> — reel up · <b>Release</b> — sink</div>
       <div><b>Fight</b> — hold to lift the green zone. Watch line tension!</div>
       <div><b>1–0</b> bait · <b>B</b> town · <b>J</b> cottage · <b>M</b> map · <b>V/F/I</b> gear</div>
@@ -1517,12 +1517,12 @@ function stealBait(f){
 }
 function onNibble(f){
   if(f.sp.thief&&Math.random()<.55){stealBait(f);return}
-  const rs=rodStats();let win=.8*rs.strike;if(hook.mode==='bob')win*=1.8;if(hook.mode==='ice')win*=1.3;if(hook.mode==='fly')win*=.9;
+  const rs=rodStats();let win=1.2*rs.strike;if(hook.mode==='bob')win*=1.8;if(hook.mode==='ice')win*=1.3;if(hook.mode==='fly')win*=.9;
   if(SET.autoSet){bite(f);return}
   hook.strike={f,t:win,tot:win};f.state='striking';f.nib=0;hook.bangT=win;hook.jig=.8;sfx.bite();
 }
 function setHook(){const s=hook.strike;if(!s)return;hook.strike=null;bite(s.f)}
-function missStrike(){const s=hook.strike;hook.strike=null;if(!s)return;const f=s.f;f.state='wild';flee(f,hook.x,3);f.cool=8;toast('💨 Missed the strike! Click/Space the moment ❗ appears');sfx.lose()}
+function missStrike(){const s=hook.strike;hook.strike=null;if(!s)return;const f=s.f;f.state='wild';flee(f,hook.x,3);f.cool=8;toast('💨 Missed the strike! Tap or let go the moment ❗ appears');sfx.lose()}
 function updateFish(dt){
   const inFish=hook.state==='fish';
   for(let i=respawn.length-1;i>=0;i--){respawn[i].t-=dt;if(respawn[i].t<=0){if(eligible(respawn[i].sp))spawnFish(respawn[i].sp,false);respawn.splice(i,1)}}
@@ -1619,7 +1619,7 @@ function snapLine(){
 }
 function fightUpdate(dt){
   const F=fight,f=hook.fish,sp=f.sp,rs=rodStats(),st=F.style;F.t+=dt;
-  F.pumpT=Math.max(0,(F.pumpT||0)-dt);const hd=holding||F.pumpT>0;F.zv+=(hd?820:-560)*dt;F.zv=clamp(F.zv,-300,340);F.zp+=F.zv*dt;
+  F.pumpT=Math.max(0,(F.pumpT||0)-dt);const hd=holding||F.pumpT>0,hdT=holding?1:(F.pumpT>0?.45:0);F.zv+=(hd?820:-560)*dt;F.zv=clamp(F.zv,-300,340);F.zp+=F.zv*dt;
   if(F.zp<0){F.zp=0;F.zv=Math.abs(F.zv)*.28}
   if(F.zp>BAR-F.zh){F.zp=BAR-F.zh;F.zv=-Math.abs(F.zv)*.25}
   F.timer-=dt;F.runT-=dt;if(F.run>0){F.run-=dt;if(F.run<=0)F.vmul=1}
@@ -1642,8 +1642,8 @@ function fightUpdate(dt){
   const inZ=F.fp>=F.zp&&F.fp<=F.zp+F.zh;F.inZ=inZ;
   if(inZ)F.prog+=(.32+rs.luck*.35)*(1-.2*sp.diff)*dt;else{F.prog-=(.06+.14*sp.diff)*dt;F.out+=dt}
   /* line tension */
-  const tf={heavy:1.3,dash:1.1,leap:1.05,thrash:1.15,dive:1,sulk:1,dart:.9}[st],pull=F.run>0?1:.35;
-  let dT=hd?(inZ?.0:.18*pull*tf*(.5+sp.diff*.7)):-.5;
+  let run0;const tf={heavy:1.3,dash:1.1,leap:1.05,thrash:1.15,dive:1,sulk:1,dart:.9}[st],pull=F.run>0?1:.35;
+  let dT=hd?(run0=F.run>0,((run0?.42:.14)*tf*(.5+sp.diff*.7)*(inZ?.7:1.15))*hdT):-.5;
   if(sp.teeth&&!rs.cut&&!inZ)dT+=.1;
   dT*=(rs.ten/rs.str)*(.7+.5*clamp(sp.len*f.sc/200,0,1.2))*(1+WX.storm*.1);
   F.tension=clamp(F.tension+dT*dt,0,1.05);
@@ -2975,7 +2975,7 @@ function hudTick(){
     case'flycast':h='Time your presses on the green zone';break;
     case'drill':h='<b>Hold</b> to drill…';break;
     case'cast':h='';break;
-    case'fish':h=hook.strike?'<b>❗ CLICK / SPACE NOW!</b>':holding&&!ignoreHold?'Reeling up…':'<b>Hold</b> to reel up · release to sink · when ❗ appears, click fast!';break;
+    case'fish':h=hook.strike?'<b>❗ TAP or LET GO NOW!</b>':holding&&!ignoreHold?'Reeling up…':'<b>Hold</b> to reel up · release to sink · when ❗ appears, tap or let go!';break;
     case'fight':h=fight&&fight.tension>.7?'<b>⚠ LET GO — line is straining!</b>':'<b>HOLD</b> to raise the green zone — tap during hard pulls to ease tension';break;
     case'reveal':h='Landing your catch…';break;default:h=''}
   if(h!==hintCache){hintCache=h;const e=$('hint');e.innerHTML=T(h);e.style.display=h?'block':'none'}
@@ -3022,7 +3022,7 @@ function pressStart(){
   if(hook.state==='flycast'){flyPress();return}
   if(hook.state==='idle')startCast();
 }
-function pressEnd(){holding=false;ignoreHold=false}
+function pressEnd(){if(started&&!modalOpen&&holding&&hook.state==='fish'&&hook.strike)setHook();holding=false;ignoreHold=false}
 function ptr(e){const r=cv.getBoundingClientRect();mouse.x=(e.clientX-r.left)/SC;mouse.y=(e.clientY-r.top)/SC;
   if(e.pointerType==='mouse'&&e.buttons===0&&hook.state==='fish'&&VW<560)return;
   if(VW<560){const lo=BX+90,hi=VW-30;if(hook.state==='idle'||hook.state==='flycast')hook.tx=lo+clamp((mouse.x-BX)/((VW-BX)*.5),0,1)*(hi-lo);else hook.tx+=(clamp(mouse.x,BX+70,VW-24)-hook.tx)*.3}else hook.tx=mouse.x}
