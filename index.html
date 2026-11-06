@@ -18622,6 +18622,15 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
 })();
 
 </script>
+<script id="bcx-idle">
+/* Build 75: idle audio engines are put to sleep. An AudioContext left running (even silent) can pop or click on some speakers and Bluetooth devices, which is heard even outside the app. Contexts are woken automatically the moment a sound is made. */
+(function () { try { var AC = window.AudioContext || window.webkitAudioContext; if (!AC || AC.__idle) return; AC.__idle = 1; var P = AC.prototype, ctxs = [];
+    function stamp(c, ex) { c.__last = Date.now() + (ex || 0); if (ctxs.indexOf(c) < 0) ctxs.push(c); if (c.state === "suspended") { try { c.resume(); } catch (e) { } } }
+    ["createOscillator", "createBufferSource"].forEach(function (m) { var o = P[m]; if (!o) return; P[m] = function () { stamp(this); return o.apply(this, arguments); }; });
+    var me = P.createMediaElementSource; if (me) P.createMediaElementSource = function () { stamp(this, 600000); return me.apply(this, arguments); };
+    setInterval(function () { var n = Date.now(); ctxs.forEach(function (c) { try { if (c.state === "running" && n - (c.__last || 0) > 5000) c.suspend(); } catch (e) { } }); }, 2000);
+} catch (e) { } })();
+</script>
 <script id="bcx-art">
 /* Build 44: hand-drawn flat furniture/toys/decor (Build 43) + always-moving fire/lava/fish, gold light beams, tap effects (flush, shower, ...) */
 (function(){
@@ -20832,22 +20841,12 @@ function sbSpeak(w) {
     if (PP.cache[w + "|m"]) { ppPlay(PP.cache[w + "|m"], st === "child" ? "demon" : st); return; }
     if (ppC() && PP.off < 2) { ppSay(w, vo).then(function (b) { ppPlay(b, st); }, fall); } else fall();
 }
-function sbHiss(on) {
-    try {
-        AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume();
-        if (on && !SB.src) {
-            var n = AC.sampleRate * 2, b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0); for (var i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
-            SB.src = AC.createBufferSource(); SB.src.buffer = b; SB.src.loop = true; SB.bp = AC.createBiquadFilter(); SB.bp.type = "bandpass"; SB.bp.Q.value = .9; SB.bp.frequency.value = 1800; SB.g = AC.createGain(); SB.g.gain.value = 0;
-            SB.src.connect(SB.bp); SB.bp.connect(SB.g); SB.g.connect(AC.destination); SB.src.start(); SB.g.gain.setTargetAtTime(.05, AC.currentTime, .25);
-        } else if (!on && SB.src) { var s0 = SB.src, g0 = SB.g; g0.gain.setTargetAtTime(0, AC.currentTime, .12); setTimeout(function () { try { s0.stop(); } catch (e) { } }, 700); SB.src = SB.bp = SB.g = null; }
-    } catch (e) { }
-}
 function sbStart() {
-    SB.on = true; sbHiss(true); SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick); ppWarm();
+    SB.on = true; SB.nextW = Date.now() + rnd(6000, 12000); clearInterval(SB.tick); ppWarm();
     SB.tick = setInterval(function () {
         var els = sbEls(); if (!SB.on || !els.length) { sbStop(); return; }
         var now = Date.now(), word = now < SB.hold;
-        if (!word) { if (SB.bp) { var tt = AC.currentTime; SB.bp.frequency.cancelScheduledValues(tt); SB.bp.frequency.setTargetAtTime(rnd(500, 4800), tt, .09); } if (Math.random() < .12) noise(.05, 3000, 900, .012); els.forEach(function (el) { var t = el.querySelector(".sbt"); if (t) { t.textContent = (87 + Math.random() * 20).toFixed(1); t.setAttribute("fill", "#8dff6a"); } }); }
+        if (!word) { noise(.14, rnd(900, 5200), rnd(200, 2200), .03); if (Math.random() < .3) tone(rnd(300, 2200), .04, "square", .008); els.forEach(function (el) { var t = el.querySelector(".sbt"); if (t) { t.textContent = (87 + Math.random() * 20).toFixed(1); t.setAttribute("fill", "#8dff6a"); } }); }
         if (!word && now > SB.nextW) {
             SB.nextW = now + rnd(9000, 22000); var w = pick(sbWords()); SB.hold = now + 3200;
             noise(.5, 4000, 400, .06); setTimeout(function () { sbSpeak(w); }, 350);
@@ -20859,12 +20858,14 @@ function sbStart() {
     }, 260);
     toast("📻 Spirit box on. Listen for whispers in the static…");
 }
-function sbStop() { SB.on = false; sbHiss(false); clearInterval(SB.tick); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } sbEls().forEach(function (el) { el.classList.remove("g-jk-on"); var t = el.querySelector(".sbt"); if (t) { t.textContent = "SCAN"; t.setAttribute("fill", "#8dff6a"); } }); }
+function sbStop() { SB.on = false; clearInterval(SB.tick); try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) { } sbEls().forEach(function (el) { el.classList.remove("g-jk-on"); var t = el.querySelector(".sbt"); if (t) { t.textContent = "SCAN"; t.setAttribute("fill", "#8dff6a"); } }); }
+document.addEventListener("visibilitychange", function () { if (document.hidden && SB.on) sbStop(); });
+window.addEventListener("pagehide", function () { if (SB.on) sbStop(); });
 setInterval(function () { sbEls().forEach(function (el) { el.classList.toggle("g-jk-on", SB.on); }); if (SB.on && !sbEls().length) sbStop(); }, 500);
 
 /* ---------------- toilets: tap to flush ---------------- */
 var TOI = { fu_bcx_toilet: "water", fu_toilet_july4: "fire", fu_toilet_gold: "gold", fu_toilet_xmas: "xmas", fu_toilet_castle: "dust", fu_toilet_rocket: "rocket", fu_toilet_heart: "heart", fu_toilet_pixel: "pixel", fu_toilet_sea: "sea", fu_h_jacktoilet: "ghost" };
-function noise(d, f0, f1, v) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); var n = Math.floor(AC.sampleRate * d), b = AC.createBuffer(1, n, AC.sampleRate), x = b.getChannelData(0); for (var i = 0; i < n; i++) x[i] = (Math.random() * 2 - 1) * (1 - i / n) * Math.min(1, i / 240); var s = AC.createBufferSource(); s.buffer = b; var fl = AC.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.setValueAtTime(f0, AC.currentTime); fl.frequency.exponentialRampToValueAtTime(f1, AC.currentTime + d); var g = AC.createGain(); g.gain.value = v || .12; s.connect(fl); fl.connect(g); g.connect(AC.destination); s.start(); } catch (e) { } }
+function noise(d, f0, f1, v) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); var n = Math.floor(AC.sampleRate * d), b = AC.createBuffer(1, n, AC.sampleRate), x = b.getChannelData(0); for (var i = 0; i < n; i++) x[i] = (Math.random() * 2 - 1) * (1 - i / n); var s = AC.createBufferSource(); s.buffer = b; var fl = AC.createBiquadFilter(); fl.type = "lowpass"; fl.frequency.setValueAtTime(f0, AC.currentTime); fl.frequency.exponentialRampToValueAtTime(f1, AC.currentTime + d); var g = AC.createGain(); g.gain.value = v || .12; s.connect(fl); fl.connect(g); g.connect(AC.destination); s.start(); } catch (e) { } }
 function puff(x, y, txt, dx, dy, dur, delay, size) { var p = document.createElement("div"); p.className = "tf-p"; p.textContent = txt; p.style.left = x + "px"; p.style.top = y + "px"; if (size) p.style.fontSize = size + "px"; document.body.appendChild(p); var a = p.animate([{ transform: "translate(0,0) scale(.6)", opacity: 1 }, { transform: "translate(" + dx * .6 + "px," + (dy * .6 - 20) + "px) scale(1.1)", opacity: 1, offset: .6 }, { transform: "translate(" + dx + "px," + (dy + 40) + "px) scale(.8)", opacity: 0 }], { duration: dur, delay: delay || 0, easing: "ease-out", fill: "both" }); a.onfinish = function () { p.remove(); }; }
 function flush(el, id) {
     if (el.__fl) return; el.__fl = 1; setTimeout(function () { el.__fl = 0; }, 2200);
