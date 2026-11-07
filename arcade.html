@@ -81,6 +81,7 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
 .cab.focus .cab-scr::before{animation:gridmove 1.2s linear infinite}
 @keyframes gridmove{to{background-position:0 22px}}
 .cab-scr::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 2px,#0006 2px 3px),radial-gradient(circle at 30% 10%,#ffffff1a,transparent 45%);pointer-events:none}
+.cab-art{height:116px;width:auto;display:block;filter:drop-shadow(0 4px 6px #000a)}.gi-art{height:56px;width:auto;display:block;filter:drop-shadow(0 0 8px var(--gc))}
 .cab-ico{position:relative;font-size:54px;line-height:1;filter:drop-shadow(0 0 12px var(--c)) drop-shadow(0 4px 2px #000a)}
 .cab.focus .cab-ico{animation:bob 2.2s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-7px) rotate(3deg)}}
@@ -1074,7 +1075,7 @@ function cabHTML(g, i) {
     return `<div class="slot"><div class="cab dim" data-i="${i}" style="--c:${g.color};--c2:${shade(g.color, -70)};--cg:${hexA(g.color, 0.4)}">
         ${g.isNew ? '<div class="new-tag">NEW</div>' : ''}${g.mp ? '<div class="new-tag" style="left:6px;right:auto;background:#7c4dff">👥 2P</div>' : ''}
         <div class="cab-marq">${g.name.toUpperCase()}</div>
-        <div class="cab-bez"><div class="cab-scr"><div class="cab-ico">${(window.__bcxArcTile && window.__bcxArcTile(g.id)) || g.icon}</div><div class="cab-hi">${best ? 'HI ' + best : 'NEW GAME!'}</div><div class="cab-press">PRESS START</div></div></div>
+        <div class="cab-bez"><div class="cab-scr"><div class="cab-ico">${(window.__bcxArcTile && window.__bcxArcTile(g.id)) || (g.art ? '<img class="cab-art" src="' + g.art + '" alt="">' : g.icon)}</div><div class="cab-hi">${best ? 'HI ' + best : 'NEW GAME!'}</div><div class="cab-press">PRESS START</div></div></div>
         <div class="cab-panel"><div class="stick"></div><div class="pb" style="--pc:${pc[i % 3]}"></div><div class="pb" style="--pc:${g.color}"></div><div class="pb" style="--pc:${pc[(i + 1) % 3]}"></div></div>
         <div class="cab-coin"><div class="slotc"><i></i>25¢</div><div class="slotc"><i></i>25¢</div></div>
     </div></div>`;
@@ -1119,7 +1120,7 @@ function showInfo(g) {
     if(!g) return;
     const gi = $('ginfo'), best = gameBest(g), plays = LS.int('plays_' + g.id);
     gi.style.setProperty('--gc', g.color); gi.style.setProperty('--gcg', hexA(g.color, 0.45));
-    gi.innerHTML = `<div class="gi-top"><div class="gi-ico">${g.icon}</div><div><div class="gi-name">${g.name.toUpperCase()}</div>
+    gi.innerHTML = `<div class="gi-top"><div class="gi-ico">${g.art ? '<img class="gi-art" src="' + g.art + '" alt="">' : g.icon}</div><div><div class="gi-name">${g.name.toUpperCase()}</div>
         <div class="gi-tags"><span>${CAT_NAME[g.cat] || g.cat}</span>${best ? `<span>🏅 ${best}</span>` : ''}<span>🎮 ${plays} play${plays === 1 ? '' : 's'}</span>${g.isNew ? '<span style="color:#ffea00">✨ New</span>' : ''}</div></div></div>
         <div class="gi-desc">${g.desc || ''}</div>
         <button class="play-btn" id="play-btn">▶ PLAY</button>`;
@@ -7843,7 +7844,7 @@ const INKF = "'Courier New', 'Segoe Print', monospace";
         ov.querySelector('#rl-x').onclick = () => { sfx('click'); closeOv(); openHub(); };
     }
     const g = {
-        id: 'angler', name: 'Reel Legends', icon: '🎣', color: '#29b6f6', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
+        id: 'angler', name: 'Reel Legends', icon: '🎣', art: 'art-reel-legends.png', color: '#29b6f6', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
         desc: 'The full World Fishing Tour: 14 locations, 300+ fish, weather and seasons, bosses, a town to build, pets, and tournaments. Fish together with your partner in the same water. Everything you catch counts toward your Club trophies.',
         tip: 'Tap the big screen to start fishing', help: ['Drag to aim, tap to cast', 'Tap fast when the ❗ appears to set the hook', 'Hold to reel up, let go to sink', 'Open 👥 to fish with your partner. Same water gives a lure bonus and a catch bonus', '◀ under the level box takes you back to the arcade'],
         best: () => { const j = info(); return j ? 'Lv ' + (j.lvl || 1) + ' · ' + (j.caught || 0) + ' fish' : ''; },
@@ -7881,7 +7882,7 @@ const INKF = "'Courier New', 'Segoe Print', monospace";
         ov.querySelector('#rs-x').onclick = () => { sfx('click'); closeOv(); openHub(); };
     }
     const g = {
-        id: 'spooky', name: 'Reel Spooky', icon: '👻', color: '#8aff7a', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
+        id: 'spooky', name: 'Reel Spooky', icon: '👻', art: 'art-reel-spooky.png', color: '#8aff7a', cat: 'casual', isNew: true, w: W, h: H, noPause: true,
         desc: 'The haunted remake of Reel Legends. Rotten, skeletal and toothy fish, possessed and skeletal variants, a ghost ship, a haunted town and a blood-red sky. Same full fishing tour, now with a lot more screaming.',
         tip: 'Tap the big screen to start fishing... if you dare', help: ['Drag to aim, tap to cast', 'Tap fast when the ❗ appears to set the hook', 'Hold to reel up, let go to sink', 'Open 👥 to fish with your partner. Same water gives a lure bonus and a catch bonus', '◀ under the level box takes you back to the arcade'],
         best: () => { const j = info(); return j ? 'Lv ' + (j.lvl || 1) + ' · ' + (j.caught || 0) + ' fish' : ''; },
