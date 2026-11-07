@@ -7,8 +7,8 @@
     "use strict";
     if (window.BCX) return;
     var FILE = (location.pathname.split("/").pop() || "").toLowerCase();
-    var APP = { "": "club", "index.html": "club", "arcade.html": "arcade", "duo.html": "duo", "pocketfarm.html": "farm", "color-art.html": "color", "loot-ledger.html": "loot", "dungeon-dwellers.html": "dd", "reel-legends.html": "reel" }[FILE] || "other";
-    var APPS = [["club", "🏆", "Club"], ["arcade", "🕹️", "Arcade"], ["duo", "💞", "Together Arcade"], ["farm", "🌾", "Pocket Farm"], ["dd", "⚔️", "Dungeon Dwellers"], ["color", "🎨", "Pixel Art"], ["loot", "💰", "Loot Ledger"], ["reel", "🎣", "Reel Legends"]];
+    var APP = { "": "club", "index.html": "club", "arcade.html": "arcade", "duo.html": "duo", "pocketfarm.html": "farm", "color-art.html": "color", "loot-ledger.html": "loot", "dungeon-dwellers.html": "dd", "reel-legends.html": "reel", "reel-spooky.html": "spooky" }[FILE] || "other";
+    var APPS = [["club", "🏆", "Club"], ["arcade", "🕹️", "Arcade"], ["duo", "💞", "Together Arcade"], ["farm", "🌾", "Pocket Farm"], ["dd", "⚔️", "Dungeon Dwellers"], ["color", "🎨", "Pixel Art"], ["loot", "💰", "Loot Ledger"], ["reel", "🎣", "Reel Legends"], ["spooky", "👻", "Reel Spooky"]];
     var ls = function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
     var lset = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
     var jget = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
