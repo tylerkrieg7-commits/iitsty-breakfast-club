@@ -36874,7 +36874,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
         $("dd-new").onclick = function () { EDIT = { id: "d" + Date.now().toString(36), name: "My Dungeon", intro: "", outro: "", rooms: [{ type: "battle", enemy: "Goblin", lvl: 1, text: "", amt: 30 }] }; draw(); };
         var local = jget("ddco_dungeons", {});
         kvList("dd_dng_").then(function (rows) {
-            rows.forEach(function (r) { try { var d = JSON.parse(r.value); if (d && d.id) { local[d.id] = d; } } catch (e) {} }); lset("ddco_dungeons", JSON.stringify(local));
+            rows.forEach(function (r) { try { var d = JSON.parse(r.value); if (d && d.id && /^[\w-]{1,48}$/.test(String(d.id)) && Array.isArray(d.rooms)) { local[d.id] = d; } } catch (e) {} }); lset("ddco_dungeons", JSON.stringify(local));
             var box = $("dd-dl"); if (!box) return; var ids = Object.keys(local);
             box.innerHTML = ids.length ? ids.map(function (id) { var d = local[id]; return '<div class="card"><b>' + esc(d.name) + '</b> <span class="m">' + d.rooms.length + ' rooms</span><div class="r"><button class="go" data-run="' + id + '">▶ Play</button><button data-ed="' + id + '">✏️ Edit</button><button class="bad" data-del="' + id + '">🗑</button></div></div>'; }).join("") : "No dungeons yet.";
             box.querySelectorAll("[data-run]").forEach(function (x) { x.onclick = function () { runDungeon(local[x.dataset.run]); }; });
@@ -37865,7 +37865,7 @@ body.ddx-reduce #start-screen h1.title-font:first-of-type{animation:none}
                 if (!A.cfg() || !A.kvList) return Promise.resolve(0);
                 return A.kvList("dd_story_").then(function (rows) {
                     var L = local(), n = 0;
-                    (rows || []).forEach(function (r) { try { var st = JSON.parse(r.value); if (st && st.id && st.nodes && (!L[st.id] || (st.t || 0) > (L[st.id].t || 0))) { L[st.id] = st; n++; } } catch (e) { } });
+                    (rows || []).forEach(function (r) { try { var st = JSON.parse(r.value); if (st && st.id && /^[\w-]{1,48}$/.test(String(st.id)) && st.nodes && (!L[st.id] || (st.t || 0) > (L[st.id].t || 0))) { L[st.id] = st; n++; } } catch (e) { } });
                     jset(KEY, L); return n;
                 });
             } catch (e) { return Promise.resolve(0); }

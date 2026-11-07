@@ -1,3 +1,7 @@
+/* SECURITY GUARD: anything read back from the shared database (club_kv / club_events) has its
+   angle brackets removed before any page code sees it, so a stranger who can write to the
+   database can never smuggle HTML or script tags into the apps. */
+(function () { var f = window.fetch; if (!f || f.__scr) return; window.fetch = function (u, o) { var p = f.apply(this, arguments); try { var url = typeof u === "string" ? u : (u && u.url) || ""; if (!/\/rest\/v1\/club_(kv|events)/.test(url)) return p; var m = (o && o.method) || (u && u.method) || "GET"; if (String(m).toUpperCase() !== "GET") return p; return p.then(function (r) { if (!r.ok) return r; return r.text().then(function (t) { var h = new Headers(r.headers); h.delete("content-length"); h.delete("content-encoding"); return new Response(t.replace(/[<>]|\\u003[cCeE]/g, ""), { status: r.status, statusText: r.statusText, headers: h }); }); }); } catch (e) { return p; } }; window.fetch.__scr = 1; })();
 /* bc-extras.js (build 21): shared across every app on this site.
    - Sound mixer (master / effects / music), applied to Web Audio and <audio>/<video>
    - Per-app background music playlists

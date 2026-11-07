@@ -4320,7 +4320,7 @@ function coopRecv(m){
   if(!m||!m.id||m.id===COOP.id)return;const now=performance.now();let p=COOP.peers[m.id];
   if(m.t==='bye'){if(p){toast('👋 '+p.name+' left');delete COOP.peers[m.id];coopBtn();coopPanel()}return}
   if(!p&&Object.keys(COOP.peers).length>=3)return;
-  if(!p){p=COOP.peers[m.id]={id:m.id,name:m.nm||'Angler',look:m.lk||lookOf(m.id),loc:'sea',bi:'pond',hx:.5,hy:SURF,hs:'idle',px:1000,fc:1,mv:0,x:0,seen:now,rb:.1,tn:0,rod:0,rc:'',rt:0,sx:null};
+  if(!p){p=COOP.peers[m.id]={id:m.id,name:String(m.nm||'Angler').replace(/[<>&"'`\\]/g,'').slice(0,14)||'Angler',look:m.lk||lookOf(m.id),loc:'sea',bi:'pond',hx:.5,hy:SURF,hs:'idle',px:1000,fc:1,mv:0,x:0,seen:now,rb:.1,tn:0,rod:0,rc:'',rt:0,sx:null};
     toast('👥 '+p.name+' joined!');sfx.rare&&sfx.rare();S.coop.friends[m.id]={name:p.name,last:Date.now(),n:((S.coop.friends[m.id]||{}).n||0)+1};coopBtn();coopPanel();if(m.t!=='hi')coopSend({t:'hi'})}
   p.seen=now;p.name=m.nm||p.name;p.look=m.lk||p.look;if(m.t==='hi')p.lo=m.lo||null;
   if(typeof coopRecv2==='function'&&coopRecv2(m,p))return;
@@ -4429,7 +4429,7 @@ function coopPanel0(){
   if(COOP.on){
     const ps=Object.values(COOP.peers);
     h+=`<p class="note">🟢 Connected (${COOP.kind==='local'?'same device':COOP.kind==='rtc'?'online':'app link'}). You can each fish or visit town on your own — you only see each other when you're in the same place.</p>`;
-    h+=ps.length?ps.map(p=>`<div class="frow"><b>${p.name} <small style="font-weight:500">Lv ${p.lv||'?'}</small></b><span>${p.loc==='town'?'🏘️ In town':'🎣 '+(BIOMES.find(b=>b.id===p.bi)||{name:p.bi}).name}</span></div>`).join(''):'<p class="note">Waiting for your friend…</p>';
+    h+=ps.length?ps.map(p=>`<div class="frow"><b>${escH(p.name)} <small style="font-weight:500">Lv ${p.lv||'?'}</small></b><span>${p.loc==='town'?'🏘️ In town':'🎣 '+(BIOMES.find(b=>b.id===p.bi)||{name:p.bi}).name}</span></div>`).join(''):'<p class="note">Waiting for your friend…</p>';
     h+=`<div class="hdr">💬 QUICK EMOTES</div><div>`+['👋','😄','🎣','❤️','🔥','🐟','👍','😮'].map(e=>`<button class="btn tag sm cbtn" data-c="em" data-e="${e}">${e}</button>`).join('')+'</div>';
     h+='<p class="note">🤝 Fishing the same water gives <b>+5% lure</b> and a <b>10% buddy bonus</b> when your friend catches something.</p>'+slotMsg+'<button class="btn wood sm" data-c="off">Disconnect</button>';
   }else{
@@ -4514,7 +4514,7 @@ function coopPanel(){
   coopPanel0();const el=$('coopBody');if(!el||$('coop').classList.contains('hidden')||!COOP.on)return;
   const ps=peerList();let h='';
   /* friends with join */
-  if(ps.length){h+='<div class="hdr">📍 FRIENDS</div>'+ps.map(p=>`<div class="frow"><b>${p.name} <small style="font-weight:500">Lv ${p.lv||'?'} · ${p.loc==='town'?'🏘️ Reel Harbor':'🎣 '+biomeName(p.bi)}</small></b><button class="btn green sm" data-c2="join" data-p="${p.id}">${p.loc==='sea'&&p.bi===CUR.id&&!townOpen?'Together ✔':'Join'}</button></div>`).join('')}
+  if(ps.length){h+='<div class="hdr">📍 FRIENDS</div>'+ps.map(p=>`<div class="frow"><b>${escH(p.name)} <small style="font-weight:500">Lv ${p.lv||'?'} · ${p.loc==='town'?'🏘️ Reel Harbor':'🎣 '+biomeName(p.bi)}</small></b><button class="btn green sm" data-c2="join" data-p="${p.id}">${p.loc==='sea'&&p.bi===CUR.id&&!townOpen?'Together ✔':'Join'}</button></div>`).join('')}
   h+='<div class="hdr">💬 QUICK PHRASES</div><div>'+PHRASES.map((s,i)=>`<button class="btn tag sm cbtn" data-c2="say" data-i="${i}">${s}</button>`).join('')+'</div>';
   /* duo */
   if(ps.length){const du=duoState(),all=du.g.every(g=>g.p>=g.need);
@@ -4778,7 +4778,8 @@ const aqName=s=>lsg(s==='p2'?'householdNameP2':'householdNameP1')||(s==='p2'?'Pl
 function aqS(){return S.aq||(S.aq={fish:[],claim:-1,ms:{}})}
 function aqPush(){const c=aqCfg();if(!c)return;fetch(aqRest(c)+'club_kv?on_conflict=household,key',{method:'POST',headers:Object.assign(aqHdr(c),{Prefer:'resolution=merge-duplicates,return=minimal'}),body:JSON.stringify([{household:c.hh,key:'rl_aq_'+aqMe(),value:JSON.stringify({nm:aqName(aqMe()),fish:aqS().fish}),updated_at:Date.now(),updated_by:aqMe()}])}).then(r=>{AQ.ok=r.ok}).catch(()=>{AQ.ok=false})}
 function aqPull(){const c=aqCfg();if(!c||AQ.busy)return;AQ.busy=true;AQ.ts=Date.now();
-  fetch(aqRest(c)+'club_kv?household=eq.'+encodeURIComponent(c.hh)+'&key=eq.rl_aq_'+aqOther()+'&select=value',{headers:aqHdr(c)}).then(r=>r.json()).then(j=>{AQ.ok=true;if(j&&j[0]){try{const v=JSON.parse(j[0].value);AQ.other=(v.fish||[]).filter(f=>FID[f.id]);AQ.nm=v.nm||aqName(aqOther())}catch(e){}}}).catch(()=>{AQ.ok=false}).then(()=>{AQ.busy=false})}
+  fetch(aqRest(c)+'club_kv?household=eq.'+encodeURIComponent(c.hh)+'&key=eq.rl_aq_'+aqOther()+'&select=value',{headers:aqHdr(c)}).then(r=>r.json()).then(j=>{AQ.ok=true;if(j&&j[0]){try{const v=JSON.parse(j[0].value);AQ.other=(v.fish||[]).filter(f=>FID[f.id]);AQ.nm=String(v.nm||aqName(aqOther())).replace(/[<>&"'`\\]/g,'').slice(0,24)}catch(e){}}}).catch(()=>{AQ.ok=false}).then(()=>{AQ.busy=false})}
+const escH=x=>String(x==null?'':x).replace(/[&<>"'`]/g,c=>'&#'+c.charCodeAt(0)+';');
 const aqAll=()=>aqS().fish.map(f=>Object.assign({mine:1},f)).concat(AQ.other.map(f=>Object.assign({mine:0},f)));
 const AQ_CAP=16,AQ_MS=[[5,500],[10,2000],[20,8000],[35,25000],[60,80000]];
 function aqSpecies(){return new Set(aqAll().map(f=>f.id)).size}
@@ -4787,7 +4788,7 @@ RENDER.aq=function(){
   if(linked&&Date.now()-AQ.ts>8000)aqPull();
   SAY='Every fish you and your partner donate swims here for both of you. Collect tips each day and milestone bonuses!';
   let h=`<div class="stats3"><div>Residents<b>${all.length}</b></div><div>Species<b>${sp}</b></div><div>Daily tips<b>~$${tip.toLocaleString()}</b></div></div><canvas id="aqc" width="420" height="220" style="width:100%;border-radius:12px;border:3px solid #1f5a7a;display:block;margin-bottom:6px"></canvas>`;
-  h+=`<p class="note">${linked?(AQ.ok===false?'⚠️ Could not reach your partner\'s tank right now.':'🔗 Shared with '+(AQ.nm||aqName(aqOther()))+'. <span style="color:#2a7ad8">● you</span> <span style="color:#d84a8a">● ${AQ.nm||aqName(aqOther())}</span>'):'Link Supabase sync in the Club app to share this tank with your partner. It works solo until then.'}</p>`;
+  h+=`<p class="note">${linked?(AQ.ok===false?'⚠️ Could not reach your partner\'s tank right now.':'🔗 Shared with '+escH(AQ.nm||aqName(aqOther()))+'. <span style="color:#2a7ad8">● you</span> <span style="color:#d84a8a">● ${escH(AQ.nm||aqName(aqOther()))}</span>'):'Link Supabase sync in the Club app to share this tank with your partner. It works solo until then.'}</p>`;
   h+=`<div class="row"><button class="btn gold sm" data-act="aqtip" ${claimed||!all.length?'disabled':''}>${claimed?'💰 Tips collected today':'💰 Collect tips ~$'+tip.toLocaleString()}</button></div><div class="hdr">🏅 SPECIES MILESTONES</div>`;
   h+=AQ_MS.map(([n,r])=>`<div class="qrow ${a.ms[n]?'done':''}"><div class="qb"><b>${n} different species</b> · $${r.toLocaleString()}</div>${a.ms[n]?'✅':sp>=n?`<button class="btn gold sm" data-act="aqms" data-n="${n}">Claim</button>`:`<small>${sp}/${n}</small>`}</div>`).join('');
   h+=`<div class="hdr">🪣 DONATE FROM YOUR BUCKET (${a.fish.length}/${AQ_CAP} yours)</div>`;
