@@ -248,6 +248,8 @@ canvas#c,#townCv,#mapCv{touch-action:none}
 }
 @media(max-width:900px) and (orientation:portrait){.how{grid-template-columns:1fr}.tbox{max-width:94vw}#topmid{top:calc(60px + var(--sat))}}
 @media(max-height:430px){.tbox .sub{display:none}.how{display:grid;grid-template-columns:1fr 1fr}.how div{font-size:12px}.tbox h1{font-size:30px;letter-spacing:2px}.tbox{padding:10px 14px}.big{padding:9px 24px;font-size:17px}.how-tabs{margin-bottom:6px}.panel .npcrow{display:none}}
+
+@media(orientation:portrait) and (max-width:900px){#townBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;overflow:visible;justify-content:stretch}#townBtns{gap:4px;bottom:calc(4px + var(--sab))}#townBtns .tchip{min-width:0;min-height:34px;padding:2px;font-size:15px;line-height:1;overflow:hidden;opacity:.88;border-radius:10px}#townBtns .tchip span{font-size:8.5px;line-height:1.05;white-space:normal;text-align:center}}
 </style>
 <style id="spooky-css">
 /* ===== REEL SPOOKY theme ===== */
@@ -3584,7 +3586,7 @@ function openTown(){
 }
 function closeTown(){townOpen=false;modalOpen=false;ignoreHold=true;TOWN.go=null;TOWN.tx=null;$('town').classList.add('hidden');$('modal').classList.add('hidden');cancelAnimationFrame(townRAF);stopTankAnim&&stopTankAnim();save()}
 let tw=0,th=0,townLast=0;
-function townK(){const w=innerWidth,h=innerHeight;return h>w*.9?Math.max(.5,Math.min(h/720,w/440)):Math.max(h/720,h<520?.7:0)}
+function townK(){const w=innerWidth,h=innerHeight;return h>w*.9?Math.max(.5,Math.min(h/720,w/700)):Math.max(h/720,h<520?.7:0)}
 function sizeTown(){const c=$('townCv'),d=Math.min(devicePixelRatio||1,SET.quality===0?1:2);tw=innerWidth;th=innerHeight;c.width=Math.round(tw*d);c.height=Math.round(th*d);c.style.width=tw+'px';c.style.height=th+'px'}
 addEventListener('resize',()=>{if(townOpen)sizeTown()});
 function townLoop(now){
