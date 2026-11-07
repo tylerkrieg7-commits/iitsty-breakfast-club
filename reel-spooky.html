@@ -292,6 +292,10 @@ html,body{background:#07040e;color:#ece6f4;font-family:'Palatino Linotype','Book
 .maptitle{color:#c8ffc0}
 #townTop .ttl{background:rgba(10,4,20,.78);border-color:rgba(138,255,122,.25)}
 #town{background:#07040e}
+.item.crate{background:repeating-linear-gradient(180deg,#3a2b46 0 22px,#2e2238 22px 25px);border:4px solid #1a0f22;color:#f0e4f6}
+.crate:before{background:repeating-linear-gradient(90deg,#5a4468 0 6px,#4a3658 6px 11px)}
+.crate h3,.crate p{color:#f0e4f6}.crate .stat i{background:rgba(255,255,255,.14)}.crate .stat i b{background:linear-gradient(90deg,#7a2ad8,#8aff7a)}
+.crate.eq{border-color:#8aff7a;box-shadow:0 0 0 3px rgba(138,255,122,.5),0 6px 10px rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
@@ -3077,7 +3081,7 @@ function ptrDown(e){ptrs.add(e.pointerId);ptr(e);
 function ptrUp(e){ptrs.delete(e.pointerId);if(pendCast){pendCast=false;pressStart()}if(!ptrs.size)pressEnd()}
 cv.addEventListener('pointerdown',e=>{ptrDown(e);try{cv.setPointerCapture(e.pointerId)}catch(_){}});
 cv.addEventListener('pointermove',e=>{if(e.pointerType==='touch'&&!ptrs.size)return;ptr(e)});
-cv.addEventListener('pointerup',ptrUp);cv.addEventListener('pointercancel',ptrUp);cv.addEventListener('lostpointercapture',ptrUp);document.addEventListener('visibilitychange',()=>{ptrs.clear();pressEnd()});
+cv.addEventListener('pointerup',ptrUp);cv.addEventListener('pointercancel',ptrUp);cv.addEventListener('lostpointercapture',ptrUp);document.addEventListener('visibilitychange',()=>{ptrs.clear();pressEnd()});document.addEventListener('visibilitychange',()=>{try{if(!AC)return;if(document.hidden){AC.suspend()}else if(!muted){AC.resume()}}catch(e){}});window.addEventListener('pagehide',()=>{try{AC&&AC.suspend()}catch(e){}});
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 cv.addEventListener('wheel',e=>{if(S.gear.bobOn&&S.gear.bobber){S.gear.bobD=clamp(S.gear.bobD+(e.deltaY>0?1:-1),1,10);updateHUD()}},{passive:true});
 window.addEventListener('blur',pressEnd);
@@ -3580,7 +3584,7 @@ function openTown(){
 }
 function closeTown(){townOpen=false;modalOpen=false;ignoreHold=true;TOWN.go=null;TOWN.tx=null;$('town').classList.add('hidden');$('modal').classList.add('hidden');cancelAnimationFrame(townRAF);stopTankAnim&&stopTankAnim();save()}
 let tw=0,th=0,townLast=0;
-function townK(){const w=innerWidth,h=innerHeight;return h>w*.9?Math.max(.5,Math.min(h/720,w/700)):Math.max(h/720,h<520?.7:0)}
+function townK(){const w=innerWidth,h=innerHeight;return h>w*.9?Math.max(.5,Math.min(h/720,w/440)):Math.max(h/720,h<520?.7:0)}
 function sizeTown(){const c=$('townCv'),d=Math.min(devicePixelRatio||1,SET.quality===0?1:2);tw=innerWidth;th=innerHeight;c.width=Math.round(tw*d);c.height=Math.round(th*d);c.style.width=tw+'px';c.style.height=th+'px'}
 addEventListener('resize',()=>{if(townOpen)sizeTown()});
 function townLoop(now){
