@@ -249,7 +249,7 @@ canvas#c,#townCv,#mapCv{touch-action:none}
 @media(max-width:900px) and (orientation:portrait){.how{grid-template-columns:1fr}.tbox{max-width:94vw}#topmid{top:calc(60px + var(--sat))}}
 @media(max-height:430px){.tbox .sub{display:none}.how{display:grid;grid-template-columns:1fr 1fr}.how div{font-size:12px}.tbox h1{font-size:30px;letter-spacing:2px}.tbox{padding:10px 14px}.big{padding:9px 24px;font-size:17px}.how-tabs{margin-bottom:6px}.panel .npcrow{display:none}}
 
-@media(orientation:portrait) and (max-width:900px){#townBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;overflow:visible;justify-content:stretch}#townBtns{gap:4px;bottom:calc(4px + var(--sab))}#townBtns .tchip{min-width:0;min-height:34px;padding:2px;font-size:15px;line-height:1;overflow:hidden;opacity:.88;border-radius:10px}#townBtns .tchip span{font-size:8.5px;line-height:1.05;white-space:normal;text-align:center}}
+@media(orientation:portrait) and (max-width:900px){#townBtns{justify-content:safe center;-webkit-overflow-scrolling:touch}#townBtns .tchip{min-height:44px}}
 </style>
 </head>
 <body>
