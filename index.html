@@ -1160,6 +1160,8 @@ setTimeout(function(){ready=true;vdone=true;hide()},14000)})()</script><script s
                 pointer-events: none;
             }
 
+            .comp-back-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; filter: brightness(.93); }
+            #companion-click-area > #companion-img-display, #companion-click-area > #companion-emoji-display { position: relative; z-index: 1; }
             .comp-hat-layer {
                 position: absolute;
                 pointer-events: none;
@@ -15101,7 +15103,7 @@ function fxNutEstimate(lines) {
         const left = dx < 0, flip = mode === "reverse" ? !left : left;
         setFlip(flip);
     }
-    function setFlip(flip) { ["companion-img-display", "companion-emoji-display", "companion-accessories-layer"].forEach((id) => { const e = $(id); if (e) e.style.scale = flip ? "-1 1" : "1 1"; }); }
+    function setFlip(flip) { ["companion-img-display", "companion-emoji-display", "companion-accessories-layer", "companion-back-layer"].forEach((id) => { const e = $(id); if (e) e.style.scale = flip ? "-1 1" : "1 1"; }); }
     (function () {
         const om = window.moveCompanion;
         window.moveCompanion = function () {
@@ -16200,7 +16202,21 @@ function fxNutEstimate(lines) {
             const r = oa.apply(this, arguments);
             try {
                 const layer = $("companion-accessories-layer"), list = (jget("equippedAccessories", []) || []).filter((a) => !(a.type === "toy" || String(a.id).includes("toy"))), T = jget("fx3_tint", {});
-                [...layer.children].forEach((el, i) => { const a = list[i]; if (!a) return; el.dataset.id = a.id; const full = Object.assign({}, allAcc().find((x) => x.id === a.id) || {}, a); el.style.zIndex = Z[slotOf(full)] || 4; el.style.filter = T[a.id] ? `hue-rotate(${T[a.id]}deg) saturate(1.3)` : ""; });
+                [...layer.children].forEach((el, i) => { const a = list[i]; if (!a) return; el.dataset.id = a.id; const full = Object.assign({}, allAcc().find((x) => x.id === a.id) || {}, a); const sl = slotOf(full); el.dataset.slot = sl; el._acc = full; el.style.zIndex = Z[sl] || 4; el.style.filter = T[a.id] ? `hue-rotate(${T[a.id]}deg) saturate(1.3)` : ""; });
+                // build 112: back-slot items go on a layer BEHIND the pet so they sit on its back
+                const area = $("companion-click-area"); let bl = $("companion-back-layer");
+                if (area && !bl) { bl = document.createElement("div"); bl.id = "companion-back-layer"; bl.className = "comp-back-layer"; area.insertBefore(bl, area.firstChild); }
+                if (bl) {
+                    bl.innerHTML = ""; bl.style.scale = layer.style.scale || "";
+                    [...layer.children].filter((el) => el.dataset.slot === "back").forEach((el) => {
+                        const a = el._acc || {}, dx = +a.x || 0, dy = (+a.y || 0) - SLOT_Y.back, sc = +a.scale || 1, rot = +a.rot || 0;
+                        el.style.left = "50%"; el.style.top = "42%";
+                        el.style.transform = `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(${sc}) rotate(${rot}deg)`;
+                        el.style.fontSize = "calc(var(--companion-size, 40px) * 1.75)"; el.style.lineHeight = "1";
+                        const im = el.querySelector("img"); if (im) { im.style.width = im.style.height = "calc(var(--companion-size, 40px) * 1.75)"; }
+                        bl.appendChild(el);
+                    });
+                }
             } catch (e) {}
             return r;
         };
