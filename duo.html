@@ -199,6 +199,29 @@ input,select{font:inherit;background:#0c0820;color:var(--ink);border:2px solid v
 .op-ln .sl{display:flex;gap:2px;flex:1}.op-ln .sl>div{flex:1;height:24px;background:#0b2a4a;border-radius:5px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 3px #0008}.op-ln .sl>div.hm{background:linear-gradient(160deg,#16a34a,#14532d);font-size:13px}
 .op-ln .wt{display:flex;min-width:30px}
 .op-log{font-size:10px;color:#cfc9ee;line-height:1.3}
+/* build 118: board game art polish */
+#pcan{border:11px solid #8b5a2b!important;border-radius:16px!important;box-shadow:inset 0 0 0 2px #5c3a1a,0 0 0 2px #c08a52,0 14px 26px #000b;background:#1c4a37;box-sizing:border-box}
+.pic-sw{width:34px;height:34px;padding:0!important;border-radius:50%!important;border:3px solid #0006!important;background:radial-gradient(circle at 32% 28%,#fff9,transparent 42%),var(--sc)!important;box-shadow:0 3px 0 #0007;font-size:15px;line-height:1}
+.pic-sw.on{border-color:#fff!important;transform:scale(1.18);box-shadow:0 0 0 2px var(--sc),0 0 14px var(--sc)}
+.tv-card{background:linear-gradient(180deg,#fffdf8,#efe9ff)!important;box-shadow:0 10px 22px #0009,inset 0 -6px 0 #0000000f;position:relative}
+.tv-card:after{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(115deg,transparent 40%,#ffffffa0 50%,transparent 60%);background-size:260% 100%;animation:tvSheen 4.5s ease-in-out infinite;pointer-events:none;mix-blend-mode:soft-light}@keyframes tvSheen{0%,60%{background-position:120% 0}100%{background-position:-60% 0}}
+.tv-o{background:linear-gradient(180deg,#30266a,#1e1740)!important;box-shadow:0 5px 0 #0009,inset 0 1px 0 #ffffff26!important;transition:transform .08s}.tv-o:active{transform:translateY(3px);box-shadow:0 2px 0 #0009!important}
+.tv-o .lt{box-shadow:inset 0 -4px 0 #0003,inset 0 2px 0 #fff4;text-shadow:0 2px 0 #0006}
+.tv-o.right{background:linear-gradient(180deg,#22c55e,#15803d)!important;box-shadow:0 5px 0 #14532d,0 0 22px #22c55e99!important}.tv-o.wrong{background:linear-gradient(180deg,#ef4444,#991b1b)!important}
+.op-svg{filter:drop-shadow(0 14px 18px #000b) drop-shadow(0 0 22px #7c3aed55)!important}
+.op-pg.can{animation:opBob .7s ease-in-out infinite alternate}@keyframes opBob{to{translate:0 -5px}}
+.op-wrap .op-card.face{background-image:linear-gradient(135deg,#fff 0,#fff 55%,#f1e9ff 100%);box-shadow:0 .9cqw 0 #0006,0 1.6cqw 2.6cqw #0007,inset 0 0 0 .5cqw #7c3aed33}
+.lp-board{position:relative}.lp-board:before,.lp-board:after{content:"";position:absolute;top:3%;left:-30%;width:26%;height:5%;border-radius:50px;background:#fff;opacity:.85;box-shadow:22px -9px 0 2px #fff,48px 0 0 -2px #fff,-18px 4px 0 -3px #fff;filter:blur(.6px);animation:lpCloud 38s linear infinite;pointer-events:none;z-index:2}
+.lp-board:after{top:9%;width:18%;height:3.6%;opacity:.7;animation-duration:55s;animation-delay:-20s}@keyframes lpCloud{to{left:120%}}
+.lp-svg [id^="lpcar-"]{filter:drop-shadow(0 3px 2px #0007)}
+.lp-pc{box-shadow:0 6px 0 #0006,inset 0 1px 0 #ffffff22}.lp-pc.cur{animation:lpCur 1.2s ease-in-out infinite alternate}@keyframes lpCur{to{box-shadow:0 6px 0 #0006,0 0 18px var(--a,#ff4d8d)}}
+.pt-mid{background:radial-gradient(circle at 50% 18%,#ffffff2e,transparent 55%),linear-gradient(180deg,transparent 62%,#0000002e 62%),radial-gradient(circle at 50% 30%,var(--m1),var(--m2))!important}
+.pt-mid:before{content:"";position:absolute;left:0;right:0;bottom:0;height:34%;opacity:.16;pointer-events:none;background:linear-gradient(#000,#000) 4% 100%/7% 60% no-repeat,linear-gradient(#000,#000) 13% 100%/9% 85% no-repeat,linear-gradient(#000,#000) 25% 100%/6% 50% no-repeat,linear-gradient(#000,#000) 34% 100%/10% 100% no-repeat,linear-gradient(#000,#000) 48% 100%/7% 70% no-repeat,linear-gradient(#000,#000) 58% 100%/9% 92% no-repeat,linear-gradient(#000,#000) 70% 100%/6% 55% no-repeat,linear-gradient(#000,#000) 80% 100%/10% 78% no-repeat,linear-gradient(#000,#000) 93% 100%/8% 62% no-repeat}
+.pt-mid>*{position:relative;z-index:1}
+.pt-t{background-image:linear-gradient(160deg,#ffffff40,transparent 45%,#00000014)}.pt-t.own{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--fe) 85%,#000),inset 0 0 0 2.5px currentColor}
+.pt-board{box-shadow:0 0 0 3px #fff3,0 0 0 6px var(--fe),0 18px 30px #000c,0 0 40px color-mix(in srgb,var(--ac) 45%,transparent)!important}
+.pt-die{filter:drop-shadow(0 4px 0 #0005) drop-shadow(0 8px 8px #0006)}.pt-tk{filter:drop-shadow(0 2px 1.5px #000a)}
+.pt-pc{box-shadow:0 5px 0 #0006,inset 0 1px 0 #ffffff22}
 /* build 117 */
 .op-pg .op-ring{display:none}.op-pg.can{cursor:pointer}.op-pg.can .op-ring{display:block;animation:opRing 1s linear infinite;transform-origin:20px 26px}@keyframes opRing{to{transform:rotate(360deg)}}
 .lp-q{text-align:center;border:1px solid #a855f7;background:linear-gradient(160deg,#2a1657,#1b1433)}.lp-q b{color:#fde68a}
@@ -1810,7 +1833,10 @@ function jpPicker(box){var big=ls("duo_jbig","0")==="1";window.JP_BIG=big;box.cl
 var PIC_WORDS="cat,house,pizza,rocket,guitar,sun,tree,fish,car,bicycle,flower,umbrella,ice cream,robot,castle,moon,snowman,airplane,dog,banana,heart,star,key,clock,boat,bird,butterfly,candle,crown,cupcake,dragon,elephant,ghost,hamburger,igloo,kite,lighthouse,mountain,penguin,pumpkin,rainbow,spider,sword,train,turtle,volcano,whale,wizard,cactus,camera,coffee,dinosaur,donut,drum,eagle,frog,giraffe,hat,jellyfish,ladder,lamp,monkey,octopus,owl,pear,piano,pirate,rabbit,skateboard,snail,tent,tornado,witch,zebra,campfire,headphones,popcorn,sandwich,shark,sloth,teapot,unicorn".split(",");
 var PIC={k:"",strokes:[],cur:null,col:"#ffffff",wd:5,lastSend:0,dirty:false,guesses:[],clear:0};
 function picDraw(cv,strokes){
-  var x=cv.getContext("2d"),W=cv.width;x.fillStyle="#12102a";x.fillRect(0,0,W,W);x.lineCap="round";x.lineJoin="round";
+  var x=cv.getContext("2d"),W=cv.width;var bg=window.PIC_BG;if(!bg||bg.width!==W){bg=window.PIC_BG=document.createElement("canvas");bg.width=bg.height=W;var b=bg.getContext("2d"),g=b.createRadialGradient(W*.45,W*.4,W*.1,W*.5,W*.5,W*.8);g.addColorStop(0,"#2b6a4f");g.addColorStop(1,"#173d2e");b.fillStyle=g;b.fillRect(0,0,W,W);
+    for(var i=0;i<900;i++){b.fillStyle="rgba(255,255,255,"+(.012+((i*7)%10)/400)+")";b.fillRect((i*193)%W,(i*397)%W,1+(i%3),1)}
+    b.strokeStyle="rgba(255,255,255,.035)";b.lineWidth=W/12;b.lineCap="round";for(var j=0;j<5;j++){b.beginPath();b.moveTo(W*.05,W*(.15+j*.18));b.quadraticCurveTo(W*.5,W*(.1+j*.18),W*.95,W*(.2+j*.18));b.stroke()}}
+  x.drawImage(bg,0,0);x.lineCap="round";x.lineJoin="round";x.shadowColor="rgba(255,255,255,.25)";x.shadowBlur=W/300;
   (strokes||[]).forEach(function(s){x.strokeStyle=s.c;x.fillStyle=s.c;x.lineWidth=s.w*W/300;var p=s.p;
     if(p.length<4){x.beginPath();x.arc(p[0]*W/1000,p[1]*W/1000,s.w*W/600,0,6.3);x.fill();return}
     x.beginPath();x.moveTo(p[0]*W/1000,p[1]*W/1000);for(var i=2;i<p.length;i+=2)x.lineTo(p[i]*W/1000,p[i+1]*W/1000);x.stroke()});
@@ -1829,10 +1855,10 @@ reg("pictionary",{title:"Draw & Guess",icon:"🎨",desc:"One draws live, one gue
   if(PIC.k!==k){PIC={k:k,strokes:[],cur:null,col:"#ffffff",wd:5,lastSend:0,dirty:false,guesses:[],clear:0}}
   var left=function(){return Math.max(0,75-Math.round((Date.now()-st.t0)/1000))};
   var head='<div class="mut" style="text-align:center">Round '+(st.i+1)+'/'+st.words.length+' · '+esc(c.names.a)+' '+st.sc.a+' – '+st.sc.b+' '+esc(c.names.b)+'</div>';
-  var cols=["#ffffff","#ff4d8d","#ffd60a","#4ade80","#35c8ff","#a78bfa","#fb923c","#111111"];
+  var cols=["#ffffff","#ff4d8d","#ef4444","#fb923c","#ffd60a","#4ade80","#2dd4bf","#35c8ff","#a78bfa","#f9a8d4","#b45309","#1c4a37"];
   el.innerHTML=head+'<div class="banner" style="font-size:15px;padding:6px">'+(isD?'🎨 Draw: <b style="color:#ffd60a">'+esc(word.toUpperCase())+'</b>':'👀 '+esc(c.names[drawer])+' is drawing… guess the word!')+' · <span id="ptm">'+left()+'</span>s</div>'+
    '<canvas id="pcan" width="600" height="600" style="width:100%;max-width:420px;aspect-ratio:1;border-radius:14px;touch-action:none;display:block;margin:0 auto;border:2px solid var(--line)"></canvas>'+
-   (isD?'<div class="bar" style="margin-top:8px;flex-wrap:wrap;justify-content:center">'+cols.map(function(x){return'<button data-c="'+x+'" style="background:'+x+';width:30px;height:30px;padding:0;border-radius:50%;border:3px solid '+(x===PIC.col?"#fff":"#555")+'"></button>'}).join("")+'<button id="pw">'+(PIC.wd>6?"🖌️ thick":"✏️ thin")+'</button><button id="pu">↩ Undo</button><button id="pc">🗑 Clear</button></div><div class="mut" id="pg" style="text-align:center;margin-top:6px">No guesses yet…</div><div class="bar" style="margin-top:6px"><button id="ps" style="flex:1">⏭ Skip this word</button></div>':
+   (isD?'<div class="bar" style="margin-top:8px;flex-wrap:wrap;justify-content:center">'+cols.map(function(x){return'<button data-c="'+x+'" class="pic-sw'+(x===PIC.col?" on":"")+'" style="--sc:'+x+'">'+(x==="#1c4a37"?"🧽":"")+'</button>'}).join("")+'<button id="pw">'+(PIC.wd>6?"🖌️ thick":"✏️ thin")+'</button><button id="pu">↩ Undo</button><button id="pc">🗑 Clear</button></div><div class="mut" id="pg" style="text-align:center;margin-top:6px">No guesses yet…</div><div class="bar" style="margin-top:6px"><button id="ps" style="flex:1">⏭ Skip this word</button></div>':
    '<div class="bar" style="margin-top:8px"><input id="pgi" placeholder="Type your guess" style="flex:1" autocomplete="off"><button class="pri" id="pgb">Guess</button></div><div class="mut" id="pgm" style="text-align:center;margin-top:6px">'+(PIC.guesses.length?"Tried: "+esc(PIC.guesses.join(" · ")):"")+'</div>');
   var cv=$("#pcan",el);picDraw(cv,isD?PIC.strokes:(c.sim&&c.sim.k===k?c.sim.s||[]:[]));
   var advance=function(pts,dPts){var n=JSON.parse(JSON.stringify(st)),gs=other(drawer);n.sc[gs]+=pts;n.sc[drawer]+=dPts;n.i++;n.t0=Date.now();var win=null;
