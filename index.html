@@ -20712,6 +20712,7 @@ setTimeout(register,600);setTimeout(register,2500);
     function bubble(sc, el, t) { var b = document.createElement("div"); b.className = "v2-say"; b.textContent = t; b.style.left = el.style.left; b.style.top = el.style.top; sc.appendChild(b); setTimeout(function () { b.remove(); }, 2500); }
 
     function itemHTML(it, n, her) {
+        if (it.svg && !/^\s*<svg[\s\S]*<\/svg>\s*$/i.test(it.svg)) it = Object.assign({}, it, { svg: "" }); /* broken art -> emoji instead of raw text */
         var body = it.svg || '<span class="fx3-furn-e">' + esc(it.e || "🪑") + "</span>";
         if (it.ph && it.svg) body = '<div class="fx3-photo"><img src="' + esc(it.ph) + '" alt="">' + it.svg + "</div>";
         if (it.pt) body = '<div class="fx3-photo portrait">' + (it.svg || "") + '<div class="fx3-portrait-pet">' + petHTML(her) + "</div></div>";
@@ -20779,7 +20780,7 @@ setTimeout(register,600);setTimeout(register,2500);
                 (H.rooms.length > 1 ? '<div class="rooms">' + H.rooms.map(function (r) { return '<button data-r="' + esc(r.id) + '" class="' + (r.id === R.id ? "on" : "") + '">' + esc(r.e + " " + r.name) + "</button>"; }).join("") + "</div>" : "") +
                 '<div class="sc fx3-room" id="v2-sc"><div class="fx3-wall" style="background:' + R.wall + '"></div><div class="fx3-floor" style="background:' + R.floor + '"></div>' +
                 R.items.map(function (it, n) { return itemHTML(it, n, her); }).join("") +
-                (R.bed && R.bed.svg ? '<div class="fx3-room-bed" style="left:' + R.bed.x + "%;top:" + R.bed.y + "%;--s:" + R.bed.s + ";z-index:" + (3 + Math.round(R.bed.y)) + '">' + R.bed.svg + "</div>" : "") +
+                (R.bed ? '<div class="fx3-room-bed" style="left:' + R.bed.x + "%;top:" + R.bed.y + "%;--s:" + R.bed.s + ";z-index:" + (3 + Math.round(R.bed.y)) + '">' + (/^\s*<svg[\s\S]*<\/svg>\s*$/i.test(R.bed.svg || "") ? R.bed.svg : '<span style="font-size:46px;line-height:1">🛏️</span>') + "</div>" : "") +
                 doors.map(function (d) { var dk = (H.dsk || {})[R.id + ":" + (d.to === "__out" ? "front" : d.k || "")] || (d.to === "__out" ? "red" : "oak"); return '<div class="v2-door ds-' + esc(dk) + '" data-d="' + esc(d.to) + '" style="left:' + d.x + "%;top:" + d.y + '%"><i></i>' + (d.to === "__out" ? '<u class="bx-bell' + (d.x > 70 ? " bx-bell-l" : "") + '" title="Ring the doorbell"></u>' : "") + '<small>' + esc(d.to === "__out" ? "🏠 Go home" : d.l || ((H.rooms.filter(function (r) { return r.id === d.to; })[0] || {}).name || "Door")) + "</small></div>"; }).join("") +
                 '<div class="v2-pet her" id="v2-her" style="left:40%;top:76%">' + petHTML(her) + "<small>" + esc(her.name) + '</small></div><div class="v2-pet mine" id="v2-me" style="left:' + (R.id === "home" ? 92 : 12) + '%;top:66%">' + petHTML(mine) + "<small>" + esc(mine.name) + " (yours)</small></div>" +
                 '<div class="badge" id="v2-b">…</div></div>' +
