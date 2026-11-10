@@ -22055,6 +22055,7 @@ window.__bcxGhostGear={check:chk,need:NEED};
 <style id="bcnav-css">
 #bcnav{position:fixed;left:0;right:0;bottom:0;z-index:9600;display:none;justify-content:space-around;align-items:stretch;gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card-bg,#1e1e1e) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--border-color,#333);box-shadow:0 -8px 24px rgba(0,0,0,.45)}
 body.bcnav-on #bcnav{display:flex}
+body.bcnav-on .gear-btn{display:none!important}
 body.bcnav-on{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 #bcnav button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 5px;border:0;border-radius:14px;background:transparent;color:var(--text-muted,#aaa);font:700 .68rem/1.1 inherit;cursor:pointer;transition:transform .12s,background .2s,color .2s;-webkit-tap-highlight-color:transparent}
 #bcnav button i{font-style:normal;font-size:1.45rem;line-height:1.15;transition:transform .2s cubic-bezier(.3,1.6,.5,1);filter:saturate(.75)}
@@ -22122,11 +22123,11 @@ body.ui2 .settings-nav-btn.active{background-image:linear-gradient(180deg,rgba(2
     return[["Every day",daily],
       ["Rewards, pet & shop",[S("⭐","Points & Rewards","settings-pets","points"),S("🐾","My Pet","settings-pets","pet"),S("🛍️","Shop","settings-pets","shops"),S("🧪","Toy Physics","settings-pets","physics"),{i:"💌",l:"Love Notes",k:"mail",f:function(){var b=document.querySelector("#fx-mail-badge");b=b&&b.parentElement;if(b)b.click()}}]],
       ["Games",[G("🕹️","Arcade","arcade.html"),G("💞","Together Arcade","duo.html"),G("🎣","Reel Legends","reel-legends.html"),G("👻","Reel Spooky","reel-spooky.html"),G("⚔️","Dungeon Dwellers","dungeon-dwellers.html"),G("🌱","Pocket Farm","PocketFarm.html"),G("💰","Loot & Ledger","loot-ledger.html"),G("🎨","Color Art","color-art.html")]],
-      ["Settings",[S("🎨","Theme & Colors","settings-look","theme"),S("✨","Effects & Sound","settings-look","effects"),S("🧩","Tabs & Units","settings-look","layout"),S("🏠","Household","settings-look","home"),S("🔄","Sync","settings-data","sync"),S("💾","Backup & Reset","settings-data","backup")]]];
+      ["Settings",[S("🎨","Theme & Colors","settings-look","theme"),S("✨","Effects & Sound","settings-look","effects"),S("🧩","Tabs & Units","settings-look","layout"),S("🏠","Household","settings-look","home"),S("🔄","Sync","settings-data","sync"),S("💾","Backup & Reset","settings-data","backup"),S("🕹️","App Library","settings-data","apps"),{i:"🧭",l:"Navigation style",k:"navstyle",f:function(){goSet("settings-look","theme");setTimeout(function(){var e=document.getElementById("setting-bcnav");if(e){e.scrollIntoView({block:"center"});e.focus()}},700)}}]]];
   }
   function openMenu(){var w=where(),cur=w.tab==="settings"?w.page+":"+w.group:"tab:"+w.tab,I=items(),h='<div class="bcm-top"><h2>☰ Everything</h2><button class="bcm-x">✕ Close</button></div><input id="bcm-q" type="search" placeholder="🔎 Find a page…" autocomplete="off">';
     I.forEach(function(sec,si){h+='<h3>'+sec[0]+'</h3><div class="bcm-grid">'+sec[1].map(function(it,ii){return'<button data-s="'+si+'" data-i="'+ii+'" class="'+(it.k===cur?"here":"")+'"><i>'+it.i+'</i><span>'+it.l+'</span></button>'}).join("")+'</div>'});
-    h+='<div class="bcm-foot">Prefer the old layout? <a id="bcm-off">Hide the bottom bar</a><br>You can turn it back on in ⚙️ Settings → Appearance → Theme → “Bottom navigation bar”.</div>';
+    h+='<div class="bcm-foot">Prefer the old way? <a id="bcm-off">Switch back to the ⚙️ settings button</a><br>To return here later: ⚙️ → Appearance → Theme → “Navigation style”.</div>';
     menu.innerHTML=h;menu.classList.add("open");document.body.classList.add("bcm-open");menu.scrollTop=0;
     menu.querySelector(".bcm-x").onclick=closeMenu;
     menu.querySelectorAll(".bcm-grid button").forEach(function(b){b.onclick=function(){closeMenu();I[+b.dataset.s][1][+b.dataset.i].f();setTimeout(upd,60)}});
@@ -22146,10 +22147,111 @@ body.ui2 .settings-nav-btn.active{background-image:linear-gradient(180deg,rgba(2
     setTimeout(upd,80)});
   function init(){document.body.appendChild(menu);document.body.appendChild(bar);
     var st=$("view-settings")||document.querySelector(".view#view-settings");var nav=document.querySelector(".settings-nav-btn");nav=nav&&nav.parentElement;if(nav&&nav.parentElement)nav.parentElement.insertBefore(wh,nav.nextSibling);
-    var uf=$("setting-ui-fx");uf=uf&&uf.closest(".form-group");if(uf&&!$("setting-bcnav")){var d=document.createElement("div");d.className="form-group";d.style.marginBottom="12px";d.innerHTML='<label for="setting-bcnav">Bottom navigation bar (Home · Pet · Shop · Arcade · More)</label><select id="setting-bcnav" onchange="updateBcNav(this.value)"><option value="on">On</option><option value="off">Off (old layout)</option></select>';uf.parentElement.insertBefore(d,uf)}
+    var uf=$("setting-ui-fx");uf=uf&&uf.closest(".form-group");if(uf&&!$("setting-bcnav")){var d=document.createElement("div");d.className="form-group";d.style.marginBottom="12px";d.innerHTML='<label for="setting-bcnav">🧭 Navigation style</label><select id="setting-bcnav" onchange="updateBcNav(this.value)"><option value="on">New: bottom bar (⚙️ button hidden)</option><option value="off">Old: ⚙️ settings button, no bottom bar</option></select>';uf.parentElement.insertBefore(d,uf)}
     setNav(on()?"on":"off");upd();setInterval(function(){if(!document.hidden&&on())upd()},700);
     document.addEventListener("click",function(){setTimeout(upd,120)},true)}
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
+<!-- build 115: living pet room - pantry fridge, plants to water, storm window, tidy-up, Buddy works out with you -->
+<style id="bclife-css">
+.fx3-room .bcl-light{position:absolute;inset:0;pointer-events:none;z-index:150;background:radial-gradient(ellipse 70% 55% at 50% 18%,rgba(255,236,190,.16),transparent 70%),radial-gradient(ellipse 120% 100% at 50% 45%,transparent 55%,rgba(0,0,0,.34))}
+.fx3-room .fx3-furn{filter:drop-shadow(0 5px 4px rgba(0,0,0,.4))}
+.fx3-room-pet::before{content:"";position:absolute;left:10%;right:10%;bottom:-6%;height:16%;border-radius:50%;background:rgba(0,0,0,.32);filter:blur(3px);z-index:-1}
+.bcl-pl{position:absolute;right:-10px;top:-12px;font-size:.95rem;line-height:1;pointer-events:none;filter:drop-shadow(0 1px 2px #000a);transform:scaleX(var(--fl,1))}
+.bcl-pl.dry{animation:bclBob 1.2s ease-in-out infinite}
+.bcl-pl.bloom{animation:bclGlow 1.6s ease-in-out infinite}
+@keyframes bclBob{50%{transform:translateY(-4px) scaleX(var(--fl,1))}}
+@keyframes bclGlow{50%{filter:drop-shadow(0 0 8px #ffe066) drop-shadow(0 1px 2px #000a)}}
+.fx3-furn.bcl-grow{animation:bclGrow .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bclGrow{0%{transform:translate(-50%,-50%) scale(.8,1.15)}60%{transform:translate(-50%,-56%) scale(1.14,.92)}}
+.bcl-flash{position:absolute;inset:0;z-index:400;pointer-events:none;background:#fff;opacity:0;animation:bclFlash 1.1s ease-out forwards}
+@keyframes bclFlash{0%{opacity:.9}8%{opacity:.1}14%{opacity:.75}30%{opacity:.05}36%{opacity:.4}100%{opacity:0}}
+.bcl-bolt{position:absolute;z-index:401;pointer-events:none;font-size:3.4rem;transform:translate(-50%,-10%);animation:bclBolt .6s ease-out forwards;filter:drop-shadow(0 0 12px #fff)}
+@keyframes bclBolt{0%{opacity:1;transform:translate(-50%,-30%) scale(.6)}30%{opacity:1;transform:translate(-50%,0) scale(1.2)}100%{opacity:0;transform:translate(-50%,10%) scale(1)}}
+.bcl-rain{position:absolute;inset:0;z-index:160;pointer-events:none;opacity:.5;background:repeating-linear-gradient(100deg,transparent 0 9px,rgba(190,220,255,.35) 9px 10px);background-size:60px 100%;animation:bclRain .35s linear infinite,bclFade 7s ease-in forwards}
+@keyframes bclRain{to{background-position:-60px 120px}}@keyframes bclFade{0%,75%{opacity:.5}100%{opacity:0}}
+.bcl-mess{position:absolute;z-index:140;font-size:1.5rem;cursor:pointer;transform:translate(-50%,-50%);animation:bclMess 2.4s ease-in-out infinite;filter:drop-shadow(0 2px 2px #0008)}
+@keyframes bclMess{50%{transform:translate(-50%,-56%) rotate(6deg)}}
+.bcl-mess.gone{animation:bclPoof .45s ease-out forwards;pointer-events:none}@keyframes bclPoof{to{transform:translate(-50%,-90%) scale(1.8);opacity:0}}
+.bcl-sheet{position:absolute;left:8px;right:8px;bottom:8px;z-index:900;max-height:72%;overflow:auto;border-radius:18px;padding:14px;background:linear-gradient(180deg,#eaf6ff,#cfe6f7);color:#16324a;box-shadow:0 -6px 30px #000a,inset 0 2px 0 #fff;animation:bclUp .25s ease-out}
+@keyframes bclUp{from{transform:translateY(30px);opacity:0}}
+.bcl-sheet h3{margin:0 0 4px;font-size:1.05rem;display:flex;justify-content:space-between;align-items:center}
+.bcl-sheet h3 button{border:0;background:#16324a;color:#fff;border-radius:10px;padding:5px 10px;font-weight:700}
+.bcl-sheet p{margin:2px 0 10px;font-size:.8rem;opacity:.75}
+.bcl-shelf{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-radius:12px;background:rgba(255,255,255,.6);box-shadow:inset 0 -3px 0 #9cc3dd;margin-bottom:8px}
+.bcl-shelf span{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:999px;background:#fff;font-size:.8rem;font-weight:700;box-shadow:0 2px 0 #b9d6ea}
+.bcl-shelf span i{font-style:normal;font-size:1.1rem}
+.bcl-sheet .bcl-go{width:100%;border:0;border-radius:12px;padding:11px;font-weight:800;font-size:.95rem;color:#fff;background:linear-gradient(180deg,#34c38f,#1e9e6d);box-shadow:0 3px 0 #15724f}
+#floating-companion.bcl-lift .comp-img-wrapper{animation:bclLift .5s ease-in-out 5}
+@keyframes bclLift{50%{transform:translateY(-9px) scale(1.06,.94)}}
+.bcl-db{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font-size:1.3rem;pointer-events:none;z-index:5;animation:bclDb .5s ease-in-out 5}
+@keyframes bclDb{50%{transform:translateX(-50%) translateY(-12px) rotate(-8deg)}}
+.bcl-bub{position:absolute;left:50%;bottom:108%;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#222;font:700 .72rem/1.2 sans-serif;padding:5px 9px;border-radius:12px;box-shadow:0 3px 10px #0006;pointer-events:none;z-index:6;animation:bclUp .2s ease-out}
+.fx3-room-pet.bcl-reps{animation:bclLift .5s ease-in-out infinite}
+.fx3-room-pet.bcl-reps::after{content:"🏋️";position:absolute;top:-20px;right:-16px;font-size:1.3rem}
+</style>
+<script>
+(function(){
+  var J=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},SJ=function(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  var day=function(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+  var PLANT=/^fu_(plant|cactus|sunflower|monstera)$|flower|bonsai|fern|herb|bcx_tree|sapling|succulent|ivy/i,WIN=/window/i,FRIDGE=/fridge/i;
+  var STAGE=["🌰","🌱","🌿","🌷","🌸"],GROW_MS=4*3600*1000,DRY_MS=26*3600*1000;
+  var AC=null;function ac(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){}return AC}
+  function thunder(){var a=ac();if(!a)return;try{var n=a.sampleRate*2.4,b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);var s=a.createBufferSource();s.buffer=b;var f=a.createBiquadFilter();f.type="lowpass";f.frequency.value=260;var g=a.createGain();g.gain.value=.9;s.connect(f);f.connect(g);g.connect(a.destination);s.start()}catch(e){}}
+  function blip(f,d){var a=ac();if(!a)return;try{var o=a.createOscillator(),g=a.createGain();o.type="sine";o.frequency.value=f;g.gain.setValueAtTime(.09,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+(d||.2));o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+(d||.2))}catch(e){}}
+  function room(){return J("fx3_room",{})}
+  function itemAt(i){return (room().items||[])[i]}
+  function saveItem(i,p){var R=room();if(!R.items||!R.items[i])return;for(var k in p)R.items[i][k]=p[k];SJ("fx3_room",R)}
+  function say(ov,t,ms){var b=ov.querySelector("#rm-say");if(!b)return;b.textContent=t;b.classList.add("on");clearTimeout(say.t);say.t=setTimeout(function(){b.classList.remove("on")},ms||2400)}
+  function parts(scene,el,gl,n){var r=scene.getBoundingClientRect(),b=el.getBoundingClientRect();for(var k=0;k<(n||4);k++)(function(k){setTimeout(function(){var p=document.createElement("div");p.className="bcx-part";p.textContent=gl[Math.floor(Math.random()*gl.length)];p.style.left=((b.left+b.width/2-r.left)/r.width*100+(Math.random()*10-5))+"%";p.style.top=((b.top-r.top)/r.height*100+(Math.random()*8))+"%";scene.appendChild(p);setTimeout(function(){p.remove()},1900)},k*110)})(k)}
+  var petName=function(){try{return localStorage.getItem("companionName")||"Buddy"}catch(e){return"Buddy"}};
+  /* ---- plants ---- */
+  function plantBadges(ov){var sc=ov.querySelector(".fx3-room");if(!sc)return;sc.querySelectorAll(".fx3-furn[data-i]").forEach(function(el){var it=itemAt(+el.dataset.i);if(!it||!PLANT.test(it.id))return;var gs=it.gs||0,dry=!it.gw||Date.now()-it.gw>DRY_MS,b=el.querySelector(".bcl-pl");if(!b){b=document.createElement("span");b.className="bcl-pl";el.appendChild(b)}var txt=gs>=4?"🌸":dry?"💧":STAGE[gs];if(b.textContent!==txt)b.textContent=txt;b.classList.toggle("dry",dry&&gs<4);b.classList.toggle("bloom",gs>=4)})}
+  function tapPlant(ov,el,i){var it=itemAt(i),sc=ov.querySelector(".fx3-room"),gs=it.gs||0,now=Date.now();
+    if(gs>=4){saveItem(i,{gs:1,gw:now});parts(sc,el,["🌸","✨","🌼","⭐"],6);blip(880,.15);setTimeout(function(){blip(1175,.25)},120);try{window.addPoints&&window.addPoints(5)}catch(e){}try{window.addHappiness&&window.addHappiness(3)}catch(e){}say(ov,"🌸 Picked a bloom! +5 pts");var s=J("bcl_garden",{n:0});s.n=(s.n||0)+1;SJ("bcl_garden",s)}
+    else{var ready=!it.gw||now-it.gw>GROW_MS;parts(sc,el,["💧","💦"],5);blip(520,.12);setTimeout(function(){blip(660,.12)},90);
+      if(ready){saveItem(i,{gs:gs+1,gw:now});el.classList.remove("bcl-grow");void el.offsetWidth;el.classList.add("bcl-grow");say(ov,gs+1>=4?"🌸 It bloomed! Tap to pick it":"💧 Watered! It grew a little "+STAGE[gs+1])}
+      else{var h=Math.ceil((GROW_MS-(now-it.gw))/3600000);say(ov,"🪴 Already watered. Thirsty again in about "+h+"h")}}
+    plantBadges(ov)}
+  /* ---- window storm ---- */
+  function storm(ov,el){var sc=ov.querySelector(".fx3-room");if(!sc||sc.querySelector(".bcl-flash"))return;var r=sc.getBoundingClientRect(),b=el.getBoundingClientRect();
+    var f=document.createElement("div");f.className="bcl-flash";sc.appendChild(f);var z=document.createElement("div");z.className="bcl-bolt";z.textContent="⚡";z.style.left=((b.left+b.width/2-r.left)/r.width*100)+"%";z.style.top=((b.top-r.top)/r.height*100)+"%";sc.appendChild(z);
+    if(!sc.querySelector(".bcl-rain")){var rn=document.createElement("div");rn.className="bcl-rain";sc.appendChild(rn);setTimeout(function(){rn.remove()},7000)}
+    setTimeout(thunder,260);setTimeout(function(){f.remove();z.remove()},1200);var p=sc.querySelector(".fx3-room-pet");if(p){p.classList.remove("hop");void p.offsetWidth;p.classList.add("hop")}
+    setTimeout(function(){say(ov,["⚡ WHOA! Did you see that?!","⛈️ Thunder! Hide under the blanket!","⚡ That one was close!"][Math.floor(Math.random()*3)])},350)}
+  /* ---- fridge = your pantry ---- */
+  var EMO=[[/milk|cream/,"🥛"],[/egg/,"🥚"],[/cheese/,"🧀"],[/butter/,"🧈"],[/yogurt|yoghurt/,"🥣"],[/chicken|turkey/,"🍗"],[/beef|steak|burger/,"🥩"],[/bacon|ham|pork|sausage/,"🥓"],[/fish|salmon|tuna|shrimp/,"🐟"],[/apple/,"🍎"],[/banana/,"🍌"],[/berry|berries|grape/,"🍓"],[/orange|lemon|lime/,"🍊"],[/avocado/,"🥑"],[/tomato/,"🍅"],[/carrot/,"🥕"],[/potato/,"🥔"],[/onion|garlic/,"🧅"],[/pepper/,"🫑"],[/broccoli|spinach|lettuce|kale|greens|salad/,"🥬"],[/corn/,"🌽"],[/bread|bagel|bun|toast|tortilla/,"🍞"],[/rice/,"🍚"],[/pasta|noodle|spaghetti/,"🍝"],[/oat|cereal|granola/,"🥣"],[/bean|lentil|chickpea/,"🫘"],[/flour|sugar|baking/,"🧁"],[/oil|vinegar/,"🫒"],[/salt|spice|season|cinnamon|paprika/,"🧂"],[/honey|syrup|jam/,"🍯"],[/peanut|nut|almond/,"🥜"],[/chocolate|cocoa/,"🍫"],[/coffee/,"☕"],[/tea/,"🍵"],[/juice|soda|water/,"🧃"],[/sauce|ketchup|mustard|mayo|salsa/,"🥫"],[/soup|broth|stock/,"🥫"],[/pizza/,"🍕"],[/ice cream/,"🍨"],[/protein/,"💪"]];
+  function emo(n){n=String(n||"").toLowerCase();for(var i=0;i<EMO.length;i++)if(EMO[i][0].test(n))return EMO[i][1];return"🥡"}
+  function fridge(ov,el){var old=ov.querySelector(".bcl-sheet");if(old){old.remove();return}var P=J("fx_pantry",[]).map(function(x){return typeof x==="string"?x:(x&&x.name)||""}).filter(Boolean),sc=ov.querySelector(".fx3-room");
+    var sh=document.createElement("div");sh.className="bcl-sheet";var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+    sh.innerHTML='<h3>🧊 '+esc(petName())+"'s fridge <button>✕</button></h3>"+(P.length?'<p>Stocked with what is in your pantry right now ('+P.length+' item'+(P.length===1?"":"s")+').</p><div class="bcl-shelf">'+P.slice(0,60).map(function(n){return'<span><i>'+emo(n)+'</i>'+esc(n)+'</span>'}).join("")+'</div><button class="bcl-go">🍽️ Let '+esc(petName())+' pick a snack</button>':'<p>The fridge is empty! Add what you have at home in Grocery → Pantry and it shows up here.</p><div class="bcl-shelf"><span><i>🧊</i>Just ice…</span></div>');
+    ov.appendChild(sh);sh.querySelector("h3 button").onclick=function(){sh.remove()};var go=sh.querySelector(".bcl-go");
+    if(go)go.onclick=function(){var n=P[Math.floor(Math.random()*P.length)];sh.remove();parts(sc,el,[emo(n),"😋","✨"],5);blip(700,.1);say(ov,"😋 Mmm, "+n+"! Thanks for shopping.",2800);var t=J("bcl_snack",0);if(Date.now()-t>60000){SJ("bcl_snack",Date.now());try{window.addHappiness&&window.addHappiness(3)}catch(e){}}}}
+  /* ---- tidy up ---- */
+  function messes(ov){var sc=ov.querySelector(".fx3-room");if(!sc||sc.__bclMess)return;sc.__bclMess=1;var st=J("bcl_tidy",{d:"",n:0});if(st.d!==day())st={d:day(),n:0};var left=Math.min(3,6-st.n);
+    for(var k=0;k<left;k++){var m=document.createElement("div");m.className="bcl-mess";m.textContent=["🧦","🕸️","🍂","🧻","🦴","🥫"][Math.floor(Math.random()*6)];m.style.left=(12+Math.random()*76)+"%";m.style.top=(66+Math.random()*24)+"%";sc.appendChild(m)}}
+  function tidy(ov,m){m.classList.add("gone");setTimeout(function(){m.remove()},450);blip(990,.08);var st=J("bcl_tidy",{d:"",n:0});if(st.d!==day())st={d:day(),n:0};st.n++;SJ("bcl_tidy",st);try{window.addPoints&&window.addPoints(1)}catch(e){}try{window.addHappiness&&window.addHappiness(1)}catch(e){}say(ov,["🧹 Tidy! +1 pt","✨ So clean! +1 pt","🧹 Thanks for helping! +1 pt"][st.n%3])}
+  /* ---- room hooks ---- */
+  function decorate(ov){var sc=ov.querySelector(".fx3-room");if(!sc)return;if(!sc.querySelector(".bcl-light")){var l=document.createElement("div");l.className="bcl-light";sc.appendChild(l)}
+    if(ov.querySelector(".fx3-room-tools"))return;plantBadges(ov);messes(ov);
+    var w=J("bcl_fit",{d:"",n:0,t:0}),p=sc.querySelector(".fx3-room-pet");if(p&&w.d===day()&&Date.now()-w.t<10*60000&&!p.__bcl){p.__bcl=1;p.classList.add("bcl-reps");setTimeout(function(){p.classList.remove("bcl-reps")},6000);say(ov,"💪 "+w.n+" set"+(w.n===1?"":"s")+" with you today!",3000)}}
+  document.addEventListener("click",function(e){var ov=e.target.closest&&e.target.closest(".fx3-room-ov");if(!ov)return;
+    var m=e.target.closest(".bcl-mess");if(m){e.stopPropagation();tidy(ov,m);return}
+    if(e.target.closest(".bcl-sheet"))return;if(ov.querySelector(".fx3-room-tools"))return;
+    var el=e.target.closest(".fx3-furn[data-i]");if(!el)return;var i=+el.dataset.i,it=itemAt(i);if(!it)return;
+    if(FRIDGE.test(it.id)){e.stopPropagation();fridge(ov,el)}else if(PLANT.test(it.id)){e.stopPropagation();tapPlant(ov,el,i)}else if(WIN.test(it.id)){storm(ov,el)}},true);
+  var tm=0;new MutationObserver(function(){var ov=document.querySelector(".fx3-room-ov");if(!ov)return;clearTimeout(tm);tm=setTimeout(function(){decorate(ov)},60)}).observe(document.body,{childList:true,subtree:true});
+  /* ---- Buddy works out when you do ---- */
+  function lift(){var w=J("bcl_fit",{d:"",n:0,t:0});if(w.d!==day())w={d:day(),n:0,t:0};w.n++;w.t=Date.now();SJ("bcl_fit",w);
+    var fc=document.getElementById("floating-companion"),area=document.getElementById("companion-click-area");if(!fc||!area)return;
+    fc.classList.remove("bcl-lift");void fc.offsetWidth;fc.classList.add("bcl-lift");area.querySelectorAll(".bcl-db,.bcl-bub").forEach(function(x){x.remove()});
+    var d=document.createElement("div");d.className="bcl-db";d.textContent="🏋️";area.appendChild(d);var b=document.createElement("div");b.className="bcl-bub";
+    var L=["One more rep!","We got this! 💪","Set "+w.n+" done!","Feel the burn!","Stronger together!","Nice form!"];b.textContent=w.n%5===0?"🔥 "+w.n+" sets today!":L[w.n%L.length];area.appendChild(b);
+    setTimeout(function(){fc.classList.remove("bcl-lift");d.remove();b.remove()},2700);if(w.n%5===0){try{window.addHappiness&&window.addHappiness(2)}catch(e){}}}
+  function wrap(){var ts=window.toggleSet;if(typeof ts!=="function"||ts.__bcl)return;var f=function(a,b,c,d,btn){var r=ts.apply(this,arguments);try{if(btn&&btn.classList.contains("completed"))lift()}catch(e){}return r};f.__bcl=1;window.toggleSet=f}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){setTimeout(wrap,800)});else setTimeout(wrap,800);
+  window.__bclife={lift:lift,storm:storm};
 })();
 </script>
 </body>
