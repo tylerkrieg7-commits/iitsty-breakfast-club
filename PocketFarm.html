@@ -267,6 +267,18 @@ button.slot:active{transform:scale(.95)}
 #rbw{position:absolute;left:50%;top:6px;width:460px;max-width:100%;height:235px;transform:translateX(-50%);z-index:6;pointer-events:none;opacity:0;transition:opacity 3s;background:radial-gradient(circle 230px at 50% 100%,transparent 0 62%,rgba(255,60,60,.5) 64%,rgba(255,160,40,.5) 68%,rgba(255,235,60,.5) 72%,rgba(80,200,90,.5) 76%,rgba(60,150,255,.5) 80%,rgba(150,90,230,.5) 84%,transparent 87%);-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
 body.nt .bd .ar span{animation:none}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+
+/* build 109: graphics polish */
+#world::after{content:"";position:absolute;inset:-20% -40%;pointer-events:none;z-index:40;background:radial-gradient(ellipse 140px 70px at 20% 15%,#1f3a1033,transparent 70%),radial-gradient(ellipse 180px 80px at 70% 45%,#1f3a102b,transparent 70%),radial-gradient(ellipse 150px 70px at 35% 75%,#1f3a1030,transparent 70%);animation:pfcloud 70s linear infinite;mix-blend-mode:multiply}
+#world::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:39;background:radial-gradient(ellipse 520px 380px at 85% 0%,#fff6c22e,transparent 70%),linear-gradient(180deg,#fff3d00f,transparent 30%,transparent 80%,#2a40100f)}
+@keyframes pfcloud{from{transform:translateX(-18%)}to{transform:translateX(18%)}}
+.pond .art{filter:drop-shadow(0 4px 4px #0002)}
+.pond::after{content:"";position:absolute;left:18%;right:18%;top:30%;height:22%;border-radius:50%;pointer-events:none;background:linear-gradient(100deg,transparent 30%,#ffffff55 45%,transparent 60%) 0 0/300% 100%;animation:pfshim 4.5s ease-in-out infinite;opacity:.8}
+@keyframes pfshim{0%{background-position:120% 0}100%{background-position:-120% 0}}
+.plot .ob{animation:pfob 4s ease-in-out infinite}.plot:nth-child(odd) .ob{animation-delay:-2s}
+@keyframes pfob{50%{transform:translateY(-1.5px)}}
+.bd .art{filter:drop-shadow(0 6px 5px #0003)}
+@media (prefers-reduced-motion:reduce){#world::after,.pond::after,.plot .ob{animation:none}}
 </style>
 </head>
 <body data-th="spring">
