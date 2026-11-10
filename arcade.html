@@ -207,6 +207,34 @@ main{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
 @media (max-height:760px){.dpad{width:130px;height:130px}.abtn{width:68px;height:68px}.btns .abtn:nth-child(2){margin-bottom:22px}.btns .abtn.sm{width:58px;height:58px}.dpad.lr{width:164px;height:64px}.deck{padding-top:2px;padding-bottom:calc(8px + env(safe-area-inset-bottom))}}
 @media (max-height:670px){.tip{display:none}.dpad{width:114px;height:114px}.dpad .arm{font-size:14px}.abtn{width:60px;height:60px;font-size:7px}.btns .abtn:nth-child(2){margin-bottom:16px}.dpad.lr{width:150px;height:56px}.scorebar{padding-top:4px}.mbtn{padding:6px 8px;font-size:11px}.act{padding:8px 11px;font-size:12px}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-iteration-count:1!important}}
+/* ---------- Build 106 hub polish (off on Low graphics) ---------- */
+body:not(.gq1) .cab.focus{box-shadow:0 0 0 2px #000,0 22px 30px -6px #000c,0 0 0 1px var(--c) inset,0 34px 44px -18px var(--cg)}
+body:not(.gq1) .cab-marq::before{content:'';position:absolute;top:0;bottom:0;left:-60%;width:40%;background:linear-gradient(90deg,transparent,#ffffff55,transparent);transform:skewX(-20deg);z-index:1;pointer-events:none}
+body:not(.gq1) .cab.focus .cab-marq::before{animation:marqsweep 3.2s ease-in-out infinite}
+@keyframes marqsweep{0%{left:-60%}55%,100%{left:140%}}
+body:not(.gq1) .cab-bez{position:relative;overflow:hidden}
+body:not(.gq1) .cab-bez::after{content:'';position:absolute;inset:0;border-radius:12px;pointer-events:none;background:linear-gradient(125deg,transparent 30%,#ffffff12 42%,transparent 54%) 0 0/250% 100%;box-shadow:inset 0 0 18px #000c}
+body:not(.gq1) .cab.focus .cab-bez::after{animation:glass 5s ease-in-out infinite}
+@keyframes glass{0%{background-position:120% 0}60%,100%{background-position:-60% 0}}
+body:not(.gq1) .cab-panel .pb{transition:transform .15s}
+body:not(.gq1) .cab.focus .pb:nth-child(3){animation:pbpulse 2.4s ease-in-out infinite}
+@keyframes pbpulse{50%{box-shadow:0 3px 0 #000,0 0 10px var(--pc,#ff1744)}}
+body:not(.gq1) .wchip{position:relative;overflow:hidden}
+body:not(.gq1) .wchip::before{content:'';position:absolute;left:12%;right:12%;top:0;height:1px;background:linear-gradient(90deg,transparent,#ffffff55,transparent)}
+body:not(.gq1) .wchip span{display:inline-block;animation:wpop .6s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes wpop{from{transform:scale(.6);opacity:0}}
+body:not(.gq1) .cat{transition:transform .15s,box-shadow .25s}
+body:not(.gq1) .cat:active{transform:scale(.94)}
+body:not(.gq1) .cat.on{animation:catglow 2.6s ease-in-out infinite}
+@keyframes catglow{50%{box-shadow:0 0 22px #ff2bd688}}
+body:not(.gq1) .play-btn{position:relative;overflow:hidden}
+body:not(.gq1) .play-btn::after{content:'';position:absolute;top:0;bottom:0;left:-40%;width:30%;background:linear-gradient(90deg,transparent,#ffffff80,transparent);transform:skewX(-20deg);animation:marqsweep 3.6s ease-in-out infinite;pointer-events:none}
+body:not(.gq1) .xp-fill{background:linear-gradient(90deg,#00e5ff,#7c4dff,#ff2bd6,#7c4dff,#00e5ff) 0 0/200% 100%;animation:xpflow 3s linear infinite}
+@keyframes xpflow{to{background-position:200% 0}}
+body:not(.gq1) .ginfo{animation:gin .35s ease-out both}
+@keyframes gin{from{opacity:.4;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){body .cab-marq::before,body .cab-bez::after,body .play-btn::after,body .cat.on,body .xp-fill{animation:none!important}}
+
 </style>
 </head>
 <body>
@@ -538,7 +566,7 @@ const FX = {
 let GQ = +(LS.get('arc_gfx') || 3) || 3;
 const GFX_RESET = [];
 function GFX() { return GQ; }
-function setGfx(q) { GQ = q; LS.set('arc_gfx', String(q)); const b = $('gfx-btn'); if(b) b.textContent = q >= 3 ? '✨' : q === 2 ? '⭐' : '▫️'; GFX_RESET.forEach(f => { try { f(); } catch(e) {} }); ARCFX.chk = 0; }
+function setGfx(q) { GQ = q; LS.set('arc_gfx', String(q)); document.body.classList.toggle('gq1', q <= 1); const b = $('gfx-btn'); if(b) b.textContent = q >= 3 ? '✨' : q === 2 ? '⭐' : '▫️'; GFX_RESET.forEach(f => { try { f(); } catch(e) {} }); ARCFX.chk = 0; }
 const ARCFX = {
     bc: null, sc: null, dark: 0, chk: 0,
     post(c) {
