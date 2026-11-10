@@ -20925,6 +20925,17 @@ var sty2 = document.createElement("style"); sty2.textContent = [
 "#hz-ov .candy{position:absolute;font-size:28px;z-index:6;cursor:pointer;transform:translateX(-50%);transition:top .7s cubic-bezier(.3,1.4,.5,1);animation:hzCandy .8s ease-in-out infinite alternate;filter:drop-shadow(0 0 8px #ff80ab)}@keyframes hzCandy{to{rotate:14deg;scale:1.15}}",
 "#hz-ov .rg{position:absolute;left:12%;right:12%;bottom:2.5%;height:11px;border-radius:7px;background:#0f0a20;border:2px solid #5a3f86;z-index:5;overflow:hidden}#hz-ov .rg i{display:block;height:100%;width:0;background:linear-gradient(90deg,#ff9800,#ff5252);transition:width .25s}#hz-ov .rgl{position:absolute;left:0;right:0;bottom:5.5%;text-align:center;font-size:.72rem;opacity:.75;z-index:5;pointer-events:none}",
 "#hz-bomb{position:absolute;left:50%;bottom:6%;transform:translateX(-50%);z-index:7;font:inherit;font-weight:900;font-size:1.15rem;border:0;border-radius:16px;padding:12px 22px;background:linear-gradient(#ffb74d,#f57c00);color:#2b1500;box-shadow:0 0 22px #ff9800;animation:hzBomb .6s ease-in-out infinite alternate}@keyframes hzBomb{to{transform:translateX(-50%) scale(1.1)}}#hz-ov.bomb{animation:hzBoom .5s}@keyframes hzBoom{0%{filter:brightness(3)}30%{transform:translate(6px,-4px)}60%{transform:translate(-6px,4px)}100%{filter:none}}",
+"#hz-ov .pet{width:76px;height:76px;font-size:70px;line-height:76px;text-align:center;pointer-events:auto;cursor:pointer;z-index:5;touch-action:manipulation;transform:translateX(-50%) scaleX(var(--pf,1));filter:drop-shadow(0 4px 5px rgba(0,0,0,.55))}#hz-ov .pet>*{pointer-events:none}#hz-ov .pet img{border-radius:14px}#hz-ov .pet svg{width:100%!important;height:100%!important}#hz-ov .pet.bite{animation:hzBite2 .28s}@keyframes hzBite2{50%{transform:translateX(-50%) scaleX(var(--pf,1)) translateY(-12px) scale(1.22)}}",
+"#hz-ov .pet:before{content:'';position:absolute;left:8%;right:8%;bottom:-7px;height:7px;border-radius:5px;background:linear-gradient(90deg,#7cf5ff var(--rr,100%),rgba(255,255,255,.16) 0);box-shadow:0 0 0 1.5px #0f0a20}#hz-ov .pet.rdy:before{box-shadow:0 0 0 1.5px #0f0a20,0 0 10px #7cf5ff}#hz-ov .pet.rdy:after{content:'TAP!';position:absolute;left:50%;top:-16px;transform:translateX(-50%) scaleX(var(--pf,1));font:900 .62rem system-ui;color:#7cf5ff;text-shadow:0 1px 3px #000;animation:hzTap 1s ease-in-out infinite alternate}@keyframes hzTap{to{top:-21px}}",
+"#hz-ov .pet.frenzy{filter:drop-shadow(0 0 10px #ff9800) drop-shadow(0 0 18px #ff5252)}#hz-ov .pet.frenzy>*{animation:hzFz .16s linear infinite alternate}@keyframes hzFz{to{transform:translateY(-4px) rotate(4deg)}}",
+"#hz-ov .ptag{position:absolute;transform:translateX(-50%);z-index:5;font:800 .66rem system-ui;color:#fff;background:rgba(15,10,32,.75);border:1px solid #5a3f86;border-radius:9px;padding:1px 7px;pointer-events:none;white-space:nowrap}",
+"#hz-ov .roar{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;border:4px solid #7cf5ff;box-shadow:0 0 18px #7cf5ff;pointer-events:none;z-index:4;animation:hzRoar .55s ease-out forwards}@keyframes hzRoar{to{transform:scale(11);opacity:0}}",
+"#hz-ov .pow{position:absolute;width:46px;height:46px;margin-left:-23px;border-radius:50%;display:grid;place-items:center;font-size:25px;z-index:6;cursor:pointer;touch-action:manipulation;background:radial-gradient(circle at 35% 30%,#fff,var(--pc,#7cf5ff) 55%,#1b1238);box-shadow:0 0 0 3px #fff,0 0 20px 4px var(--pc,#7cf5ff);transition:top .8s cubic-bezier(.3,1.4,.5,1);animation:hzPow .7s ease-in-out infinite alternate}@keyframes hzPow{to{transform:scale(1.14) rotate(8deg)}}",
+"#hz-ov .pws{position:absolute;left:10px;top:124px;z-index:5;display:flex;flex-direction:column;gap:5px;pointer-events:none}#hz-ov .pws b{display:flex;align-items:center;gap:5px;font:800 .78rem system-ui;color:#fff;background:rgba(15,10,32,.8);border:1.5px solid var(--pc,#7cf5ff);border-radius:11px;padding:3px 8px;box-shadow:0 0 10px var(--pc,#7cf5ff)}#hz-ov .pws b i{display:block;width:34px;height:5px;border-radius:3px;background:rgba(255,255,255,.2);overflow:hidden}#hz-ov .pws b i u{display:block;height:100%;background:var(--pc,#7cf5ff)}",
+"#hz-ov.frz .mob:not(.k-boss){filter:brightness(1.3) hue-rotate(160deg) saturate(.6) drop-shadow(0 0 8px #9be7ff)!important}#hz-ov .mob.stun svg{animation:hzStun .25s linear infinite alternate}@keyframes hzStun{to{transform:rotate(9deg)}}",
+"#hz-ov .hs.shd:after{content:'';position:absolute;left:-24%;right:-24%;top:-22%;bottom:-4%;border-radius:50% 50% 12% 12%;border:3px solid #80d8ff;background:radial-gradient(circle at 50% 30%,rgba(128,216,255,.28),rgba(128,216,255,.05));box-shadow:0 0 18px #80d8ff;animation:hzShd 1.2s ease-in-out infinite alternate;pointer-events:none}@keyframes hzShd{to{opacity:.55}}",
+"#hz-ov .mob.k-jack{filter:drop-shadow(0 0 10px #ff9800)}#hz-ov .mob.k-gold{filter:drop-shadow(0 0 12px #ffe082)}#hz-ov .mob.k-bat{filter:drop-shadow(0 0 5px #7e57c2)}#hz-ov .pips{position:absolute;left:50%;top:-9px;transform:translateX(-50%);display:flex;gap:2px;pointer-events:none}#hz-ov .pips i{width:7px;height:5px;border-radius:2px;background:#ff5252;box-shadow:0 0 0 1px #000}#hz-ov .pips i.o{background:#3a2a55}",
+"#hz-ov .boomr{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;background:radial-gradient(#fff,#ffb300 40%,rgba(255,87,34,0) 70%);pointer-events:none;z-index:6;animation:hzBoomR .45s ease-out forwards}@keyframes hzBoomR{to{transform:scale(7);opacity:0}}#hz-ov.shk #hz-f{animation:hzShk .3s}@keyframes hzShk{25%{transform:translate(-6px,3px)}50%{transform:translate(5px,-3px)}75%{transform:translate(-3px,2px)}}",
 "#hz-ov .cmb{position:absolute;right:14px;top:96px;z-index:5;font-weight:900;font-size:1.3rem;color:#ffb74d;text-shadow:0 2px 6px #000;pointer-events:none}"
 ].join("");
 document.head.appendChild(sty2);
@@ -20981,17 +20992,28 @@ var MOB = {
     skeleton: { w: 42, h: 56, hp: 2, sp: 44, svg: '<svg viewBox="0 0 42 56"><circle cx="21" cy="12" r="10" fill="#f5efdc"/><rect x="14" y="19" width="14" height="6" rx="2" fill="#e8dfc4"/><ellipse cx="17" cy="11" rx="2.8" ry="3.4" fill="#212121"/><ellipse cx="25" cy="11" rx="2.8" ry="3.4" fill="#212121"/><path d="M21 15L19.6 18.6H22.4Z" fill="#212121"/><rect x="19" y="26" width="4" height="16" fill="#f5efdc"/><path d="M12 29C17 32 25 32 30 29M12 34C17 37 25 37 30 34" stroke="#f5efdc" stroke-width="3" fill="none"/><path d="M13 44V56M29 44V56" stroke="#f5efdc" stroke-width="4" stroke-linecap="round"/><path d="M7 28L2 40" stroke="#f5efdc" stroke-width="3.4" stroke-linecap="round"/><path d="M0 40L6 36" stroke="#b0bec5" stroke-width="3"/></svg>' },
     wraith: { w: 50, h: 58, hp: 2, sp: 46, fly: 1, svg: '<svg viewBox="0 0 50 58"><path d="M25 2C12 2 6 14 6 28C6 40 2 48 2 56L12 50L19 56L25 50L31 56L38 50L48 56C48 48 44 40 44 28C44 14 38 2 25 2Z" fill="#7e57c2" fill-opacity=".85"/><path d="M25 8C16 8 12 16 12 26C12 32 14 34 25 34C36 34 38 32 38 26C38 16 34 8 25 8Z" fill="#1a1030"/><ellipse cx="19" cy="24" rx="3.2" ry="4.4" fill="#8dff6a"/><ellipse cx="31" cy="24" rx="3.2" ry="4.4" fill="#8dff6a"/><path d="M20 31Q25 34 30 31" stroke="#8dff6a" stroke-width="1.6" fill="none"/></svg>' },
     mimic: { w: 52, h: 44, hp: 3, sp: 30, hop: 1, svg: '<svg viewBox="0 0 52 44"><rect x="3" y="22" width="46" height="20" rx="4" fill="#8d5a2b"/><path d="M5 31H47" stroke="#5d3a1a" stroke-width="2"/><path d="M6 22L10 29L14 22L18 29L22 22L26 29L30 22L34 29L38 22L42 29L46 22" fill="#fff" stroke="#ddd"/><path d="M20 28C20 38 32 38 32 28Z" fill="#e91e63"/><path d="M1 22C1 4 51 4 51 22Z" fill="#a0692f"/><circle cx="17" cy="14" r="5" fill="#fff"/><circle cx="35" cy="14" r="5" fill="#fff"/><circle cx="18" cy="15" r="2.4" fill="#b71c1c"/><circle cx="34" cy="15" r="2.4" fill="#b71c1c"/><path d="M11 8L22 11M41 8L30 11" stroke="#5d3a1a" stroke-width="2.4" stroke-linecap="round"/></svg>' },
+    bat: { w: 44, h: 30, hp: 1, sp: 88, fly: 1, svg: '<svg viewBox="0 0 44 30"><path d="M22 12C16 2 6 2 1 8C6 8 8 12 8 16C12 13 16 15 18 20C19 17 25 17 26 20C28 15 32 13 36 16C36 12 38 8 43 8C38 2 28 2 22 12Z" fill="#4a2f7a"/><ellipse cx="22" cy="16" rx="6" ry="7" fill="#35205c"/><path d="M17 9L18 4L21 9M27 9L26 4L23 9" fill="#35205c"/><circle cx="19.5" cy="14" r="1.7" fill="#ffeb3b"/><circle cx="24.5" cy="14" r="1.7" fill="#ffeb3b"/><path d="M20 19L21 21L22 19L23 21L24 19" stroke="#fff" stroke-width="1" fill="none"/></svg>' },
+    jack: { w: 48, h: 46, hp: 1, sp: 34, hop: 1, svg: '<svg viewBox="0 0 48 46"><path d="M24 8C22 4 24 1 28 1" stroke="#33691e" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="24" cy="27" rx="22" ry="18" fill="#ef6c00"/><ellipse cx="24" cy="27" rx="12" ry="18" fill="#fb8c00"/><ellipse cx="24" cy="27" rx="4" ry="18" fill="#ffa726"/><path d="M11 20L19 22L13 27Z M37 20L29 22L35 27Z" fill="#fff59d"/><path d="M10 32L15 35L19 31L24 36L29 31L33 35L38 32C34 42 14 42 10 32Z" fill="#fff59d"/><circle cx="40" cy="8" r="3" fill="#ffeb3b"><animate attributeName="r" values="2;4;2" dur=".5s" repeatCount="indefinite"/></circle></svg>' },
+    gold: { w: 44, h: 50, hp: 1, sp: 70, fly: 1, flee: 1, svg: '<svg viewBox="0 0 44 50"><path d="M22 2C10 2 5 12 5 24C5 34 2 40 2 48L10 43L16 48L22 43L28 48L34 43L42 48C42 40 39 34 39 24C39 12 34 2 22 2Z" fill="#ffd54f"/><path d="M12 14C14 8 18 6 22 6" stroke="#fff8e1" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="16" cy="20" r="3.4" fill="#5d4037"/><circle cx="28" cy="20" r="3.4" fill="#5d4037"/><path d="M17 28Q22 33 27 28" stroke="#5d4037" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M36 6L37.5 9.5L41 11L37.5 12.5L36 16L34.5 12.5L31 11L34.5 9.5Z" fill="#fff"/></svg>' },
     boss: { w: 120, h: 150, hp: 99, sp: 11, svg: '<svg viewBox="0 0 120 150"><path d="M22 150L14 62C14 44 34 36 60 36C86 36 106 44 106 62L98 150Z" fill="#232a31"/><path d="M30 62H90M34 84H86M38 106H82" stroke="#37474f" stroke-width="3"/><path d="M8 70L22 56L26 90L12 96Z M112 70L98 56L94 90L108 96Z" fill="#37474f"/><circle cx="60" cy="34" r="25" fill="#cfd8dc"/><path d="M36 26L28 6L44 16L60 0L76 16L92 6L84 26Z" fill="#37474f" stroke="#90a4ae" stroke-width="2"/><circle cx="48" cy="32" r="6.5" fill="#101418"/><circle cx="72" cy="32" r="6.5" fill="#101418"/><circle cx="48" cy="32" r="3" fill="#66ff88"/><circle cx="72" cy="32" r="3" fill="#66ff88"/><path d="M60 40L56 48H64Z" fill="#101418"/><path d="M46 54H74" stroke="#101418" stroke-width="3"/><path d="M50 54V60M58 54V60M66 54V60M72 54V60" stroke="#101418" stroke-width="2.4"/><rect x="104" y="40" width="7" height="100" rx="3" fill="#78909c"/><path d="M107 20L112 40H102Z" fill="#cfd8dc"/></svg>' }
 };
 var WAVES = [
-    { n: 9, gap: 1.5, pool: ["slime", "slime", "goblin"], t: "Wave 1" },
-    { n: 12, gap: 1.15, pool: ["slime", "goblin", "skeleton", "wraith"], t: "Wave 2" },
-    { n: 14, gap: 1.0, pool: ["goblin", "skeleton", "wraith", "mimic", "slime"], t: "Wave 3" }
+    { n: 10, gap: 1.4, pool: ["slime", "slime", "goblin", "bat"], t: "Wave 1" },
+    { n: 13, gap: 1.1, pool: ["slime", "goblin", "skeleton", "wraith", "bat", "jack"], t: "Wave 2" },
+    { n: 16, gap: .92, pool: ["goblin", "skeleton", "wraith", "mimic", "slime", "bat", "jack"], t: "Wave 3" }
 ];
 function petHTML() {
     var t = lsr("companionType", "dog");
-    try { if (window.BXPET && BXPET.has(t)) return BXPET.svg(t, 0); } catch (e) { }
-    return '<span style="font-size:42px">' + ({ dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖" }[t] || "🐾") + "</span>";
+    try {
+        if (t.indexOf("comp_") === 0) {
+            var live = document.getElementById("companion-img-display"), src = live && live.style.display !== "none" && live.src && !/x-idb/.test(live.src) ? live.src : "";
+            if (!src) { var cl = JSON.parse(localStorage.getItem("customCompanions") || "[]").filter(function (x) { return x.id === t; })[0]; if (cl) src = cl.data; }
+            if (src) return '<img src="' + String(src).replace(/"/g, "&quot;") + '" alt="">';
+        }
+        if (window.BXPET && BXPET.has(t)) return BXPET.svg(t, 0);
+        var em = document.getElementById("companion-emoji-display"); if (em && em.style.display !== "none" && em.textContent && !em.querySelector("svg")) return '<span style="font-size:52px;line-height:1">' + em.textContent + "</span>";
+    } catch (e) { }
+    return '<span style="font-size:52px;line-height:1">' + ({ dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", panda: "🐼", owl: "🦉", tiger: "🐯", lion: "🦁", unicorn: "🦄", dragon: "🐲" }[t] || "🐶") + "</span>";
 }
 
 
@@ -21041,18 +21063,18 @@ function startRaid(practice) {
     ov.innerHTML = '<div class="st"></div><div class="moon"><i></i></div><div class="cl c1"></div><div class="cl c2"></div><div class="bat b1">🦇</div><div class="bat b2">🦇</div><div class="bat b3">🦇</div><div class="hill"></div><div class="yard"><svg viewBox="0 0 400 80" preserveAspectRatio="none"><path d="M0 80V52C40 44 80 56 130 50C190 44 240 56 300 48C340 44 370 50 400 46V80Z" fill="#150e2c"/><g fill="#1d1438"><path d="M30 70V48C30 40 44 40 44 48V70Z"/><path d="M70 70V52C70 46 80 46 80 52V70Z"/><path d="M310 70V46C310 38 326 38 326 46V70Z"/><path d="M350 70V54C350 48 360 48 360 54V70Z"/><path d="M168 70V50L174 44L180 50V70Z"/><path d="M226 70V50L232 44L238 50V70Z"/></g><g stroke="#241a45" stroke-width="3" fill="none" stroke-linecap="round"><path d="M16 70V30M16 40L6 30M16 36L26 26M16 30L16 20"/><path d="M384 70V26M384 38L374 28M384 32L394 22M384 26L384 16"/></g><g stroke="#2d2152" stroke-width="2"><path d="M96 74V58M104 74V56M112 74V58M120 74V56M128 74V58M96 62H128"/><path d="M262 74V58M270 74V56M278 74V58M286 74V56M294 74V58M262 62H294"/></g><g fill="#33275e"><circle cx="37" cy="52" r="1.6"/><circle cx="75" cy="55" r="1.4"/><circle cx="318" cy="50" r="1.6"/></g></svg></div><div class="gnd"></div><div class="ff" style="left:8%;bottom:24%;animation-delay:-1s"></div><div class="ff" style="left:24%;bottom:30%;animation-delay:-3s"></div><div class="ff" style="left:44%;bottom:22%;animation-delay:-2s"></div><div class="ff" style="left:62%;bottom:28%;animation-delay:-4s"></div><div class="ff" style="left:78%;bottom:25%;animation-delay:-1s"></div><div class="ff" style="left:90%;bottom:32%;animation-delay:-5s"></div><div class="fog"></div><div class="lite"></div><div class="rg"><i id="hz-rg"></i></div><div class="rgl">🎃 smash meter: keep defending to fill it</div><button id="hz-bomb" hidden>🎃 PUMPKIN BOMB!</button><div class="cmb" id="hz-cmb"></div><div class="top"><span id="hz-h"></span><span id="hz-w"></span><button id="hz-x">✕ Leave</button></div><div class="boss" id="hz-b" hidden>👑 The Hollow King<div class="bar"><i></i></div><small id="hz-c"></small></div><div class="fld" id="hz-f"><div class="hs" id="hz-hs"><div class="ch"></div><div class="rf"></div><div class="bd"></div><div class="w l"></div><div class="w r"></div><div class="dr"></div><div class="pk">🎃</div><div class="pk p2">🎃</div></div><div class="pet" id="hz-p">' + petHTML() + "</div></div>";
     document.body.appendChild(ov);
     var F = $("#hz-f", ov), HS = $("#hz-hs", ov), PET = $("#hz-p", ov);
-    var R = { ov: ov, practice: practice, hearts: 5, max: 5, wave: -1, mobs: [], queue: [], clock: 0, t0: performance.now(), over: false, myDmg: 0, pDmg: 0, pOn: false, boss: null, slow: 1, bite: 0, spawnT: 0, bossSummon: 0, W: 0, H: 0, petX: 0, kills: 0, combo: 0, lastKill: 0, best: 0, rage: 0, candy: 0, lt: 7 };
+    var R = { ov: ov, practice: practice, hearts: 5, max: 5, wave: -1, mobs: [], queue: [], clock: 0, t0: performance.now(), over: false, myDmg: 0, pDmg: 0, pOn: false, boss: null, slow: 1, bite: 0, spawnT: 0, bossSummon: 0, W: 0, H: 0, petX: 0, kills: 0, combo: 0, lastKill: 0, best: 0, rage: 0, candy: 0, lt: 7, frz: 0, dbl: 0, frenzy: 0, shield: 0, roar: 0, pf: 1, pows: 0 };
     raid = R;
     function size() { var r = F.getBoundingClientRect(); R.W = r.width; R.H = r.height; HS.style.left = R.W / 2 + "px"; R.gy = R.H * 0.83; R.petX = R.petX || R.W / 2 - 60; }
     size(); window.addEventListener("resize", size);
     function hearts() { $("#hz-h", ov).textContent = "🏠 " + "❤️".repeat(Math.max(0, R.hearts)) + "🖤".repeat(Math.max(0, R.max - R.hearts)); }
-    function banner(t) { var b = document.createElement("div"); b.className = "ban"; b.textContent = t; ov.appendChild(b); setTimeout(function () { b.remove(); }, 2000); }
+    function banner(t) { var ob = ov.querySelector(".ban"); if (ob) ob.remove(); var b = document.createElement("div"); b.className = "ban"; b.textContent = t; ov.appendChild(b); setTimeout(function () { b.remove(); }, 2000); }
     function fx(x, y, t, c) { var e = document.createElement("div"); e.className = "fx"; e.style.left = x + "px"; e.style.top = y + "px"; e.style.color = c || "#ffd54f"; e.textContent = t; F.appendChild(e); setTimeout(function () { e.remove(); }, 750); }
     var coop = function () { return !practice && R.pOn; };
     function status() {
         $("#hz-w", ov).textContent = R.wave < 0 ? "Get ready…" : R.wave < WAVES.length ? WAVES[R.wave].t + " of 3" : "👑 Boss";
-        var c = $("#hz-c", ov); if (!practice) c.textContent = R.pOn ? "👥 " + pname(other()) + " is defending too, shared boss health" : "🧍 Solo: monsters are slower and " + petName() + " bites faster";
-        else c.textContent = "Practice raid: no prizes";
+        var c = $("#hz-c", ov); if (!practice) c.textContent = R.pOn ? "👥 " + pname(other()) + " is defending too, shared boss health" : "🧍 Solo: monsters are slower. Tap " + petName() + " to roar, grab the glowing power-ups!";
+        else c.textContent = "Practice: tap " + petName() + " to roar, grab glowing power-ups";
     }
     function newMob(kind, fromLeft) {
         var d = MOB[kind], el = document.createElement("div"); el.className = "mob k-" + kind; el.innerHTML = d.svg;
@@ -21062,15 +21084,16 @@ function startRaid(practice) {
         else el.addEventListener("pointerdown", function (e) { e.preventDefault(); bossHit(1, e.clientX, e.clientY); });
         R.mobs.push(m); return m;
     }
+    function pips(m) { if (m.d.hp < 2 || m.kind === "boss") return; var p = m.el.querySelector(".pips"); if (!p) { p = document.createElement("div"); p.className = "pips"; m.el.appendChild(p); } var h = ""; for (var i = 0; i < m.d.hp; i++) h += '<i class="' + (i < m.hp ? "" : "o") + '"></i>'; p.innerHTML = h; }
     function hit(m, dmg, cx, cy) {
-        if (m.dead || R.over) return; m.hp -= dmg; m.el.classList.add("flash"); setTimeout(function () { m.el.classList.remove("flash"); }, 90);
+        if (m.dead || R.over) return; if (cx != null && R.dbl > 0 && dmg < 50) dmg *= 2; m.hp -= dmg; pips(m); m.el.classList.add("flash"); setTimeout(function () { m.el.classList.remove("flash"); }, 90);
         var r = F.getBoundingClientRect(); fx((cx == null ? m.x : cx - r.left), (cy == null ? R.gy - 40 : cy - r.top), m.hp <= 0 ? "💥" : "BONK", m.hp <= 0 ? "#fff" : "#ffd54f");
         tone(m.hp <= 0 ? 190 : 330, .09, "square", .05, m.hp <= 0 ? 90 : 220);
         if (m.hp <= 0) { m.dead = true; R.kills++; onKill(m); m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); }
     }
     function bossHit(dmg, cx, cy) {
-        if (!R.boss || R.over) return; R.myDmg += dmg; R.boss.el.classList.add("flash"); setTimeout(function () { R.boss && R.boss.el.classList.remove("flash"); }, 90);
-        var r = F.getBoundingClientRect(); fx(cx == null ? R.boss.x : cx - r.left, cy == null ? R.gy - 100 : cy - r.top, "-1", "#ff8a80"); tone(140, .1, "sawtooth", .07, 80); buzz(15); bossBar();
+        if (!R.boss || R.over) return; if (cx != null && R.dbl > 0) dmg *= 2; R.myDmg += dmg; R.boss.el.classList.add("flash"); setTimeout(function () { R.boss && R.boss.el.classList.remove("flash"); }, 90);
+        var r = F.getBoundingClientRect(); fx(cx == null ? R.boss.x : cx - r.left, cy == null ? R.gy - 100 : cy - r.top, "-" + dmg, dmg > 1 ? "#ffeb3b" : "#ff8a80"); tone(140, .1, "sawtooth", .07, 80); buzz(15); bossBar();
     }
 
     function rageUI() { var i = $("#hz-rg", ov), b = $("#hz-bomb", ov); if (i) i.style.width = R.rage + "%"; if (b) b.hidden = R.rage < 100 || R.over; }
@@ -21081,7 +21104,39 @@ function startRaid(practice) {
         if (R.combo >= 5 && R.combo % 5 === 0) { R.rage = Math.min(100, R.rage + 12); }
         R.rage = Math.min(100, R.rage + (m.kind === "mimic" ? 14 : 8)); rageUI();
         if (Math.random() < .2 || m.kind === "mimic") dropCandy(m.x);
+        if (m.kind === "gold") { for (var g = 0; g < 3; g++) dropCandy(m.x - 40 + g * 40); dropPow(m.x); fx(m.x, R.gy - 150, "JACKPOT!", "#ffe082"); }
+        else if (Math.random() < .11 || (m.kind === "mimic" && Math.random() < .5)) dropPow(m.x);
+        if (m.kind === "jack") { var b = document.createElement("div"); b.className = "boomr"; b.style.left = m.x + "px"; b.style.top = (R.gy - 30) + "px"; F.appendChild(b); setTimeout(function () { b.remove(); }, 460); tone(70, .35, "sawtooth", .09, 35); buzz(60);
+            R.mobs.slice().forEach(function (o) { if (o !== m && !o.dead && o.kind !== "boss" && Math.abs(o.x - m.x) < 120) hit(o, 2, null, null); }); if (R.boss && Math.abs(R.boss.x - m.x) < 150) bossHit(2, null, null); }
     }
+    /* ---- power-ups (build 116) ---- */
+    var POW = {
+        ice: { e: "❄️", c: "#7cf5ff", n: "Freeze", go: function () { R.frz = 5; banner("❄️ Frozen solid!"); tone(1400, .5, "sine", .05, 500); } },
+        dbl: { e: "⚡", c: "#ffeb3b", n: "Double tap", go: function () { R.dbl = 9; banner("⚡ Double damage!"); tone(500, .3, "square", .05, 1000); } },
+        frenzy: { e: "🔥", c: "#ff7043", n: petName() + " frenzy", go: function () { R.frenzy = 8; banner("🔥 " + petName() + " goes wild!"); tone(300, .4, "sawtooth", .06, 900); } },
+        shield: { e: "🛡️", c: "#80d8ff", n: "Door shield", go: function () { R.shield = Math.min(3, R.shield + 2); banner("🛡️ Door shield x" + R.shield); tone(660, .4, "triangle", .06, 990); } },
+        bolt: { e: "🌩️", c: "#b388ff", n: "Chain lightning", go: function () { banner("🌩️ Chain lightning!"); ov.classList.remove("zap"); void ov.offsetWidth; ov.classList.add("zap"); tone(55, .7, "sawtooth", .09, 28); var cx = R.W / 2; R.mobs.filter(function (m) { return !m.dead && m.kind !== "boss"; }).sort(function (a, b) { return Math.abs(a.x - cx) - Math.abs(b.x - cx); }).slice(0, 4).forEach(function (m, i) { setTimeout(function () { hit(m, 9, null, null); }, i * 110); }); if (R.boss) bossHit(3, null, null); } }
+    };
+    function dropPow(x, key) {
+        if (R.over) return; var ks = Object.keys(POW); key = key || ks[Math.floor(Math.random() * ks.length)]; var p = POW[key], c = document.createElement("div"); c.className = "pow"; c.textContent = p.e; c.style.setProperty("--pc", p.c);
+        c.style.left = Math.max(30, Math.min(R.W - 30, x)) + "px"; c.style.top = (R.gy - 190) + "px"; F.appendChild(c); requestAnimationFrame(function () { c.style.top = (R.gy - 120) + "px"; });
+        var gone = false; c.addEventListener("pointerdown", function (e) { e.preventDefault(); if (gone || R.over) return; gone = true; c.remove(); R.pows++; buzz(25); p.go(); powUI(); });
+        setTimeout(function () { if (!gone) { gone = true; c.remove(); } }, 6500);
+    }
+    var PWS = document.createElement("div"); PWS.className = "pws"; ov.appendChild(PWS);
+    var PTAG = document.createElement("div"); PTAG.className = "ptag"; PTAG.textContent = petName(); F.appendChild(PTAG);
+    function powUI() {
+        var h = ""; [["frz", "ice", 5], ["dbl", "dbl", 9], ["frenzy", "frenzy", 8]].forEach(function (a) { if (R[a[0]] > 0) h += '<b style="--pc:' + POW[a[1]].c + '">' + POW[a[1]].e + " " + esc(POW[a[1]].n) + '<i><u style="width:' + Math.round(R[a[0]] / a[2] * 100) + '%"></u></i></b>'; });
+        if (R.shield > 0) h += '<b style="--pc:#80d8ff">🛡️ Shield x' + R.shield + "</b>"; if (PWS.__h !== h) { PWS.__h = h; PWS.innerHTML = h; }
+        ov.classList.toggle("frz", R.frz > 0); HS.classList.toggle("shd", R.shield > 0); PET.classList.toggle("frenzy", R.frenzy > 0);
+    }
+    /* tap your companion: a roar that knocks the monsters back */
+    PET.addEventListener("pointerdown", function (e) {
+        e.preventDefault(); if (R.over || R.roar > 0) return; R.roar = 8; var w = document.createElement("div"); w.className = "roar"; w.style.left = R.petX + "px"; w.style.top = (R.gy - 34) + "px"; F.appendChild(w); setTimeout(function () { w.remove(); }, 560);
+        tone(160, .45, "sawtooth", .09, 70); buzz([40, 30, 80]); fx(R.petX, R.gy - 110, pick2(["ROAR!", "BACK OFF!", "GRRR!"]), "#7cf5ff"); PET.classList.remove("bite"); void PET.offsetWidth; PET.classList.add("bite");
+        R.mobs.forEach(function (m) { if (m.dead || m.kind === "boss") return; var dx = m.x - R.petX; if (Math.abs(dx) < 220) { m.x += (m.x < R.W / 2 ? -1 : 1) * 110; m.stun = 1.6; m.el.classList.add("stun"); hit(m, 1, null, null); } });
+        if (R.boss && Math.abs(R.boss.x - R.petX) < 220) bossHit(2, null, null);
+    });
     function dropCandy(x) {
         var c = document.createElement("div"); c.className = "candy"; c.textContent = pick2(["🍬", "🍭", "🍫", "🧁"]); c.style.left = Math.max(20, Math.min(R.W - 20, x)) + "px"; c.style.top = (R.gy - 150) + "px"; F.appendChild(c);
         requestAnimationFrame(function () { c.style.top = (R.gy - 34) + "px"; });
@@ -21103,6 +21158,7 @@ function startRaid(practice) {
         R.wave++; status();
         if (R.wave < WAVES.length) { var w = WAVES[R.wave]; banner(w.t === "Wave 1" ? "👻 Wave 1" : "👻 " + w.t); R.queue = []; for (var i = 0; i < w.n; i++) R.queue.push({ k: w.pool[Math.floor(Math.random() * w.pool.length)], at: 1.4 + i * w.gap, left: Math.random() < .5 }); }
         else { banner("👑 The Hollow King arrives!"); tone(60, 1.4, "sawtooth", .08, 40); buzz([150, 80, 150]); $("#hz-b", ov).hidden = false; R.boss = newMob("boss", Math.random() < .5); R.boss.hp = 9999; R.bossSummon = 4; bossBar(); }
+        if (R.wave > 0) dropPow(R.W / 2 + (Math.random() < .5 ? -90 : 90), R.wave >= WAVES.length ? "frenzy" : null);
         R.clock = 0;
     }
     function finish(win) {
@@ -21121,7 +21177,7 @@ function startRaid(practice) {
             tone(110, .8, "sawtooth", .08, 50); buzz(300);
             e.innerHTML = "<h2>🏚️ The house fell…</h2><div>The monsters got inside. Try again, it only takes a minute.</div><div><button id=\"hz-r\">Try again</button><button class=\"s\" id=\"hz-d\">Back to the room</button></div>";
         }
-        var h2 = e.querySelector("h2"); if (h2) h2.insertAdjacentHTML("afterend", "<div style=\"opacity:.9\">🔥 Best combo x" + R.best + " · 🍬 Candy " + R.candy + " · 👾 " + R.kills + " monsters</div>");
+        var h2 = e.querySelector("h2"); if (h2) h2.insertAdjacentHTML("afterend", "<div style=\"opacity:.9\">🔥 Best combo x" + R.best + " · 🍬 Candy " + R.candy + " · ⚡ " + R.pows + " power-ups · 👾 " + R.kills + " monsters</div>");
         ov.appendChild(e); $("#hz-d", e).onclick = close; var rr = $("#hz-r", e); if (rr) rr.onclick = function () { close(); startRaid(practice); };
     }
     function close() { R.over = true; cancelAnimationFrame(R.raf); clearInterval(R.syncT); window.removeEventListener("resize", size); sync(false); ov.remove(); raid = null; var o = $(".fx3-room-ov"); if (o) { say(o, pe() + " *shakes off the dust*"); } }
@@ -21147,25 +21203,30 @@ function startRaid(practice) {
         if (R.boss) { R.bossSummon -= dt; if (R.bossSummon <= 0) { R.bossSummon = 5.5; newMob("slime", Math.random() < .5); newMob("goblin", Math.random() < .5); } }
         var cx = R.W / 2, door = 40, alive = 0;
         R.mobs.forEach(function (m) {
-            if (m.dead) return; alive++; var d = m.d, sp = d.sp * R.slow * (m.kind === "boss" ? 1 : 1);
+            if (m.dead) return; alive++; var d = m.d, sp = d.sp * R.slow * (R.frz > 0 && m.kind !== "boss" ? 0 : 1); if (m.stun > 0) { m.stun -= dt; sp = 0; if (m.stun <= 0) m.el.classList.remove("stun"); }
+            if (d.flee) { m.x += m.dir * sp * dt; m.el.style.transform = "translate(" + (m.x - d.w / 2) + "px," + (R.gy - d.h - 95 - Math.sin(m.ph += dt * 4) * 22) + "px)" + (m.dir < 0 ? " scaleX(-1)" : ""); m.el.style.left = "0"; m.el.style.top = "0"; if (m.x < -80 || m.x > R.W + 80) { m.dead = true; m.el.remove(); } alive--; return; }
             if (m.kind === "boss") { var dist = Math.abs(m.x - cx); if (dist > 90) m.x += m.dir * (-1) * -sp * dt * (m.x < cx ? 1 : -1) * (m.x < cx ? 1 : 1) * 0 + (m.x < cx ? 1 : -1) * sp * dt; }
             else m.x += (m.x < cx ? 1 : -1) * sp * dt * (d.hop ? (Math.sin(m.ph += dt * 5) > 0 ? 2.2 : .2) : 1);
             var y = R.gy - d.h; if (d.fly) y = R.gy - d.h - 70 - Math.sin(m.ph += dt * 3) * 14; else if (d.hop) y = R.gy - d.h - Math.max(0, Math.sin(m.ph)) * 26; else y = R.gy - d.h + Math.sin(m.ph += dt * 8) * 1.5;
             if (m.kind === "boss") y = R.gy - d.h + 14;
             m.el.style.transform = "translate(" + (m.x - d.w / 2) + "px," + y + "px)" + (m.x > cx ? " scaleX(-1)" : ""); m.el.style.left = "0"; m.el.style.top = "0";
-            if (m.kind !== "boss" && Math.abs(m.x - cx) < door) { m.dead = true; m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); R.hearts--; hearts(); HS.classList.add("hit"); setTimeout(function () { HS.classList.remove("hit"); }, 300); tone(100, .25, "sawtooth", .08, 55); buzz(120); if (R.hearts <= 0) finish(false); }
+            if (m.kind !== "boss" && Math.abs(m.x - cx) < door && R.shield > 0) { R.shield--; m.dead = true; m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); fx(m.x, R.gy - 70, "🛡️ BLOCKED", "#80d8ff"); tone(700, .12, "triangle", .06, 400); }
+            else if (m.kind !== "boss" && Math.abs(m.x - cx) < door) { ov.classList.remove("shk"); void ov.offsetWidth; ov.classList.add("shk"); m.dead = true; m.el.classList.add("die"); setTimeout(function () { m.el.remove(); }, 360); R.hearts--; hearts(); HS.classList.add("hit"); setTimeout(function () { HS.classList.remove("hit"); }, 300); tone(100, .25, "sawtooth", .08, 55); buzz(120); if (R.hearts <= 0) finish(false); }
             if (m.kind === "boss" && Math.abs(m.x - cx) <= 92) { m.hitT = (m.hitT || 0) + dt; if (m.hitT > 3) { m.hitT = 0; R.hearts--; hearts(); HS.classList.add("hit"); setTimeout(function () { HS.classList.remove("hit"); }, 300); tone(80, .35, "sawtooth", .09, 40); buzz(160); if (R.hearts <= 0) finish(false); } }
         });
         R.mobs = R.mobs.filter(function (m) { return !m.dead; });
         /* the pet defends the yard */
         R.bite -= dt; var tgt = null, bd = 1e9;
-        R.mobs.forEach(function (m) { if (m.kind === "boss") return; var dd = Math.abs(m.x - cx); if (dd < bd && dd < 230) { bd = dd; tgt = m; } });
-        var want = tgt ? tgt.x : cx + (Math.sin(R.clock * .7) * 40); want = Math.max(cx - 150, Math.min(cx + 150, want)); R.petX += (want - R.petX) * Math.min(1, dt * 5);
-        PET.style.left = R.petX + "px"; PET.style.top = (R.gy - 52) + "px";
-        if (tgt && R.bite <= 0 && Math.abs(tgt.x - R.petX) < 60) { R.bite = R.pOn || practice ? 1.5 : 1.05; PET.classList.remove("bite"); void PET.offsetWidth; PET.classList.add("bite"); hit(tgt, 1, null, null); }
-        else if (R.boss && R.bite <= 0 && Math.abs(R.boss.x - R.petX) < 110) { R.bite = 2.4; PET.classList.remove("bite"); void PET.offsetWidth; PET.classList.add("bite"); bossHit(1, null, null); }
+        ["frz", "dbl", "frenzy", "roar"].forEach(function (k) { if (R[k] > 0) R[k] = Math.max(0, R[k] - dt); }); powUI();
+        PET.style.setProperty("--rr", Math.round((1 - R.roar / 8) * 100) + "%"); PET.classList.toggle("rdy", R.roar <= 0);
+        R.goldT = (R.goldT == null ? 14 + Math.random() * 10 : R.goldT) - dt; if (R.goldT <= 0 && R.wave >= 0) { R.goldT = 22 + Math.random() * 14; newMob("gold", Math.random() < .5); fx(R.W / 2, R.gy - 190, "✨ Golden ghost! Tap it!", "#ffe082"); tone(1200, .3, "triangle", .05, 1800); }
+        R.mobs.forEach(function (m) { if (m.kind === "boss") return; var dd = Math.abs(m.x - cx); if (m.d.flee) return; if (dd < bd && dd < (R.frenzy > 0 ? 400 : 230)) { bd = dd; tgt = m; } });
+        var want = tgt ? tgt.x : cx + (Math.sin(R.clock * .7) * 40); var reach = R.frenzy > 0 ? 300 : 150; want = Math.max(cx - reach, Math.min(cx + reach, want)); if (Math.abs(want - R.petX) > 4) R.pf = want > R.petX ? -1 : 1; R.petX += (want - R.petX) * Math.min(1, dt * (R.frenzy > 0 ? 11 : 5));
+        PET.style.setProperty("--pf", R.pf); PET.style.left = R.petX + "px"; PET.style.top = (R.gy - 74) + "px"; PTAG.style.left = R.petX + "px"; PTAG.style.top = (R.gy + 10) + "px";
+        if (tgt && R.bite <= 0 && Math.abs(tgt.x - R.petX) < 60) { R.bite = (R.pOn || practice ? 1.5 : 1.05) * (R.frenzy > 0 ? .22 : 1); PET.classList.remove("bite"); void PET.offsetWidth; PET.classList.add("bite"); hit(tgt, R.frenzy > 0 ? 2 : 1, null, null); }
+        else if (R.boss && R.bite <= 0 && Math.abs(R.boss.x - R.petX) < 110) { R.bite = R.frenzy > 0 ? .7 : 2.4; PET.classList.remove("bite"); void PET.offsetWidth; PET.classList.add("bite"); bossHit(1, null, null); }
         /* next wave once the field is clear */
-        if (R.wave >= 0 && R.wave < WAVES.length && !R.queue.length && !alive && R.clock > 2) setTimeout(function () { if (!R.over && !R.mobs.length && !R.queue.length) nextWave(); }, 700), R.clock = -999;
+        if (R.wave >= 0 && R.wave < WAVES.length && !R.queue.length && !alive && R.clock > 2) setTimeout(function () { if (R.over) return; if (!R.mobs.filter(function (m) { return !m.d.flee; }).length && !R.queue.length) nextWave(); else R.clock = 3; }, 700), R.clock = -999;
         R.raf = requestAnimationFrame(loop);
     }
     R.raf = requestAnimationFrame(loop);
