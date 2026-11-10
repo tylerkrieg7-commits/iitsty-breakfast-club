@@ -357,6 +357,28 @@ body.tyc #app>.pbar,body.tyc #app>.banner,body.tyc #wbar{display:none}
 .react{box-shadow:inset 0 2px 0 #ffffff26,0 12px 26px #0008}
 .rxbar button{transition:transform .12s}.rxbar button:active{transform:scale(.85)}
 @media (prefers-reduced-motion:reduce){.pl.turn{animation:none}}
+
+/* build 111: Jeopardy Board + trivia count */
+.tvn{flex-basis:100%;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:6px}.tvn span{font-size:12px;color:var(--mut);font-weight:800;margin-right:4px}
+.tvn button{padding:6px 12px;border-radius:999px;font-size:13px}.tvn button.on{background:linear-gradient(90deg,#7c3aed,#ec4899);border-color:transparent}
+.jp .tv-pl.pk{box-shadow:0 0 0 2px #fde047,0 0 14px #fde04788}
+.jp .tv-pl b.neg{color:#f87171}
+.jp-st{text-align:center;font-weight:800;font-size:14px;margin:10px 0 8px;color:#fde047;text-shadow:0 0 10px #fde04755}
+.jp-grid{display:grid;gap:5px;background:#05051a;padding:6px;border-radius:14px;box-shadow:0 0 0 3px #1e3a8a,0 12px 28px #000a}
+.jp-h{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:58px;padding:4px 2px;border-radius:8px;background:linear-gradient(#1e40af,#172554);border-bottom:3px solid var(--cc);color:#fff;font-weight:900;font-size:10.5px;line-height:1.1;text-align:center;text-transform:uppercase;letter-spacing:.02em;text-shadow:0 2px 0 #0008}
+.jp-h span{font-size:18px}
+.jp-t{aspect-ratio:1.25;padding:0;border:0;border-radius:8px;background:radial-gradient(circle at 50% 30%,#2b54e6,#1534a8 70%);color:#fbbf24;font-weight:900;font-size:clamp(14px,4.4vw,22px);text-shadow:0 2px 0 #000,0 0 10px #fbbf2466;box-shadow:inset 0 2px 0 #ffffff30,inset 0 -3px 0 #0006;transition:transform .12s}
+.jp-t:not([disabled]):active{transform:scale(.92)}
+.jp-t:not([disabled]){animation:jpGlow 2.4s ease-in-out infinite}
+@keyframes jpGlow{50%{box-shadow:inset 0 2px 0 #ffffff30,inset 0 -3px 0 #0006,0 0 12px #fbbf2466}}
+.jp-t[disabled]:not(.used){opacity:.85}
+.jp-t.used{background:#0b1240;box-shadow:inset 0 2px 6px #000c}
+.jp-t.used i{font-style:normal;display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;font-size:12px;color:#fff;text-shadow:none}
+.jp-t.used i.a{background:var(--a)}.jp-t.used i.b{background:var(--b)}
+.jp-ft{text-align:center;font-size:12px;color:var(--mut);margin-top:8px}
+.jp .tv-cat{position:relative}.jp-v{margin-left:auto;font-weight:900;font-size:20px;color:#fde047;text-shadow:0 2px 0 #0007}
+.jp-dd{text-align:center;font-weight:900;font-size:34px;line-height:1;color:#fde047;margin:12px 0;letter-spacing:.06em;text-shadow:0 3px 0 #b45309,0 0 24px #fde047aa;animation:jpdd .9s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jpdd{from{transform:scale(.2) rotate(-12deg);opacity:0}}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"></head><body><div class="wrap" id="app"></div>
 <script>
 /* [category, question, RIGHT answer, wrong, wrong, wrong]  (answers are shuffled when asked) */
@@ -867,6 +889,534 @@ add("geo",[
 Object.assign(window.DUO_CATS,{history:"🏛️ History",sports:"🏅 Sports",food:"🍕 Food & Drink",animals:"🐾 Animals",books:"📚 Books",tech:"💻 Tech",space:"🚀 Space",myth:"⚡ Mythology",celebs:"⭐ Celebs",holidays:"🎃 Holidays",body:"🫀 Human Body",hero:"🦸 Superheroes",math:"➗ Math",words:"🔤 Words",cartoon:"🧽 Cartoons",nostalgia:"📼 90s & 2000s",landmarks:"🗼 Landmarks",nature:"🌿 Nature"});
 window.DUO_CATCOL={all:"#a78bfa",movies:"#ef4444",anime:"#f472b6",games:"#22c55e",tv:"#3b82f6",music:"#f59e0b",general:"#64748b",science:"#14b8a6",geo:"#0ea5e9",history:"#b45309",sports:"#f97316",food:"#eab308",animals:"#84cc16",books:"#8b5cf6",tech:"#06b6d4",space:"#6366f1",myth:"#d946ef",celebs:"#ec4899",holidays:"#fb923c",body:"#f43f5e",hero:"#dc2626",math:"#10b981",words:"#2dd4bf",cartoon:"#facc15",nostalgia:"#c084fc",landmarks:"#38bdf8",nature:"#16a34a"};
 })();
+/* build 111: more trivia (difficulty 1 easy, 2 medium, 3 hard in slot 6) + Fantasy & Sci-Fi categories */
+(function(){
+var Q=window.DUO_TRIVIA;
+function add(c,lv,rows){rows.forEach(function(r){Q.push([c].concat(r,[lv]))})}
+window.DUO_CATS.fantasy="🐉 Fantasy";window.DUO_CATS.scifi="🛸 Sci-Fi";
+window.DUO_CATCOL=window.DUO_CATCOL||{};window.DUO_CATCOL.fantasy="#7c3aed";window.DUO_CATCOL.scifi="#0891b2";
+add("fantasy",1,[
+["In Game of Thrones, what is the name of the throne in King's Landing?","The Iron Throne","The Dragon Chair","The Crown Seat","The Stone Throne"],
+["In Harry Potter, what sport is played on broomsticks?","Quidditch","Broomball","Skyball","Snitchball"],
+["In The Lord of the Rings, what kind of creature is Frodo?","A hobbit","A dwarf","An elf","A wizard"],
+["What is the name of Harry Potter's pet owl?","Hedwig","Errol","Pigwidgeon","Crookshanks"],
+["In Game of Thrones, what is the name of the massive wall's sworn order of guards?","The Night's Watch","The Kingsguard","The Gold Cloaks","The Unsullied"],
+["Which Hogwarts house is Harry Potter sorted into?","Gryffindor","Slytherin","Ravenclaw","Hufflepuff"],
+["In The Lord of the Rings, what must be destroyed in the fires of Mount Doom?","The One Ring","The Arkenstone","The Palantír","The Silmaril"],
+["Who is the Mother of Dragons in Game of Thrones?","Daenerys Targaryen","Cersei Lannister","Sansa Stark","Margaery Tyrell"],
+["What is the name of the bank in Harry Potter run by goblins?","Gringotts","Ollivanders","Borgin and Burkes","Flourish and Blotts"],
+["In The Hobbit, what is the name of the dragon guarding the treasure?","Smaug","Drogon","Glaurung","Ancalagon"],
+["Which character in The Lord of the Rings says 'My precious'?","Gollum","Sauron","Saruman","Gimli"],
+["In Harry Potter, what is the name of the train to Hogwarts?","Hogwarts Express","Platform Nine Line","The Knight Bus","The Wizard Rail"],
+["In The Chronicles of Narnia, what kind of animal is Aslan?","A lion","A bear","A stag","An eagle"],
+["In Game of Thrones, what family name does Jon Snow grow up with?","Stark","Lannister","Baratheon","Greyjoy"],
+["What is the name of the wizarding prison in Harry Potter?","Azkaban","Nurmengard","The Ministry Cells","Durmstrang"]]);
+add("fantasy",2,[
+["In Game of Thrones, what are the zombie-like creatures raised by the White Walkers called?","Wights","Ghouls","Revenants","Draugr"],
+["In The Lord of the Rings, what is the name of Aragorn's reforged sword?","Andúril","Glamdring","Orcrist","Narsil's Edge"],
+["In Harry Potter, what does the spell 'Expelliarmus' do?","Disarms the opponent","Stuns the opponent","Lights the wand","Unlocks doors"],
+["In The Lord of the Rings, which dwarf becomes Legolas's best friend?","Gimli","Thorin","Balin","Dwalin"],
+["In Game of Thrones, what is the name of Arya Stark's sword?","Needle","Longclaw","Oathkeeper","Ice"],
+["In Harry Potter, how many Horcruxes did Voldemort intentionally create?","Six","Seven","Five","Eight"],
+["What is the name of the forest elves' realm ruled by Galadriel in The Lord of the Rings?","Lothlórien","Rivendell","Mirkwood","The Shire"],
+["In Game of Thrones, what city is known for the Iron Bank?","Braavos","Pentos","Meereen","Volantis"],
+["In Harry Potter, what is the name of the Weasleys' family home?","The Burrow","Shell Cottage","Grimmauld Place","The Leaky Cauldron"],
+["Who wrote the book series A Song of Ice and Fire?","George R.R. Martin","J.R.R. Tolkien","Robert Jordan","Patrick Rothfuss"],
+["In The Lord of the Rings, what is the name of Gandalf's horse?","Shadowfax","Brego","Bill","Asfaloth"],
+["In Harry Potter, who is Ron's pet rat Scabbers secretly?","Peter Pettigrew","Sirius Black","Remus Lupin","Barty Crouch Jr."],
+["In The Witcher, what is the name of Geralt's adopted daughter?","Ciri","Yennefer","Triss","Shani"],
+["Which house's words are 'Winter Is Coming'?","House Stark","House Bolton","House Tully","House Arryn"],
+["In The Lord of the Rings, what is the name of the fortress where the Rohirrim make their stand?","Helm's Deep","Minas Tirith","Isengard","Osgiliath"]]);
+add("fantasy",3,[
+["In Game of Thrones, what is the name of Daenerys's largest dragon?","Drogon","Rhaegal","Viserion","Balerion"],
+["What is Harry Potter's middle name?","James","Arthur","Sirius","Albus"],
+["In The Silmarillion, who is the original Dark Lord that Sauron served?","Morgoth","Saruman","Ungoliant","Durin's Bane"],
+["In Harry Potter, what is the core of Harry's wand?","Phoenix feather","Dragon heartstring","Unicorn hair","Thestral hair"],
+["In Game of Thrones, which character is known as 'the Kingslayer'?","Jaime Lannister","Tyrion Lannister","Sandor Clegane","Jorah Mormont"],
+["In The Lord of the Rings, how many rings were given to the race of Men?","Nine","Seven","Three","Five"],
+["In Harry Potter, what shape is Hermione's Patronus?","An otter","A hare","A cat","A swan"],
+["In Game of Thrones, what is the ancestral castle of House Stark?","Winterfell","Riverrun","The Eyrie","Highgarden"],
+["What language did Tolkien base the Elvish tongue Quenya largely on?","Finnish","Welsh","Icelandic","Latin"],
+["In Harry Potter, what does the Mirror of Erised show?","Your deepest desire","Your future","Your worst fear","Your true self"]]);
+add("scifi",1,[
+["In Star Wars, what is the name of Han Solo's ship?","Millennium Falcon","Star Destroyer","X-Wing","Slave I"],
+["In Star Trek, what is the name of the famous starship?","USS Enterprise","USS Voyager One","Serenity","Normandy"],
+["What do the Daleks repeatedly shout in Doctor Who?","Exterminate!","Delete!","Resistance is futile!","Destroy all humans!"],
+["What is the name of the planet-sized space station in Star Wars?","Death Star","Starkiller Base","Citadel","Cloud City"],
+["In E.T., what sweet does Elliott use to lure E.T.?","Reese's Pieces","M&M's","Skittles","Jelly beans"],
+["In The Terminator, which company created Skynet?","Cyberdyne Systems","Weyland-Yutani","Tyrell Corporation","Umbrella"],
+["What color is Yoda's lightsaber in the prequels?","Green","Blue","Purple","Yellow"],
+["Which alien race says 'Resistance is futile' in Star Trek?","The Borg","The Klingons","The Romulans","The Vulcans"],
+["In The Matrix, what is the name of the human city?","Zion","Eden","Haven","Arcadia"],
+["Who wrote the novel Dune?","Frank Herbert","Isaac Asimov","Arthur C. Clarke","Philip K. Dick"]]);
+add("scifi",2,[
+["In Dune, what is the spice-producing desert planet called?","Arrakis","Caladan","Giedi Prime","Tatooine"],
+["What is the name of the AI in 2001: A Space Odyssey?","HAL 9000","Skynet","Mother","JARVIS"],
+["In Alien, what is the name of the ship in the first film?","Nostromo","Sulaco","Prometheus","Covenant"],
+["Which Vulcan character is known for the phrase 'Live long and prosper'?","Spock","Data","Worf","Sulu"],
+["In Blade Runner, what are the artificial humans called?","Replicants","Synths","Cylons","Androids"],
+["Who wrote I, Robot and the Three Laws of Robotics?","Isaac Asimov","Ray Bradbury","H.G. Wells","Robert Heinlein"],
+["In Interstellar, what is the name of the robot with a dry sense of humor?","TARS","CASE","KIPP","HAL"],
+["What is the name of the Wookiee co-pilot in Star Wars?","Chewbacca","Lowbacca","Tarfful","Zaalbar"],
+["Which H.G. Wells novel features Martians invading Earth?","The War of the Worlds","The Time Machine","The Invisible Man","The First Men in the Moon"],
+["In Firefly, what is the name of the ship?","Serenity","Rocinante","Bebop","Galactica"]]);
+add("scifi",3,[
+["In Star Trek, what is Captain Picard's first name?","Jean-Luc","James","Benjamin","Jonathan"],
+["What year is Back to the Future Part II's future set in?","2015","2000","2025","2045"],
+["In The Hitchhiker's Guide to the Galaxy, what is the answer to everything?","42","7","101","1,000"],
+["In Star Wars, what planet is Luke Skywalker's home?","Tatooine","Naboo","Hoth","Dagobah"],
+["Who directed the 1982 film Blade Runner?","Ridley Scott","James Cameron","Steven Spielberg","George Lucas"]]);
+
+add("movies",2,[
+["Which film won the first ever Academy Award for Best Picture?","Wings","Sunrise","The Jazz Singer","Metropolis"],
+["What is the name of the hotel in The Shining?","The Overlook Hotel","The Bates Motel","The Grand Budapest","Hotel California"],
+["In which movie does Tom Hanks talk to a volleyball named Wilson?","Cast Away","The Terminal","Big","Splash"],
+["Which film features the character Hannibal Lecter opposite Clarice Starling?","The Silence of the Lambs","Se7en","Zodiac","Psycho"],
+["Which Pixar film is set in the Land of the Dead?","Coco","Soul","Onward","Luca"],
+["What is the name of the island in Jurassic Park?","Isla Nublar","Isla Sorna","Skull Island","Amity Island"],
+["In Toy Story, what is the name of the boy who owns the toys?","Andy","Sid","Bonnie","Al"],
+["Which movie features the line 'May the Force be with you'?","Star Wars","Star Trek","Dune","Avatar"],
+["In Mean Girls, what day do they wear pink?","Wednesday","Monday","Friday","Tuesday"],
+["What is the name of the fairy in Peter Pan?","Tinker Bell","Silvermist","Navi","Fauna"],
+["Which film follows a clownfish searching for his son?","Finding Nemo","Shark Tale","The Little Mermaid","Luca"],
+["Who played Neo in The Matrix?","Keanu Reeves","Tom Cruise","Will Smith","Brad Pitt"]]);
+add("movies",3,[
+["Which 1941 film is often called the greatest ever made and features 'Rosebud'?","Citizen Kane","Casablanca","Vertigo","Gone with the Wind"],
+["What was the first Marvel Cinematic Universe film?","Iron Man (2008)","The Incredible Hulk","Thor","Captain America: The First Avenger"],
+["Which film won Best Picture at the 1998 Oscars?","Titanic","Good Will Hunting","As Good as It Gets","L.A. Confidential"],
+["Who directed Spirited Away?","Hayao Miyazaki","Isao Takahata","Makoto Shinkai","Mamoru Hosoda"],
+["In Pulp Fiction, what is in the briefcase?","It's never revealed","Gold bars","Diamonds","Cash"],
+["Which actor has played both Batman and Beetlejuice?","Michael Keaton","Christian Bale","Val Kilmer","George Clooney"]]);
+add("anime",2,[
+["In Attack on Titan, what is the name of Eren's adoptive sister?","Mikasa","Annie","Historia","Sasha"],
+["In Naruto, what is the name of Naruto's signature jutsu that makes copies?","Shadow Clone Jutsu","Chidori","Rasengan","Sharingan"],
+["What is the name of Goku's son who first beats Cell?","Gohan","Goten","Trunks","Pan"],
+["In Demon Slayer, what is the name of the organization that hunts demons?","Demon Slayer Corps","Survey Corps","Soul Reapers","Hunter Association"],
+["Which Studio Ghibli film features a giant forest spirit and a catbus?","My Neighbor Totoro","Ponyo","Princess Mononoke","Kiki's Delivery Service"],
+["In Death Note, what is the name of the detective chasing Light?","L","Near","Misa","Ryuk"],
+["In Pokémon, what type is Squirtle?","Water","Grass","Ice","Normal"],
+["In My Hero Academia, what is Deku's real name?","Izuku Midoriya","Katsuki Bakugo","Shoto Todoroki","Tenya Iida"],
+["What is the name of the Shinigami who drops the Death Note?","Ryuk","Rem","Sidoh","Gelus"],
+["In Fullmetal Alchemist, what does Al's soul live in?","A suit of armor","A stone","A doll","A sword"],
+["In One Piece, what is Zoro's fighting style?","Three-sword style","Black leg style","Fishman karate","Rokushiki"],
+["In Kiki's Delivery Service, what is the name of Kiki's black cat?","Jiji","Luna","Salem","Totoro"]]);
+add("anime",3,[
+["In Neon Genesis Evangelion, what is the name of the pilot Shinji's father?","Gendo Ikari","Kaji Ryoji","Kozo Fuyutsuki","Misato Katsuragi"],
+["What is the name of the Survey Corps captain famous for cleaning in Attack on Titan?","Levi","Erwin","Hange","Mike"],
+["In Hunter x Hunter, what is Killua's family profession?","Assassins","Merchants","Thieves","Doctors"],
+["In Steins;Gate, what microwave invention lets the lab send messages to the past?","The PhoneWave","The Time Leaper","The D-Mail Box","The IBN 5100"],
+["In Dragon Ball Z, what is the name of the Namekian who trains Gohan?","Piccolo","Kami","Dende","Nail"],
+["Which anime follows the alchemist brothers Edward and Alphonse?","Fullmetal Alchemist","Soul Eater","Black Clover","Fire Force"]]);
+add("games",2,[
+["In Minecraft, which mob explodes when it gets close to you?","Creeper","Zombie","Enderman","Skeleton"],
+["What is the name of the kingdom in The Legend of Zelda?","Hyrule","Termina","Mushroom Kingdom","Lordran"],
+["In Pokémon Red and Blue, which Pokémon is #001 in the Pokédex?","Bulbasaur","Pikachu","Charmander","Mew"],
+["Which company makes the Xbox?","Microsoft","Sony","Nintendo","Valve"],
+["In Tetris, how many blocks make up each piece?","Four","Three","Five","Six"],
+["What is the name of Mario's dinosaur friend?","Yoshi","Birdo","Rex","Dino"],
+["Which game series stars Kratos?","God of War","Devil May Cry","Dark Souls","Bayonetta"],
+["In Pac-Man, how many ghosts chase you?","Four","Three","Five","Six"],
+["Which game is set in the city of Los Santos?","Grand Theft Auto V","Saints Row","Watch Dogs","Sleeping Dogs"],
+["In Minecraft, what do you use to tame a wolf?","Bones","Fish","Wheat","Carrots"],
+["What is the name of the hero in the Metroid series?","Samus Aran","Zero Suit Sam","Metra","Ridley"]]);
+add("games",3,[
+["What year was the original Super Mario Bros. released in North America?","1985","1983","1988","1990"],
+["In The Legend of Zelda: Breath of the Wild, what are the four giant machines called?","Divine Beasts","Guardians","Sheikah Towers","Champions"],
+["Which game features Aperture Science?","Portal","Half-Life","BioShock","Prey"],
+["In Elden Ring, what is the name of the realm you explore?","The Lands Between","Lordran","Drangleic","Yharnam"],
+["What was Nintendo's handheld console released in 1989?","Game Boy","Game Gear","Lynx","Virtual Boy"],
+["In Overwatch, which hero is a gorilla scientist?","Winston","Doomfist","Wrecking Ball","Reinhardt"]]);
+add("tv",2,[
+["In The Office, what is the name of Dwight's beet farm?","Schrute Farms","Beet World","Dwight's Acres","Scranton Beets"],
+["What is the name of the town in Stranger Things?","Hawkins","Riverdale","Derry","Twin Peaks"],
+["Which Breaking Bad character famously shouts 'Yeah, science!'?","Jesse Pinkman","Walter White","Hank Schrader","Saul Goodman"],
+["In The Simpsons, what is the name of the bar Homer goes to?","Moe's Tavern","Paddy's Pub","The Drunken Clam","Cheers"],
+["Which show features the Byers and Wheeler families?","Stranger Things","Dark","The OA","Locke & Key"],
+["In Friends, what is the name of Ross's pet monkey?","Marcel","Bubbles","George","Abu"],
+["In The Big Bang Theory, what is Sheldon's catchphrase?","Bazinga!","Booyah!","Cowabunga!","Holy moly!"],
+["In Game of Thrones, what does 'Valar Morghulis' mean?","All men must die","Winter is coming","Fire and blood","We do not sow"],
+["Which TV show features the Upside Down?","Stranger Things","Lost","Fringe","The X-Files"],
+["In Seinfeld, what is the name of Jerry's annoying neighbor?","Newman","Kramer","George","Puddy"],
+["Which show stars a chemistry teacher turned meth maker?","Breaking Bad","Ozark","Weeds","Narcos"]]);
+add("tv",3,[
+["In Lost, what numbers keep appearing?","4 8 15 16 23 42","1 2 3 5 8 13","7 14 21 28 35 42","3 6 9 12 15 18"],
+["What is the name of the coffee shop in Gilmore Girls?","Luke's Diner","Central Perk","Monk's Café","The Peach Pit"],
+["In The Sopranos, what is Tony's profession on paper?","Waste management","Construction","Restaurant owner","Car dealer"],
+["In Doctor Who, what species is the Doctor?","Time Lord","Dalek","Ood","Silurian"],
+["In Better Call Saul, what is Saul Goodman's real name?","Jimmy McGill","Chuck McGill","Howard Hamlin","Mike Ehrmantraut"]]);
+add("music",1,[
+["Which singer had a hit with 'Purple Rain'?","Prince","Michael Jackson","David Bowie","Stevie Wonder"],
+["How many members were in the Beatles?","Four","Five","Three","Six"],
+["Which instrument does a drummer play?","Drums","Bass","Violin","Trumpet"],
+["Who sang 'Thriller'?","Michael Jackson","Prince","Madonna","Lionel Richie"],
+["Which singer is known for 'Uptown Funk' with Mark Ronson?","Bruno Mars","Pharrell","Justin Timberlake","Usher"],
+["Who released the album 'Thank U, Next'?","Ariana Grande","Dua Lipa","Halsey","Selena Gomez"]]);
+add("music",2,[
+["Which band sang 'Smells Like Teen Spirit'?","Nirvana","Pearl Jam","Soundgarden","Foo Fighters"],
+["Who is the lead singer of U2?","Bono","The Edge","Sting","Bruce Springsteen"],
+["Which country is the band Coldplay from?","England","Ireland","Australia","USA"],
+["How many keys are black on a standard piano?","36","52","40","32"],
+["Which composer wrote 'Für Elise'?","Beethoven","Mozart","Bach","Chopin"],
+["Which singer's fans are called 'Swifties'?","Taylor Swift","Katy Perry","Billie Eilish","Olivia Rodrigo"],
+["Who sang 'Like a Prayer'?","Madonna","Cher","Whitney Houston","Cyndi Lauper"],
+["Which rock band is known for 'Stairway to Heaven'?","Led Zeppelin","The Who","Pink Floyd","Deep Purple"]]);
+add("music",3,[
+["Which Pink Floyd album has a prism on the cover?","The Dark Side of the Moon","The Wall","Wish You Were Here","Animals"],
+["What was Elvis Presley's middle name?","Aaron","James","Lee","Ray"],
+["Which singer was born Stefani Germanotta?","Lady Gaga","Gwen Stefani","Madonna","Pink"],
+["How many symphonies did Beethoven complete?","Nine","Seven","Twelve","Five"]]);
+add("general",2,[
+["How many hours are in a week?","168","144","172","196"],
+["What is the largest desert on Earth (including cold deserts)?","Antarctica","Sahara","Gobi","Arabian"],
+["Which planet is closest to the Sun?","Mercury","Venus","Mars","Earth"],
+["What color do you get by mixing blue and yellow?","Green","Purple","Orange","Brown"],
+["How many sides does an octagon have?","8","6","10","12"],
+["Which element does 'O' represent on the periodic table?","Oxygen","Gold","Osmium","Oganesson"],
+["How many years are in a century?","100","1,000","10","50"],
+["What is the capital of Spain?","Madrid","Barcelona","Lisbon","Seville"],
+["Which shape has three sides?","Triangle","Square","Pentagon","Circle"],
+["What is the largest bone in the human body?","Femur","Tibia","Humerus","Spine"],
+["What is the fastest bird (in a dive)?","Peregrine falcon","Golden eagle","Ostrich","Swift"],
+["What is frozen water called?","Ice","Steam","Dew","Fog"]]);
+add("general",3,[
+["How many time zones does Russia span?","11","7","9","13"],
+["What is the most spoken language in the world by total speakers?","English","Mandarin Chinese","Spanish","Hindi"],
+["Which country has the most islands?","Sweden","Indonesia","Philippines","Canada"],
+["What is the rarest blood type?","AB negative","O negative","B negative","A negative"],
+["How many dots are on a pair of standard dice?","42","36","48","21"]]);
+add("science",2,[
+["What is the chemical symbol for sodium?","Na","So","Sd","S"],
+["What part of the plant conducts photosynthesis?","Leaves","Roots","Stem","Flowers"],
+["Which gas makes up most of Earth's atmosphere?","Nitrogen","Oxygen","Carbon dioxide","Argon"],
+["What is the study of earthquakes called?","Seismology","Geology","Meteorology","Volcanology"],
+["What type of energy does a moving car have?","Kinetic energy","Potential energy","Thermal energy","Nuclear energy"],
+["What is the pH of pure water?","7","0","14","5"],
+["Which scientist proposed the theory of evolution by natural selection?","Charles Darwin","Gregor Mendel","Louis Pasteur","Isaac Newton"],
+["What is the smallest unit of life?","The cell","The atom","The molecule","The organ"],
+["Which metal is liquid at room temperature?","Mercury","Lead","Tin","Zinc"],
+["What does DNA stand for?","Deoxyribonucleic acid","Dinitrogen acid","Double nucleic atom","Deoxy natural acid"]]);
+add("science",3,[
+["What is the most abundant element in the universe?","Hydrogen","Helium","Oxygen","Carbon"],
+["What is absolute zero in Celsius?","-273.15°C","-100°C","-459°C","0°C"],
+["Which particle has a negative charge?","Electron","Proton","Neutron","Photon"],
+["Who discovered penicillin?","Alexander Fleming","Marie Curie","Louis Pasteur","Edward Jenner"],
+["What is the chemical formula for table salt?","NaCl","KCl","NaOH","CaCl2"],
+["What is the hardest known mineral after diamond on the Mohs scale?","Corundum","Topaz","Quartz","Talc"]]);
+add("geo",2,[
+["What is the capital of Germany?","Berlin","Munich","Frankfurt","Hamburg"],
+["Which country has the city of Marrakech?","Morocco","Egypt","Tunisia","Algeria"],
+["What is the longest river in the United States?","Missouri River","Mississippi River","Colorado River","Ohio River"],
+["Which country is known as the Land of the Rising Sun?","Japan","China","South Korea","Thailand"],
+["What is the capital of Egypt?","Cairo","Alexandria","Giza","Luxor"],
+["Which US state is made up of islands in the Pacific?","Hawaii","Alaska","California","Florida"],
+["What is the capital of South Korea?","Seoul","Busan","Pyongyang","Incheon"],
+["Which country is home to the city of Toronto?","Canada","USA","Australia","UK"],
+["What is the capital of Mexico?","Mexico City","Cancún","Guadalajara","Monterrey"],
+["Which mountain range separates Europe from Asia?","The Urals","The Alps","The Himalayas","The Andes"]]);
+add("geo",3,[
+["What is the capital of New Zealand?","Wellington","Auckland","Christchurch","Queenstown"],
+["Which African country has the most people?","Nigeria","Ethiopia","Egypt","South Africa"],
+["What is the deepest lake in the world?","Lake Baikal","Lake Superior","Lake Tanganyika","Lake Victoria"],
+["Which country has the longest coastline?","Canada","Russia","Australia","Indonesia"],
+["What is the capital of Turkey?","Ankara","Istanbul","Izmir","Antalya"],
+["Which river flows through Baghdad?","Tigris","Euphrates","Nile","Jordan"]]);
+add("history",2,[
+["Who was the first woman to fly solo across the Atlantic?","Amelia Earhart","Bessie Coleman","Harriet Quimby","Jacqueline Cochran"],
+["In which year did the Titanic sink?","1912","1905","1921","1898"],
+["Which country did the US buy Alaska from?","Russia","Canada","Britain","Spain"],
+["Who wrote the Declaration of Independence (main author)?","Thomas Jefferson","Benjamin Franklin","John Adams","James Madison"],
+["Which civilization built the pyramids of Giza?","Ancient Egyptians","Mayans","Romans","Persians"],
+["Who was the British Prime Minister for most of World War II?","Winston Churchill","Neville Chamberlain","Clement Attlee","Margaret Thatcher"],
+["What year did humans first land on the Moon?","1969","1965","1972","1959"],
+["Which emperor built a famous wall across northern Britain?","Hadrian","Nero","Augustus","Caligula"],
+["Who was the first emperor of China?","Qin Shi Huang","Kublai Khan","Sun Yat-sen","Puyi"],
+["What was the name of the period of rebirth in art in Europe after the Middle Ages?","The Renaissance","The Enlightenment","The Reformation","The Baroque"]]);
+add("history",3,[
+["In which year did the Berlin Wall fall?","1989","1991","1985","1979"],
+["Who was the last pharaoh of ancient Egypt?","Cleopatra VII","Nefertiti","Ramses II","Hatshepsut"],
+["Which war was fought between the North and South in the US?","The Civil War","The War of 1812","The Revolutionary War","The Spanish-American War"],
+["Who was the first female Prime Minister of the UK?","Margaret Thatcher","Theresa May","Queen Victoria","Indira Gandhi"],
+["What ancient city was destroyed by Mount Vesuvius in 79 AD?","Pompeii","Athens","Carthage","Troy"],
+["Which empire was ruled by Genghis Khan?","Mongol Empire","Ottoman Empire","Persian Empire","Byzantine Empire"]]);
+add("sports",2,[
+["How many holes are played in a standard round of golf?","18","9","12","20"],
+["In which sport would you hit a home run?","Baseball","Cricket","Golf","Hockey"],
+["How many players are on a basketball team on court?","Five","Six","Seven","Four"],
+["Which country invented the sport of judo?","Japan","China","Korea","Brazil"],
+["How long is a marathon (miles, roughly)?","26.2","24","30","20"],
+["In tennis, what is a score of zero called?","Love","Nil","Duck","Zip"],
+["Which NFL event is the championship game?","The Super Bowl","The World Series","The Stanley Cup","The Final Four"],
+["In which sport is the Stanley Cup awarded?","Ice hockey","Basketball","Baseball","Soccer"],
+["Which athlete has won the most Olympic gold medals?","Michael Phelps","Usain Bolt","Carl Lewis","Simone Biles"],
+["What color card means a player is sent off in soccer?","Red","Yellow","Blue","Black"]]);
+add("sports",3,[
+["How many players are on a rugby union team on the field?","15","13","11","12"],
+["Which country won the first FIFA World Cup in 1930?","Uruguay","Brazil","Italy","Argentina"],
+["What is the diameter of a basketball hoop in inches?","18","16","20","24"],
+["In which year did Usain Bolt set the 100m world record of 9.58s?","2009","2008","2012","2016"],
+["How many players are on a volleyball team on court?","Six","Five","Seven","Four"]]);
+add("food",2,[
+["What is the main ingredient in a traditional Japanese miso soup?","Miso paste","Soy milk","Fish sauce","Rice"],
+["Which country is paella from?","Spain","Italy","Portugal","Mexico"],
+["What type of pasta is shaped like little ears?","Orecchiette","Farfalle","Penne","Fusilli"],
+["What is the main ingredient in a classic pesto?","Basil","Spinach","Parsley","Mint"],
+["Which fruit has its seeds on the outside?","Strawberry","Raspberry","Kiwi","Blueberry"],
+["What is the Italian word for 'cooked to the tooth' pasta?","Al dente","Al forno","Bellissimo","Al fresco"],
+["Which country is the origin of the dish pho?","Vietnam","Thailand","China","Korea"],
+["What is a female chicken called?","Hen","Rooster","Drake","Cob"],
+["What is the main ingredient in tzatziki?","Yogurt","Mayonnaise","Sour cream","Cheese"],
+["Which drink is a mix of espresso and steamed milk with foam?","Cappuccino","Americano","Espresso shot","Cold brew"]]);
+add("food",3,[
+["Which pepper is used to make paprika?","Bell pepper / sweet peppers","Jalapeño","Habanero","Black pepper"],
+["What does 'Wagyu' mean in Japanese?","Japanese cow","Fat beef","Soft meat","Kobe style"],
+["Which nut is used to make traditional pesto alla genovese?","Pine nuts","Walnuts","Almonds","Cashews"],
+["Which grain is used to make traditional Japanese sake?","Rice","Barley","Wheat","Millet"]]);
+add("animals",2,[
+["What is a group of crows called?","A murder","A flock","A parliament","A gaggle"],
+["Which animal is known as the 'ship of the desert'?","Camel","Horse","Elephant","Donkey"],
+["How many legs does an insect have?","Six","Eight","Four","Ten"],
+["What is a baby goat called?","A kid","A calf","A lamb","A foal"],
+["Which bird is a symbol of peace?","Dove","Eagle","Owl","Swan"],
+["Which animal has the longest lifespan among mammals?","Bowhead whale","Elephant","Human","Tortoise"],
+["What is the largest species of shark?","Whale shark","Great white","Hammerhead","Tiger shark"],
+["Which animal is known for changing colors to blend in?","Chameleon","Gecko","Iguana","Frog"],
+["What is a group of owls called?","A parliament","A pride","A school","A herd"]]);
+add("animals",3,[
+["How many stomachs does a cow have?","Four","Two","Three","One"],
+["Which animal has the most powerful bite?","Saltwater crocodile","Great white shark","Hippo","Lion"],
+["What is a baby swan called?","A cygnet","A gosling","A duckling","A chick"],
+["How many eyes does a typical spider have?","Eight","Six","Four","Two"],
+["Which mammal lays eggs?","Platypus","Kangaroo","Koala","Sloth"]]);
+add("books",2,[
+["Who wrote 'The Great Gatsby'?","F. Scott Fitzgerald","Ernest Hemingway","John Steinbeck","William Faulkner"],
+["What is the name of Sherlock Holmes's friend and assistant?","Dr. Watson","Inspector Lestrade","Moriarty","Mycroft"],
+["Who wrote 'The Cat in the Hat'?","Dr. Seuss","Roald Dahl","Maurice Sendak","Shel Silverstein"],
+["In 'Charlotte's Web', what kind of animal is Charlotte?","A spider","A pig","A goose","A rat"],
+["Who wrote 'To Kill a Mockingbird'?","Harper Lee","Truman Capote","Mark Twain","John Steinbeck"],
+["Which book features the character Holden Caulfield?","The Catcher in the Rye","On the Road","Lord of the Flies","A Separate Peace"],
+["Who wrote 'Frankenstein'?","Mary Shelley","Bram Stoker","Edgar Allan Poe","Emily Brontë"],
+["What is the name of the boy who never grows up?","Peter Pan","Pinocchio","Oliver Twist","Tom Sawyer"],
+["Who wrote 'The Very Hungry Caterpillar'?","Eric Carle","Beatrix Potter","Mo Willems","Dr. Seuss"],
+["Which author wrote 'It' and 'The Shining'?","Stephen King","Dean Koontz","Clive Barker","Anne Rice"]]);
+add("books",3,[
+["Who wrote 'One Hundred Years of Solitude'?","Gabriel García Márquez","Isabel Allende","Jorge Luis Borges","Pablo Neruda"],
+["Who wrote 'Dracula'?","Bram Stoker","Mary Shelley","Oscar Wilde","H.P. Lovecraft"],
+["In 'The Hunger Games', what district is Katniss from?","District 12","District 1","District 7","District 13"],
+["Who wrote 'War and Peace'?","Leo Tolstoy","Fyodor Dostoevsky","Anton Chekhov","Ivan Turgenev"]]);
+add("tech",2,[
+["What does 'CPU' stand for?","Central Processing Unit","Computer Power Unit","Core Program Utility","Central Power Unit"],
+["Which company makes the Galaxy phones?","Samsung","LG","Huawei","Sony"],
+["What was Twitter renamed to in 2023?","X","Threads","Bluesky","Y"],
+["What does 'Wi-Fi' let you do?","Connect to networks wirelessly","Charge devices","Print documents","Back up photos"],
+["Who founded Microsoft with Paul Allen?","Bill Gates","Steve Jobs","Larry Page","Mark Zuckerberg"],
+["Which company makes the Pixel phones?","Google","Apple","Motorola","OnePlus"],
+["What does 'RAM' stand for?","Random Access Memory","Read Access Module","Rapid Action Memory","Run All Memory"],
+["What is the most popular internet search engine?","Google","Bing","Yahoo","DuckDuckGo"],
+["Which company created the iPod?","Apple","Sony","Microsoft","Dell"],
+["What does 'URL' stand for?","Uniform Resource Locator","Universal Read Link","Unique Resource List","User Route Location"]]);
+add("tech",3,[
+["In what year was the World Wide Web invented?","1989","1975","1995","1983"],
+["Who is credited with inventing the World Wide Web?","Tim Berners-Lee","Vint Cerf","Bill Gates","Alan Turing"],
+["What does 'SSD' stand for?","Solid State Drive","Super Speed Disk","System Storage Device","Secure Data Drive"],
+["Which programming language was created by Brendan Eich in 10 days?","JavaScript","Java","Python","PHP"],
+["What was the name of the first widely used graphical web browser?","Mosaic","Netscape","Internet Explorer","Opera"]]);
+add("space",2,[
+["Which planet is famous for its Great Red Spot?","Jupiter","Mars","Saturn","Neptune"],
+["What is the name of NASA's Mars rover that landed in 2021?","Perseverance","Curiosity","Spirit","Opportunity"],
+["Which planet is farthest from the Sun?","Neptune","Uranus","Pluto","Saturn"],
+["What is the name of the first artificial satellite?","Sputnik 1","Explorer 1","Vanguard","Telstar"],
+["Who was the first human in space?","Yuri Gagarin","Neil Armstrong","John Glenn","Alan Shepard"],
+["What is the name of the space station humans live on now?","International Space Station","Mir","Skylab","Tiangong-1"],
+["How long does light from the Sun take to reach Earth?","About 8 minutes","About 1 second","About 1 hour","About 1 day"],
+["What was Pluto reclassified as in 2006?","Dwarf planet","Moon","Asteroid","Comet"],
+["Which planet has the most moons (as of 2024)?","Saturn","Jupiter","Uranus","Neptune"],
+["What is the name of Mars's largest volcano?","Olympus Mons","Mauna Kea","Valles Marineris","Tharsis"]]);
+add("space",3,[
+["What is the name of the galaxy closest to the Milky Way (large spiral)?","Andromeda","Triangulum","Whirlpool","Sombrero"],
+["Which space telescope launched in 2021?","James Webb","Hubble","Kepler","Spitzer"],
+["What is the name of Saturn's largest moon?","Titan","Europa","Ganymede","Enceladus"],
+["What was the name of the Apollo 11 lunar module?","Eagle","Columbia","Falcon","Orion"],
+["How many Earths could fit inside the Sun, roughly?","1.3 million","1,000","50,000","1 billion"]]);
+add("myth",2,[
+["Who is the Greek god of the sea?","Poseidon","Hades","Apollo","Ares"],
+["In Norse myth, who is the trickster god?","Loki","Odin","Baldur","Tyr"],
+["What is the name of Odin's eight-legged horse?","Sleipnir","Pegasus","Fenrir","Arion"],
+["Which hero went on a long journey home after the Trojan War in The Odyssey?","Odysseus","Achilles","Hector","Jason"],
+["Who is the Greek god of the underworld?","Hades","Hermes","Kronos","Dionysus"],
+["What is the name of the winged horse in Greek myth?","Pegasus","Sleipnir","Bucephalus","Arion"],
+["Which Greek hero's only weak spot was his heel?","Achilles","Ajax","Theseus","Perseus"],
+["Who is the Egyptian god of the sun?","Ra","Osiris","Set","Thoth"],
+["Which Norse god gave up an eye for wisdom?","Odin","Thor","Freyr","Heimdall"],
+["What creature is half-human, half-horse?","Centaur","Satyr","Minotaur","Sphinx"]]);
+add("myth",3,[
+["Who led the Argonauts in search of the Golden Fleece?","Jason","Hercules","Theseus","Orpheus"],
+["What is the Norse end-of-the-world battle called?","Ragnarök","Valhalla","Yggdrasil","Midgard"],
+["Who solved the riddle of the Sphinx?","Oedipus","Odysseus","Perseus","Theseus"],
+["In Greek myth, who stole fire from the gods for humans?","Prometheus","Epimetheus","Atlas","Hermes"],
+["What is the name of the giant world tree in Norse myth?","Yggdrasil","Bifrost","Mjolnir","Gungnir"]]);
+add("celebs",2,[
+["Which actress played Hermione Granger?","Emma Watson","Emma Stone","Bonnie Wright","Evanna Lynch"],
+["Who played Wolverine in the X-Men films?","Hugh Jackman","Ryan Reynolds","Chris Evans","Russell Crowe"],
+["Which singer is married to Jay-Z?","Beyoncé","Rihanna","Alicia Keys","Ciara"],
+["Who hosts the cooking show with the catchphrase 'It's raw!'?","Gordon Ramsay","Jamie Oliver","Guy Fieri","Bobby Flay"],
+["Which actor played Forrest Gump?","Tom Hanks","Kevin Costner","Robin Williams","Bill Murray"],
+["Which reality family is famous for 'Keeping Up'?","The Kardashians","The Osbournes","The Duggars","The Hiltons"],
+["Who played Wednesday Addams in the 2022 Netflix series?","Jenna Ortega","Millie Bobby Brown","Zendaya","Sadie Sink"],
+["Which actor played Captain Jack Sparrow?","Johnny Depp","Orlando Bloom","Javier Bardem","Geoffrey Rush"],
+["Which singer released 'drivers license' in 2021?","Olivia Rodrigo","Sabrina Carpenter","Billie Eilish","Doja Cat"],
+["Who starred as Barbie in the 2023 movie?","Margot Robbie","Emma Stone","Anne Hathaway","Florence Pugh"]]);
+add("celebs",3,[
+["Which actor played Ken in the 2023 Barbie movie?","Ryan Gosling","Ryan Reynolds","Chris Pine","Simu Liu"],
+["Who directed the 2017 film 'Get Out'?","Jordan Peele","Keegan-Michael Key","Spike Lee","Ryan Coogler"],
+["Which actor has won the most Best Actor Oscars?","Daniel Day-Lewis","Tom Hanks","Jack Nicholson","Denzel Washington"],
+["Who voiced Woody in Toy Story?","Tom Hanks","Tim Allen","Billy Crystal","John Goodman"]]);
+add("holidays",2,[
+["What color is traditionally associated with St. Patrick's Day?","Green","Orange","Gold","Red"],
+["In which country did Halloween originate (from the festival of Samhain)?","Ireland","USA","England","Mexico"],
+["What is the Day of the Dead called in Spanish?","Día de los Muertos","Cinco de Mayo","Las Posadas","Semana Santa"],
+["Which holiday celebrates US independence?","July 4th","Memorial Day","Labor Day","Veterans Day"],
+["What are the eight nights of Hanukkah often celebrated with frying in?","Oil","Butter","Wine","Honey"],
+["What do kids traditionally hunt for at Easter?","Eggs","Pumpkins","Acorns","Candy canes"],
+["On what date is Christmas celebrated in most Western countries?","December 25","December 24","January 6","December 31"],
+["What is the name of Santa's red-nosed reindeer?","Rudolph","Dasher","Blitzen","Comet"],
+["Which holiday is known as the 'Festival of Lights' in India?","Diwali","Holi","Eid","Navratri"],
+["Which holiday is known for throwing colored powder?","Holi","Diwali","Songkran","Carnival"]]);
+add("holidays",3,[
+["What is the name of the traditional Hanukkah spinning top?","Dreidel","Menorah","Latke","Gelt"],
+["In which country is Boxing Day a major holiday?","United Kingdom","USA","Mexico","Japan"],
+["What date is Bastille Day in France?","July 14","June 14","July 4","May 1"],
+["Which country gives Christmas trees to London's Trafalgar Square every year?","Norway","Sweden","Denmark","Finland"]]);
+add("body",2,[
+["What is the largest internal organ?","Liver","Brain","Lungs","Stomach"],
+["How many lungs do humans have?","Two","One","Three","Four"],
+["What is the colored part of the eye called?","Iris","Pupil","Retina","Cornea"],
+["Which organ helps you think?","Brain","Heart","Liver","Spleen"],
+["What do red blood cells carry around the body?","Oxygen","Food","Germs","Water only"],
+["Which bone protects the brain?","Skull","Ribcage","Spine","Pelvis"],
+["What is the smallest bone in the body?","Stapes (in the ear)","Pinky toe bone","Hyoid","Kneecap"],
+["Which muscle pumps blood?","Heart","Diaphragm","Bicep","Quadricep"],
+["What is the largest muscle in the human body?","Gluteus maximus","Quadriceps","Biceps","Latissimus dorsi"],
+["How many baby (milk) teeth do children usually have?","20","24","32","16"]]);
+add("body",3,[
+["What is the medical name for the kneecap?","Patella","Femur","Fibula","Tarsus"],
+["Which organ produces insulin?","Pancreas","Liver","Kidney","Gallbladder"],
+["What percentage of the body is roughly water?","About 60%","About 30%","About 90%","About 45%"],
+["Which part of the brain controls balance?","Cerebellum","Cerebrum","Brainstem","Hypothalamus"]]);
+add("hero",2,[
+["What is Spider-Man's aunt's name?","May","Martha","Mary","Margaret"],
+["What is Wonder Woman's secret identity?","Diana Prince","Diana Kent","Selina Kyle","Barbara Gordon"],
+["Which hero carries an indestructible shield?","Captain America","Iron Man","Thor","Hawkeye"],
+["What is the name of Batman's butler?","Alfred","Jarvis","Lucius","Gordon"],
+["What is the name of Thor's hammer?","Mjolnir","Stormbreaker","Gungnir","Excalibur"],
+["Which hero is the leader of the X-Men?","Professor X","Wolverine","Cyclops","Storm"],
+["Who is Superman's love interest who works at the Daily Planet?","Lois Lane","Lana Lang","Mary Jane","Vicki Vale"],
+["What are the gems Thanos collects?","Infinity Stones","Power Gems","Time Crystals","Soul Shards"],
+["Which hero is also known as Tony Stark?","Iron Man","War Machine","Ant-Man","Vision"],
+["What is the name of Batman's home city?","Gotham City","Metropolis","Star City","Central City"]]);
+add("hero",3,[
+["What is Black Widow's real name?","Natasha Romanoff","Yelena Belova","Wanda Maximoff","Maria Hill"],
+["Which villain is Batman's arch-enemy who uses a coin?","Two-Face","Riddler","Penguin","Bane"],
+["What is Green Lantern's (Hal Jordan) weakness in classic comics?","The color yellow","Wood","Magic","Kryptonite"],
+["Which hero shrinks using Pym Particles?","Ant-Man","Wasp only","Hawkeye","Falcon"]]);
+add("math",2,[
+["What is 9 x 8?","72","64","81","56"],
+["How many degrees are in a circle?","360","180","90","270"],
+["What is the next number: 2, 4, 8, 16, ...?","32","24","20","30"],
+["What is half of 250?","125","120","150","100"],
+["What is the Roman numeral for 10?","X","V","L","C"],
+["How many sides does a pentagon have?","5","6","4","7"],
+["What is 100 divided by 4?","25","20","40","30"],
+["What is a polygon with 12 sides called?","Dodecagon","Decagon","Nonagon","Hendecagon"],
+["What is 3 cubed?","27","9","81","18"],
+["How many zeros are in one million?","6","5","7","9"]]);
+add("math",3,[
+["What is the sum of the angles in a triangle?","180°","360°","90°","270°"],
+["What is 17 x 3?","51","47","54","57"],
+["What is the Roman numeral for 1000?","M","D","C","K"],
+["What is the next number in the Fibonacci sequence: 1, 1, 2, 3, 5, 8, ...?","13","11","12","15"],
+["What is 25% of 80?","20","25","16","40"]]);
+add("words",2,[
+["What is a word that means the opposite of another called?","Antonym","Synonym","Homonym","Acronym"],
+["What is 'hola' in English?","Hello","Goodbye","Please","Friend"],
+["Which word is a noun?","Table","Run","Quickly","Blue"],
+["What does 'LOL' stand for?","Laugh out loud","Lots of love","Look out loud","Live our lives"],
+["What is the plural of 'goose'?","Geese","Gooses","Geeses","Goose"],
+["Which letter is silent in 'knife'?","K","N","F","E"],
+["What is 'danke' in English?","Thank you","Hello","Goodbye","Please"],
+["What is a group of words expressing a complete thought?","A sentence","A clause only","A noun","A paragraph"],
+["Which word rhymes with 'cat'?","Hat","Cut","Cot","Kite"]]);
+add("words",3,[
+["What does the Latin phrase 'carpe diem' mean?","Seize the day","Love conquers all","I came, I saw","Peace be with you"],
+["What is a word formed from the first letters of other words called?","Acronym","Anagram","Homonym","Palindrome"],
+["What is an anagram of 'listen'?","Silent","Lentil","Stolen","Linear"]]);
+add("cartoon",2,[
+["What is the name of SpongeBob's best friend?","Patrick Star","Squidward","Mr. Krabs","Plankton"],
+["In The Simpsons, what is Homer's favorite snack?","Donuts","Pizza","Hot dogs","Pretzels"],
+["What kind of animal is Scooby-Doo?","Great Dane","Bloodhound","Beagle","Labrador"],
+["Which cartoon features the Powerpuff Girls' creator, Professor Utonium?","The Powerpuff Girls","Dexter's Laboratory","Johnny Bravo","Ed, Edd n Eddy"],
+["What is the name of Fred Flintstone's wife?","Wilma","Betty","Pebbles","Judy"],
+["Which cartoon features a talking dog named Brian?","Family Guy","American Dad","The Simpsons","Bob's Burgers"],
+["What color is Pac-Man?","Yellow","Red","Blue","Green"],
+["In Phineas and Ferb, what is the name of the evil scientist?","Dr. Doofenshmirtz","Dr. Robotnik","Mojo Jojo","Dr. Claw"],
+["What is the name of the Mystery Inc. van?","The Mystery Machine","The Ghost Wagon","The Clue Van","The Scooby Bus"],
+["Which cartoon features Bugs Bunny saying 'What's up, Doc?'","Looney Tunes","Merrie Melodies only","Tiny Toons","Animaniacs"]]);
+add("cartoon",3,[
+["In which US state is South Park set?","Colorado","Wyoming","Montana","Utah"],
+["In Avatar: The Last Airbender, what is Aang's flying bison called?","Appa","Momo","Naga","Druk"],
+["What is the name of Dexter's sister in Dexter's Laboratory?","Dee Dee","Didi","Dot","Daphne"],
+["Who created Mickey Mouse with Ub Iwerks?","Walt Disney","Max Fleischer","Chuck Jones","Walter Lantz"]]);
+add("nostalgia",2,[
+["Which device was used to rewind cassette tapes in a pinch?","A pencil","A spoon","A straw","A coin"],
+["What did the 'N' in N64 stand for?","Nintendo","Nova","Next","Network"],
+["Which website was MySpace's big rival that took over?","Facebook","Friendster","Bebo","Orkut"],
+["Which toy was a bouncing coil that could walk down stairs?","Slinky","Yo-yo","Etch A Sketch","Spirograph"],
+["Which video rental store chain had blue and yellow branding?","Blockbuster","Hollywood Video","Netflix","Family Video"],
+["What was the name of AOL's instant messenger?","AIM","MSN","ICQ","Yahoo! Chat"],
+["Which handheld drawing toy has two knobs?","Etch A Sketch","Magna Doodle","Lite-Brite","Spirograph"],
+["Which girl group sang 'Wannabe'?","Spice Girls","TLC","Destiny's Child","All Saints"],
+["Which phone was famous for being nearly indestructible in the early 2000s?","Nokia 3310","Motorola Razr","BlackBerry","Sidekick"],
+["Which game console used cartridges and had Sonic as its mascot?","Sega Genesis","Super Nintendo","Atari 2600","TurboGrafx-16"]]);
+add("nostalgia",3,[
+["What year did the first Harry Potter book come out in the UK?","1997","1999","2001","1995"],
+["Which Nickelodeon show featured kids competing in 'Aggro Crag'?","Guts","Legends of the Hidden Temple","Double Dare","Figure It Out"],
+["Which 90s cartoon featured babies Tommy, Chuckie and Angelica?","Rugrats","Hey Arnold!","Doug","Recess"],
+["What was the name of the 90s toy brand of collectible plush animals with heart tags?","Beanie Babies","Care Bears","Polly Pocket","Puppy Surprise"]]);
+add("landmarks",2,[
+["What is the official name of the London tower that holds Big Ben?","Elizabeth Tower","Victoria Tower","The White Tower","St Stephen's Spire"],
+["In which city is the Golden Gate Bridge?","San Francisco","Los Angeles","Seattle","New York"],
+["Which country is home to Machu Picchu?","Peru","Mexico","Bolivia","Chile"],
+["Which ancient monument stands in Wiltshire, England?","Stonehenge","Hadrian's Wall","Avebury Tower","Skara Brae"],
+["In which country is Petra?","Jordan","Egypt","Israel","Turkey"],
+["Which mountain has the faces of four US presidents carved into it?","Mount Rushmore","Stone Mountain","Pikes Peak","Mount Hood"],
+["Where is the Burj Khalifa?","Dubai","Abu Dhabi","Doha","Riyadh"],
+["Which famous museum houses the Mona Lisa?","The Louvre","The British Museum","The Uffizi","The Prado"],
+["In which city is the Brandenburg Gate?","Berlin","Vienna","Munich","Prague"],
+["Which country has the Great Barrier Reef?","Australia","Indonesia","Philippines","New Zealand"]]);
+add("landmarks",3,[
+["In which city is the Sagrada Família?","Barcelona","Madrid","Lisbon","Seville"],
+["Which Cambodian temple complex is the largest religious monument in the world?","Angkor Wat","Borobudur","Bagan","Wat Arun"],
+["In which country is Chichén Itzá?","Mexico","Guatemala","Peru","Belize"],
+["Which city is home to the Hagia Sophia?","Istanbul","Athens","Rome","Cairo"]]);
+add("nature",2,[
+["What is the process of water turning into vapor called?","Evaporation","Condensation","Precipitation","Freezing"],
+["What is the largest rainforest in the world?","The Amazon","The Congo","Daintree","Borneo"],
+["Which tree is known for its maple syrup?","Sugar maple","Oak","Pine","Birch"],
+["What is the name of the layer of gases around Earth?","The atmosphere","The crust","The mantle","The core"],
+["What are baby frogs called?","Tadpoles","Froglets only","Larvae","Pups"],
+["Which flower is known for following the sun?","Sunflower","Tulip","Rose","Daisy"],
+["What do you call a big storm with spinning winds over the Atlantic?","Hurricane","Typhoon","Monsoon","Blizzard"],
+["What is the hottest layer of Earth?","The inner core","The crust","The mantle","The outer core"],
+["What kind of tree are pine cones from?","Conifers","Oaks","Palms","Willows"],
+["What causes the seasons on Earth?","The tilt of Earth's axis","Distance from the Sun","The Moon","Clouds"]]);
+add("nature",3,[
+["What is the tallest tree species in the world?","Coast redwood","Giant sequoia","Douglas fir","Eucalyptus"],
+["What is the name for a scientist who studies plants?","Botanist","Zoologist","Geologist","Ecologist"],
+["Which gas do trees release that we breathe?","Oxygen","Nitrogen","Carbon dioxide","Helium"],
+["What is a group of jellyfish called?","A smack","A school","A pod","A swarm"]]);
+/* small fixes to older questions */
+Q.forEach(function(q){if(q[1]==="What is the term for playing music very softly?"){q[1]="What is the Italian music term for playing softly?"}});
+})();
+
 </script>
 <script>
 (function(){
@@ -963,13 +1513,15 @@ function ctx(slot){
 }
 
 /* ---------- lobby ---------- */
-var CABCOL={connect4:"#ff4d8d",ttt:"#35c8ff",reversi:"#22c55e",checkers:"#f97316",dots:"#a78bfa",memory:"#fbbf24",battleship:"#38bdf8",reaction:"#facc15",trivia:"#c084fc",pictionary:"#ff2bd6",twotruths:"#ef4444",tycoon:"#16a34a",oops:"#00e5ff",lifepath:"#ffb300",chess:"#e5e7eb",eights:"#7c3aed",dice:"#f43f5e",words:"#14b8a6",gomoku:"#f59e0b",codebreak:"#22c55e"};
-var NEWG={chess:1,eights:1,dice:1,words:1,gomoku:1,codebreak:1};
+var CABCOL={jeopardy:"#2563eb",connect4:"#ff4d8d",ttt:"#35c8ff",reversi:"#22c55e",checkers:"#f97316",dots:"#a78bfa",memory:"#fbbf24",battleship:"#38bdf8",reaction:"#facc15",trivia:"#c084fc",pictionary:"#ff2bd6",twotruths:"#ef4444",tycoon:"#16a34a",oops:"#00e5ff",lifepath:"#ffb300",chess:"#e5e7eb",eights:"#7c3aed",dice:"#f43f5e",words:"#14b8a6",gomoku:"#f59e0b",codebreak:"#22c55e"};
+var NEWG={jeopardy:1,trivia:1,chess:1,eights:1,dice:1,words:1,gomoku:1,codebreak:1};
 function dShade(h,p){var n=parseInt(h.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,f=1+p/100;return"#"+[r,g,b].map(function(v){return("0"+Math.max(0,Math.min(255,Math.round(v*f))).toString(16)).slice(-2)}).join("")}
 function ini(n){var a=Array.from(String(n||"?"));var f=a[0]||"?";return f.toUpperCase()}
 function trvPicker(box){var C=window.DUO_CATS,sel=ls("duo_tcat","all");if(!C[sel])sel="all";window.TRV_SEL=sel;box.className="tvc";
   box.innerHTML=Object.keys(C).map(function(k){return'<button data-k="'+k+'" class="'+(k===sel?"on":"")+'" style="--cc:'+((window.DUO_CATCOL||{})[k]||"#a78bfa")+'">'+C[k]+'</button>'}).join("");
-  box.querySelectorAll("button").forEach(function(x){x.onclick=function(){window.TRV_SEL=x.dataset.k;lset("duo_tcat",x.dataset.k);box.querySelectorAll("button").forEach(function(y){y.classList.toggle("on",y===x)});buzz(8)}})}
+  box.querySelectorAll("button").forEach(function(x){x.onclick=function(){window.TRV_SEL=x.dataset.k;lset("duo_tcat",x.dataset.k);box.querySelectorAll("button").forEach(function(y){y.classList.toggle("on",y===x)});buzz(8)}});
+  var nb=document.createElement("div");nb.className="tvn";var N=+ls("duo_tn","10");if([10,15,20].indexOf(N)<0)N=10;window.TRV_N=N;box.appendChild(nb);
+  var dn=function(){nb.innerHTML='<span>Questions</span>'+[10,15,20].map(function(v){return'<button data-n="'+v+'" class="'+(v===window.TRV_N?"on":"")+'">'+v+'</button>'}).join("");nb.querySelectorAll("button").forEach(function(x){x.onclick=function(e){e.stopPropagation();window.TRV_N=+x.dataset.n;lset("duo_tn",x.dataset.n);dn();buzz(8)}})};dn()}
 function tycPicker(box){var T=PTTH,th=ls("duo_tth","classic"),bt=+ls("duo_tbots","1");if(!T[th])th="classic";if(!(bt>=0&&bt<=3))bt=1;window.TYC={th:th,bots:bt};box.className="tyc-pk";
   box.innerHTML='<div class="tp-l">🎨 THEME</div><div class="tp-th">'+Object.keys(T).map(function(k){return'<button data-th="'+k+'" class="'+(k===th?"on":"")+'">'+T[k].e+' '+esc(T[k].n)+'</button>'}).join("")+'</div><div class="tp-l">🤖 BOTS TO ADD</div><div class="tp-bt">'+[0,1,2,3].map(function(n){return'<button data-bt="'+n+'" class="'+(n===bt?"on":"")+'">'+n+'</button>'}).join("")+'</div><div class="tp-sum"></div>';
   var sm=box.querySelector(".tp-sum");function sum(){var b=window.TYC.bots,p=Math.min(b,2),s=Math.max(1,b);sm.innerHTML="👥 With your partner: you + partner"+(p?" + "+p+" bot"+(p>1?"s":""):"")+" = "+(2+p)+" players<br>🤖 Solo: you + "+s+" bot"+(s>1?"s":"")+" = "+(1+s)+" players"}
@@ -983,9 +1535,10 @@ function arcLobby(){
   app.innerHTML='<h1>'+g.icon+' '+esc(g.title)+'</h1><div class="card" style="text-align:center;border-color:'+c+'"><div style="font-size:54px">'+g.icon+'</div><div class="mut" style="margin:6px 0 12px">'+esc(g.desc)+'</div>'+
    '<div class="bar" style="flex-direction:column;gap:8px"><button class="pri" id="pl" style="width:100%">👥 Play with your partner</button><button class="ok" id="plb" style="width:100%">🤖 Play vs Bot (solo)</button></div></div>'+
    '<div id="open"></div>'+(cfg()?'':'<div class="card">⚠️ Sync is off. Turn it on in the Breakfast Club app (Settings → Sync with your partner) to play with your partner.</div>');
-  function st(local){var o={};if(k==="trivia")o.cat=window.TRV_SEL||"all";if(k==="tycoon"){o.th=window.TYC.th;o.bots=window.TYC.bots}create(k,o,local)}
+  function st(local){var o={};if(k==="trivia"){o.cat=window.TRV_SEL||"all";o.n=window.TRV_N||10}if(k==="jeopardy")o.big=!!window.JP_BIG;if(k==="tycoon"){o.th=window.TYC.th;o.bots=window.TYC.bots}create(k,o,local)}
   if(k==="trivia"){var tb=document.createElement("div");$("#pl").parentNode.parentNode.insertBefore(tb,$("#pl").parentNode);trvPicker(tb)}
   if(k==="tycoon"){var tc=document.createElement("div");$("#pl").parentNode.parentNode.insertBefore(tc,$("#pl").parentNode);tycPicker(tc)}
+  if(k==="jeopardy"){var tj=document.createElement("div");$("#pl").parentNode.parentNode.insertBefore(tj,$("#pl").parentNode);jpPicker(tj)}
   $("#pl").onclick=function(){st(false)};$("#plb").onclick=function(){st(true)};
   refreshOpen();
 }
@@ -1000,7 +1553,8 @@ function lobby(){
    (cfg()?'':'<div class="card">⚠️ Sync is off. Turn it on in the Breakfast Club app (Settings → Sync with your partner) so the two phones can find each other.</div>');
   var car=$("#car");
   function start(k,local){var o={};
-    if(k==="trivia")o.cat=window.TRV_SEL||"all";
+    if(k==="trivia"){o.cat=window.TRV_SEL||"all";o.n=window.TRV_N||10}
+    if(k==="jeopardy")o.big=!!window.JP_BIG;
     if(k==="tycoon"){o.th=window.TYC.th;o.bots=window.TYC.bots}
     create(k,o,local)}
   function upd(){var rc=car.getBoundingClientRect(),cx=rc.left+rc.width/2,best=0,bd=1e9;
@@ -1009,7 +1563,7 @@ function lobby(){
     if(best!==cur){cur=best;[].forEach.call(car.children,function(sl,i){sl.firstElementChild.classList.toggle("focus",i===best);sl.firstElementChild.classList.toggle("dim",i!==best)});
       var k=gs[best],g=GAMES[k],c=CABCOL[k]||"#ff2bd6",gi=$("#gi");gi.style.setProperty("--gc",c);
       gi.innerHTML='<div style="display:flex;gap:12px;align-items:center"><div style="font-size:40px">'+g.icon+'</div><div class="gi-name">'+esc(g.title.toUpperCase())+'</div></div><div class="mut" style="margin-top:8px">'+esc(g.desc)+'</div><button class="play-btn" id="pl">▶ START</button>'+(BOTS[k]||g.sim&&SIMBOT[k]?'<button class="play-btn" id="plb" style="margin-top:8px;background:linear-gradient(180deg,#22c55e,#15803d)">🤖 VS BOT · solo</button>':k==="battleship"?'<a class="play-btn" href="arcade.html" style="display:block;margin-top:8px;text-align:center;text-decoration:none">🤖 vs AI is in the Arcade (Battleship)</a>':"");
-      if(k==="trivia"){var tb=document.createElement("div");gi.insertBefore(tb,$("#pl"));trvPicker(tb)}if(k==="tycoon"){var tc=document.createElement("div");gi.insertBefore(tc,$("#pl"));tycPicker(tc)}$("#pl").onclick=function(){start(k)};var pb=$("#plb");if(pb)pb.onclick=function(){start(k,true)};$("#cc").textContent=(best+1)+" / "+gs.length;lset("duo_last",String(best))}}
+      if(k==="trivia"){var tb=document.createElement("div");gi.insertBefore(tb,$("#pl"));trvPicker(tb)}if(k==="tycoon"){var tc=document.createElement("div");gi.insertBefore(tc,$("#pl"));tycPicker(tc)}if(k==="jeopardy"){var tj=document.createElement("div");gi.insertBefore(tj,$("#pl"));jpPicker(tj)}$("#pl").onclick=function(){start(k)};var pb=$("#plb");if(pb)pb.onclick=function(){start(k,true)};$("#cc").textContent=(best+1)+" / "+gs.length;lset("duo_last",String(best))}}
   function go(i,sm){var sl=car.children[i];if(!sl)return;car.scrollTo({left:sl.offsetLeft-(car.clientWidth-sl.offsetWidth)/2,behavior:sm?"smooth":"auto"})}
   car.addEventListener("scroll",function(){requestAnimationFrame(upd)});
   [].forEach.call(car.querySelectorAll(".cab"),function(el){el.onclick=function(){var i=+el.dataset.i;if(i===cur)start(gs[i]);else go(i,true)}});
@@ -1145,8 +1699,8 @@ reg("reaction",{title:"Reaction Duel",icon:"⚡",desc:"Tap on green. First to 3"
  }});
 
 /* ---- Trivia Showdown ---- */
-function triviaPick(d){var cat=(d.opts&&d.opts.cat)||"all",pool=window.DUO_TRIVIA.filter(function(q){return cat==="all"||q[0]===cat}),r=seedRng(d.seed+d.round*977),idx=pool.map(function(_,i){return i});for(var i=idx.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}return idx.slice(0,10).map(function(i){var q=pool[i],o=[q[2],q[3],q[4],q[5]],rr=seedRng(d.seed+i);for(var a=3;a>0;a--){var b=Math.floor(rr()*(a+1)),t2=o[a];o[a]=o[b];o[b]=t2}return{q:q[1],o:o,a:o.indexOf(q[2]),c:q[0]}})}
-reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"27 categories. Read, answer, outscore your partner",sim:true,
+function triviaPick(d){var cat=(d.opts&&d.opts.cat)||"all",pool=window.DUO_TRIVIA.filter(function(q){return cat==="all"||q[0]===cat}),r=seedRng(d.seed+d.round*977),idx=pool.map(function(_,i){return i});for(var i=idx.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}var seen={};idx=idx.filter(function(i){var t=pool[i][1];if(seen[t])return false;seen[t]=1;return true});return idx.slice(0,Math.min(20,Math.max(5,(d.opts&&d.opts.n)||10))).map(function(i){var q=pool[i],o=[q[2],q[3],q[4],q[5]],rr=seedRng(d.seed+i);for(var a=3;a>0;a--){var b=Math.floor(rr()*(a+1)),t2=o[a];o[a]=o[b];o[b]=t2}return{q:q[1],o:o,a:o.indexOf(q[2]),c:q[0]}})}
+reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"29 categories, 900+ questions. Pick 10, 15 or 20 and outscore your partner",sim:true,
  init:function(d){return{qs:triviaPick(d),i:0,sc:{a:0,b:0},pts:[]}},
  render:function(el,c){
   var st=c.st,q=st.qs[st.i],k="q"+st.i+"_"+c.doc.round,my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
@@ -1176,6 +1730,78 @@ reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"27 categories. Read, ans
   if(reveal&&c.me==="a"&&!T.adv){T.adv=1;setTimeout(function(){if(R.doc.st.i!==st.i)return;var n=JSON.parse(JSON.stringify(st));n.sc.a+=pts(c.me==="a"?my:op);n.sc.b+=pts(c.me==="a"?op:my);n.i++;
     var done=n.i>=n.qs.length,win=done?(n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"):null;if(done)n.i=n.qs.length-1;var w=Object.assign({},c.doc.wins);if(win&&win!=="draw")w[win]++;put({st:n,winner:win,wins:w});render()},4200)}
  }});
+
+/* ---- Jeopardy Board (build 111) ---- */
+var JV=[200,400,600,800,1000];
+function jpBuild(d){
+  var r=seedRng(d.seed+d.round*4441),T=window.DUO_TRIVIA,by={},big=!!(d.opts&&d.opts.big),NC=big?5:4,NR=big?5:4;
+  T.forEach(function(q,i){if(window.DUO_CATS[q[0]])(by[q[0]]=by[q[0]]||[]).push(i)});
+  var cats=Object.keys(by).filter(function(c){return by[c].length>=NR+2});
+  var sh=function(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a};
+  sh(cats);var pin=d.opts&&d.opts.cat;if(pin&&pin!=="all"&&by[pin]){cats=[pin].concat(cats.filter(function(c){return c!==pin}))}
+  cats=cats.slice(0,NC);
+  var board=cats.map(function(c){
+    var pick=sh(by[c].slice()).slice(0,NR).map(function(i){return T[i]});
+    pick.sort(function(x,y){return((x[6]||2)-(y[6]||2))||(x[1].length-y[1].length)});
+    return pick.map(function(q,ri){var o=[q[2],q[3],q[4],q[5]];sh(o);return{q:q[1],o:o,a:o.indexOf(q[2]),c:c}})});
+  var dc=Math.floor(r()*NC),dr=1+Math.floor(r()*(NR-1));
+  return{cats:cats,board:board,nr:NR,used:{},picker:"a",cur:null,sc:{a:0,b:0},dd:dc+"_"+dr,k:0,log:[]};
+}
+function jpVal(st,ci,ri){return JV[ri]*(st.dd===ci+"_"+ri?2:1)}
+function jpPick(ci,ri){if(!R)return;var st=R.doc.st;if(st.cur||st.used[ci+"_"+ri]||R.doc.winner)return;var n=JSON.parse(JSON.stringify(st));n.cur={c:ci,r:ri};n.k++;buzz(12);put({st:n});render()}
+reg("jeopardy",{title:"Jeopardy Board",icon:"🟦",desc:"Pick a category and a value. You both answer: right adds the value, wrong takes half off. Hunt for the hidden Daily Double!",sim:true,
+ init:function(d){return jpBuild(d)},
+ render:function(el,c){
+  var st=c.st,cats=st.cats,NR=st.nr||4,names=c.names,LET=["A","B","C","D"],COL=["#ef4444","#3b82f6","#eab308","#22c55e"];
+  var cat=function(k){var cl=(window.DUO_CATS[k]||k).split(" ");return{e:cl.shift(),n:cl.join(" ")}};
+  var top='<div class="tv-top">'+["a","b"].map(function(s){return'<div class="tv-pl '+s+(c.me===s?" me":"")+(st.picker===s&&!st.cur?" pk":"")+'"><span class="av">'+esc(ini(names[s]))+'</span><span class="nm">'+esc(names[s])+'</span><b class="'+(st.sc[s]<0?"neg":"")+'">'+(st.sc[s]<0?"−$"+(-st.sc[s]):"$"+st.sc[s])+'</b></div>'}).join("")+'</div>';
+  if(!st.cur){
+    var left=0;for(var ci=0;ci<cats.length;ci++)for(var ri=0;ri<NR;ri++)if(!st.used[ci+"_"+ri])left++;
+    var mine=c.me===st.picker&&!c.doc.winner;
+    var h='<div class="jp">'+top+'<div class="jp-st">'+(c.doc.winner?"🏁 Board cleared!":mine?"🎯 Your pick! Choose a category and value":"⏳ "+esc(names[st.picker])+" is choosing…")+'</div>'+
+      '<div class="jp-grid" style="grid-template-columns:repeat('+cats.length+',1fr)">'+cats.map(function(k){var x=cat(k);return'<div class="jp-h" style="--cc:'+((window.DUO_CATCOL||{})[k]||"#a78bfa")+'"><span>'+x.e+'</span>'+esc(x.n)+'</div>'}).join("");
+    for(var r2=0;r2<NR;r2++)for(var c2=0;c2<cats.length;c2++){var id=c2+"_"+r2,u=st.used[id];
+      h+='<button class="jp-t'+(u?" used":"")+'" data-c="'+c2+'" data-r="'+r2+'"'+(u||!mine?" disabled":"")+'>'+(u?(u==="x"?"":'<i class="'+u+'">'+(u==="a"||u==="b"?esc(ini(names[u])):"·")+'</i>'):"$"+JV[r2])+'</button>'}
+    h+='</div><div class="jp-ft">'+left+' clue'+(left===1?"":"s")+' left · right adds the value · wrong loses half</div></div>';
+    el.innerHTML=h;
+    el.querySelectorAll(".jp-t:not([disabled])").forEach(function(b){b.onclick=function(){jpPick(+b.dataset.c,+b.dataset.r)}});
+    if(R.local&&st.picker==="b"&&!c.doc.winner&&c.me==="a"&&window.JP_BOT!==R.code+st.k){window.JP_BOT=R.code+st.k;var code=R.code,kk=st.k;
+      setTimeout(function(){if(!R||R.code!==code||R.doc.st.k!==kk||R.doc.st.cur)return;var s2=R.doc.st,opts=[];for(var a=0;a<s2.cats.length;a++)for(var b=0;b<NR;b++)if(!s2.used[a+"_"+b])opts.push([a,b,Math.random()+b*.35]);
+        opts.sort(function(x,y){return x[2]-y[2]});if(opts.length)jpPick(opts[0][0],opts[0][1])},1500+Math.random()*900)}
+    return;
+  }
+  var cu=st.cur,q=st.board[cu.c][cu.r],id=cu.c+"_"+cu.r,val=jpVal(st,cu.c,cu.r),isDD=st.dd===id,k="j"+st.k+"_"+c.doc.round;
+  var my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
+  var READ=Math.min(8000,(isDD?2600:0)+3000+q.q.length*55);
+  var TK=R.code+k,T=window.JP_T&&window.JP_T.k===TK?window.JP_T:(window.JP_T={k:TK,s0:Date.now(),read:READ});T.t0=T.s0+T.read;el._T=T;
+  var reveal=my&&op,reading=!my&&Date.now()<T.t0,x=cat(q.c),cc=(window.DUO_CATCOL||{})[q.c]||"#a78bfa";
+  var pts=function(s){return!s||s.a===-1?0:s.a===q.a?val:-Math.round(val/2)};
+  var mp=pts(my),opp=pts(op);
+  var opts;
+  if(reading)opts=q.o.map(function(_,i){return'<div class="tv-o sk" style="--oc:'+COL[i]+'"><span class="lt">'+LET[i]+'</span><span class="dots"><i></i><i></i><i></i></span></div>'}).join("");
+  else opts=q.o.map(function(o,i){var cls="";if(reveal){cls=i===q.a?"right":(my.a===i||op.a===i)?"wrong":"dim"}else if(my&&my.a===i)cls="pick";
+    var pk="";if(reveal)["a","b"].forEach(function(s){var a=(c.me===s?my:op).a;if(a===i)pk+='<span class="pk '+s+'">'+esc(ini(names[s]))+'</span>'});
+    return'<button data-i="'+i+'" class="tv-o '+cls+'" style="--oc:'+COL[i]+';animation-delay:'+(i*70)+'ms"'+(my?" disabled":"")+'><span class="lt">'+LET[i]+'</span><span class="tx">'+esc(o)+'</span>'+pk+(cls==="right"?'<span class="tick">✓</span>':"")+'</button>'}).join("");
+  var fmt=function(p){return p>0?"+$"+p:p<0?"−$"+(-p):"$0"};
+  var status=reveal?(mp>0?"🎉 Correct! "+fmt(mp):my.a===-1?"⏰ Time's up":"😬 Wrong · "+fmt(mp))+" · "+esc(names[c.opp])+" "+fmt(opp):my?"⏳ Waiting for "+esc(names[c.opp])+"…":reading?(isDD?"💎 DAILY DOUBLE! Double value, double risk":"📖 Read the clue… answers appear soon"):"⚡ Answer before time runs out";
+  el.innerHTML='<div class="jp tv" style="--cc:'+cc+'">'+top+(isDD&&reading?'<div class="jp-dd">DAILY<br>DOUBLE!</div>':'')+
+    '<div class="tv-cat"><span class="em">'+x.e+'</span><b>'+esc(x.n)+'</b><span class="jp-v">$'+val+'</span></div><div class="tv-card">'+esc(q.q)+'</div>'+
+    '<div class="tv-bar'+(reading?" rd":"")+'"><i id="tmb"></i></div><div class="tv-st">'+status+'</div><div class="tv-opts">'+opts+'</div></div>';
+  var tb=$("#tmb",el);clearInterval(T.iv);
+  if(reading){var tick=function(){var b=$("#tmb");if(!b||!R||el._T!==T){clearInterval(T.iv);return}var f=(Date.now()-T.s0)/T.read;b.style.width=Math.min(100,f*100)+"%";if(f>=1){clearInterval(T.iv);render()}};tick();T.iv=setInterval(tick,80)}
+  else if(!my&&!reveal){T.iv=setInterval(function(){var l=15000-(Date.now()-T.t0),b=$("#tmb");if(!b||!R||el._T!==T){clearInterval(T.iv);return}b.style.width=Math.max(0,l/150)+"%";if(l<=4000)b.classList.add("hot");if(l<=0){clearInterval(T.iv);c.sendSim({k:k,a:-1,ms:15000});render()}},100)}
+  else if(tb)tb.style.width="0";
+  el.querySelectorAll("[data-i]").forEach(function(b){b.onclick=function(){if(my||reading)return;clearInterval(T.iv);buzz(15);c.sendSim({k:k,a:+b.dataset.i,ms:Date.now()-T.t0});render()}});
+  if(reveal&&(mp>0)&&R.jpSeen!==k){R.jpSeen=k;beep(880,.08);setTimeout(function(){beep(1175,.12)},90)}
+  if(reveal&&c.me==="a"&&!T.adv){T.adv=1;setTimeout(function(){var s0=R&&R.doc.st;if(!s0||!s0.cur||s0.k!==st.k)return;var n=JSON.parse(JSON.stringify(s0)),ma=c.me==="a"?my:op,mb=c.me==="a"?op:my,pa=pts(ma),pb=pts(mb);
+    n.sc.a+=pa;n.sc.b+=pb;var win=null;if(pa>0&&pb>0)win=ma.ms<=mb.ms?"a":"b";else if(pa>0)win="a";else if(pb>0)win="b";
+    n.used[id]=win||"x";if(win)n.picker=win;n.cur=null;n.k++;
+    var left=0;for(var a=0;a<n.cats.length;a++)for(var b=0;b<(n.nr||4);b++)if(!n.used[a+"_"+b])left++;
+    if(!left){var w=n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b",wi=Object.assign({},c.doc.wins);if(w!=="draw")wi[w]++;put({st:n,winner:w,wins:wi})}else put({st:n});render()},3800)}
+ }});
+function jpPicker(box){var big=ls("duo_jbig","0")==="1";window.JP_BIG=big;box.className="tvc";
+  var draw=function(){box.innerHTML=[[0,"⚡ Quick board · 4×4"],[1,"🏆 Full board · 5×5"]].map(function(o){return'<button data-b="'+o[0]+'" class="'+((o[0]===1)===window.JP_BIG?"on":"")+'" style="--cc:#2563eb">'+o[1]+'</button>'}).join("");
+    box.querySelectorAll("button").forEach(function(x){x.onclick=function(){window.JP_BIG=x.dataset.b==="1";lset("duo_jbig",window.JP_BIG?"1":"0");draw();buzz(8)}})};draw()}
 
 /* ======================= BUILD 21: Draw & Guess, Two Truths and a Lie, Property Tycoon, Oops! Slide Home, Life Path ======================= */
 var PIC_WORDS="cat,house,pizza,rocket,guitar,sun,tree,fish,car,bicycle,flower,umbrella,ice cream,robot,castle,moon,snowman,airplane,dog,banana,heart,star,key,clock,boat,bird,butterfly,candle,crown,cupcake,dragon,elephant,ghost,hamburger,igloo,kite,lighthouse,mountain,penguin,pumpkin,rainbow,spider,sword,train,turtle,volcano,whale,wizard,cactus,camera,coffee,dinosaur,donut,drum,eagle,frog,giraffe,hat,jellyfish,ladder,lamp,monkey,octopus,owl,pear,piano,pirate,rabbit,skateboard,snail,tent,tornado,witch,zebra,campfire,headphones,popcorn,sandwich,shark,sloth,teapot,unicorn".split(",");
@@ -1928,7 +2554,7 @@ reg("codebreak",{title:"Code Breaker",icon:"🔐",desc:"Crack their secret color
 /* ======================= BUILD 33: play solo against a bot ======================= */
 /* The bot plays slot "b" in a local-only game (no Sync needed). It renders the game into a hidden element
    as the bot and clicks the same buttons a person would, so every game rule and win check is reused. */
-var BOTS={},SIMBOT={reaction:1,trivia:1};
+var BOTS={},SIMBOT={reaction:1,trivia:1,jeopardy:1};
 function botKick(ms){if(!R||!R.local)return;clearTimeout(R.botT);R.botT=setTimeout(botStep,ms||(750+Math.random()*600))}
 function botSeen(){ /* memory match: remember every card either side has flipped */
   if(!R||!R.local||R.doc.g!=="memory")return;var st=R.doc.st;R.mem=R.mem||{};
@@ -1944,6 +2570,7 @@ function botSimReply(o){
   var g=R.doc.g,st=R.doc.st,rep=null,delay=800;
   if(g==="reaction"){rep={k:o.k,ms:Math.random()<.04?99999:Math.round(240+Math.random()*230)};delay=500}
   else if(g==="trivia"){var q=st.qs[st.i],ok=Math.random()<.65;rep={k:o.k,a:ok?q.a:(q.a+1+Math.floor(Math.random()*3))%4,ms:Math.round(2500+Math.random()*7500)};delay=1100}
+  else if(g==="jeopardy"&&st.cur){var jq=st.board[st.cur.c][st.cur.r],jok=Math.random()<(.82-st.cur.r*.09);rep={k:o.k,a:jok?jq.a:(jq.a+1+Math.floor(Math.random()*3))%4,ms:Math.round(2200+Math.random()*8000)};delay=1100}
   if(!rep)return;var code=R.code;
   setTimeout(function(){if(!R||!R.local||R.code!==code)return;R.sim=rep;render()},delay)}
 var bk=function(el,sel){var x=el.querySelector(sel);if(x&&!x.disabled){if(x.click)x.click();else if(x.onclick)x.onclick({});return true}return false};

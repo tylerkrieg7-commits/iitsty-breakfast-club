@@ -4426,11 +4426,289 @@ raccoon:function(a,b){return '<path d="M8 10L24 18L12 34Z" fill="'+b+'"/><path d
 tiger:function(a,b){return '<path d="M9 9L24 18L12 33Z" fill="'+a+'"/><path d="M55 9L40 18L52 33Z" fill="'+a+'"/><path d="M13 14L20 19L15 26Z" fill="#fff3e0"/><path d="M51 14L44 19L49 26Z" fill="#fff3e0"/><ellipse cx="32" cy="38" rx="24" ry="21" fill="'+a+'"/><path d="M32 17V25M24 18L26 25M40 18L38 25M9 32L17 34M8 40L16 40M55 32L47 34M56 40L48 40M12 48L19 45M52 48L45 45" stroke="'+b+'" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="32" cy="47" rx="12" ry="9" fill="#fff3e0"/>'+EY(23,36,3)+EY(41,36,3)+'<path d="M28 42L36 42L32 46Z" fill="#e57399"/>'+NOSE(46);}
 });
 
+/* build 111: 40 fantasy + anime companions */
+var GG=function(c,s){return '<g class="'+c+'">'+s+'</g>';};
+var SPK=function(x,y,s,c,cl){s=s||3;return GG('bp-spark'+(cl?' '+cl:''),'<path d="M'+x+' '+(y-s)+'L'+(x+s*.3)+' '+(y-s*.3)+'L'+(x+s)+' '+y+'L'+(x+s*.3)+' '+(y+s*.3)+'L'+x+' '+(y+s)+'L'+(x-s*.3)+' '+(y+s*.3)+'L'+(x-s)+' '+y+'L'+(x-s*.3)+' '+(y-s*.3)+'Z" fill="'+(c||'#fff')+'"/>');};
+var SLIT=function(x,y,c){return '<ellipse cx="'+x+'" cy="'+y+'" rx="4.4" ry="3.8" fill="'+(c||'#ffe082')+'"/><ellipse cx="'+x+'" cy="'+y+'" rx="1.4" ry="3.4" fill="#1c1c1c"/><circle cx="'+(x+1.4)+'" cy="'+(y-1.4)+'" r=".9" fill="#fff"/>';};
+var GLOWEYE=function(x,y,c){return '<circle cx="'+x+'" cy="'+y+'" r="5.5" fill="'+c+'" opacity=".35" class="bp-glow"/><ellipse cx="'+x+'" cy="'+y+'" rx="3.6" ry="3" fill="'+c+'"/><ellipse cx="'+x+'" cy="'+y+'" rx="1.2" ry="2.6" fill="#111"/>';};
+var BLUSH='<ellipse cx="17" cy="44" rx="4" ry="2.4" fill="#ff8a80" opacity=".55"/><ellipse cx="47" cy="44" rx="4" ry="2.4" fill="#ff8a80" opacity=".55"/>';
+var SKIN="#ffe0c2";
+Object.assign(PAL,{
+icewolf:[["#eef3f7","#9fb6c8"],["#9aa3ad","#5d6670"],["#3a3f4a","#1d2027"]],
+firedrake:[["#e53935","#8e1b1b"],["#ff7043","#bf360c"],["#37323e","#7f1d1d"]],
+frostdrake:[["#4fc3f7","#0277bd"],["#b3e5fc","#4a8cb8"],["#c5cae9","#5c6bc0"]],
+shadowcat:[["#2b2540","#b388ff"],["#1c1c22","#1de9b6"],["#3a2f2f","#ff9100"]],
+griffin:[["#c8963e","#8a5a1c"],["#a1a1a1","#5d5d5d"]],
+phoenix:[["#ff5722","#ffca28"],["#5e35b1","#4fc3f7"]],
+wizowl:[["#c8a27a","#7a5432"],["#f5f5f5","#b0b0b0"],["#6d6d6d","#3d3d3d"]],
+wizcat:[["#3d3d46","#23232b"],["#f0a04b","#c26a1c"],["#9aa0a6","#6a7077"]],
+elfling:[["#f5e6a8","#2e7d32"],["#d9d9e3","#1565c0"],["#6d4c41","#6a1b9a"]],
+gnome:[["#e53935","#1e88e5"],["#43a047","#8d6e63"],["#5e35b1","#ffb300"]],
+treant:[["#8d6e63","#66bb6a"],["#6d4c41","#ff9800"],["#a1887f","#f48fb1"]],
+golem:[["#9e9e9e","#4fc3f7"],["#8d6e63","#ff7043"],["#78909c","#b388ff"]],
+knight:[["#b0bec5","#e53935"],["#ffd54f","#1e88e5"],["#4a4a4a","#7c4dff"]],
+dwarf:[["#d84315","#9e9e9e"],["#5d4037","#ffb300"],["#eeeeee","#78909c"]],
+raven:[["#263238","#455a64"],["#2e2a3a","#7e57c2"]],
+kraken:[["#7e57c2","#4527a0"],["#26a69a","#00695c"],["#e57373","#b71c1c"]],
+serpent:[["#43a047","#1b5e20"],["#5c6bc0","#283593"],["#bdbdbd","#424242"]],
+pixie:[["#80deea","#ec407a"],["#ce93d8","#ffca28"],["#a5d6a7","#6d4c41"]],
+mimic:[["#8d6e63","#ffca28"],["#5d4037","#b0bec5"]],
+slime:[["#66bb6a","#2e7d32"],["#42a5f5","#1565c0"],["#ec407a","#ad1457"],["#ffca28","#f57f17"]],
+wisp:[["#80deea","#00acc1"],["#b9f6ca","#00c853"],["#ffd180","#ff6d00"]],
+pegasus:[["#fafafa","#90caf9"],["#4e342e","#ffab40"]],
+hellhound:[["#2b2b2b","#ff6d00"],["#3e2723","#00e5ff"]],
+mandrake:[["#d7b88a","#43a047"],["#c8a2c8","#7cb342"]],
+sphinx:[["#e0b878","#1e88e5"],["#f5f5f5","#ab47bc"]],
+kitsune:[["#fafafa","#e53935"],["#ffb74d","#6a1b9a"]],
+tanuki:[["#a1887f","#4e342e"],["#bcaaa4","#5d4037"]],
+ninja:[["#263238","#e53935"],["#1a237e","#ffca28"],["#4a148c","#00e5ff"]],
+mecha:[["#eceff1","#1e88e5"],["#ef5350","#37474f"],["#7e57c2","#ffd54f"]],
+luckycat:[["#fafafa","#e53935"],["#ffd54f","#e53935"],["#2b2b2b","#ffd54f"]],
+oni:[["#e53935","#2b2b2b"],["#1e88e5","#fafafa"]],
+kappa:[["#7cb342","#33691e"],["#26a69a","#00695c"]],
+karasu:[["#212121","#e53935"],["#37474f","#ffb300"]],
+mochi:[["#fff5f7","#f8bbd0"],["#eef8ee","#a5d6a7"],["#fff3e0","#ffcc80"]],
+shiba:[["#e6a15c","#fff3e0"],["#3d3d46","#e6a15c"],["#f5f5f5","#e0e0e0"]],
+ronin:[["#9e9e9e","#37474f"],["#f0a04b","#5d4037"]],
+starling:[["#fafafa","#ec407a"],["#e1bee7","#7c4dff"]],
+koi:[["#fafafa","#ff5722"],["#ffd54f","#2b2b2b"]],
+baku:[["#9fa8da","#5c6bc0"],["#f8bbd0","#ad1457"]],
+sakura:[["#f8bbd0","#ec407a"],["#e1bee7","#ab47bc"]]
+});
+Object.assign(D,{
+icewolf:function(a,b){return '<path d="M9 5L27 17L13 33Z" fill="'+a+'"/><path d="M55 5L37 17L51 33Z" fill="'+a+'"/><path d="M13 11L22 17L15 26Z" fill="'+b+'"/><path d="M51 11L42 17L49 26Z" fill="'+b+'"/>'+
+'<path d="M32 12C18 12 9 24 10 36L4 46L13 45L10 52L20 50L32 59L44 50L54 52L51 45L60 46L54 36C55 24 46 12 32 12Z" fill="'+a+'"/>'+
+'<path d="M32 15L27 27L32 33L37 27Z" fill="'+b+'" opacity=".55"/><path d="M23 41Q32 35 41 41L38 53Q32 58 26 53Z" fill="#fff"/>'+
+'<g class="bp-eye"><path d="M17 32Q23 27 29 32Q23 36 17 32Z" fill="#7fdcff"/><circle cx="23" cy="32" r="1.8" fill="#0b2233"/><path d="M47 32Q41 27 35 32Q41 36 47 32Z" fill="#7fdcff"/><circle cx="41" cy="32" r="1.8" fill="#0b2233"/></g>'+
+'<path d="M29 44H35L32 48Z" fill="#2b2b33"/><path d="M32 48V50M28 52Q32 54 36 52" stroke="#4a4f58" stroke-width="1.2" fill="none" stroke-linecap="round"/>'+
+SPK(56,56,3.5,'#cfefff')+SPK(7,58,2.6,'#e6f7ff','d2')+SPK(58,40,2,'#fff','d3');},
+firedrake:function(a,b){return GG('bp-wingl','<path d="M12 32L-3 16L0 30L-4 36L4 37L1 44L12 42Z" fill="'+b+'"/><path d="M12 32L0 22M10 36L-1 34" stroke="'+a+'" stroke-width="1" opacity=".6"/>')+GG('bp-wingr','<path d="M52 32L67 16L64 30L68 36L60 37L63 44L52 42Z" fill="'+b+'"/><path d="M52 32L64 22M54 36L65 34" stroke="'+a+'" stroke-width="1" opacity=".6"/>')+
+'<path d="M19 15C12 11 10 5 12 0C15 6 19 8 24 11Z" fill="#3b2a22"/><path d="M45 15C52 11 54 5 52 0C49 6 45 8 40 11Z" fill="#3b2a22"/>'+
+'<path d="M32 9C16 9 8 22 9 36C10 48 20 58 32 58C44 58 54 48 55 36C56 22 48 9 32 9Z" fill="'+a+'"/>'+
+'<path d="M25 15L32 20L39 15M23 21L32 26L41 21" stroke="'+b+'" stroke-width="1.8" fill="none" stroke-linecap="round"/>'+
+'<ellipse cx="32" cy="46" rx="14" ry="9.5" fill="#ffcc80"/><path d="M22 49H42M24 53H40" stroke="#e0a060" stroke-width="1"/><ellipse cx="27" cy="44" rx="1.8" ry="2.6" fill="'+b+'"/><ellipse cx="37" cy="44" rx="1.8" ry="2.6" fill="'+b+'"/>'+
+'<g class="bp-eye">'+SLIT(21,32)+SLIT(43,32)+'</g><path d="M15 26L27 29M49 26L37 29" stroke="'+b+'" stroke-width="2.4" stroke-linecap="round"/>'+
+GG('bp-flame','<path d="M32 -1C28 5 24 8 26 13C28 17 36 17 38 13C40 8 36 5 32 -1Z" fill="#ffb300"/><path d="M32 5C30 8 29 10 30 13C31 15 33 15 34 13C35 10 34 8 32 5Z" fill="#fff3c4"/>')+
+GG('bp-glow','<circle cx="27" cy="41" r="1.4" fill="#ffab40"/><circle cx="37" cy="41" r="1.4" fill="#ffab40"/>');},
+frostdrake:function(a,b){return GG('bp-glow','<path d="M18 15L19 2L24 11L28 -1L32 9L36 -1L40 11L45 2L46 15Z" fill="#e1f5fe" stroke="'+b+'" stroke-width="1"/>')+
+'<path d="M8 24C2 22 0 16 2 12C5 16 9 18 13 20Z" fill="#e1f5fe"/><path d="M56 24C62 22 64 16 62 12C59 16 55 18 51 20Z" fill="#e1f5fe"/>'+
+'<path d="M32 10C17 10 8 22 9 36C10 47 18 54 26 57L32 60L38 57C46 54 54 47 55 36C56 22 47 10 32 10Z" fill="'+a+'"/>'+
+'<path d="M32 13L28 22L32 26L36 22Z" fill="#e1f5fe" opacity=".8"/><path d="M14 40L10 46M50 40L54 46M16 34L11 36M48 34L53 36" stroke="#e1f5fe" stroke-width="1.6" stroke-linecap="round"/>'+
+'<ellipse cx="32" cy="47" rx="12" ry="8" fill="#e1f5fe"/><circle cx="28" cy="45" r="1.3" fill="'+b+'"/><circle cx="36" cy="45" r="1.3" fill="'+b+'"/>'+
+'<g class="bp-eye">'+SLIT(21,32,'#e0f7fa')+SLIT(43,32,'#e0f7fa')+'</g><path d="M14 26L27 29M50 26L37 29" stroke="'+b+'" stroke-width="2.2" stroke-linecap="round"/>'+
+SPK(32,55,2.4,'#fff')+SPK(8,52,3,'#b3e5fc','d2')+SPK(57,52,2.6,'#e1f5fe','d3');},
+shadowcat:function(a,b){return GG('bp-float','<path d="M4 50C0 42 4 34 10 36C6 40 8 46 12 48Z" fill="'+b+'" opacity=".35"/><path d="M60 46C64 38 60 30 54 32C58 36 56 42 52 44Z" fill="'+b+'" opacity=".35"/>')+
+'<path d="M8 6L23 17L11 33Z" fill="'+a+'"/><path d="M56 6L41 17L53 33Z" fill="'+a+'"/><path d="M12 12L19 18L14 26Z" fill="'+b+'" opacity=".5"/><path d="M52 12L45 18L50 26Z" fill="'+b+'" opacity=".5"/>'+
+'<path d="M32 14C17 14 9 25 9 37C9 50 20 58 32 58C44 58 55 50 55 37C55 25 47 14 32 14Z" fill="'+a+'"/>'+
+'<path d="M20 20Q32 16 44 20" stroke="'+b+'" stroke-width="1" fill="none" opacity=".35"/>'+GLOWEYE(22,34,b)+GLOWEYE(42,34,b)+
+'<path d="M29.5 43H34.5L32 46Z" fill="#000"/><path d="M32 46V48M28 50Q32 52 36 50" stroke="#000" stroke-width="1.3" fill="none" stroke-linecap="round"/><path d="M12 43L22 44M12 47L22 46M52 43L42 44M52 47L42 46" stroke="'+b+'" stroke-width=".9" opacity=".6"/>';},
+griffin:function(a,b){return GG('bp-wingl','<path d="M12 34C2 30-2 20 0 12C4 18 8 20 12 22C8 26 10 30 12 34Z" fill="'+a+'"/><path d="M2 16L9 24M1 22L10 28" stroke="'+b+'" stroke-width="1.2"/>')+GG('bp-wingr','<path d="M52 34C62 30 66 20 64 12C60 18 56 20 52 22C56 26 54 30 52 34Z" fill="'+a+'"/><path d="M62 16L55 24M63 22L54 28" stroke="'+b+'" stroke-width="1.2"/>')+
+'<path d="M14 18L18 6L24 14Z" fill="'+b+'"/><path d="M50 18L46 6L40 14Z" fill="'+b+'"/>'+
+'<path d="M32 8C18 8 10 20 12 34C14 46 22 55 32 57C42 55 50 46 52 34C54 20 46 8 32 8Z" fill="#f5f0e6"/>'+
+'<path d="M14 36C16 48 24 55 32 57C40 55 48 48 50 36C46 44 38 48 32 48C26 48 18 44 14 36Z" fill="'+a+'"/><path d="M24 12L28 18M32 9V16M40 12L36 18" stroke="#d8cfbf" stroke-width="1.4" stroke-linecap="round"/>'+
+'<path d="M15 27L27 30M49 27L37 30" stroke="#3b2a22" stroke-width="2.4" stroke-linecap="round"/><g class="bp-eye">'+SLIT(22,33,'#ffb300')+SLIT(42,33,'#ffb300')+'</g>'+
+'<path d="M25 37Q32 32 39 37L36 47Q34 52 31 50Q32 46 28 44Z" fill="#ffb300"/><path d="M27 39Q32 37 37 39" stroke="#e08a00" stroke-width="1" fill="none"/>';},
+phoenix:function(a,b){return GG('bp-flame','<path d="M32 0C26 6 22 6 24 14L28 16C27 10 30 8 32 4C34 8 37 10 36 16L40 14C42 6 38 6 32 0Z" fill="'+b+'"/><path d="M20 4C18 10 20 14 24 16L26 13C22 11 21 8 20 4Z" fill="'+b+'"/><path d="M44 4C46 10 44 14 40 16L38 13C42 11 43 8 44 4Z" fill="'+b+'"/>')+
+GG('bp-wingl','<path d="M12 34C4 34-2 26 0 18C4 22 6 22 10 22C4 26 8 30 12 34Z" fill="'+b+'"/>')+GG('bp-wingr','<path d="M52 34C60 34 66 26 64 18C60 22 58 22 54 22C60 26 56 30 52 34Z" fill="'+b+'"/>')+
+'<ellipse cx="32" cy="36" rx="22" ry="21" fill="'+a+'"/><path d="M12 40C14 52 24 57 32 57C40 57 50 52 52 40C46 48 40 50 32 50C24 50 18 48 12 40Z" fill="'+b+'" opacity=".55"/>'+
+'<path d="M14 30C18 26 24 26 27 30M50 30C46 26 40 26 37 30" stroke="'+b+'" stroke-width="2" fill="none" stroke-linecap="round"/>'+EY(22,34,3.2)+EY(42,34,3.2)+
+'<path d="M27 40L37 40L32 49Z" fill="#ffd54f"/><path d="M27 40L37 40L32 43Z" fill="#ffb300"/>'+SPK(8,8,2.4,'#ffe082')+SPK(56,8,2,'#ffe082','d2');},
+wizowl:function(a,b){return '<path d="M10 12L24 20L14 32Z" fill="'+b+'"/><path d="M54 12L40 20L50 32Z" fill="'+b+'"/>'+
+'<ellipse cx="32" cy="40" rx="24" ry="20" fill="'+a+'"/><ellipse cx="32" cy="49" rx="14" ry="10" fill="#f6e7c8"/><path d="M26 46Q32 42 38 46M27 51Q32 47 37 51" stroke="#d9bd8a" stroke-width="1.4" fill="none"/>'+
+'<circle cx="22" cy="35" r="9" fill="#fff3d6" stroke="'+b+'" stroke-width="2"/><circle cx="42" cy="35" r="9" fill="#fff3d6" stroke="'+b+'" stroke-width="2"/>'+
+'<g class="bp-eye"><circle cx="22" cy="35" r="4.6" fill="#1c1c1c"/><circle cx="23.6" cy="33.4" r="1.7" fill="#fff"/><circle cx="42" cy="35" r="4.6" fill="#1c1c1c"/><circle cx="43.6" cy="33.4" r="1.7" fill="#fff"/></g><path d="M29 40L35 40L32 46Z" fill="#ff9800"/>'+
+GG('bp-sway','<path d="M14 22L44 -2L50 22Z" fill="#3949ab"/><path d="M10 22H54Q56 26 50 26H14Q8 26 10 22Z" fill="#283593"/><path d="M38 6L39 9L42 9L39.6 11L40.5 14L38 12L35.5 14L36.4 11L34 9L37 9Z" fill="#ffd54f"/><path d="M26 14A3.4 3.4 0 1 0 29 19A2.6 2.6 0 1 1 26 14Z" fill="#fff59d"/>')+SPK(58,10,2.2,'#ffe082')+SPK(6,30,1.8,'#fff59d','d2');},
+wizcat:function(a,b){return '<path d="M9 14L23 22L12 34Z" fill="'+a+'"/><path d="M55 14L41 22L52 34Z" fill="'+a+'"/><path d="M12 19L19 23L14 29Z" fill="#f8bbd0"/><path d="M52 19L45 23L50 29Z" fill="#f8bbd0"/>'+
+'<ellipse cx="32" cy="41" rx="23" ry="18" fill="'+a+'"/><path d="M28 23V27M36 23V27" stroke="'+b+'" stroke-width="2" stroke-linecap="round"/>'+EY(23,39,3.3)+EY(41,39,3.3)+
+'<path d="M30 46H34L32 48Z" fill="#f48fb1"/><path d="M32 48Q29 51 27 50M32 48Q35 51 37 50" stroke="#3b2a22" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M11 44L21 45M11 48L21 47M53 44L43 45M53 48L43 47" stroke="#ddd" stroke-width=".9"/>'+
+GG('bp-sway','<path d="M16 26L38 -3L48 26Z" fill="#6a1b9a"/><path d="M12 25H52Q54 29 48 29H16Q10 29 12 25Z" fill="#4a148c"/><path d="M33 8L34 11L37 11L34.6 13L35.5 16L33 14L30.5 16L31.4 13L29 11L32 11Z" fill="#ffd54f"/><circle cx="26" cy="18" r="1.4" fill="#fff59d"/><circle cx="40" cy="20" r="1" fill="#fff59d"/>')+
+GG('bp-float','<path d="M52 52L62 40" stroke="#8d6e63" stroke-width="2.4" stroke-linecap="round"/>'+SPK(62.5,39,3,'#fff59d'));},
+elfling:function(a,b){return GG('bp-ear','<path d="M13 32L-2 20L12 40Z" fill="'+SKIN+'" stroke="#e8b897" stroke-width="1"/>')+GG('bp-ear r','<path d="M51 32L66 20L52 40Z" fill="'+SKIN+'" stroke="#e8b897" stroke-width="1"/>')+
+'<path d="M10 30C8 46 10 58 16 62L22 40Z" fill="'+a+'"/><path d="M54 30C56 46 54 58 48 62L42 40Z" fill="'+a+'"/>'+
+'<ellipse cx="32" cy="38" rx="19" ry="20" fill="'+SKIN+'"/><path d="M12 32C12 16 22 10 32 10C42 10 52 16 52 32C46 24 40 22 32 22C26 26 18 28 12 32Z" fill="'+a+'"/>'+
+'<path d="M14 24Q32 16 50 24" stroke="#ffd54f" stroke-width="1.6" fill="none"/><path d="M32 18L35 21L32 24L29 21Z" fill="'+b+'" class="bp-glow"/>'+
+'<g class="bp-eye"><ellipse cx="24" cy="38" rx="3" ry="3.8" fill="'+b+'"/><circle cx="24.8" cy="36.6" r="1.1" fill="#fff"/><ellipse cx="40" cy="38" rx="3" ry="3.8" fill="'+b+'"/><circle cx="40.8" cy="36.6" r="1.1" fill="#fff"/></g>'+
+'<path d="M20 32L27 31M44 32L37 31" stroke="#6d4c41" stroke-width="1.2" stroke-linecap="round"/><path d="M28 50Q32 53 36 50" stroke="#c0705a" stroke-width="1.4" fill="none" stroke-linecap="round"/>'+BLUSH+
+'<path d="M20 58Q32 62 44 58L44 64H20Z" fill="'+b+'"/>';},
+gnome:function(a,b){return GG('bp-sway','<path d="M14 30C14 14 24 2 40 -2C34 8 46 16 50 30Z" fill="'+a+'"/><path d="M14 30C14 26 50 26 50 30" stroke="#0003" stroke-width="2" fill="none"/>')+
+'<ellipse cx="32" cy="36" rx="16" ry="12" fill="'+SKIN+'"/><path d="M12 38C12 52 20 62 32 62C44 62 52 52 52 38C46 44 40 44 32 44C24 44 18 44 12 38Z" fill="#f5f5f5"/>'+
+'<path d="M18 44Q24 52 26 60M46 44Q40 52 38 60M32 46V62" stroke="#ddd" stroke-width="1.2" fill="none"/><path d="M20 39Q32 46 44 39Q40 44 32 44Q24 44 20 39Z" fill="#eee"/>'+
+'<g class="bp-eye"><circle cx="25" cy="34" r="2.2" fill="#1c1c1c"/><circle cx="39" cy="34" r="2.2" fill="#1c1c1c"/></g><path d="M21 30Q25 28 28 30M36 30Q39 28 43 30" stroke="#ccc" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+'<ellipse cx="32" cy="39" rx="4.6" ry="4" fill="#f4a08a"/><circle cx="30.6" cy="37.6" r="1.2" fill="#fff" opacity=".6"/><circle cx="20" cy="38" r="2.4" fill="#ff8a80" opacity=".5"/><circle cx="44" cy="38" r="2.4" fill="#ff8a80" opacity=".5"/>';},
+treant:function(a,b){return GG('bp-sway','<circle cx="18" cy="12" r="10" fill="'+b+'"/><circle cx="32" cy="7" r="11" fill="'+b+'"/><circle cx="46" cy="12" r="10" fill="'+b+'"/><circle cx="25" cy="10" r="5" fill="#fff" opacity=".18"/><circle cx="52" cy="6" r="2" fill="#f48fb1"/><circle cx="12" cy="8" r="1.6" fill="#f48fb1"/>')+
+'<path d="M8 40L0 32M8 40L2 42M56 40L64 32M56 40L62 42" stroke="'+a+'" stroke-width="3" stroke-linecap="round"/>'+
+'<path d="M14 18H50L54 58Q32 64 10 58Z" fill="'+a+'"/><path d="M18 22Q20 40 16 56M28 20V30M44 22Q46 36 48 56M38 46Q40 54 38 60" stroke="#0003" stroke-width="1.6" fill="none" stroke-linecap="round"/>'+
+'<path d="M14 28C18 24 20 30 24 26" stroke="'+b+'" stroke-width="3" fill="none" stroke-linecap="round" opacity=".8"/>'+
+'<ellipse cx="23" cy="36" rx="5" ry="4" fill="#3e2723"/><ellipse cx="41" cy="36" rx="5" ry="4" fill="#3e2723"/><g class="bp-glow"><circle cx="23" cy="36" r="2.4" fill="#b9f6ca"/><circle cx="41" cy="36" r="2.4" fill="#b9f6ca"/></g>'+
+'<path d="M24 48Q32 53 40 48" stroke="#3e2723" stroke-width="2" fill="none" stroke-linecap="round"/>';},
+golem:function(a,b){return '<path d="M6 30L14 22L12 40L4 42Z" fill="'+a+'"/><path d="M58 30L50 22L52 40L60 42Z" fill="'+a+'"/>'+
+'<path d="M14 12L28 6L44 8L52 18L54 40L46 56L30 60L16 54L10 38Z" fill="'+a+'"/><path d="M14 12L28 6L44 8L52 18L40 16L26 18Z" fill="#fff" opacity=".18"/><path d="M10 38L16 54L30 60L46 56L54 40L44 50L28 52L18 48Z" fill="#000" opacity=".18"/>'+
+'<path d="M20 24L26 30M38 12L42 20M46 38L50 46M18 44L24 46" stroke="#0004" stroke-width="1.4" stroke-linecap="round"/><path d="M40 52C44 50 48 50 50 46" stroke="#7cb342" stroke-width="3" stroke-linecap="round"/>'+
+'<path d="M17 30H28V36H17Z" fill="#212121"/><path d="M36 30H47V36H36Z" fill="#212121"/>'+GG('bp-glow','<rect x="19" y="31.5" width="7" height="3" fill="'+b+'"/><rect x="38" y="31.5" width="7" height="3" fill="'+b+'"/><path d="M30 14L32 20L28 22L32 26" stroke="'+b+'" stroke-width="1.6" fill="none"/><path d="M24 46H40" stroke="'+b+'" stroke-width="2"/>');},
+knight:function(a,b){return GG('bp-sway','<path d="M32 10C30 2 36 -2 44 0C40 2 42 6 46 6C40 8 36 6 34 10Z" fill="'+b+'"/><path d="M33 9C33 4 38 2 42 2" stroke="#fff" stroke-width="1" opacity=".5" fill="none"/>')+
+'<path d="M12 34C12 18 20 9 32 9C44 9 52 18 52 34V50C52 56 44 60 32 60C20 60 12 56 12 50Z" fill="'+a+'"/><path d="M12 34C12 18 20 9 32 9V60C20 60 12 56 12 50Z" fill="#fff" opacity=".18"/>'+
+'<path d="M32 9V60" stroke="#0003" stroke-width="2"/><path d="M14 30H50V40H14Z" fill="#263238"/><path d="M14 30H50" stroke="#0004" stroke-width="2"/>'+
+GG('bp-glow','<rect x="18" y="33" width="10" height="3.4" rx="1.6" fill="#80d8ff"/><rect x="36" y="33" width="10" height="3.4" rx="1.6" fill="#80d8ff"/>')+
+'<path d="M20 46H24M28 46H32M36 46H40M22 50H26M30 50H34M38 50H42" stroke="#263238" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="52" r="1.6" fill="#0004"/><circle cx="48" cy="52" r="1.6" fill="#0004"/>';},
+dwarf:function(a,b){return '<path d="M10 22C4 18 2 10 4 4C8 10 12 12 16 14Z" fill="#f5f0e6"/><path d="M54 22C60 18 62 10 60 4C56 10 52 12 48 14Z" fill="#f5f0e6"/>'+
+'<path d="M12 26C12 12 22 6 32 6C42 6 52 12 52 26Z" fill="'+b+'"/><path d="M10 24H54V30H10Z" fill="'+b+'"/><path d="M10 27H54" stroke="#0003" stroke-width="2"/><circle cx="16" cy="27" r="1.3" fill="#fff8"/><circle cx="32" cy="27" r="1.3" fill="#fff8"/><circle cx="48" cy="27" r="1.3" fill="#fff8"/><path d="M14 18Q22 10 32 10" stroke="#fff" stroke-width="1.6" opacity=".35" fill="none"/>'+
+'<ellipse cx="32" cy="38" rx="17" ry="10" fill="'+SKIN+'"/><path d="M12 38C12 52 18 62 32 62C46 62 52 52 52 38C46 46 40 46 32 46C24 46 18 46 12 38Z" fill="'+a+'"/>'+
+'<path d="M24 46V60M40 46V60" stroke="#0003" stroke-width="2.4"/><circle cx="24" cy="58" r="2" fill="#ffd54f"/><circle cx="40" cy="58" r="2" fill="#ffd54f"/>'+
+'<path d="M18 33L28 34M46 33L36 34" stroke="'+a+'" stroke-width="3" stroke-linecap="round"/><g class="bp-eye"><circle cx="24" cy="37" r="2.2" fill="#1c1c1c"/><circle cx="40" cy="37" r="2.2" fill="#1c1c1c"/></g>'+
+'<ellipse cx="32" cy="41" rx="4" ry="3.4" fill="#f0a080"/><path d="M24 44Q32 50 40 44Q36 48 32 48Q28 48 24 44Z" fill="'+a+'"/><circle cx="19" cy="41" r="2.4" fill="#ff8a80" opacity=".5"/><circle cx="45" cy="41" r="2.4" fill="#ff8a80" opacity=".5"/>';},
+raven:function(a,b){return GG('bp-wingl','<path d="M12 36C2 34-2 24 0 16C4 22 8 24 13 24C8 28 9 32 12 36Z" fill="'+b+'"/>')+GG('bp-wingr','<path d="M52 36C62 34 66 24 64 16C60 22 56 24 51 24C56 28 55 32 52 36Z" fill="'+b+'"/>')+
+'<path d="M28 10C28 4 32 2 34 6C36 2 40 4 38 10Z" fill="'+a+'"/>'+
+'<ellipse cx="32" cy="36" rx="21" ry="22" fill="'+a+'"/><path d="M16 26Q24 18 34 20" stroke="'+b+'" stroke-width="2.4" fill="none" stroke-linecap="round" opacity=".8"/><path d="M14 44Q20 54 32 56" stroke="'+b+'" stroke-width="1.6" fill="none" opacity=".6"/>'+
+'<g class="bp-eye"><circle cx="23" cy="32" r="3.6" fill="#1c1c1c"/><circle cx="23" cy="32" r="2.2" fill="#ffca28"/><circle cx="23" cy="32" r="1.1" fill="#111"/><circle cx="41" cy="32" r="3.6" fill="#1c1c1c"/><circle cx="41" cy="32" r="2.2" fill="#ffca28"/><circle cx="41" cy="32" r="1.1" fill="#111"/></g>'+
+'<path d="M26 38H38L33 52Z" fill="#37474f"/><path d="M26 38H38L32 42Z" fill="#607d8b"/><path d="M28 39H34" stroke="#cfd8dc" stroke-width=".8"/>';},
+kraken:function(a,b){var T='';[[10,'d0'],[20,'d1'],[32,'d2'],[44,'d3'],[54,'d4']].forEach(function(p,i){var x=p[0];T+=GG('bp-tail '+p[1],'<path d="M'+(x-4)+' 40C'+(x-6)+' 50 '+(x-2+(i%2?6:-6))+' 54 '+(x+(i%2?4:-4))+' 62C'+(x+(i%2?8:-8))+' 58 '+(x+3)+' 50 '+(x+4)+' 40Z" fill="'+a+'"/><circle cx="'+(x+(i%2?2:-2))+'" cy="52" r="1.2" fill="'+b+'"/><circle cx="'+x+'" cy="46" r="1.2" fill="'+b+'"/>');});
+return T+'<path d="M32 2C18 6 12 18 12 30C12 40 20 46 32 46C44 46 52 40 52 30C52 18 46 6 32 2Z" fill="'+a+'"/><path d="M32 2C26 4 22 10 22 16" stroke="#fff" stroke-width="2" opacity=".25" fill="none" stroke-linecap="round"/>'+
+'<circle cx="24" cy="18" r="2" fill="'+b+'"/><circle cx="40" cy="14" r="2.6" fill="'+b+'"/><circle cx="34" cy="22" r="1.4" fill="'+b+'"/>'+EY(23,32,3.6)+EY(41,32,3.6)+'<path d="M28 40Q32 43 36 40" stroke="#1c1c1c" stroke-width="1.4" fill="none" stroke-linecap="round"/>';},
+serpent:function(a,b){return '<path d="M8 54C8 44 20 40 32 42C44 40 56 44 56 54C56 62 8 62 8 54Z" fill="'+a+'"/><path d="M12 54C14 48 22 46 32 48C42 46 50 48 52 54" stroke="'+b+'" stroke-width="3" fill="none" stroke-dasharray="4 4"/>'+
+'<path d="M24 44C20 34 26 26 32 26C38 26 44 34 40 44Z" fill="'+a+'"/>'+
+'<path d="M32 4C20 4 12 12 12 22C12 30 20 34 32 34C44 34 52 30 52 22C52 12 44 4 32 4Z" fill="'+a+'"/><path d="M22 10L32 14L42 10M24 16L32 19L40 16" stroke="'+b+'" stroke-width="1.6" fill="none"/>'+
+'<path d="M20 30Q32 36 44 30" stroke="#e8f5c8" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>'+
+'<g class="bp-eye">'+SLIT(22,21,'#ffeb3b')+SLIT(42,21,'#ffeb3b')+'</g><circle cx="29" cy="29" r=".9" fill="#1c1c1c"/><circle cx="35" cy="29" r=".9" fill="#1c1c1c"/>'+
+GG('bp-tongue','<path d="M32 33V40L29.5 43M32 40L34.5 43" stroke="#e53935" stroke-width="1.4" fill="none" stroke-linecap="round"/>');},
+pixie:function(a,b){return GG('bp-wingl','<path d="M24 34C10 20 -2 24 2 34C4 40 14 40 24 36Z" fill="'+a+'" opacity=".75"/><path d="M24 38C12 42 6 52 12 56C18 58 22 48 24 40Z" fill="'+a+'" opacity=".6"/>')+GG('bp-wingr','<path d="M40 34C54 20 66 24 62 34C60 40 50 40 40 36Z" fill="'+a+'" opacity=".75"/><path d="M40 38C52 42 58 52 52 56C46 58 42 48 40 40Z" fill="'+a+'" opacity=".6"/>')+
+'<path d="M26 14C24 8 20 6 18 6M38 14C40 8 44 6 46 6" stroke="#5d4037" stroke-width="1.2" fill="none"/><circle cx="18" cy="6" r="2" fill="#ffd54f" class="bp-glow"/><circle cx="46" cy="6" r="2" fill="#ffd54f" class="bp-glow"/>'+
+'<ellipse cx="32" cy="36" rx="15" ry="16" fill="'+SKIN+'"/><path d="M17 34C16 20 24 16 32 16C40 16 48 20 47 34C44 26 38 24 32 26C28 22 22 26 17 34Z" fill="'+b+'"/>'+
+'<g class="bp-eye"><ellipse cx="26" cy="37" rx="2.8" ry="3.6" fill="#1c1c1c"/><circle cx="27" cy="35.6" r="1.1" fill="#fff"/><ellipse cx="38" cy="37" rx="2.8" ry="3.6" fill="#1c1c1c"/><circle cx="39" cy="35.6" r="1.1" fill="#fff"/></g>'+
+'<path d="M29 45Q32 47 35 45" stroke="#c0705a" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="21" cy="42" rx="3" ry="1.8" fill="#ff8a80" opacity=".55"/><ellipse cx="43" cy="42" rx="3" ry="1.8" fill="#ff8a80" opacity=".55"/>'+
+SPK(10,14,2.4,'#fff59d')+SPK(56,48,2.2,'#fff59d','d2')+SPK(32,60,2,'#fff','d3');},
+mimic:function(a,b){return '<path d="M6 26C6 14 18 8 32 8C46 8 58 14 58 26Z" fill="'+a+'"/><path d="M6 26C6 14 18 8 32 8V26Z" fill="#fff" opacity=".12"/><path d="M14 12V26M50 12V26" stroke="'+b+'" stroke-width="4"/>'+
+'<path d="M6 26H58L56 34H8Z" fill="#1a0f0a"/><path d="M8 34H56V58H8Z" fill="'+a+'"/><path d="M14 34V58M50 34V58" stroke="'+b+'" stroke-width="4"/><path d="M8 46H56" stroke="#0003" stroke-width="1.6"/>'+
+'<path d="M10 26L13 31L16 26L19 31L22 26L25 31L28 26L31 31L34 26L37 31L40 26L43 31L46 26L49 31L52 26L55 31L58 26" fill="#fafafa"/><path d="M10 34L13 30L16 34L19 30L22 34L25 30L28 34L31 30L34 34L37 30L40 34L43 30L46 34L49 30L52 34L55 30L56 34" fill="#fafafa"/>'+
+'<g class="bp-glow"><ellipse cx="24" cy="30" rx="2.2" ry="1.2" fill="#ffeb3b"/><ellipse cx="40" cy="30" rx="2.2" ry="1.2" fill="#ffeb3b"/></g>'+
+GG('bp-tongue','<path d="M30 33C28 40 34 44 38 42C42 40 40 36 36 38" stroke="#e91e63" stroke-width="3.4" fill="none" stroke-linecap="round"/>')+
+'<rect x="27" y="40" width="10" height="9" rx="2" fill="'+b+'"/><circle cx="32" cy="44" r="1.6" fill="#3e2723"/>';},
+slime:function(a,b){return GG('bp-bounce','<path d="M32 10C26 16 10 24 8 40C6 54 18 60 32 60C46 60 58 54 56 40C54 24 38 16 32 10Z" fill="'+a+'" opacity=".92"/>'+
+'<path d="M32 10C30 14 28 16 26 18" stroke="'+b+'" stroke-width="1.4" fill="none" opacity=".5"/><path d="M14 40C14 32 20 26 24 24" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".5"/><ellipse cx="20" cy="22" rx="3" ry="2" fill="#fff" opacity=".7"/>'+
+'<path d="M10 52C18 58 46 58 54 52" stroke="'+b+'" stroke-width="2" fill="none" opacity=".45"/>'+
+'<g class="bp-eye"><ellipse cx="24" cy="40" rx="3.2" ry="4.4" fill="#1c1c1c"/><circle cx="25.2" cy="38.4" r="1.3" fill="#fff"/><ellipse cx="40" cy="40" rx="3.2" ry="4.4" fill="#1c1c1c"/><circle cx="41.2" cy="38.4" r="1.3" fill="#fff"/></g>'+
+'<path d="M28 48Q32 52 36 48" stroke="#1c1c1c" stroke-width="1.6" fill="none" stroke-linecap="round"/><ellipse cx="18" cy="47" rx="3" ry="1.8" fill="#ff8a80" opacity=".45"/><ellipse cx="46" cy="47" rx="3" ry="1.8" fill="#ff8a80" opacity=".45"/>')+
+GG('bp-float','<circle cx="44" cy="30" r="2" fill="#fff" opacity=".45"/><circle cx="48" cy="40" r="1.2" fill="#fff" opacity=".4"/>');},
+wisp:function(a,b){return '<circle cx="32" cy="34" r="27" fill="'+a+'" opacity=".18" class="bp-glow"/>'+GG('bp-flame','<path d="M32 2C28 10 18 14 16 28C14 44 22 54 32 54C42 54 50 44 48 28C46 14 36 10 32 2Z" fill="'+a+'"/><path d="M24 10C22 16 24 20 26 22M42 12C44 16 42 20 40 22" stroke="'+a+'" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>')+
+'<circle cx="32" cy="38" r="13" fill="#fff" opacity=".75"/><g class="bp-eye"><ellipse cx="27" cy="38" rx="2.2" ry="3" fill="'+b+'"/><ellipse cx="37" cy="38" rx="2.2" ry="3" fill="'+b+'"/></g><path d="M29.5 44Q32 46 34.5 44" stroke="'+b+'" stroke-width="1.3" fill="none" stroke-linecap="round"/>'+
+SPK(8,20,2,'#fff')+SPK(56,52,2.4,'#fff','d2')+SPK(54,12,1.8,'#fff','d3');},
+pegasus:function(a,b){return GG('bp-wingl','<path d="M14 36C4 34-2 22 0 12C4 18 6 20 10 20C6 24 6 28 10 30C8 32 10 34 14 36Z" fill="#fff" stroke="#cfd8dc" stroke-width="1"/><path d="M3 18L9 24M2 24L9 29" stroke="#cfd8dc" stroke-width="1"/>')+GG('bp-wingr','<path d="M50 36C60 34 66 22 64 12C60 18 58 20 54 20C58 24 58 28 54 30C56 32 54 34 50 36Z" fill="#fff" stroke="#cfd8dc" stroke-width="1"/><path d="M61 18L55 24M62 24L55 29" stroke="#cfd8dc" stroke-width="1"/>')+
+'<path d="M15 14L25 20L13 28Z" fill="'+a+'" stroke="#0001"/><path d="M49 14L39 20L51 28Z" fill="'+a+'" stroke="#0001"/>'+
+'<ellipse cx="32" cy="38" rx="20" ry="19" fill="'+a+'" stroke="#0001" stroke-width="1.2"/><path d="M20 22C24 12 40 12 44 22C40 18 36 22 32 18C28 22 24 18 20 22Z" fill="'+b+'"/><path d="M20 22C14 30 14 42 18 50" stroke="'+b+'" stroke-width="4" fill="none" stroke-linecap="round"/>'+
+'<ellipse cx="32" cy="48" rx="11" ry="8" fill="#eceff1"/>'+EY(24,36)+EY(40,36)+'<ellipse cx="28.5" cy="48" rx="1.4" ry="1.8" fill="#90a4ae"/><ellipse cx="35.5" cy="48" rx="1.4" ry="1.8" fill="#90a4ae"/><path d="M28 53Q32 55 36 53" stroke="#90a4ae" stroke-width="1.3" fill="none" stroke-linecap="round"/>';},
+hellhound:function(a,b){return GG('bp-flame','<path d="M14 18C12 10 16 4 20 2C20 8 24 10 26 14C28 6 32 2 36 0C35 6 38 10 40 14C42 8 46 6 50 6C48 12 50 16 50 20Z" fill="'+b+'"/><path d="M20 18C20 12 24 10 26 8C26 12 30 14 32 16C34 12 38 10 40 10C38 14 40 16 42 18Z" fill="#ffe082" opacity=".8"/>')+
+'<path d="M8 16L22 22L12 36Z" fill="'+a+'"/><path d="M56 16L42 22L52 36Z" fill="'+a+'"/>'+
+'<path d="M32 16C18 16 10 26 11 38C12 50 22 58 32 58C42 58 52 50 53 38C54 26 46 16 32 16Z" fill="'+a+'"/>'+
+'<path d="M16 46L22 42L20 50M48 46L42 42L44 50M30 22L32 28L34 22" stroke="'+b+'" stroke-width="1.4" fill="none" stroke-linecap="round" class="bp-glow"/>'+
+'<ellipse cx="32" cy="47" rx="11" ry="8" fill="#424242"/><path d="M28.5 43H35.5L32 47Z" fill="#111"/><path d="M27 52L28 55L29 52M35 52L36 55L37 52" fill="#fafafa"/>'+
+GLOWEYE(22,34,b)+GLOWEYE(42,34,b);},
+mandrake:function(a,b){return GG('bp-sway','<path d="M32 14C28 4 20 0 14 2C18 6 24 10 30 16Z" fill="'+b+'"/><path d="M32 14C36 4 44 0 50 2C46 6 40 10 34 16Z" fill="'+b+'"/><path d="M32 16C32 6 34 0 36 -2C38 4 36 10 33 17Z" fill="'+b+'"/><path d="M18 3L30 15M46 3L34 15" stroke="#0002" stroke-width=".8"/>')+
+'<path d="M32 14C20 16 12 26 12 38C12 48 18 54 22 58L20 63M42 58L44 63M32 60V64" stroke="'+a+'" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+'<path d="M32 14C18 14 12 26 12 38C12 50 22 58 32 58C42 58 52 50 52 38C52 26 46 14 32 14Z" fill="'+a+'"/><path d="M18 30Q20 34 18 38M46 28Q44 34 46 40M28 52Q30 54 34 54" stroke="#0002" stroke-width="1.4" fill="none" stroke-linecap="round"/>'+
+'<path d="M22 37Q25 34 28 37M36 37Q39 34 42 37" stroke="#4e342e" stroke-width="1.8" fill="none" stroke-linecap="round"/><ellipse cx="32" cy="45" rx="2.4" ry="2.8" fill="#6d4c41"/>'+BLUSH;},
+sphinx:function(a,b){return '<path d="M10 22H54L58 54H6Z" fill="#ffd54f"/><path d="M10 22H54L58 54H6Z" fill="'+b+'" opacity=".0"/><path d="M12 28H52M11 34H53M10 40H54M9 46H55" stroke="'+b+'" stroke-width="3"/>'+
+'<path d="M14 22C14 10 22 4 32 4C42 4 50 10 50 22Z" fill="#ffd54f"/><path d="M18 14H46M16 18H48" stroke="'+b+'" stroke-width="2.4"/><path d="M28 6L32 2L36 6L32 10Z" fill="#e53935"/>'+
+'<ellipse cx="32" cy="38" rx="16" ry="17" fill="'+a+'"/><path d="M22 32L27 33M42 32L37 33" stroke="#1c1c1c" stroke-width="1.2"/>'+
+'<g class="bp-eye">'+SLIT(25,37,'#7cb342')+SLIT(39,37,'#7cb342')+'</g><path d="M20 37L16 39M44 37L48 39" stroke="#1c1c1c" stroke-width="1.6" stroke-linecap="round"/>'+
+'<path d="M30.4 44H33.6L32 46Z" fill="#c2185b"/><path d="M32 46Q30 49 28 48M32 46Q34 49 36 48" stroke="#5d4037" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M30 52H34V58H30Z" fill="'+b+'"/>';},
+kitsune:function(a,b){var T='';[[-38,'d0'],[-20,'d1'],[0,'d2'],[20,'d3'],[38,'d4']].forEach(function(p){T+=GG('bp-tail '+p[1],'<g transform="rotate('+(p[0]*1.6)+' 32 50)"><path d="M32 50C16 42 16 18 32 4C48 18 48 42 32 50Z" fill="'+a+'" stroke="#0003" stroke-width="1.2"/><path d="M32 16C26 12 27 8 32 4C37 8 38 12 32 16Z" fill="'+b+'"/></g>');});
+return T+'<path d="M10 10L24 20L13 34Z" fill="'+a+'"/><path d="M54 10L40 20L51 34Z" fill="'+a+'"/><path d="M13 15L20 20L15 28Z" fill="'+b+'"/><path d="M51 15L44 20L49 28Z" fill="'+b+'"/>'+
+'<path d="M32 18C18 18 10 28 12 40L32 60L52 40C54 28 46 18 32 18Z" fill="'+a+'"/><path d="M26 22Q32 20 38 22L32 30Z" fill="'+b+'"/><path d="M16 34Q20 36 18 40M48 34Q44 36 46 40" stroke="'+b+'" stroke-width="2" fill="none" stroke-linecap="round"/>'+
+'<g class="bp-eye"><path d="M19 36Q24 32 28 36Q24 38 19 36Z" fill="#1c1c1c"/><path d="M45 36Q40 32 36 36Q40 38 45 36Z" fill="#1c1c1c"/></g><path d="M30 48H34L32 51Z" fill="#1c1c1c"/>'+
+GG('bp-flame','<path d="M6 46C3 42 5 38 8 36C8 40 11 41 10 44C10 46 8 47 6 46Z" fill="#40c4ff"/>')+GG('bp-flame d2','<path d="M58 50C61 46 59 42 56 40C56 44 53 45 54 48C54 50 56 51 58 50Z" fill="#40c4ff"/>');},
+tanuki:function(a,b){return '<circle cx="15" cy="18" r="8" fill="'+b+'"/><circle cx="49" cy="18" r="8" fill="'+b+'"/><circle cx="15" cy="18" r="4" fill="'+a+'"/><circle cx="49" cy="18" r="4" fill="'+a+'"/>'+
+'<ellipse cx="32" cy="38" rx="25" ry="22" fill="'+a+'"/><path d="M10 36C14 30 22 30 28 36C26 42 18 44 12 42Z" fill="'+b+'"/><path d="M54 36C50 30 42 30 36 36C38 42 46 44 52 42Z" fill="'+b+'"/>'+
+'<ellipse cx="32" cy="48" rx="12" ry="9" fill="#f5efe6"/>'+EY(21,37,3)+EY(43,37,3)+'<ellipse cx="32" cy="44" rx="3.6" ry="2.6" fill="#2b2b2b"/><path d="M32 47V49M28 51Q32 53 36 51" stroke="#3b2a22" stroke-width="1.3" fill="none" stroke-linecap="round"/>'+
+GG('bp-sway','<path d="M32 18C24 12 26 4 34 2C40 6 38 14 32 18Z" fill="#7cb342"/><path d="M32 18C32 12 33 7 34 3" stroke="#33691e" stroke-width="1.2" fill="none"/>');},
+ninja:function(a,b){return GG('bp-tail','<path d="M50 24C56 22 62 24 64 30C60 28 56 28 52 30Z" fill="'+b+'"/><path d="M50 27C56 30 60 36 58 42C56 38 54 34 50 32Z" fill="'+b+'"/>')+
+'<ellipse cx="32" cy="36" rx="22" ry="22" fill="'+a+'"/><path d="M12 30C14 16 22 12 32 12C42 12 50 16 52 30Z" fill="'+a+'"/><path d="M10 22H54V30H10Z" fill="'+b+'"/><rect x="26" y="23" width="12" height="6" rx="1.4" fill="#cfd8dc"/><path d="M29 26H35" stroke="#78909c" stroke-width="1.2"/>'+
+'<path d="M14 32H50Q50 42 44 42H20Q14 42 14 32Z" fill="'+SKIN+'"/>'+
+'<g class="bp-eye"><path d="M19 37Q24 33 28 37Z" fill="#1c1c1c"/><path d="M45 37Q40 33 36 37Z" fill="#1c1c1c"/><circle cx="25" cy="35.6" r=".8" fill="#fff"/><circle cx="41" cy="35.6" r=".8" fill="#fff"/></g><path d="M19 32L28 34M45 32L36 34" stroke="#1c1c1c" stroke-width="1.6" stroke-linecap="round"/>'+
+'<path d="M16 46Q32 52 48 46" stroke="#0003" stroke-width="1.6" fill="none"/>';},
+mecha:function(a,b){return GG('bp-glow','<path d="M32 -1L36 12H28Z" fill="'+b+'"/>')+
+'<path d="M6 30H14V44H6Z" fill="'+b+'"/><path d="M50 30H58V44H50Z" fill="'+b+'"/><path d="M7 33H13M7 37H13M7 41H13M51 33H57M51 37H57M51 41H57" stroke="#0004" stroke-width="1.2"/>'+
+'<path d="M16 12H48L54 26V48L44 58H20L10 48V26Z" fill="'+a+'"/><path d="M16 12H32V58H20L10 48V26Z" fill="#fff" opacity=".2"/><path d="M16 12H48L44 18H20Z" fill="'+b+'"/>'+
+'<path d="M14 28H50L46 38H18Z" fill="#1a1f2b"/>'+GG('bp-glow','<path d="M18 31H46L44 35H20Z" fill="#76ff03" opacity=".9"/>')+GG('bp-eye','<circle cx="25" cy="33" r="2" fill="#ccff90"/><circle cx="39" cy="33" r="2" fill="#ccff90"/>')+
+'<path d="M24 44H40V52H24Z" fill="#37474f"/><path d="M26 46V50M30 46V50M34 46V50M38 46V50" stroke="#90a4ae" stroke-width="1.2"/><path d="M10 26L16 12M54 26L48 12" stroke="#0003" stroke-width="1.4"/>';},
+luckycat:function(a,b){return '<path d="M10 10L23 20L12 32Z" fill="'+a+'"/><path d="M54 10L41 20L52 32Z" fill="'+a+'"/><path d="M13 15L19 20L14 26Z" fill="#ef9a9a"/><path d="M51 15L45 20L50 26Z" fill="#ef9a9a"/>'+
+GG('bp-wave','<path d="M50 30C50 20 56 14 62 16C64 22 60 30 56 34Z" fill="'+a+'" stroke="#0001"/><path d="M57 18C58 17 60 17 61 18M55 20C56 19 58 19 59 20" stroke="#ef9a9a" stroke-width="1.4" stroke-linecap="round"/>')+
+'<ellipse cx="32" cy="38" rx="22" ry="19" fill="'+a+'" stroke="#0001"/><path d="M22 18C24 22 26 24 28 24M42 18C40 22 38 24 36 24" stroke="#ffb74d" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
+'<g class="bp-eye"><path d="M20 36Q24 32 28 36" stroke="#1c1c1c" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M36 36Q40 32 44 36" stroke="#1c1c1c" stroke-width="2" fill="none" stroke-linecap="round"/></g>'+
+'<path d="M30.4 41H33.6L32 43Z" fill="#e57373"/><path d="M32 43Q29 46 27 45M32 43Q35 46 37 45" stroke="#3b2a22" stroke-width="1.2" fill="none" stroke-linecap="round"/><path d="M10 42L20 43M10 46L20 45M54 42L44 43M54 46L44 45" stroke="#ccc" stroke-width=".9"/>'+
+'<path d="M14 54Q32 60 50 54" stroke="'+b+'" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="59" r="4" fill="#ffd54f" class="bp-swing"/><path d="M29 59H35" stroke="#b8860b" stroke-width="1"/>';},
+oni:function(a,b){return '<path d="M18 16C16 8 18 2 22 0C22 6 24 10 26 12Z" fill="#fff3e0"/><path d="M46 16C48 8 46 2 42 0C42 6 40 10 38 12Z" fill="#fff3e0"/>'+
+'<path d="M12 26C10 14 20 8 32 8C44 8 54 14 52 26C48 20 44 22 40 18C36 22 30 22 26 18C22 22 16 20 12 26Z" fill="'+b+'"/>'+
+'<ellipse cx="32" cy="38" rx="20" ry="20" fill="'+a+'"/><path d="M12 30C14 24 18 22 22 24M52 30C50 24 46 22 42 24" stroke="'+b+'" stroke-width="5" fill="none" stroke-linecap="round"/>'+
+'<path d="M19 30L29 33M45 30L35 33" stroke="#1c1c1c" stroke-width="2.6" stroke-linecap="round"/><g class="bp-eye"><circle cx="24" cy="36" r="3.4" fill="#fff59d"/><circle cx="24" cy="36" r="1.6" fill="#1c1c1c"/><circle cx="40" cy="36" r="3.4" fill="#fff59d"/><circle cx="40" cy="36" r="1.6" fill="#1c1c1c"/></g>'+
+'<path d="M30 42H34L32 45Z" fill="#00000044"/><path d="M22 48Q32 56 42 48Q32 52 22 48Z" fill="#3e0d0d"/><path d="M24 48L26 53L28 49M40 48L38 53L36 49" fill="#fff"/>';},
+kappa:function(a,b){return '<path d="M8 40C6 28 16 18 32 18C48 18 58 28 56 40C56 52 46 60 32 60C18 60 8 52 8 40Z" fill="'+a+'"/>'+
+'<path d="M12 22L16 14L20 22L24 12L28 20L32 10L36 20L40 12L44 22L48 14L52 22Z" fill="'+b+'"/><ellipse cx="32" cy="20" rx="14" ry="5" fill="#e0f2f1" stroke="'+b+'" stroke-width="2"/>'+GG('bp-glow','<ellipse cx="29" cy="19" rx="5" ry="1.4" fill="#fff" opacity=".9"/>')+
+EY(22,36,3.2)+EY(42,36,3.2)+'<path d="M24 44Q32 40 40 44L36 52Q32 54 28 52Z" fill="#ffca28"/><path d="M25 46Q32 48 39 46" stroke="#f9a825" stroke-width="1" fill="none"/>'+
+'<path d="M10 48C14 56 20 60 24 60M54 48C50 56 44 60 40 60" stroke="'+b+'" stroke-width="2" fill="none"/>'+BLUSH;},
+karasu:function(a,b){return GG('bp-wingl','<path d="M12 38C2 36-2 26 0 18C4 24 8 26 13 26C8 30 9 34 12 38Z" fill="'+a+'"/>')+GG('bp-wingr','<path d="M52 38C62 36 66 26 64 18C60 24 56 26 51 26C56 30 55 34 52 38Z" fill="'+a+'"/>')+
+'<ellipse cx="32" cy="38" rx="21" ry="21" fill="'+a+'"/><path d="M24 14L32 6L40 14L36 18H28Z" fill="#212121" stroke="'+b+'" stroke-width="1.4"/><path d="M28 18H36" stroke="'+b+'" stroke-width="2"/>'+
+'<path d="M16 30Q22 26 28 30L28 36Q22 38 16 34Z" fill="'+b+'"/><path d="M48 30Q42 26 36 30L36 36Q42 38 48 34Z" fill="'+b+'"/>'+
+'<g class="bp-eye"><circle cx="23" cy="32" r="2.4" fill="#fff"/><circle cx="23" cy="32" r="1.2" fill="#111"/><circle cx="41" cy="32" r="2.4" fill="#fff"/><circle cx="41" cy="32" r="1.2" fill="#111"/></g>'+
+'<path d="M26 38H38L32 50Z" fill="#ffb300"/><path d="M26 38H38L32 42Z" fill="#ffd54f"/><path d="M20 54Q32 60 44 54" stroke="'+b+'" stroke-width="2" fill="none" stroke-dasharray="1 3" stroke-linecap="round"/>';},
+mochi:function(a,b){return GG('bp-bounce','<ellipse cx="22" cy="14" rx="5" ry="11" fill="'+a+'" transform="rotate(-14 22 14)"/><ellipse cx="42" cy="14" rx="5" ry="11" fill="'+a+'" transform="rotate(14 42 14)"/><ellipse cx="22" cy="15" rx="2.4" ry="7" fill="'+b+'" transform="rotate(-14 22 15)"/><ellipse cx="42" cy="15" rx="2.4" ry="7" fill="'+b+'" transform="rotate(14 42 15)"/>'+
+'<path d="M6 46C6 30 18 22 32 22C46 22 58 30 58 46C58 56 48 60 32 60C16 60 6 56 6 46Z" fill="'+a+'" stroke="#0001"/><ellipse cx="22" cy="30" rx="5" ry="2.4" fill="#fff" opacity=".8"/>'+
+'<g class="bp-eye"><path d="M20 42Q23 39 26 42" stroke="#3b2a22" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M38 42Q41 39 44 42" stroke="#3b2a22" stroke-width="2" fill="none" stroke-linecap="round"/></g>'+
+'<path d="M29 47Q32 50 35 47" stroke="#3b2a22" stroke-width="1.5" fill="none" stroke-linecap="round"/><ellipse cx="16" cy="48" rx="4" ry="2.4" fill="'+b+'"/><ellipse cx="48" cy="48" rx="4" ry="2.4" fill="'+b+'"/>');},
+shiba:function(a,b){return '<path d="M10 8L25 18L12 32Z" fill="'+a+'"/><path d="M54 8L39 18L52 32Z" fill="'+a+'"/><path d="M13 13L21 18L15 26Z" fill="'+b+'"/><path d="M51 13L43 18L49 26Z" fill="'+b+'"/>'+
+'<path d="M32 14C17 14 9 26 10 38C11 50 20 58 32 58C44 58 53 50 54 38C55 26 47 14 32 14Z" fill="'+a+'"/><path d="M12 40C14 52 24 58 32 58C40 58 50 52 52 40C48 46 40 44 32 46C24 44 16 46 12 40Z" fill="'+b+'"/>'+
+'<ellipse cx="22" cy="29" rx="3" ry="2" fill="'+b+'"/><ellipse cx="42" cy="29" rx="3" ry="2" fill="'+b+'"/>'+
+'<g class="bp-eye"><path d="M18 36Q22 32 26 36" stroke="#1c1c1c" stroke-width="2.2" fill="none" stroke-linecap="round"/><path d="M38 36Q42 32 46 36" stroke="#1c1c1c" stroke-width="2.2" fill="none" stroke-linecap="round"/></g>'+
+'<ellipse cx="32" cy="42" rx="3.4" ry="2.4" fill="#2b2b2b"/><path d="M27 46Q32 52 37 46Q32 49 27 46Z" fill="#e57373"/><path d="M32 44V47" stroke="#3b2a22" stroke-width="1.2"/>'+BLUSH;},
+ronin:function(a,b){return GG('bp-sway','<path d="M44 58L60 6" stroke="#5d4037" stroke-width="3.4" stroke-linecap="round"/><path d="M48 46L54 48" stroke="#ffd54f" stroke-width="3" stroke-linecap="round"/><path d="M56 18L60 6" stroke="#212121" stroke-width="3.6" stroke-linecap="round"/><path d="M57 14L59 8" stroke="#fff" stroke-width="1" opacity=".6"/>')+
+'<path d="M9 14L23 22L12 34Z" fill="'+a+'"/><path d="M55 14L41 22L52 34Z" fill="'+a+'"/><path d="M12 19L19 23L14 29Z" fill="#f8bbd0"/>'+
+'<ellipse cx="32" cy="40" rx="23" ry="19" fill="'+a+'"/><path d="M26 18C26 12 30 8 32 6C34 8 38 12 38 18C36 22 28 22 26 18Z" fill="'+b+'"/><path d="M28 20H36" stroke="#e53935" stroke-width="2.4"/>'+
+'<path d="M10 30Q32 22 54 30" stroke="#e53935" stroke-width="3.4" fill="none"/><path d="M54 30L60 36M54 30L62 30" stroke="#e53935" stroke-width="2.2" stroke-linecap="round"/>'+
+'<g class="bp-eye"><path d="M18 39Q23 35 28 39Q23 41 18 39Z" fill="#1c1c1c"/><path d="M46 39Q41 35 36 39Q41 41 46 39Z" fill="#1c1c1c"/></g><path d="M42 33L46 44" stroke="#fff" stroke-width="1.2" opacity=".7"/>'+
+'<path d="M30.4 45H33.6L32 47Z" fill="#f48fb1"/><path d="M28 50Q32 48 36 50" stroke="#3b2a22" stroke-width="1.4" fill="none" stroke-linecap="round"/>';},
+starling:function(a,b){return GG('bp-wingl','<path d="M14 40C4 40-2 32 0 24C6 28 10 28 14 30Z" fill="#fff" stroke="#e1bee7"/>')+GG('bp-wingr','<path d="M50 40C60 40 66 32 64 24C58 28 54 28 50 30Z" fill="#fff" stroke="#e1bee7"/>')+
+GG('bp-ear','<path d="M18 26C10 18 8 6 12 2C16 8 22 14 24 22Z" fill="'+a+'" stroke="#0001"/>')+GG('bp-ear r','<path d="M46 26C54 18 56 6 52 2C48 8 42 14 40 22Z" fill="'+a+'" stroke="#0001"/>')+
+'<ellipse cx="32" cy="40" rx="19" ry="18" fill="'+a+'" stroke="#0001"/><path d="M32 22L34 27H39L35 30L36.5 35L32 32L27.5 35L29 30L25 27H30Z" fill="#ffd54f" class="bp-glow"/>'+
+'<g class="bp-eye"><ellipse cx="25" cy="41" rx="3.2" ry="4.2" fill="'+b+'"/><circle cx="26" cy="39.4" r="1.4" fill="#fff"/><ellipse cx="39" cy="41" rx="3.2" ry="4.2" fill="'+b+'"/><circle cx="40" cy="39.4" r="1.4" fill="#fff"/></g>'+
+'<path d="M30 48Q32 50 34 48" stroke="#3b2a22" stroke-width="1.3" fill="none" stroke-linecap="round"/><ellipse cx="20" cy="47" rx="3" ry="1.8" fill="#f8bbd0"/><ellipse cx="44" cy="47" rx="3" ry="1.8" fill="#f8bbd0"/>'+
+GG('bp-tail','<path d="M46 54C54 56 60 52 60 46C56 50 52 50 48 50Z" fill="'+b+'"/>')+SPK(8,10,2.2,'#fff59d')+SPK(58,60,2,'#fff59d','d2');},
+koi:function(a,b){return GG('bp-tail','<path d="M14 40C4 44 0 54 4 60C8 54 12 50 18 48Z" fill="'+a+'" opacity=".85"/>')+GG('bp-tail d2','<path d="M50 40C60 44 64 54 60 60C56 54 52 50 46 48Z" fill="'+a+'" opacity=".85"/>')+
+'<path d="M32 6C18 6 10 20 10 34C10 48 20 58 32 58C44 58 54 48 54 34C54 20 46 6 32 6Z" fill="'+a+'"/><path d="M22 10C18 16 20 24 26 26C30 20 30 14 22 10Z" fill="'+b+'"/><path d="M42 30C48 30 52 38 48 44C44 42 40 36 42 30Z" fill="'+b+'"/>'+
+'<path d="M18 44Q24 40 30 44M34 50Q40 46 46 50M20 52Q24 50 28 52" stroke="#0002" stroke-width="1.2" fill="none"/>'+EY(22,32,3.4)+EY(42,32,3.4)+
+'<ellipse cx="32" cy="42" rx="5" ry="3.6" fill="#f48fb1"/><ellipse cx="32" cy="42" rx="3" ry="1.8" fill="#ad1457"/>'+
+GG('bp-tail d3','<path d="M27 42C20 44 14 50 12 58" stroke="#ffd54f" stroke-width="1.6" fill="none" stroke-linecap="round"/>')+GG('bp-tail d4','<path d="M37 42C44 44 50 50 52 58" stroke="#ffd54f" stroke-width="1.6" fill="none" stroke-linecap="round"/>');},
+baku:function(a,b){return '<ellipse cx="14" cy="22" rx="7" ry="9" fill="'+a+'"/><ellipse cx="50" cy="22" rx="7" ry="9" fill="'+a+'"/><ellipse cx="14" cy="22" rx="3.4" ry="5" fill="'+b+'"/><ellipse cx="50" cy="22" rx="3.4" ry="5" fill="'+b+'"/>'+
+'<ellipse cx="32" cy="36" rx="22" ry="20" fill="'+a+'"/><path d="M14 30C18 20 46 20 50 30" stroke="#fff" stroke-width="1.4" opacity=".4" fill="none"/>'+
+'<g class="bp-eye"><path d="M19 34Q23 37 27 34" stroke="#1c1c1c" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M37 34Q41 37 45 34" stroke="#1c1c1c" stroke-width="2" fill="none" stroke-linecap="round"/></g>'+
+GG('bp-sway','<path d="M26 42C26 50 28 58 34 60C40 60 40 54 36 54C32 52 38 44 38 42Z" fill="'+a+'" stroke="#0001"/><ellipse cx="35" cy="58" rx="2" ry="1.2" fill="'+b+'"/>')+BLUSH+
+GG('bp-float','<text x="48" y="12" font-size="9" font-weight="900" fill="#fff59d" font-family="sans-serif">z</text><text x="55" y="5" font-size="6" font-weight="900" fill="#fff59d" font-family="sans-serif">z</text>')+SPK(6,8,2,'#fff59d','d2');},
+sakura:function(a,b){var P='';[[8,6,'d0'],[52,14,'d1'],[18,56,'d2'],[58,44,'d3']].forEach(function(p){P+=GG('bp-petal '+p[2],'<path d="M'+p[0]+' '+p[1]+'C'+(p[0]-3)+' '+(p[1]-3)+' '+(p[0]-1)+' '+(p[1]-6)+' '+p[0]+' '+(p[1]-4)+'C'+(p[0]+1)+' '+(p[1]-6)+' '+(p[0]+3)+' '+(p[1]-3)+' '+p[0]+' '+p[1]+'Z" fill="'+a+'"/>');});
+var F='';for(var i=0;i<5;i++)F+='<ellipse cx="32" cy="7" rx="4.6" ry="6.4" fill="'+a+'" transform="rotate('+(i*72)+' 32 13)"/>';
+return P+'<circle cx="32" cy="38" r="21" fill="#fff8fb" stroke="'+a+'" stroke-width="2"/>'+GG('bp-spin',F+'<circle cx="32" cy="13" r="3" fill="#ffd54f"/>')+
+'<g class="bp-eye"><ellipse cx="25" cy="39" rx="2.8" ry="3.6" fill="#3b2a22"/><circle cx="26" cy="37.6" r="1.1" fill="#fff"/><ellipse cx="39" cy="39" rx="2.8" ry="3.6" fill="#3b2a22"/><circle cx="40" cy="37.6" r="1.1" fill="#fff"/></g>'+
+'<path d="M29 46Q32 49 35 46" stroke="#3b2a22" stroke-width="1.4" fill="none" stroke-linecap="round"/><ellipse cx="19" cy="45" rx="3.4" ry="2" fill="'+b+'" opacity=".5"/><ellipse cx="45" cy="45" rx="3.4" ry="2" fill="'+b+'" opacity=".5"/>';}
+});
+var PNAMES={icewolf:"Ice Wolf",firedrake:"Fire Drake",frostdrake:"Frost Drake",shadowcat:"Shadow Cat",griffin:"Griffin",phoenix:"Phoenix",wizowl:"Wizard Owl",wizcat:"Wizard Cat",elfling:"Elfling",gnome:"Gnome",treant:"Treant",golem:"Stone Golem",knight:"Little Knight",dwarf:"Dwarf",raven:"Storm Raven",kraken:"Kraken",serpent:"Serpent",pixie:"Pixie",mimic:"Mimic",slime:"Slime",wisp:"Wisp",pegasus:"Pegasus",hellhound:"Ember Hound",mandrake:"Mandrake",sphinx:"Sphinx",kitsune:"Kitsune",tanuki:"Tanuki",ninja:"Ninja",mecha:"Mecha",luckycat:"Lucky Cat",oni:"Oni",kappa:"Kappa",karasu:"Crow Spirit",mochi:"Mochi Bunny",shiba:"Shiba",ronin:"Ronin Cat",starling:"Star Familiar",koi:"Koi",baku:"Dream Baku",sakura:"Sakura Spirit"};
+var PCSS2=".bxp .bp-spark,.bxp .bp-flame,.bxp .bp-wingl,.bxp .bp-wingr,.bxp .bp-tail,.bxp .bp-float,.bxp .bp-glow,.bxp .bp-sway,.bxp .bp-bounce,.bxp .bp-tongue,.bxp .bp-ear,.bxp .bp-wave,.bxp .bp-swing,.bxp .bp-petal,.bxp .bp-spin{transform-box:fill-box}"+
+".bxp .bp-spark{transform-origin:50% 50%;animation:bpSpk 1.8s ease-in-out infinite}.bxp .d2{animation-delay:-.6s!important}.bxp .d3{animation-delay:-1.2s!important}.bxp .d1{animation-delay:-.3s!important}.bxp .d4{animation-delay:-.9s!important}@keyframes bpSpk{0%,100%{transform:scale(.3);opacity:.2}50%{transform:scale(1.15);opacity:1}}"+
+".bxp .bp-flame{transform-origin:50% 100%;animation:bpFl .45s ease-in-out infinite alternate}@keyframes bpFl{from{transform:scale(1,1) skewX(0)}to{transform:scale(.92,1.1) skewX(4deg)}}"+
+".bxp .bp-wingl{transform-origin:100% 60%;animation:bpWl 1.1s ease-in-out infinite}.bxp .bp-wingr{transform-origin:0 60%;animation:bpWr 1.1s ease-in-out infinite}@keyframes bpWl{50%{transform:rotate(-16deg)}}@keyframes bpWr{50%{transform:rotate(16deg)}}"+
+".bxp .bp-tail{transform-origin:50% 100%;animation:bpTl 2.2s ease-in-out infinite}@keyframes bpTl{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}"+
+".bxp .bp-float{animation:bpFt 2.6s ease-in-out infinite}@keyframes bpFt{50%{transform:translateY(-3px)}}"+
+".bxp .bp-glow{animation:bpGw 1.8s ease-in-out infinite}@keyframes bpGw{50%{opacity:.45}}"+
+".bxp .bp-sway{transform-origin:50% 100%;animation:bpSw 3s ease-in-out infinite}@keyframes bpSw{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}"+
+".bxp .bp-bounce{transform-origin:50% 100%;animation:bpBn 1.4s ease-in-out infinite}@keyframes bpBn{0%,100%{transform:scale(1,1)}40%{transform:scale(1.07,.93)}70%{transform:scale(.96,1.05)}}"+
+".bxp .bp-tongue{transform-origin:50% 0;animation:bpTg 2.4s ease-in-out infinite}@keyframes bpTg{0%,60%,100%{transform:scaleY(0)}70%,90%{transform:scaleY(1)}}"+
+".bxp .bp-ear{transform-origin:100% 80%;animation:bpEr 4s ease-in-out infinite}.bxp .bp-ear.r{transform-origin:0 80%;animation-delay:-.15s}@keyframes bpEr{0%,88%,100%{transform:rotate(0)}92%{transform:rotate(-10deg)}96%{transform:rotate(4deg)}}"+
+".bxp .bp-wave{transform-origin:30% 100%;animation:bpWv 1.2s ease-in-out infinite}@keyframes bpWv{50%{transform:rotate(-22deg)}}"+
+".bxp .bp-swing{transform-origin:50% 0;animation:bpSg 1.2s ease-in-out infinite}@keyframes bpSg{50%{transform:rotate(12deg)}}"+
+".bxp .bp-petal{animation:bpPt 4s linear infinite}@keyframes bpPt{0%{transform:translate(0,-4px) rotate(0);opacity:0}15%{opacity:1}100%{transform:translate(4px,14px) rotate(160deg);opacity:0}}"+
+".bxp .bp-spin{transform-origin:50% 50%;animation:bpSp 9s linear infinite}@keyframes bpSp{to{transform:rotate(360deg)}}"+
+"@media (prefers-reduced-motion:reduce){.bxp *{animation:none!important}}";
+
 var PCSS=".bxp{display:block;overflow:visible}.bxp .bp-eye{transform-box:fill-box;transform-origin:50% 50%;animation:bpBlink 5.5s infinite}@keyframes bpBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.1)}}.bxp .bp-led{animation:bpLed 1.2s ease-in-out infinite}@keyframes bpLed{50%{opacity:.25}}";
-var st=document.createElement("style");st.textContent=PCSS;(document.head||document.documentElement).appendChild(st);
+var st=document.createElement("style");st.textContent=PCSS+PCSS2;(document.head||document.documentElement).appendChild(st);
 function pal(type,n){var P=PAL[type]||PAL.dog;return P[(n||0)%P.length];}
 function svg(type,n,size){var f=D[type];if(!f)return "";var p=pal(type,n);return '<svg class="bxp" viewBox="0 0 64 64" style="width:'+(size||"1em")+';height:'+(size||"1em")+'" xmlns="http://www.w3.org/2000/svg">'+f(p[0],p[1])+'</svg>';}
-window.BXPET={svg:svg,has:function(t){return !!D[t];},variants:function(t){return (PAL[t]||[]).length;},types:Object.keys(D),html:function(t){return D[t]?svg(t,0):"";}};
+window.BXPET={names:PNAMES,svg:svg,has:function(t){return !!D[t];},variants:function(t){return (PAL[t]||[]).length;},types:Object.keys(D),html:function(t){return D[t]?svg(t,0):"";}};
 var E={
 "👑":'<path d="M6 22L18 34L32 10L46 34L58 22L52 52H12Z" fill="#ffca28"/><path d="M12 52H52V58H12Z" fill="#f9a825"/><circle cx="6" cy="21" r="4" fill="#fff59d"/><circle cx="32" cy="9" r="4" fill="#fff59d"/><circle cx="58" cy="21" r="4" fill="#fff59d"/><circle cx="32" cy="42" r="4" fill="#e53935"/><circle cx="20" cy="46" r="3" fill="#1e88e5"/><circle cx="44" cy="46" r="3" fill="#43a047"/>',
 "👒":'<ellipse cx="32" cy="44" rx="30" ry="10" fill="#e8c27a"/><path d="M14 44C14 24 22 14 32 14C42 14 50 24 50 44Z" fill="#f3d58f"/><path d="M14 40H50V46H14Z" fill="#e53935"/><path d="M40 40L46 30L48 42Z" fill="#fff" opacity=".8"/>',
@@ -8503,7 +8781,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                     penguin: "🐧",
                     robot: "🤖",
                     ghost: "👻",
-                    alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲",
+                    alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸",
                 };
 
                 unlocked.forEach((u) => {
@@ -8611,7 +8889,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                         penguin: "🐧",
                         robot: "🤖",
                         ghost: "👻",
-                        alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲",
+                        alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸",
                     };
 
                     if (baseIcons[type]) {
@@ -15025,7 +15303,7 @@ function fxNutEstimate(lines) {
     function adopt() {
         const L = pets(); if (L.length >= slotsAllowed()) { toast(`You can have ${slotsAllowed()} pet${slotsAllowed() > 1 ? "s" : ""} right now. More slots unlock at pet levels 10, 25 and 40 — or buy one for 300 pts below.`); return; }
         const types = JSON.parse(ls("unlockedCompanions", '["dog","cat","bird","fox","bunny","penguin","robot"]'));
-        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
         const el = F.sheet("🐣 Adopt a new pet", `<div class="form-group"><label>Kind</label><select id="fx3-ad-t">${types.map((t) => `<option value="${t}">${icons[t] || ""} ${t[0].toUpperCase() + t.slice(1)}</option>`).join("")}${jget("customCompanions", []).map((c) => `<option value="${c.id}">Custom: ${esc(c.name)}</option>`).join("")}</select></div>
             <div class="form-group"><label>Name</label><input type="text" id="fx3-ad-n" maxlength="20" placeholder="e.g. Biscuit"></div>
             <div class="form-group"><label>Personality</label><select id="fx3-ad-p">${Object.entries(PERS).map(([k, v]) => `<option value="${k}">${v.n} — ${v.d}</option>`).join("")}</select></div>
@@ -15174,7 +15452,7 @@ function fxNutEstimate(lines) {
         window.__fx3CloseRoom = () => { cancelAnimationFrame(raf); clearInterval(idleT); ov.remove(); };
         const pet = { x: 50, y: 74, tx: 50, ty: 74, speed: 0.35, task: null, carry: false, sleep: false };
         let ball = null, treat = null, scene = null, petEl = null, ballEl = null, treatEl = null;
-        const petGlyph = () => { const t = petType(), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" }; if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; } return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐶"; };
+        const petGlyph = () => { const t = petType(), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" }; if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; } return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐶"; };
         const itemHTML = (it, i) => {
             const f = FURN.find((x) => x.id === it.id); if (!f) return "";
             let body = f.svg || `<span class="fx3-furn-e">${f.e}</span>`;
@@ -15330,7 +15608,7 @@ function fxNutEstimate(lines) {
         const host = $("pet-care-section"); if (!host) return;
         let c = $("fx3-mypets"); if (!c) { c = document.createElement("div"); c.className = "card"; c.id = "fx3-mypets"; c.style.borderColor = "#8d6e63"; host.insertAdjacentElement("beforebegin", c); }
         const p = P(), s = p.stats || {}, L = pets(), act = ls("fx3_pet_active", "pet1");
-        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+        const icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
         const daysTogether = Math.max(0, Math.round((new Date(today() + "T00:00:00") - new Date((p.adopted || today()) + "T00:00:00")) / 864e5));
         const bedsOwned = BEDS.filter(bedUnlocked);
         c.innerHTML = `<div class="card-header"><span class="card-title">🐾 My Pets</span><span><button class="btn-action" id="fx3-shop-open" style="padding:4px 10px;font-size:.8rem;background:#00897b">🛍️ Shop</button> <button class="btn-action" id="fx3-room-open" style="padding:4px 10px;font-size:.8rem;background:#8d6e63">🏠 Room</button></span></div>
@@ -15589,14 +15867,14 @@ function fxNutEstimate(lines) {
     const clean = (t) => String(t || "").replace(/[\s\u200d\ufe0f]*\p{Extended_Pictographic}[\s\u200d\ufe0f\p{Extended_Pictographic}]*$/u, "").trim();
     const slotFor = (a) => (jget("fx3_slot_override", {}) || {})[a.id] || a.slot || SLOT_EMOJI[a.data] || "free";
     const curPetType = () => ls("companionType", "dog");
-    const PET_THEME = { dog: "starter", cat: "starter", bird: "starter", fox: "starter", bunny: "starter", penguin: "starter", robot: "special", ghost: "special", alien: "special", hamster: "small", turtle: "small", frog: "small", pig: "small", hedgehog: "small", panda: "wild", koala: "wild", tiger: "wild", lion: "wild", raccoon: "wild", owl: "wild", dragon: "fantasy", unicorn: "fantasy", octopus: "fantasy" };
-    const PET_PRICE = { hamster: 120, frog: 120, pig: 150, hedgehog: 150, turtle: 150, owl: 200, raccoon: 200, panda: 260, koala: 260, tiger: 300, lion: 300, octopus: 320, unicorn: 500, dragon: 600 };
+    const PET_THEME = { dog: "starter", cat: "starter", bird: "starter", fox: "starter", bunny: "starter", penguin: "starter", robot: "special", ghost: "special", alien: "special", hamster: "small", turtle: "small", frog: "small", pig: "small", hedgehog: "small", panda: "wild", koala: "wild", tiger: "wild", lion: "wild", raccoon: "wild", owl: "wild", dragon: "fantasy", unicorn: "fantasy", octopus: "fantasy", icewolf: "mythic", firedrake: "mythic", frostdrake: "mythic", shadowcat: "mythic", griffin: "mythic", phoenix: "mythic", wizowl: "mythic", wizcat: "mythic", elfling: "mythic", gnome: "mythic", treant: "mythic", golem: "mythic", knight: "mythic", dwarf: "mythic", raven: "mythic", kraken: "mythic", serpent: "mythic", pixie: "mythic", mimic: "mythic", slime: "mythic", wisp: "mythic", pegasus: "mythic", hellhound: "mythic", mandrake: "mythic", sphinx: "mythic", kitsune: "anime", tanuki: "anime", ninja: "anime", mecha: "anime", luckycat: "anime", oni: "anime", kappa: "anime", karasu: "anime", mochi: "anime", shiba: "anime", ronin: "anime", starling: "anime", koi: "anime", baku: "anime", sakura: "anime" };
+    const PET_PRICE = { hamster: 120, frog: 120, pig: 150, hedgehog: 150, turtle: 150, owl: 200, raccoon: 200, panda: 260, koala: 260, tiger: 300, lion: 300, octopus: 320, unicorn: 500, dragon: 600 , icewolf: 360, firedrake: 650, frostdrake: 650, shadowcat: 380, griffin: 520, phoenix: 700, wizowl: 420, wizcat: 420, elfling: 400, gnome: 240, treant: 380, golem: 360, knight: 340, dwarf: 320, raven: 300, kraken: 450, serpent: 340, pixie: 360, mimic: 400, slime: 200, wisp: 260, pegasus: 520, hellhound: 480, mandrake: 220, sphinx: 440, kitsune: 600, tanuki: 240, ninja: 340, mecha: 500, luckycat: 300, oni: 360, kappa: 240, karasu: 320, mochi: 180, shiba: 220, ronin: 380, starling: 460, koi: 280, baku: 300, sakura: 260 };
     const unlockedTypes = () => { try { return JSON.parse(ls("unlockedCompanions", '["dog","cat","bird","fox","bunny","penguin","robot"]')) || []; } catch (e) { return []; } };
     const unlockType = (t) => { const L = unlockedTypes(); if (!L.includes(t)) { L.push(t); lsSet("unlockedCompanions", JSON.stringify(L)); } try { window.initCompanion && window.initCompanion(); } catch (e) {} };
     function catalog() {
         const out = [];
         allAcc().forEach((a) => { const custom = !(a.id.startsWith("def_") || a.id.startsWith("fx3_")), toy = a.type === "toy"; out.push({ kind: toy ? "toy" : "acc", id: a.id, n: custom ? a.name : clean(a.name), icon: a.data, cost: custom ? 0 : a.cost || 0, lvl: custom ? 1 : a.unlockLvl || 1, egg: a.egg, ev: a.ev, gems: a.gems, ach: a.ach, note: a.note, rarity: custom ? "common" : rarityOf(a), owned: custom ? true : accOwned(a), slot: toy ? "toy" : slotFor(a), custom }); });
-        if (window.BXPET) BXPET.types.forEach((t) => { const lvl = t === "ghost" ? 12 : t === "alien" ? 18 : 1, cost = PET_PRICE[t] || 0; out.push({ kind: "pet", id: "pt_" + t, type: t, n: t[0].toUpperCase() + t.slice(1), html: BXPET.svg(t, 0, "100%"), cost, lvl, how: lvl > 1 ? "lvl" : "", rarity: cost >= 500 ? "legendary" : cost >= 260 ? "epic" : cost >= 150 || lvl > 1 ? "rare" : "common", owned: unlockedTypes().includes(t), theme: PET_THEME[t] || "special" }); });
+        if (window.BXPET) BXPET.types.forEach((t) => { const lvl = t === "ghost" ? 12 : t === "alien" ? 18 : 1, cost = PET_PRICE[t] || 0; out.push({ kind: "pet", id: "pt_" + t, type: t, n: (BXPET.names && BXPET.names[t]) || (t[0].toUpperCase() + t.slice(1)), html: BXPET.svg(t, 0, "100%"), cost, lvl, how: lvl > 1 ? "lvl" : "", rarity: cost >= 500 ? "legendary" : cost >= 260 ? "epic" : cost >= 150 || lvl > 1 ? "rare" : "common", owned: unlockedTypes().includes(t), theme: PET_THEME[t] || "special" }); });
         (jget("customCompanions", []) || []).forEach((c) => { if (c && c.id) out.push({ kind: "pet", custom: true, id: "pc_" + c.id, type: c.id, n: c.name || "Custom", html: `<img src="${esc(c.data)}" alt="" style="width:100%;height:100%;object-fit:contain;border-radius:12px">`, cost: 0, lvl: 1, rarity: "common", owned: true, theme: "mine" }); });
         BEDS().forEach((b) => out.push({ kind: "bed", id: b.id, n: b.n, svg: b.svg, cost: b.how === "pts" ? b.cost : b.how === "event" ? 120 : 0, lvl: b.lvl || 1, egg: b.how === "egg" ? "epic" : null, ev: b.ev, gems: b.how === "gems" ? b.cost : null, how: b.how, note: b.note, rarity: b.how === "egg" ? "epic" : b.how === "gems" ? "legendary" : rarityOf({ cost: b.cost, lvl: b.lvl }), owned: window.fx3BedUnlocked ? window.fx3BedUnlocked(b) : false }));
         const R = ROOM();
@@ -15694,7 +15972,7 @@ function fxNutEstimate(lines) {
     const TABS_A = [["deals", "🔥 Deals"], ["pets", "🐾 Companions"], ["wear", "👕 Wearables"], ["toys", "🎾 Toys"], ["room", "🛋️ Room"], ["doors", "🚪 Doors"], ["beds", "🛏️ Beds"], ["treats", "🍖 Treats"], ["season", "🎉 Seasonal"]];
     const TABS_B = [["eggs", "🥚 Eggs"], ["sets", "👔 Sets"], ["tags", "🏷️ Name tags"], ["style", "✨ Style"], ["wish", "★ Wishlist"], ["shards", "🔷 Shards"], ["tools", "⚙️ Manage"]];
     const SUBS = {
-        pets: [["all", "All"], ["mine", "My custom"], ["starter", "Starters"], ["small", "Small & cute"], ["wild", "Wild"], ["fantasy", "Fantasy"], ["special", "Special"]],
+        pets: [["all", "All"], ["mine", "My custom"], ["starter", "Starters"], ["small", "Small & cute"], ["wild", "Wild"], ["fantasy", "Fantasy"], ["mythic", "🐉 Mythic realms"], ["anime", "🍥 Anime"], ["special", "Special"]],
         wear: [["all", "All"], ["head", "Head"], ["face", "Face"], ["neck", "Neck"], ["back", "Back"], ["hand", "Hand"], ["side", "Side"], ["mine", "My uploads"]],
         toys: [["all", "All"], ["mine", "My uploads"]],
         room: [["furn", "🛋️ Furniture"], ["decor", "🖼️ Wall art"], ["light", "💡 Lights"], ["win", "🪟 Windows & curtains"], ["door", "🚪 Door decor"], ["hol", "🎄 Holidays"], ["kitchen", "🍳 Kitchen"], ["gym", "🏋️ Workout"], ["var", "🔀 Variants"], ["bobble", "🪆 Bobbleheads"], ["game", "🎮 Game corner"], ["fant", "🔮 Mystical"], ["ghost", "👻 Paranormal"], ["pet", "🐾 Pet stuff"], ["htoy", "🎾 House toys"], ["wall", "🎨 Wallpaper"], ["floor", "🪵 Floors"]],
@@ -17154,7 +17432,7 @@ function fxNutEstimate(lines) {
 
     /* ---------- wardrobe card ---------- */
     function petGlyph() {
-        const t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+        const t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
         if (t.startsWith("comp_")) { const c = jget("customCompanions", []).find((x) => x.id === t); if (c) return `<img src="${c.data}" alt="">`; }
         return (window.BXPET && BXPET.has(t) ? BXPET.svg(t, 0) : icons[t]) || "🐾";
     }
@@ -18715,7 +18993,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var R = (function () { try { return JSON.parse(localStorage.getItem(RS().cur === "home" ? "fx3_room" : "bcx_room_home") || "null"); } catch (e) { return null; } })() || { wall: "w_plain", floor: "f_wood", items: [] };
         var W = R0.WALLS.filter(function (w) { return w.id === R.wall; })[0] || R0.WALLS[0], Fl = R0.FLOORS.filter(function (f) { return f.id === R.floor; })[0] || R0.FLOORS[0];
         var items = (R.items || []).slice(0, 60).map(function (it) { var f = R0.FURN.filter(function (x) { return x.id === it.id; })[0] || {}; var svg = f.svg && f.svg.length < 2500 && f.svg.indexOf("blob:") < 0 ? f.svg : ""; return { x: it.x, y: it.y, s: it.s || 1, e: f.e || (svg ? "" : "🪑"), svg: svg, fl: it.flip ? 1 : 0 }; });
-        var t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+        var t = ls("companionType", "dog"), icons = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
         return { t: Date.now(), pet: petName(), glyph: icons[t] || "🐾", wall: W.css, floor: Fl.css, items: items };
     }
     var pubT = 0;
@@ -20275,7 +20553,7 @@ setTimeout(register,600);setTimeout(register,2500);
     var me = function () { return ls("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
     var names = function () { return window.getHouseholdNames ? window.getHouseholdNames() : { p1: "Person 1", p2: "Person 2" }; };
     var sget = function (k, d) { return jget("bcx_s_" + k, d); }, sset = function (k, v) { jset("bcx_s_" + k, v); };
-    var ICON = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+    var ICON = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
 
     /* ---------- pictures: turn anything only THIS phone can open (saved-in-app, synced, blob:) into a small real picture ---------- */
     var INL = {};   /* key -> data url ("" while working or if it failed) */
@@ -20544,7 +20822,7 @@ var lsr = function (k, d) { try { var v = localStorage.getItem(k); return v == n
 var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 var toast = function (m) { try { window.fxToast && window.fxToast(m); } catch (e) { } };
 var petName = function () { return lsr("companionName", "Buddy"); };
-var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
 function pe() { return PEMO[lsr("companionType", "dog")] || pe() + ""; }
 var me = function () { return lsr("fx_me", "p1") === "p2" ? "p2" : "p1"; }, other = function () { return me() === "p1" ? "p2" : "p1"; };
 var pname = function (w) { try { var n = window.getHouseholdNames ? window.getHouseholdNames() : {}; return n[w] || (w === "p1" ? "Person 1" : "Person 2"); } catch (e) { return "your partner"; } };
@@ -21354,7 +21632,7 @@ var lsr = function (k, d) { try { var v = localStorage.getItem(k); return v == n
 var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
 var toast = function (m) { try { window.fxToast && window.fxToast(m); } catch (e) { } };
 var petName = function () { return lsr("companionName", "Buddy"); };
-var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲" };
+var PEMO = { dog: "🐶", cat: "🐱", bird: "🐦", fox: "🦊", bunny: "🐰", penguin: "🐧", robot: "🤖", ghost: "👻", alien: "👽", hamster: "🐹", turtle: "🐢", frog: "🐸", pig: "🐷", hedgehog: "🦔", panda: "🐼", owl: "🦉", raccoon: "🦝", koala: "🐨", tiger: "🐯", lion: "🦁", octopus: "🐙", unicorn: "🦄", dragon: "🐲", icewolf: "🐺", firedrake: "🐉", frostdrake: "❄️", shadowcat: "🐈‍⬛", griffin: "🦅", phoenix: "🔥", wizowl: "🦉", wizcat: "🧙", elfling: "🧝", gnome: "🍄", treant: "🌳", golem: "🗿", knight: "⚔️", dwarf: "⛏️", raven: "🐦‍⬛", kraken: "🦑", serpent: "🐍", pixie: "🧚", mimic: "📦", slime: "🟢", wisp: "✨", pegasus: "🐴", hellhound: "🐕", mandrake: "🌱", sphinx: "🏺", kitsune: "🦊", tanuki: "🍃", ninja: "🥷", mecha: "🤖", luckycat: "🧧", oni: "👹", kappa: "🥒", karasu: "🐦", mochi: "🍡", shiba: "🍥", ronin: "🗡️", starling: "💫", koi: "🎏", baku: "💤", sakura: "🌸" };
 var pe = function () { return PEMO[lsr("companionType", "dog")] || "🐾"; };
 var pnoise = function () { return ({ dog: "Woof!", cat: "Meow!", bird: "Tweet!", fox: "Yip!", bunny: "*thump*", penguin: "Squawk!", robot: "Beep boop!", frog: "Ribbit!", pig: "Oink!", owl: "Hoot!", lion: "Roar!", tiger: "Rawr!", dragon: "Rawr!", ghost: "Boo!", hamster: "Squeak!", unicorn: "Neigh!" })[lsr("companionType", "dog")] || "!"; };
 var rnd = function (a, b) { return a + Math.random() * (b - a); };
