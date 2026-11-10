@@ -22051,5 +22051,106 @@ window.__bcxGhostGear={check:chk,need:NEED};
 })();
 </script>
 <script>(function(){var d=false;function fin(){if(d)return;d=true;requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(function(){window.__bcBootDone&&window.__bcBootDone()},700)})})}if(document.readyState==="complete")fin();else addEventListener("load",fin)})()</script>
+<!-- build 114: easy navigation (bottom bar + full menu) and shop polish -->
+<style id="bcnav-css">
+#bcnav{position:fixed;left:0;right:0;bottom:0;z-index:9600;display:none;justify-content:space-around;align-items:stretch;gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--card-bg,#1e1e1e) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--border-color,#333);box-shadow:0 -8px 24px rgba(0,0,0,.45)}
+body.bcnav-on #bcnav{display:flex}
+body.bcnav-on{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+#bcnav button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px 5px;border:0;border-radius:14px;background:transparent;color:var(--text-muted,#aaa);font:700 .68rem/1.1 inherit;cursor:pointer;transition:transform .12s,background .2s,color .2s;-webkit-tap-highlight-color:transparent}
+#bcnav button i{font-style:normal;font-size:1.45rem;line-height:1.15;transition:transform .2s cubic-bezier(.3,1.6,.5,1);filter:saturate(.75)}
+#bcnav button:active{transform:scale(.92)}
+#bcnav button.on{color:var(--text-color,#fff);background:color-mix(in srgb,var(--accent-color,#00adb5) 24%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 14px color-mix(in srgb,var(--accent-color,#00adb5) 35%,transparent)}
+#bcnav button.on i{transform:translateY(-2px) scale(1.14);filter:none}
+#bcmenu{position:fixed;inset:0;z-index:9500;display:none;flex-direction:column;background:color-mix(in srgb,var(--bg-color,#121212) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:14px 14px calc(92px + env(safe-area-inset-bottom));overflow-y:auto;animation:bcmIn .22s ease-out}
+#bcmenu.open{display:flex}
+body.bcm-open #floating-companion{opacity:.18;pointer-events:none}
+@keyframes bcmIn{from{opacity:0;transform:translateY(14px)}}
+#bcmenu h2{margin:0;font-size:1.25rem;display:flex;align-items:center;gap:8px}
+#bcmenu .bcm-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+#bcmenu .bcm-x{border:1px solid var(--border-color,#333);background:var(--card-bg,#1e1e1e);color:inherit;border-radius:12px;padding:8px 14px;font-weight:700;cursor:pointer}
+#bcm-q{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:12px;border:1px solid var(--border-color,#333);background:var(--card-bg,#1e1e1e);color:inherit;font-size:1rem;margin-bottom:6px}
+#bcmenu h3{margin:14px 2px 8px;font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--text-muted,#aaa)}
+.bcm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.bcm-grid button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:82px;padding:10px 6px;border-radius:16px;border:1px solid var(--border-color,#333);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0) 60%),var(--card-bg,#1e1e1e);color:inherit;font:700 .8rem/1.15 inherit;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 4px 10px -6px #000;transition:transform .12s,border-color .2s}
+.bcm-grid button i{font-style:normal;font-size:1.7rem;line-height:1}
+.bcm-grid button:active{transform:scale(.94)}
+.bcm-grid button.here{border-color:var(--accent-color,#00adb5);box-shadow:0 0 0 1px var(--accent-color,#00adb5),0 0 14px color-mix(in srgb,var(--accent-color,#00adb5) 40%,transparent)}
+.bcm-foot{margin-top:18px;text-align:center;font-size:.8rem;color:var(--text-muted,#aaa)}
+.bcm-foot a{color:var(--accent-color,#00adb5);font-weight:700;cursor:pointer;text-decoration:underline}
+#bcwhere{display:none;margin:2px auto 8px;width:max-content;max-width:96%;padding:4px 12px;border-radius:999px;font-size:.74rem;font-weight:700;color:var(--text-muted,#aaa);background:rgba(255,255,255,.05);border:1px solid var(--border-color,#333);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.bcnav-on #bcwhere.show{display:block}
+#bcwhere b{color:var(--text-color,#fff)}
+/* shop polish (follows the UI Polish setting) */
+body.ui2 .fx3-item{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.015) 55%),rgba(255,255,255,.03);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 14px -8px #000;transition:transform .14s,box-shadow .2s;overflow:hidden}
+body.ui2 .fx3-item:active{transform:scale(.96)}
+body.ui2 .fx3-item::before{content:"";position:absolute;inset:0 0 auto 0;height:46%;pointer-events:none;border-radius:10px 10px 0 0;opacity:.5;background:radial-gradient(ellipse at 50% 0,var(--rc,rgba(255,255,255,.1)),transparent 70%)}
+body.ui2 .fx3-item.rar-common{--rc:rgba(180,180,180,.16)}
+body.ui2 .fx3-item.rar-rare{--rc:rgba(66,165,245,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 10px rgba(66,165,245,.25)}
+body.ui2 .fx3-item.rar-epic{--rc:rgba(171,71,188,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 12px rgba(171,71,188,.4)}
+body.ui2 .fx3-item.rar-legendary{--rc:rgba(255,179,0,.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 0 16px rgba(255,179,0,.5)}
+body.ui2 .fx3-item.rar-legendary::after{content:"";position:absolute;top:0;bottom:0;left:-60%;width:38%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:bcShine 3.6s ease-in-out infinite}
+@keyframes bcShine{0%,45%{left:-60%}100%{left:140%}}
+body.ui2 .fx3-item b{position:relative}
+body.ui2 .fx3-item small{position:relative}
+body.ui2 .fx3-item .btn-action{position:relative;border-radius:10px}
+body.ui2 .fx3-tabs button,body.ui2 .fx3-subnav button{transition:transform .12s,background .2s,box-shadow .2s}
+body.ui2 .fx3-tabs button:active,body.ui2 .fx3-subnav button:active{transform:scale(.94)}
+body.ui2 .fx3-tabs button.on,body.ui2 .fx3-subnav button.on{background-image:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,0) 60%);box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 0 12px color-mix(in srgb,var(--fx3-acc,#00adb5) 50%,transparent)}
+body.ui2 .dashboard-card{background-image:linear-gradient(160deg,rgba(255,255,255,.07),rgba(255,255,255,0) 55%);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 20px -10px #000}
+body.ui2 .settings-nav-btn.active{background-image:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 60%);box-shadow:0 0 12px color-mix(in srgb,var(--accent-color,#00adb5) 45%,transparent)}
+@media (prefers-reduced-motion:reduce){#bcmenu,.fx3-item.rar-legendary::after{animation:none!important}}
+</style>
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)},LS={get:function(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}},set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  var SUB={"settings-pets":{points:"⭐ Points",pet:"🐾 My Pet",shops:"🛍️ Shop",physics:"🧪 Toy Physics"},"settings-look":{theme:"🎨 Theme",effects:"✨ Effects & Sound",layout:"🧩 Tabs & Units",home:"🏠 Household"},"settings-data":{sync:"🔄 Sync",backup:"💾 Backup & Reset",apps:"🕹️ App Library"}};
+  var PNAME={"settings-pets":"Rewards & Pets","settings-look":"Appearance","settings-data":"Data & Sync"};
+  function on(){return LS.get("bcNav","on")!=="off"}
+  function goTab(id){try{window.switchTab(id)}catch(e){}LS.set("bcNavHome",id);window.scrollTo(0,0)}
+  function goSet(page,group){try{window.switchTab("settings")}catch(e){}try{window.switchSettingsPage(page)}catch(e){}
+    var tries=0;(function pick(){var p=$(page),b=p&&p.querySelector('.fx3-subnav [data-sg="'+group+'"]');if(b){if(!b.classList.contains("on"))b.click()}else if(tries++<12){setTimeout(pick,120);return}window.scrollTo(0,0);upd()})()}
+  function where(){var v=document.querySelector(".view.active"),id=v?v.id.replace("view-",""):"";if(id!=="settings")return{tab:id};
+    var pg=document.querySelector(".settings-page.active"),pid=pg?pg.id:"settings-pets",on=pg&&pg.querySelector(".fx3-subnav button.on");return{tab:"settings",page:pid,group:on?on.dataset.sg:""}}
+  function home(){var w=where();if(w.tab&&w.tab!=="settings"){window.scrollTo({top:0,behavior:"smooth"});return}var h=LS.get("bcNavHome","");var b=h&&$("btn-"+h);if(!b||b.offsetParent===null){var f=[].slice.call(document.querySelectorAll(".tab-btn")).filter(function(x){return x.offsetParent!==null&&x.id!=="btn-settings"})[0];h=f?f.id.replace("btn-",""):"workout"}goTab(h)}
+  var bar=document.createElement("nav");bar.id="bcnav";bar.setAttribute("aria-label","Main navigation");
+  bar.innerHTML='<button data-n="home"><i>🏠</i>Home</button><button data-n="pet"><i>🐾</i>My Pet</button><button data-n="shop"><i>🛍️</i>Shop</button><button data-n="arcade"><i>🕹️</i>Arcade</button><button data-n="more"><i>☰</i>More</button>';
+  var menu=document.createElement("div");menu.id="bcmenu";
+  var wh=document.createElement("div");wh.id="bcwhere";
+  function items(){
+    var daily=[].slice.call(document.querySelectorAll(".tab-btn")).filter(function(b){return b.id&&b.id!=="btn-settings"&&getComputedStyle(b).display!=="none"}).map(function(b){var id=b.id.replace("btn-",""),t=b.textContent.trim(),m=t.match(/^(\p{Extended_Pictographic}️?)\s*(.*)$/u);var ic={workout:"💪",nutrition:"🥗",recipes:"📖",chores:"🧹",grocery:"🛒",club:"🏆"}[id]||"📌";return{i:m?m[1]:ic,l:m?m[2]:t,k:"tab:"+id,f:function(){goTab(id)}}});
+    var S=function(i,l,p,g){return{i:i,l:l,k:p+":"+g,f:function(){goSet(p,g)}}},G=function(i,l,u){return{i:i,l:l,k:"url:"+u,f:function(){location.href=u}}};
+    return[["Every day",daily],
+      ["Rewards, pet & shop",[S("⭐","Points & Rewards","settings-pets","points"),S("🐾","My Pet","settings-pets","pet"),S("🛍️","Shop","settings-pets","shops"),S("🧪","Toy Physics","settings-pets","physics"),{i:"💌",l:"Love Notes",k:"mail",f:function(){var b=document.querySelector("#fx-mail-badge");b=b&&b.parentElement;if(b)b.click()}}]],
+      ["Games",[G("🕹️","Arcade","arcade.html"),G("💞","Together Arcade","duo.html"),G("🎣","Reel Legends","reel-legends.html"),G("👻","Reel Spooky","reel-spooky.html"),G("⚔️","Dungeon Dwellers","dungeon-dwellers.html"),G("🌱","Pocket Farm","PocketFarm.html"),G("💰","Loot & Ledger","loot-ledger.html"),G("🎨","Color Art","color-art.html")]],
+      ["Settings",[S("🎨","Theme & Colors","settings-look","theme"),S("✨","Effects & Sound","settings-look","effects"),S("🧩","Tabs & Units","settings-look","layout"),S("🏠","Household","settings-look","home"),S("🔄","Sync","settings-data","sync"),S("💾","Backup & Reset","settings-data","backup")]]];
+  }
+  function openMenu(){var w=where(),cur=w.tab==="settings"?w.page+":"+w.group:"tab:"+w.tab,I=items(),h='<div class="bcm-top"><h2>☰ Everything</h2><button class="bcm-x">✕ Close</button></div><input id="bcm-q" type="search" placeholder="🔎 Find a page…" autocomplete="off">';
+    I.forEach(function(sec,si){h+='<h3>'+sec[0]+'</h3><div class="bcm-grid">'+sec[1].map(function(it,ii){return'<button data-s="'+si+'" data-i="'+ii+'" class="'+(it.k===cur?"here":"")+'"><i>'+it.i+'</i><span>'+it.l+'</span></button>'}).join("")+'</div>'});
+    h+='<div class="bcm-foot">Prefer the old layout? <a id="bcm-off">Hide the bottom bar</a><br>You can turn it back on in ⚙️ Settings → Appearance → Theme → “Bottom navigation bar”.</div>';
+    menu.innerHTML=h;menu.classList.add("open");document.body.classList.add("bcm-open");menu.scrollTop=0;
+    menu.querySelector(".bcm-x").onclick=closeMenu;
+    menu.querySelectorAll(".bcm-grid button").forEach(function(b){b.onclick=function(){closeMenu();I[+b.dataset.s][1][+b.dataset.i].f();setTimeout(upd,60)}});
+    $("bcm-off").onclick=function(){setNav("off");closeMenu()};
+    $("bcm-q").oninput=function(){var q=this.value.trim().toLowerCase();menu.querySelectorAll(".bcm-grid button").forEach(function(b){b.style.display=!q||b.textContent.toLowerCase().indexOf(q)>=0?"":"none"});menu.querySelectorAll("h3").forEach(function(h3){var g=h3.nextElementSibling,any=[].some.call(g.children,function(c){return c.style.display!=="none"});h3.style.display=g.style.display=any?"":"none"})};
+    upd()}
+  function closeMenu(){menu.classList.remove("open");document.body.classList.remove("bcm-open");upd()}
+  function upd(){var w=where(),k=menu.classList.contains("open")?"more":w.tab!=="settings"?"home":w.page==="settings-pets"&&w.group==="pet"?"pet":w.page==="settings-pets"&&w.group==="shops"?"shop":"more";
+    [].forEach.call(bar.children,function(b){b.classList.toggle("on",b.dataset.n===k)});
+    if(w.tab==="settings"){wh.innerHTML="⚙️ "+(PNAME[w.page]||"Settings")+(w.group&&SUB[w.page]&&SUB[w.page][w.group]?" › <b>"+SUB[w.page][w.group]+"</b>":"");wh.classList.add("show")}else wh.classList.remove("show");
+    if(w.tab&&w.tab!=="settings")LS.set("bcNavHome",w.tab)}
+  function setNav(v){LS.set("bcNav",v);document.body.classList.toggle("bcnav-on",v!=="off");var s=$("setting-bcnav");if(s)s.value=v==="off"?"off":"on"}
+  window.updateBcNav=setNav;
+  bar.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var n=b.dataset.n;
+    if(n==="more"){menu.classList.contains("open")?closeMenu():openMenu();return}
+    closeMenu();if(n==="home")home();else if(n==="pet")goSet("settings-pets","pet");else if(n==="shop")goSet("settings-pets","shops");else if(n==="arcade"){location.href="arcade.html";return}
+    setTimeout(upd,80)});
+  function init(){document.body.appendChild(menu);document.body.appendChild(bar);
+    var st=$("view-settings")||document.querySelector(".view#view-settings");var nav=document.querySelector(".settings-nav-btn");nav=nav&&nav.parentElement;if(nav&&nav.parentElement)nav.parentElement.insertBefore(wh,nav.nextSibling);
+    var uf=$("setting-ui-fx");uf=uf&&uf.closest(".form-group");if(uf&&!$("setting-bcnav")){var d=document.createElement("div");d.className="form-group";d.style.marginBottom="12px";d.innerHTML='<label for="setting-bcnav">Bottom navigation bar (Home · Pet · Shop · Arcade · More)</label><select id="setting-bcnav" onchange="updateBcNav(this.value)"><option value="on">On</option><option value="off">Off (old layout)</option></select>';uf.parentElement.insertBefore(d,uf)}
+    setNav(on()?"on":"off");upd();setInterval(function(){if(!document.hidden&&on())upd()},700);
+    document.addEventListener("click",function(){setTimeout(upd,120)},true)}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+})();
+</script>
 </body>
 </html>
