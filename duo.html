@@ -199,6 +199,9 @@ input,select{font:inherit;background:#0c0820;color:var(--ink);border:2px solid v
 .op-ln .sl{display:flex;gap:2px;flex:1}.op-ln .sl>div{flex:1;height:24px;background:#0b2a4a;border-radius:5px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 2px 3px #0008}.op-ln .sl>div.hm{background:linear-gradient(160deg,#16a34a,#14532d);font-size:13px}
 .op-ln .wt{display:flex;min-width:30px}
 .op-log{font-size:10px;color:#cfc9ee;line-height:1.3}
+/* build 117 */
+.op-pg .op-ring{display:none}.op-pg.can{cursor:pointer}.op-pg.can .op-ring{display:block;animation:opRing 1s linear infinite;transform-origin:20px 26px}@keyframes opRing{to{transform:rotate(360deg)}}
+.lp-q{text-align:center;border:1px solid #a855f7;background:linear-gradient(160deg,#2a1657,#1b1433)}.lp-q b{color:#fde68a}
 /* build 39: Life Path look */
 .lp-pcs{display:flex;gap:8px}
 .lp-pc{flex:1;min-width:0;border-radius:16px;padding:8px 10px;background:linear-gradient(160deg,#241c4a,#150f33);border:2px solid #ffffff1a;box-shadow:0 4px 0 #0006}
@@ -1958,7 +1961,15 @@ function ptOwn(n,s){return n.kind[s]==="h"?s:"a"}
 function ptBust(n,s,cred,nm){
   Object.keys(n.own).filter(function(i){return n.own[i].o===s}).forEach(function(i){if(cred&&!n.out[cred])n.own[i]={o:cred,h:0};else delete n.own[i]});
   n.cash[s]=0;n.out[s]=1;n.ev={k:"bust",s:s};ptL(n,"💥 "+nm(s)+" is bankrupt!")}
-function ptCheck(n,s,nm,cred){ptAct(n).forEach(function(x){if(n.cash[x]<0)ptBust(n,x,x===s?cred:s,nm)})}
+function ptSellVal(n,i){var o=n.own[i];return Math.round(PT[i].p*.5)+(o.h||0)*Math.round(PT[i].p*.25)}
+function ptRescue(n,x,nm){ /* build 117: sell to the bank before going bust */
+  var mine=function(){return Object.keys(n.own).filter(function(i){return n.own[i].o===x})},got=0,guard=0;
+  while(n.cash[x]<0&&guard++<80){var ps=mine();if(!ps.length)break;var hh=ps.filter(function(i){return n.own[i].h>0}).sort(function(a,b){return PT[a].p-PT[b].p})[0];
+    if(hh!=null){var v=Math.round(PT[hh].p*.25);n.own[hh].h--;n.cash[x]+=v;got+=v;continue}
+    var lone=ps.slice().sort(function(a,b){var ga=PT[a].g?ptGroup(PT[a].g).filter(function(q){return n.own[q]&&n.own[q].o===x}).length:0,gb=PT[b].g?ptGroup(PT[b].g).filter(function(q){return n.own[q]&&n.own[q].o===x}).length:0;return(ga-gb)||(PT[a].p-PT[b].p)})[0];
+    var v2=Math.round(PT[lone].p*.5);delete n.own[lone];n.cash[x]+=v2;got+=v2}
+  if(got)ptL(n,"🏦 "+nm(x)+" sold assets to the bank for $"+got+" to stay in the game")}
+function ptCheck(n,s,nm,cred){ptAct(n).forEach(function(x){if(n.cash[x]<0)ptRescue(n,x,nm);if(n.cash[x]<0)ptBust(n,x,x===s?cred:s,nm)})}
 function ptRoll(n,s,d1,d2,nm){
   var sum=d1+d2,cred=null;n.dice=[d1,d2];n.card=null;n.ev=null;n.rc=(n.rc||0)+1;
   if(n.jail[s]>0){n.jail[s]--;ptL(n,nm(s)+" serves a jail turn.");n.phase="roll";n.dbl=0;return true}
@@ -1987,12 +1998,17 @@ function ptDo(c,k,arg){
   var st=c.st,s=st.cur,n=JSON.parse(JSON.stringify(st)),nm=function(x){return c.names[x]};
   if(k==="roll"){var d1=1+Math.floor(Math.random()*6),d2=1+Math.floor(Math.random()*6);if(ptRoll(n,s,d1,d2,nm))ptFin(c,n,s,true);else c.move(n,ptOwn(n,s));return}
   if(k==="buy"){var q=PT[n.pos[s]];n.cash[s]-=q.p;n.own[n.pos[s]]={o:s,h:0};ptL(n,nm(s)+" bought "+q.n);n.phase="act";n.ev={k:"buy",s:s,i:n.pos[s]};c.move(n,ptOwn(n,s));return}
-  if(k==="pass"){n.phase="act";n.ev=null;c.move(n,ptOwn(n,s));return}
+  if(k==="pass"){n.phase="act";n.ev=null;
+    var pi=n.pos[s],pq=PT[pi],bid=Math.round(pq.p*.9),bots=ptOth(n,s).filter(function(x){return n.kind[x]==="b"&&n.cash[x]-bid>=120}).sort(function(a,b){return n.cash[b]-n.cash[a]});
+    if(bots.length&&Math.random()<.7){var w=bots[0];n.cash[w]-=bid;n.own[pi]={o:w,h:0};n.ev={k:"buy",s:w,i:pi};ptL(n,"🔨 Auction! "+nm(w)+" snapped up "+pq.n+" for $"+bid)}
+    c.move(n,ptOwn(n,s));return}
+  if(k==="bail"){if(n.jail[s]>0&&n.cash[s]>=50){n.cash[s]-=50;n.pot+=50;n.jail[s]=0;ptL(n,"💸 "+nm(s)+" paid $50 bail")}c.move(n,ptOwn(n,s));return}
+  if(k==="sell"){var so=n.own[arg];if(so&&so.o===s){if(so.h>0){so.h--;n.cash[s]+=Math.round(PT[arg].p*.25);ptL(n,nm(s)+" sold a house on "+PT[arg].n+" for $"+Math.round(PT[arg].p*.25))}else{delete n.own[arg];n.cash[s]+=Math.round(PT[arg].p*.5);ptL(n,nm(s)+" sold "+PT[arg].n+" to the bank for $"+Math.round(PT[arg].p*.5))}}c.move(n,ptOwn(n,s));return}
   if(k==="build"){n.cash[s]-=Math.round(PT[arg].p*.5);n.own[arg].h=(n.own[arg].h||0)+1;ptL(n,nm(s)+" built on "+PT[arg].n);n.ev={k:"build",s:s,i:arg};c.move(n,ptOwn(n,s));return}
   if(k==="end"){var again=n.dbl>0&&n.dbl<3&&n.jail[s]<1;n.phase="roll";n.ev=null;if(!again)n.dbl=0;ptFin(c,n,s,!again)}}
 function ptBot(c){
   var st=c.st,s=st.cur,me=s;if(c.doc.winner||st.kind[s]!=="b")return;
-  if(st.phase==="roll"){ptDo(c,"roll");return}
+  if(st.phase==="roll"){if(st.jail[s]>0&&st.cash[s]>=400){ptDo(c,"bail");return}ptDo(c,"roll");return}
   if(st.phase==="buy"){var sq=PT[st.pos[s]],after=st.cash[s]-sq.p,good=sq.t==="rail"||sq.t==="util"?after>=120:after>=(st.turns<14?60:140);
     if(sq.g){var grp=ptGroup(sq.g),mine=grp.filter(function(x){return st.own[x]&&st.own[x].o===s}).length,rival=grp.some(function(x){return st.own[x]&&st.own[x].o!==s});
       if(rival||mine)good=after>=30}
@@ -2079,10 +2095,10 @@ reg("tycoon",{title:"Property Tycoon",icon:"🏙️",desc:"2-4 players, bots, 13
   else if(moving)tb="🚶 "+nm(cs)+" is moving…";
   else if(botT)tb="🤔 "+nm(cs)+" is thinking…";
   else if(!mine)tb="⏳ "+nm(cs)+" is playing…";
-  else if(st.phase==="roll"){tb="👉 Your turn";ctl='<button class="pri" id="roll" style="width:100%">'+(st.jail[me]>0?"🔒 Serve your jail turn":"🎲 Roll the dice")+'</button>'}
+  else if(st.phase==="roll"){tb="👉 Your turn";ctl='<button class="pri" id="roll" style="width:100%">'+(st.jail[me]>0?"🔒 Serve your jail turn":"🎲 Roll the dice")+'</button>'+(st.jail[me]>0&&st.cash[me]>=50?'<button id="bail" style="width:100%;margin-top:4px">💸 Pay $50 bail and roll now</button>':"")}
   else if(st.phase==="buy"){tb="🏷️ Buy it?";ctl='<div class="bar"><button class="pri" id="buy" style="flex:1"'+(st.cash[me]<sq.p?" disabled":"")+'>🏷️ Buy '+esc(sq.n)+' · $'+sq.p+'</button><button id="pass" style="flex:1">Pass</button></div>'}
   else{tb="👉 Your turn";var bl=ptBuildable(st,me).map(function(i){var q=PT[i];return'<button data-b="'+i+'" style="font-size:11px;padding:6px">🏠 '+esc(q.n.split(" ")[0])+' $'+Math.round(q.p*0.5)+'</button>'});
-   ctl=(bl.length?'<div class="mut">Build:</div><div class="bar" style="flex-wrap:wrap;justify-content:flex-start;gap:4px">'+bl.join("")+'</div>':"")+'<button class="pri" id="end" style="width:100%;margin-top:4px">'+(st.dbl>0&&st.dbl<3&&st.jail[me]<1?"🎲 Doubles! Roll again":"✅ End turn")+'</button>'}
+   ctl=(bl.length?'<div class="mut">Build:</div><div class="bar" style="flex-wrap:wrap;justify-content:flex-start;gap:4px">'+bl.join("")+'</div>':"")+(sel>=0&&st.own[sel]&&st.own[sel].o===me?'<button id="sell" style="width:100%;margin-top:4px;font-size:12px">🏦 Sell '+(st.own[sel].h>0?"a house on ":"")+esc(PT[sel].n)+' · +$'+Math.round(PT[sel].p*(st.own[sel].h>0?.25:.5))+'</button>':'<div class="mut" style="font-size:11px">Tip: tap one of your properties to sell it to the bank</div>')+'<button class="pri" id="end" style="width:100%;margin-top:4px">'+(st.dbl>0&&st.dbl<3&&st.jail[me]<1?"🎲 Doubles! Roll again":"✅ End turn")+'</button>'}
   var cardNew=FX&&FX.seq===d.seq&&FX.cn;
   var slot;
   if(sel>=0)slot=ptDeed(sel,st,nm);
@@ -2102,6 +2118,8 @@ reg("tycoon",{title:"Property Tycoon",icon:"🏙️",desc:"2-4 players, bots, 13
   var roll=$("#roll",el);if(roll)roll.onclick=function(){window.PT_SEL=null;ptDo(c,"roll")};
   var buy=$("#buy",el);if(buy)buy.onclick=function(){ptDo(c,"buy")};
   var pass=$("#pass",el);if(pass)pass.onclick=function(){ptDo(c,"pass")};
+  var bail=$("#bail",el);if(bail)bail.onclick=function(){ptDo(c,"bail")};
+  var sell=$("#sell",el);if(sell)sell.onclick=function(){var i=sel;window.PT_SEL=null;ptDo(c,"sell",i)};
   el.querySelectorAll("[data-b]").forEach(function(b){b.onclick=function(){ptDo(c,"build",+b.dataset.b)}});
   var end=$("#end",el);if(end)end.onclick=function(){window.PT_SEL=null;ptDo(c,"end")};
   /* the host's phone plays every bot seat */
@@ -2123,7 +2141,7 @@ function opBoard(c,st,cardHTML,hint,ctl){
     if(v<45)return s==="a"?[cx(v-39),cy(1)+15,.78]:[cx(49-v),cy(9)+15,.78];
     var h=s==="a"?[cx(6),cy(1)]:[cx(4),cy(9)];return[h[0]+(k-1)*11,h[1]+9,.5]};
   var pawn=function(s,n,p,fade){var x=p[0],y=p[1],sc=p[2];
-    return'<g transform="translate('+(x-20*sc).toFixed(1)+' '+(y-47*sc).toFixed(1)+') scale('+sc+')"'+(fade?' opacity=".45"':'')+'><ellipse cx="20" cy="47" rx="14" ry="4.2" fill="#000" opacity=".35"/><path d="M20 3a8.5 8.5 0 0 1 5 15.4c3.2 2.1 6.2 6.8 6.2 12.8 0 2.8-.9 4.8-2.4 6.3H33v7H7v-7h4.2C9.7 36 8.8 34 8.8 31.2c0-6 3-10.7 6.2-12.8A8.5 8.5 0 0 1 20 3z" fill="url(#opg'+s+')" stroke="#120a2e" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 38.5h18" stroke="#fff" stroke-opacity=".4" stroke-width="1.6"/><ellipse cx="15.5" cy="10.5" rx="3.4" ry="2.4" fill="#fff" opacity=".75"/><text x="20" y="31" text-anchor="middle" font-size="12.5" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2.6" paint-order="stroke" style="font-family:inherit">'+n+'</text></g>'};
+    return'<g class="op-pg" data-pw="'+s+(n-1)+'" transform="translate('+(x-20*sc).toFixed(1)+' '+(y-47*sc).toFixed(1)+') scale('+sc+')"'+(fade?' opacity=".45"':'')+'><circle class="op-ring" cx="20" cy="26" r="25" fill="none" stroke="#fff" stroke-width="3.5" stroke-dasharray="7 5"/><ellipse cx="20" cy="47" rx="14" ry="4.2" fill="#000" opacity=".35"/><path d="M20 3a8.5 8.5 0 0 1 5 15.4c3.2 2.1 6.2 6.8 6.2 12.8 0 2.8-.9 4.8-2.4 6.3H33v7H7v-7h4.2C9.7 36 8.8 34 8.8 31.2c0-6 3-10.7 6.2-12.8A8.5 8.5 0 0 1 20 3z" fill="url(#opg'+s+')" stroke="#120a2e" stroke-width="2.2" stroke-linejoin="round"/><path d="M11 38.5h18" stroke="#fff" stroke-opacity=".4" stroke-width="1.6"/><ellipse cx="15.5" cy="10.5" rx="3.4" ry="2.4" fill="#fff" opacity=".75"/><text x="20" y="31" text-anchor="middle" font-size="12.5" font-weight="900" fill="#fff" stroke="#120a2e" stroke-width="2.6" paint-order="stroke" style="font-family:inherit">'+n+'</text></g>'};
   var grad=function(s){return'<radialGradient id="opg'+s+'" cx=".32" cy=".28" r=".85"><stop offset="0" style="stop-color:color-mix(in srgb,var(--'+s+') 35%,#fff)"/><stop offset=".5" style="stop-color:var(--'+s+')"/><stop offset="1" style="stop-color:color-mix(in srgb,var(--'+s+') 50%,#000)"/></radialGradient>'};
   var o='<svg viewBox="0 0 472 472" class="op-svg" role="img" aria-label="Slide race board"><defs>'+grad("a")+grad("b")+
     '<linearGradient id="opbd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#efe1bd"/></linearGradient>'+
@@ -2240,7 +2258,7 @@ function lpAnim(el,st,c){
 function lpWheel(spin,anim){
   var rot=spin?(1080-(spin-.5)*36):0,seg='',pegs='',cols=["#ef4444","#f59e0b","#22c55e","#3b82f6","#a855f7"],i;
   for(i=1;i<=10;i++){var a0=((i-1)*36-90)*Math.PI/180,a1=(i*36-90)*Math.PI/180,am=(a0+a1)/2;
-    seg+='<path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="'+cols[(i-1)%5]+'" stroke="#fff" stroke-width="2"/><path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="url(#lpws)" opacity=".5"/><text x="'+(62*Math.cos(am)).toFixed(1)+'" y="'+(62*Math.sin(am)+7).toFixed(1)+'" text-anchor="middle" font-size="21" font-weight="900" fill="#fff" stroke="#00000088" stroke-width="3" paint-order="stroke" transform="rotate('+((i-.5)*36).toFixed(1)+' '+(62*Math.cos(am)).toFixed(1)+' '+(62*Math.sin(am)).toFixed(1)+')">'+i+'</text>'}
+    seg+='<path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="'+cols[(i-1)%5]+'" stroke="#fff" stroke-width="2"/><path d="M0 0L'+(88*Math.cos(a0)).toFixed(1)+' '+(88*Math.sin(a0)).toFixed(1)+'A88 88 0 0 1 '+(88*Math.cos(a1)).toFixed(1)+' '+(88*Math.sin(a1)).toFixed(1)+'Z" fill="url(#lpws)" opacity=".5"/><text x="'+(62*Math.cos(am)).toFixed(1)+'" y="'+(62*Math.sin(am)+7).toFixed(1)+'" text-anchor="middle" font-size="21" font-weight="900" fill="#fff" stroke="#00000088" stroke-width="3" paint-order="stroke" transform="rotate('+((i-.5)*36).toFixed(1)+' '+(62*Math.cos(am)).toFixed(1)+' '+(62*Math.sin(am)).toFixed(1)+')">'+(((i-1)%5)+1)+'</text>'}
   for(i=0;i<20;i++){var a=i*18*Math.PI/180;pegs+='<circle cx="'+(99*Math.cos(a)).toFixed(1)+'" cy="'+(99*Math.sin(a)).toFixed(1)+'" r="3.2" fill="#fff8d6" stroke="#7c5a10" stroke-width="1"/>'}
   return'<div class="lp-wh"><svg viewBox="-110 -118 220 232"><defs><radialGradient id="lpws" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient><linearGradient id="lpgd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset=".5" stop-color="#d4a017"/><stop offset="1" stop-color="#7c5a10"/></linearGradient></defs>'+
     '<ellipse cx="0" cy="104" rx="84" ry="9" fill="#000" opacity=".35"/><circle r="106" fill="url(#lpgd)" stroke="#5a3f08" stroke-width="2"/><circle r="93" fill="#1b1433"/>'+pegs+
@@ -2261,7 +2279,8 @@ function sMoves(st,s,card){
   var out=function(i){if(my[i]!==-1)return;var g=sgl(s,0);if(my.some(function(q,j){return j!==i&&q===0}))return;res.push({i:i,to:0,type:"out",txt:"Pawn "+(i+1)+": leave start"})};
   var n=card;
   if(card==="S"){for(var i=0;i<3;i++)if(my[i]===-1)for(var j=0;j<3;j++)if(op[j]>=0&&op[j]<40)res.push({i:i,to:-9,type:"sorry",opp:j,txt:"SORRY! Pawn "+(i+1)+" takes "+(j+1)+"'s spot"});return res}
-  if(card===1||card===2){for(var a=0;a<3;a++)out(a)}
+  if(card===1||card===2||card===3){for(var a=0;a<3;a++)out(a)}
+  if(card===7){for(var e=0;e<3;e++){var p7=my[e];if(p7>=0&&p7<40)for(var f=0;f<3;f++)if(op[f]>=0&&op[f]<40){var gap=(sgl(o,op[f])-sgl(s,p7)+40)%40;if(gap>0&&gap<=7&&p7+gap<40)res.push({i:e,to:p7+gap,type:"move",txt:"Pawn "+(e+1)+": CHARGE! bump their pawn "+(f+1)+" ("+gap+" ahead)"})}}}
   if(card===4){for(var b=0;b<3;b++){var p=my[b];if(p>=4&&p<40){var g2=sgl(s,p-4);if(!my.some(function(q,j){return j!==b&&q>=0&&q<40&&sgl(s,q)===g2}))res.push({i:b,to:p-4,type:"back",txt:"Pawn "+(b+1)+": back 4"})}}return res}
   for(var k=0;k<3;k++)fwd(k,n);
   if(card===10)for(var m=0;m<3;m++){var pp=my[m];if(pp>=1&&pp<40)res.push({i:m,to:pp-1,type:"back",txt:"Pawn "+(m+1)+": back 1"})}
@@ -2275,7 +2294,7 @@ function sApply(st,s,m){
   if(m.to>=0&&m.to<40){var g3=sgl(s,m.to);if(SLIDE[g3]){var len=SLIDE[g3];for(var t=1;t<=len;t++){var gg=(g3+t)%40;bumpAt(gg);for(var j=0;j<3;j++)if(j!==m.i&&my[j]>=0&&my[j]<40&&sgl(s,my[j])===gg)my[j]=-1}my[m.i]=(g3+len-SS[s]+40)%40;if(my[m.i]>39)my[m.i]=my[m.i]%40;log.push("slid forward "+len+"!")}else bumpAt(g3);var gf=sgl(s,my[m.i]);bumpAt(gf)}
   return log}
 reg("oops",{title:"Oops! Slide Home",icon:"🛝",desc:"Race 3 pawns home, bump your partner",
- init:function(){return{pw:{a:[-1,-1,-1],b:[-1,-1,-1]},phase:"draw",card:null,moves:[],log:["Draw a card to begin."]}},
+ init:function(){return{pw:{a:[0,-1,-1],b:[0,-1,-1]},phase:"draw",card:null,moves:[],streak:{a:0,b:0},log:["One pawn each starts on the track. Draw a card!"]}},
  render:function(el,c){
   var st=c.st,me=c.me,opp=c.opp,N=function(x){return JSON.parse(JSON.stringify(x))},nm=function(s){return esc(c.names[s])};
   var pawn=function(s,n,sz,fade){return'<svg viewBox="0 0 40 52" class="op-pw '+s+(fade?" fade":"")+'" style="width:'+sz+'px"><ellipse cx="20" cy="48" rx="12" ry="3.5" fill="#0007"/><path d="M20 3a8.5 8.5 0 0 1 5 15.4c3.2 2.1 6.2 6.8 6.2 12.8 0 2.8-.9 4.8-2.4 6.3H32v6.5H8v-6.5h3.2C9.7 36 8.8 34 8.8 31.2c0-6 3-10.7 6.2-12.8A8.5 8.5 0 0 1 20 3z" fill="url(#pg'+s+')" stroke="#fff" stroke-width="1.8"/><ellipse cx="16" cy="12" rx="3" ry="2" fill="#fff6"/><text x="20" y="35" text-anchor="middle" font-size="13" font-weight="900" fill="#fff" stroke="#0005" stroke-width=".6">'+n+'</text></svg>'};
@@ -2297,8 +2316,12 @@ reg("oops",{title:"Oops! Slide Home",icon:"🛝",desc:"Race 3 pawns home, bump y
   else if(st.phase==="draw")ctl='<button class="pri" id="draw" style="width:100%">🃏 Draw a card</button>';
   else if(st.phase==="nomove")ctl='<button class="pri" id="passmv" style="width:100%">No legal move · pass</button>';
   else ctl=st.moves.map(function(m,k){return'<button data-m="'+k+'" style="width:100%;margin-top:3px;font-size:12px;padding:7px">'+esc(m.txt)+'</button>'}).join("");
-  el.innerHTML=opBoard(c,st,cardHTML,(st.card==null?"Draw a card to begin":st.card===4?"Back 4":st.card===2?"Out or +2, then draw again":st.card===11?"+11 or swap places":st.card===10?"+10 or back 1":st.card===1?"Out or +1":st.card==="S"?"Take a pawn from start to bump one":"Move "+st.card),ctl);
+  el.innerHTML=opBoard(c,st,cardHTML,(st.card==null?"Draw a card to begin":st.card===4?"Back 4":st.card===2?"Out or +2, then draw again":st.card===11?"+11 or swap places":st.card===10?"+10 or back 1":st.card===1?"Out or +1":st.card===3?"Out or +3":st.card===7?"+7, or charge a pawn within 7":st.card==="S"?"Take a pawn from start to bump one":"Move "+st.card),ctl);
   var d=$("#draw",el);if(d)d.onclick=function(){var deck=[1,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,7,7,7,7,8,8,8,8,10,10,10,10,11,11,11,11,12,12,12,12,"S","S","S","S"],card=deck[Math.floor(Math.random()*deck.length)],n=N(st);n.card=card;n.moves=sMoves(n,me,card);n.phase=n.moves.length?"pick":"nomove";n.log.push(nm(me)+" drew "+(card==="S"?"SORRY!":card));c.move(n,me)};
+  /* build 117: tap a glowing pawn to move it; no-move turns pass on their own */
+  if(c.myTurn&&!c.doc.winner&&st.phase==="pick"&&el.isConnected){var by={};st.moves.forEach(function(m,k){(by[m.i]=by[m.i]||[]).push(k)});
+    Object.keys(by).forEach(function(i){var g=el.querySelector('[data-pw="'+me+i+'"]');if(!g)return;g.classList.add("can");g.onclick=function(){var ks=by[i];if(ks.length===1){var b=el.querySelector('[data-m="'+ks[0]+'"]');if(b)b.click()}else{el.querySelectorAll("[data-m]").forEach(function(b){b.style.display=ks.indexOf(+b.dataset.m)>=0?"":"none";b.classList.add("pri")})}}})}
+  if(c.myTurn&&!c.doc.winner&&st.phase==="nomove"&&el.isConnected&&R&&!(R.local&&me==="b")){var sq9=c.doc.seq,cd9=R.code;setTimeout(function(){if(R&&R.code===cd9&&R.doc.seq===sq9){var b=document.querySelector("#passmv");if(b)b.click()}},1300)}
   var pm=$("#passmv",el);if(pm)pm.onclick=function(){var n=N(st);n.phase="draw";n.moves=[];n.log.push(nm(me)+" had no move.");c.move(n,card2(st)?me:opp)};
   function card2(s){return false}
   el.querySelectorAll("[data-m]").forEach(function(b){b.onclick=function(){var n=N(st),m=n.moves[+b.dataset.m],lg=sApply(n,me,m);n.log.push(nm(me)+": "+m.txt+(lg.length?" ("+lg.join(", ")+")":""));
@@ -2312,7 +2335,20 @@ var LP=(function(){var t=[],ty={0:"start",4:"pay",7:"wed",9:"house",11:"luck",14
 var LPE={start:"🚦",pay:"💵",pay2:"🙂",wed:"💍",house:"🏠",luck:"🍀",baby:"👶",promo:"📈",tax:"🧾",vac:"🏖️",charity:"💝",lotto:"🎰",retire:"🏁"};
 var LPH=[["Cottage",100],["Townhome",180],["Mansion",320]];
 function lpScore(p){return p.cash+p.house+p.pts*10+p.kids*15+(p.spouse?20:0)-p.debt+(p.retired===1?50:p.retired?20:0)}
-reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses. Retire richest",
+var LPQ=[
+ ["Your friend pitches a food truck.",["Invest $15k","50/50: +$45k or lose it",function(p){if(Math.random()<.5){p.cash+=30;return"The food truck is a hit! +$30k profit"}p.cash-=15;return"The truck broke down. -$15k"}],["Wish them luck","Safe: +⭐",function(p){p.pts++;return"You cheered them on. +⭐"}]],
+ ["A job offer arrives from another city.",["Take it","Salary +$10k, moving costs $12k",function(p){p.salary+=10;p.cash-=12;return"New city, new job! Salary +$10k, -$12k moving"}],["Stay put","Keep things steady: +$6k bonus",function(p){p.cash+=6;return"Your boss counter-offers. +$6k"}]],
+ ["You find a wallet stuffed with cash.",["Return it","+⭐⭐ and a small reward",function(p){p.pts+=2;p.cash+=3;return"The owner was thrilled. +⭐⭐ +$3k"}],["Keep it","+$20k… but no stars",function(p){p.cash+=20;return"Finders keepers. +$20k"}]],
+ ["Night school is enrolling.",["Enroll","-$15k now, salary +$12k",function(p){p.cash-=15;p.salary+=12;return"You earned a certificate! Salary +$12k"}],["Skip it","Take a weekend trip: +⭐",function(p){p.pts++;p.cash-=3;return"A relaxing weekend. +⭐ -$3k"}]],
+ ["The stock market is buzzing.",["Go big","-$20k, could double or halve",function(p){var w=Math.random()<.55;p.cash+=w?25:-12;return w?"Stocks soared! +$25k":"Market dip. -$12k"}],["Play it safe","Savings bond: +$8k",function(p){p.cash+=8;return"Slow and steady. +$8k"}]],
+ ["A stray puppy follows you home.",["Adopt it","-$6k, +⭐⭐",function(p){p.cash-=6;p.pts+=2;return"Best decision ever. +⭐⭐ -$6k"}],["Find it a home","+⭐",function(p){p.pts++;return"You found the pup a loving family. +⭐"}]],
+ ["Your garage is full of old stuff.",["Yard sale","+$10k for sure",function(p){p.cash+=10;return"Sold it all. +$10k"}],["Antiques show","Could be treasure… or junk",function(p){var r=Math.random();if(r<.3){p.cash+=40;return"A rare vase! +$40k"}p.cash+=2;return"Mostly junk. +$2k"}]],
+ ["A game show wants you as a contestant!",["Play","Win up to $50k or go home empty",function(p){var r=Math.random();if(r<.2){p.cash+=50;return"GRAND PRIZE! +$50k"}if(r<.6){p.cash+=15;return"Runner-up prize. +$15k"}return"Buzzed out early. Nothing won"}],["Watch from home","Cozy night: +⭐",function(p){p.pts++;return"Popcorn and cheering. +⭐"}]],
+ ["Your car is making a funny noise.",["Fix it now","-$6k",function(p){p.cash-=6;return"Good as new. -$6k"}],["Ignore it","Maybe fine… maybe not",function(p){if(Math.random()<.5)return"It stopped on its own. Phew!";p.cash-=18;return"The engine blew. -$18k"}]],
+ ["A charity marathon is this weekend.",["Run it","+⭐⭐, -$2k entry",function(p){p.pts+=2;p.cash-=2;return"You finished! +⭐⭐"}],["Sponsor a runner","-$8k, +⭐⭐⭐",function(p){p.cash-=8;p.pts+=3;return"Generous! +⭐⭐⭐ -$8k"}]],
+ ["You could start a side business.",["Start it","-$10k now, +$4k salary and a gamble",function(p){p.cash-=10;p.salary+=4;if(Math.random()<.4){p.cash+=25;return"It took off! +$25k and salary +$4k"}return"Slow start. Salary +$4k"}],["Not now","Overtime instead: +$7k",function(p){p.cash+=7;return"Extra shifts paid off. +$7k"}]],
+ ["A relative asks for a loan.",["Lend $10k","They might repay double",function(p){if(Math.random()<.6){p.cash+=10;p.pts++;return"Repaid with interest! +$10k +⭐"}p.cash-=10;p.pts++;return"Never repaid… but family first. -$10k +⭐"}],["Say no kindly","Keep your cash",function(p){return"You kept your savings."}]]];
+reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses, big life choices. Retire richest",
  init:function(){var P=function(){return{pos:0,cash:30,salary:0,debt:0,kids:0,spouse:0,house:0,pts:0,retired:0,path:""}};return{p:{a:P(),b:P()},phase:"fork",log:["Choose your path!"],spin:0,finished:0,houseOffer:-1}},
  render:function(el,c){
   var st=c.st,me=c.me,opp=c.opp,mp=st.p[me],N=function(x){return JSON.parse(JSON.stringify(x))},nm=function(s){return esc(c.names[s])},L=function(n,t){n.log.push(t);if(n.log.length>6)n.log.shift()};
@@ -2330,9 +2366,11 @@ reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses. Ret
   if(c.doc.winner){}else if(!c.myTurn)ctl='<div class="mut" style="text-align:center">⏳ '+nm(c.doc.turn)+' is playing…</div>';
   else if(st.phase==="fork")ctl='<div class="card">Pick your start:</div><div class="bar"><button class="pri" data-f="col" style="flex:1">🎓 College<br><small>$80k salary · $60k debt</small></button><button class="pri" data-f="car" style="flex:1">🛠️ Career<br><small>$50k salary · no debt</small></button><button class="pri" data-f="biz" style="flex:1">🚀 Startup<br><small>$40k · $20k debt · big swings</small></button></div>';
   else if(st.phase==="house")ctl='<div class="card">A house is for sale!</div>'+LPH.map(function(h,i){return'<button data-h="'+i+'" style="width:100%;margin:3px 0"'+(mp.cash<h[1]?" disabled":"")+'>🏠 '+h[0]+' · $'+h[1]+'k</button>'}).join("")+'<button data-h="-1" style="width:100%">No thanks</button>';
+  else if(st.phase==="choice"){var Q=LPQ[st.q%LPQ.length];ctl='<div class="card lp-q"><b>🍀 Life choice</b><br>'+esc(Q[0])+'</div><div class="bar">'+[1,2].map(function(k){return'<button class="pri" data-q="'+k+'" style="flex:1">'+esc(Q[k][0])+'<br><small>'+esc(Q[k][1])+'</small></button>'}).join("")+'</div>'}
+  else if(st.phase==="lotto")ctl='<div class="card lp-q"><b>🎰 Lottery stand</b><br>Feeling lucky?</div><div class="bar"><button class="pri" data-l="1" style="flex:1">1 ticket<br><small>$5k · 1 in 8 wins $120k</small></button><button class="pri" data-l="3" style="flex:1"'+(mp.cash<15?" disabled":"")+'>3 tickets<br><small>$15k · 1 in 3 wins $120k</small></button><button data-l="0" style="flex:1">Walk past<br><small>free</small></button></div>';
   else if(mp.retired)ctl='<button class="pri" id="spin" style="width:100%">Wait for partner…</button>';
   else ctl='<button class="pri" id="spin" style="width:100%">🎡 Spin the wheel</button>';
-  el.innerHTML='<div class="lp-pcs">'+card("a")+card("b")+'</div><div class="lp-board">'+lpBoard(st,c)+'</div><div class="lp-act">'+wheel+'<div class="lp-side"><div class="lp-res">'+(st.spin?'<small>You spun</small><b>'+st.spin+'</b>':'<small>Spin to move</small><b>🎡</b>')+'</div></div></div><div class="lp-ctl">'+ctl+'</div><div class="lp-log">'+st.log.slice(-4).map(esc).join("<br>")+'</div>';
+  el.innerHTML='<div class="lp-pcs">'+card("a")+card("b")+'</div><div class="lp-board">'+lpBoard(st,c)+'</div><div class="lp-act">'+wheel+'<div class="lp-side"><div class="lp-res">'+(st.spin?'<small>Spun</small><b>'+(((st.spin-1)%5)+1)+'</b>':'<small>Spin to move</small><b>🎡</b>')+'</div></div></div><div class="lp-ctl">'+ctl+'</div><div class="lp-log">'+st.log.slice(-4).map(esc).join("<br>")+'</div>';
   lpAnim(el,st,c);
   var done=function(n,next){ /* end-of-game check */
     if(n.p.a.retired&&n.p.b.retired){var sa=lpScore(n.p.a),sb=lpScore(n.p.b);c.move(n,next,sa===sb?"draw":sa>sb?"a":"b");return}
@@ -2340,8 +2378,10 @@ reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses. Ret
   var nextWho=function(n){return n.p[opp].retired&&!n.p[me].retired?me:(n.p[me].retired?opp:opp)};
   el.querySelectorAll("[data-f]").forEach(function(b){b.onclick=function(){var n=N(st),p=n.p[me];if(b.dataset.f==="col"){p.salary=80;p.debt=60;p.path="College"}else if(b.dataset.f==="biz"){p.salary=40;p.debt=20;p.path="Startup"}else{p.salary=50;p.path="Career"}L(n,nm(me)+" chose "+p.path);if(n.p[opp].path)n.phase="spin";done(n,opp)}});
   el.querySelectorAll("[data-h]").forEach(function(b){b.onclick=function(){var i=+b.dataset.h,n=N(st),p=n.p[me];if(i>=0){p.cash-=LPH[i][1];p.house+=LPH[i][1];L(n,nm(me)+" bought a "+LPH[i][0])}n.phase="spin";done(n,nextWho(n))}});
+  el.querySelectorAll("[data-q]").forEach(function(b){b.onclick=function(){var n=N(st),p=n.p[me],Q=LPQ[st.q%LPQ.length][+b.dataset.q];L(n,"🍀 "+nm(me)+": "+Q[0]+" → "+Q[2](p));n.phase="spin";done(n,nextWho(n))}});
+  el.querySelectorAll("[data-l]").forEach(function(b){b.onclick=function(){var k=+b.dataset.l,n=N(st),p=n.p[me];if(!k)L(n,nm(me)+" walked past the lottery stand.");else{p.cash-=5*k;var w=Math.random()<(k===3?1/3:1/8);if(w){p.cash+=120;L(n,"🎰 JACKPOT! "+nm(me)+" wins $120k!")}else L(n,"🎰 No luck: -$"+(5*k)+"k")}n.phase="spin";done(n,nextWho(n))}});
   var sp=$("#spin",el);if(sp&&!mp.retired)sp.onclick=function(){
-    var n=N(st),p=n.p[me],r=1+Math.floor(Math.random()*10);n.spin=r;var np=Math.min(35,p.pos+r);
+    var n=N(st),p=n.p[me],r0=1+Math.floor(Math.random()*10),r=((r0-1)%5)+1;n.spin=r0;var np=Math.min(35,p.pos+r);
     // salary on every pay square passed or landed
     for(var i=p.pos+1;i<=np;i++){var t=LP[i];if(t==="pay"){p.cash+=Math.round(p.salary/2);if(p.path==="Startup"){var sw=Math.floor(Math.random()*21)-6;p.cash+=sw;L(n,"🚀 Startup payday "+(sw>=0?"bonus +$":"dip -$")+Math.abs(sw)+"k")}}}
     p.pos=np;var t2=LP[np],ex=false;L(n,nm(me)+" spun "+r+" "+(LPE[t2]||""));
@@ -2351,8 +2391,10 @@ reg("lifepath",{title:"Life Path",icon:"🎡",desc:"Careers, family, houses. Ret
     else if(t2==="tax"){var tx=Math.round(p.salary*0.15);p.cash-=tx;L(n,"🧾 Taxes: -$"+tx+"k")}
     else if(t2==="vac"){p.cash-=8;p.pts++;L(n,"🏖️ Vacation: -$8k, +⭐")}
     else if(t2==="charity"){p.cash-=5;p.pts+=2;L(n,"💝 Donated: -$5k, +⭐⭐")}
-    else if(t2==="lotto"){var w=Math.floor(Math.random()*10)===0;if(w){p.cash+=150;L(n,"🎰 JACKPOT! +$150k")}else{p.cash-=5;L(n,"🎰 No luck: -$5k")}}
+    else if(t2==="lotto"){n.phase="lotto";c.move(n,me);return}
+    else if(t2==="luck"&&Math.random()<.75){n.q=Math.floor(Math.random()*LPQ.length);if(n.q===st.q)n.q=(n.q+1)%LPQ.length;n.phase="choice";c.move(n,me);return}
     else if(t2==="luck"){var q=Math.floor(Math.random()*14),LK=[[25,0,"Found cash"],[-15,0,"Car trouble"],[0,1,"Helped a stranger"],[10,0,"Side gig"],[-10,0,"Lawsuit"],[40,0,"Inheritance"],[-6,0,"Burst pipe"],[12,0,"Tax refund"],[18,0,"Sold old collectibles"],[-8,1,"Got a speeding ticket... but made a friend at traffic school"],[0,2,"Won the neighbourhood talent show"],[30,0,"Viral video bonus"],[-20,0,"Roof leak"],[15,1,"Mentored an intern"]],e=LK[q];p.cash+=e[0];p.pts+=e[1];L(n,"🍀 "+e[2]+": "+(e[0]?(e[0]>0?"+$":"-$")+Math.abs(e[0])+"k":"")+(e[1]?" "+"⭐".repeat(e[1]):""))}
+    else if(t2==="pay2"&&Math.random()<.5){n.q=Math.floor(Math.random()*LPQ.length);if(n.q===st.q)n.q=(n.q+1)%LPQ.length;n.phase="choice";c.move(n,me);return}
     else if(t2==="pay2"&&Math.random()<.3){var EV=[[3,"Found a $5 note"],[-3,"Bought a fancy coffee"],[4,"Sold a few old books"],[-2,"Parking meter"],[5,"Friend repaid a loan"],[2,"Birthday card with cash"]],ev=EV[Math.floor(Math.random()*EV.length)];p.cash+=ev[0];L(n,"🙂 "+ev[1]+": "+(ev[0]>0?"+$":"-$")+Math.abs(ev[0])+"k")}
     else if(t2==="house"&&p.house<320){n.phase="house";c.move(n,me);return}
     else if(t2==="retire"){p.retired=n.p[opp].retired?2:1;L(n,"🏁 "+nm(me)+" retires"+(p.retired===1?" first! (+$50k bonus)":"."))}
@@ -2787,6 +2829,8 @@ BOTS.lifepath=function(el,c){
   var st=c.st,mp=st.p[c.me];
   if(st.phase==="fork"){bk(el,Math.random()<.5?'[data-f="col"]':'[data-f="car"]');return}
   if(st.phase==="house"){var pick="-1";LPH.forEach(function(h,i){if(mp.cash-h[1]>=25)pick=String(i)});bk(el,'[data-h="'+pick+'"]');return}
+  if(st.phase==="choice"){bk(el,'[data-q="'+(Math.random()<.5?1:2)+'"]');return}
+  if(st.phase==="lotto"){bk(el,'[data-l="'+(mp.cash>60?(Math.random()<.5?3:1):mp.cash>15?1:0)+'"]');return}
   bk(el,"#spin")};
 
 /* ---------- boot ---------- */
