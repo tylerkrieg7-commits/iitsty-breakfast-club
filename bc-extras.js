@@ -11,8 +11,37 @@
     "use strict";
     if (window.BCX) return;
     var FILE = (location.pathname.split("/").pop() || "").toLowerCase();
+    var BCX_BG = null;
     var APP = { "": "club", "index.html": "club", "arcade.html": "arcade", "duo.html": "duo", "pocketfarm.html": "farm", "color-art.html": "color", "loot-ledger.html": "loot", "dungeon-dwellers.html": "dd", "reel-legends.html": "reel", "reel-spooky.html": "spooky" }[FILE] || "other";
     var APPS = [["club", "🏆", "Club"], ["arcade", "🕹️", "Arcade"], ["duo", "💞", "Together Arcade"], ["farm", "🌾", "Pocket Farm"], ["dd", "⚔️", "Dungeon Dwellers"], ["color", "🎨", "Pixel Art"], ["loot", "💰", "Loot Ledger"], ["reel", "🎣", "Reel Legends"], ["spooky", "👻", "Reel Spooky"]];
+    /* ================= background audio guard =================
+       When the app is hidden (switched apps, phone locked, tab changed) every sound engine on
+       this page is suspended and every playing <audio>/<video> is paused; it all resumes on
+       return. The Club page keeps its music player playing on purpose. */
+    (function () {
+        var Base = window.AudioContext || window.webkitAudioContext, ALL = [], MED = [];
+        if (Base && !Base.__bgWrap) {
+            var Wrap = function () { var a = [null].concat([].slice.call(arguments)); var c = new (Function.prototype.bind.apply(Base, a))(); ALL.push(c); return c; };
+            Wrap.prototype = Base.prototype; Wrap.__bgWrap = 1;
+            try { window.AudioContext = Wrap; if (window.webkitAudioContext) window.webkitAudioContext = Wrap; } catch (e) {}
+        }
+        try { var pl = HTMLMediaElement.prototype.play; HTMLMediaElement.prototype.play = function () { if (MED.indexOf(this) < 0) MED.push(this); return pl.apply(this, arguments); }; } catch (e) {}
+        var hidden = false;
+        function hide() {
+            if (hidden) return; hidden = true;
+            ALL.forEach(function (c) { try { if (c.state === "running") { c.__bgS = 1; c.suspend(); } } catch (e) {} });
+            if (APP !== "club") MED.forEach(function (m) { try { if (!m.paused) { m.__bgP = 1; m.pause(); } } catch (e) {} });
+        }
+        function show() {
+            if (!hidden) return; hidden = false;
+            ALL.forEach(function (c) { try { if (c.__bgS) { c.__bgS = 0; c.resume(); } } catch (e) {} });
+            MED.forEach(function (m) { try { if (m.__bgP) { m.__bgP = 0; var p = m.play(); if (p && p.catch) p.catch(function () {}); } } catch (e) {} });
+        }
+        document.addEventListener("visibilitychange", function () { if (document.hidden) hide(); else show(); });
+        window.addEventListener("pagehide", hide);
+        window.addEventListener("pageshow", function () { if (!document.hidden) show(); });
+        BCX_BG = { hide: hide, show: show, ctxs: ALL, media: MED };
+    })();
     var ls = function (k, d) { try { var v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
     var lset = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
     var jget = function (k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
@@ -20,6 +49,7 @@
     var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
     var num = function (v, d) { v = parseFloat(v); return isFinite(v) ? Math.max(0, Math.min(1, v)) : d; };
     var BCX = window.BCX = { app: APP, apps: APPS };
+    try { BCX.bg = BCX_BG; } catch (e) {}
 
     /* ================= sound mixer ================= */
     function mixGet() { var m = jget("bc_mix", {}); return { master: num(m.master, 1), sfx: num(m.sfx, 1), music: num(m.music, 1) }; }
