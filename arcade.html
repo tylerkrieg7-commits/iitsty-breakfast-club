@@ -8246,6 +8246,26 @@ const INKF = "'Courier New', 'Segoe Print', monospace";
     });
 })();
 
+// ---------- MIDNIGHT MYSTERY CLUB (build 119: opens mystery.html) ----------
+(function() {
+    const W = 300, H = 450; let ov = null, S = null;
+    function closeOv() { if(ov) { try { ov.querySelector('iframe').src = 'about:blank'; } catch(e) {} ov.remove(); ov = null; } }
+    function openOv() {
+        closeOv(); ov = document.createElement('div'); ov.id = 'mm-ov'; ov.style.cssText = 'position:fixed;inset:0;z-index:2147470000;background:#0d0820';
+        ov.innerHTML = '<iframe src="mystery.html?arc=1" style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#0d0820"></iframe><button aria-label="Back to the arcade" style="position:absolute;left:8px;top:8px;z-index:2;width:34px;height:34px;border-radius:50%;border:2px solid #ffffff55;background:#000a;color:#fff;font:700 16px sans-serif">◀</button>';
+        document.body.appendChild(ov); ov.querySelector('button').onclick = () => { sfx('click'); closeOv(); refreshWallet(); openHub(); };
+    }
+    defGame({
+        id: 'mystery', name: 'Midnight Mystery Club', icon: '👻', color: '#7c4dff', cat: 'puzzle', isNew: true, w: W, h: H, noPause: true,
+        desc: 'A monster is haunting the lighthouse, the carnival, the swamp, the castle or the ski lodge. Search rooms with the gang and your companion, match clues to suspects, dodge the monster and unmask who is under the costume. A new case every night.',
+        tip: 'Tap the screen to start', help: ['Tap glinting furniture to search', 'Clues reveal shoe size, hand and smell', 'Cross off suspects who do not match', 'Stop the bar in the green to escape the monster', 'Set the trap for the culprit'],
+        init() { S = {f: 0}; setTimeout(() => { if(P.g && P.g.id === 'mystery') openOv(); }, 60); },
+        update() { S.f++; },
+        draw(c) { c.fillStyle = vgrad(c, 0, H, ['#2b1657', '#0d0820']); c.fillRect(0, 0, W, H); EMO(c, '👻', W / 2, 150 + Math.sin(S.f / 20) * 6, 64); PX(c, 'MYSTERY CLUB', W / 2, 235, 11, '#ffd86b', 'center'); T(c, 'Tap to open the case files', W / 2, 270, 13, '#fff'); },
+        pdown() { audio(); openOv(); }
+    });
+})();
+
 // ---------- TOGETHER GAMES (partner or bot) in the main carousel ----------
 (function() {
     const W = 300, H = 450;
