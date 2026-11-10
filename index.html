@@ -15040,7 +15040,9 @@ function fxNutEstimate(lines) {
         const size = clamp((parseInt(getComputedStyle(document.documentElement).getPropertyValue("--companion-size"), 10) || 40) * 1.3, 44, 96) * (parseFloat(ls("fx3_bed_scale", "1")) || 1);
         bedEl.style.width = size + "px";
         const pos = jget("fx3_bed_pos", null) || { x: 12, y: null };
-        const y = pos.y == null ? innerHeight - size * 0.8 - (document.body.classList.contains("tabs-bottom") ? 80 : 12) : pos.y;
+        const nav = document.body.classList.contains("bcnav-on") ? document.getElementById("bcnav") : null, navH = nav && nav.offsetHeight ? nav.offsetHeight + 12 : (nav ? 76 : 0);
+        let y = pos.y == null ? innerHeight - size * 0.8 - (navH || (document.body.classList.contains("tabs-bottom") ? 80 : 12)) : pos.y;
+        if (navH) y = Math.min(y, innerHeight - navH - size * 0.8); /* keep the bed (and sleeping pet) above the bottom bar */
         bedEl.style.left = clamp(pos.x, 0, innerWidth - size) + "px"; bedEl.style.top = clamp(y, 0, innerHeight - 40) + "px";
         bedEl.style.display = enabled && (show === "always" || (show === "sleep" && sleeping)) ? "block" : "none";
     }
@@ -22200,7 +22202,7 @@ body.ui2 .settings-nav-btn.active{background-image:linear-gradient(180deg,rgba(2
     [].forEach.call(bar.children,function(b){b.classList.toggle("on",b.dataset.n===k)});
     if(w.tab==="settings"){wh.innerHTML="⚙️ "+(PNAME[w.page]||"Settings")+(w.group&&SUB[w.page]&&SUB[w.page][w.group]?" › <b>"+SUB[w.page][w.group]+"</b>":"");wh.classList.add("show")}else wh.classList.remove("show");
     if(w.tab&&w.tab!=="settings")LS.set("bcNavHome",w.tab)}
-  function setNav(v){LS.set("bcNav",v);document.body.classList.toggle("bcnav-on",v!=="off");var s=$("setting-bcnav");if(s)s.value=v==="off"?"off":"on"}
+  function setNav(v){LS.set("bcNav",v);document.body.classList.toggle("bcnav-on",v!=="off");var s=$("setting-bcnav");if(s)s.value=v==="off"?"off":"on";try{dispatchEvent(new Event("resize"))}catch(e){}}
   window.updateBcNav=setNav;
   bar.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;var n=b.dataset.n;
     if(n==="more"){menu.classList.contains("open")?closeMenu():openMenu();return}
