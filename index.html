@@ -22162,7 +22162,7 @@ body.bcnav-on{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 #bcnav button.on i{transform:translateY(-2px) scale(1.14);filter:none}
 #bcmenu{position:fixed;inset:0;z-index:9500;display:none;flex-direction:column;background:color-mix(in srgb,var(--bg-color,#121212) 94%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:14px 14px calc(92px + env(safe-area-inset-bottom));overflow-y:auto;animation:bcmIn .22s ease-out}
 #bcmenu.open{display:flex}
-body.bcm-open #floating-companion{opacity:.18;pointer-events:none}
+body.bcm-open #floating-companion,body.bcm-open #interactive-toy,body.bcm-open .fx-pet-bubble,body.bcm-open .fx-pet-particle,body.bcm-open [id^="companion-"]:not(#companion-xp-fill):not(#companion-happiness-fill){visibility:hidden!important;pointer-events:none!important}
 @keyframes bcmIn{from{opacity:0;transform:translateY(14px)}}
 #bcmenu h2{margin:0;font-size:1.25rem;display:flex;align-items:center;gap:8px}
 #bcmenu .bcm-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
