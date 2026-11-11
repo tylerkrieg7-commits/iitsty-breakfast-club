@@ -6694,21 +6694,30 @@ ACH.push(
         S.lanePress[l] = 8;
         if(!best || bd > 0.2) { S.lanePress[l] = 4; return; }
         const x = l * LW + LW / 2;
-        if(bd < 0.075) { best.st = 1; S.perfect++; S.score += 100 * (1 + Math.floor(S.combo / 10) * 0.5); S.combo++; FX.burst(x, HIT_Y, [COL[l], '#fff'], 10, 2.4, {g: 0.04}); FX.text('PERFECT', x, HIT_Y - 26, '#ffea00', 11, {px: true}); sfx('note', 523 * Math.pow(2, l / 6)); }
-        else if(bd < 0.14) { best.st = 2; S.good++; S.score += 50 * (1 + Math.floor(S.combo / 10) * 0.5); S.combo++; FX.burst(x, HIT_Y, COL[l], 6, 1.8); FX.text('GOOD', x, HIT_Y - 26, '#69f0ae', 10, {px: true}); sfx('tick'); }
-        else { best.st = 3; S.miss++; S.combo = 0; FX.text('LATE', x, HIT_Y - 26, '#ff5252', 9, {px: true}); sfx('click'); }
+        if(bd < 0.075) { best.st = 1; S.perfect++; S.score += 100 * (1 + Math.floor(S.combo / 10) * 0.5) * (S.fever > 0 ? 2 : 1); S.combo++; S.hp = Math.min(100, S.hp + 3); FX.burst(x, HIT_Y, [COL[l], '#fff'], 10, 2.4, {g: 0.04}); FX.text('PERFECT', x, HIT_Y - 26, '#ffea00', 11, {px: true}); sfx('note', 523 * Math.pow(2, l / 6)); }
+        else if(bd < 0.14) { best.st = 2; S.good++; S.score += 50 * (1 + Math.floor(S.combo / 10) * 0.5) * (S.fever > 0 ? 2 : 1); S.combo++; S.hp = Math.min(100, S.hp + 1.5); FX.burst(x, HIT_Y, COL[l], 6, 1.8); FX.text('GOOD', x, HIT_Y - 26, '#69f0ae', 10, {px: true}); sfx('tick'); }
+        else { best.st = 3; S.miss++; S.combo = 0; S.hp -= 7; FX.text('LATE', x, HIT_Y - 26, '#ff5252', 9, {px: true}); sfx('click'); }
         S.score = Math.round(S.score); S.maxCombo = Math.max(S.maxCombo, S.combo); A.setScore(S.score);
+        if(S.combo > 0 && S.combo % 25 === 0 && S.fever <= 0) { S.fever = 540; S.fevers++; sfx('win'); FX.text('FEVER! x2', W / 2, 150, '#ffea00', 16, {px: true}); }
+        if(S.hp <= 0) failSong();
+    }
+    function failSong() {
+        if(S.phase !== 'play') return; S.phase = 'over'; try { if(S.src) S.src.stop(); } catch(e) {}
+        A.over({win: false, title: 'SONG FAILED', score: S.score, hsKey: 'rhy_hs', pts: Math.floor(S.score / 2400), reason: 'Rhythm Tap', sub: 'The crowd lost the groove at ' + Math.round(now() / S.dur * 100) + '%', sub2: `${S.perfect} perfect · ${S.good} good · max combo ${S.maxCombo}`});
     }
     function update() {
         S.f++; for(let i = 0; i < LANES; i++) if(S.lanePress[i] > 0) S.lanePress[i]--;
         if(S.phase !== 'play') return;
         const t = now();
-        S.notes.forEach(n => { if(!n.st && t - n.t > 0.2) { n.st = 3; S.miss++; if(S.combo > 4) FX.text('BREAK', n.lane * LW + LW / 2, HIT_Y - 26, '#ff5252', 10, {px: true}); S.combo = 0; } });
+        if(S.fever > 0) S.fever--;
+        S.notes.forEach(n => { if(!n.st && t - n.t > 0.2) { n.st = 3; S.miss++; S.hp -= 7; if(S.combo > 4) FX.text('BREAK', n.lane * LW + LW / 2, HIT_Y - 26, '#ff5252', 10, {px: true}); S.combo = 0; } });
+        if(S.hp <= 0) { failSong(); return; }
         if(S.beat) S.pulse = Math.max(0, 1 - ((t - LEAD) % S.beat) / S.beat);
         if(t > S.dur) {
             const tot = S.notes.length, acc = (S.perfect + S.good * 0.6) / Math.max(1, tot);
             if(S.miss === 0) unlock('rhy_full'); if(S.mine) unlock('rhy_mine');
-            A.over({win: true, title: acc > 0.9 ? 'ROCK STAR!' : 'SONG CLEAR', score: S.score, hsKey: 'rhy_hs', pts: Math.floor(S.score / 900), reason: 'Rhythm Tap', sub: `${Math.round(acc * 100)}% · max combo ${S.maxCombo}`, sub2: `${S.perfect} perfect · ${S.good} good · ${S.miss} missed`});
+            const gr = acc > 0.95 ? 'S' : acc > 0.88 ? 'A' : acc > 0.75 ? 'B' : 'C'; if(gr === 'S') unlock('rhy_full');
+            A.over({win: true, title: (acc > 0.9 ? 'ROCK STAR!' : 'SONG CLEAR') + ' · GRADE ' + gr, score: S.score, hsKey: 'rhy_hs', pts: Math.floor(S.score / 900), reason: 'Rhythm Tap', sub: `${Math.round(acc * 100)}% · max combo ${S.maxCombo}`, sub2: `${S.perfect} perfect · ${S.good} good · ${S.miss} missed · ${S.fevers} fever`});
         }
     }
     function draw(c) {
@@ -6746,6 +6755,8 @@ ACH.push(
         if(S.combo > 3) PX(c, S.combo + ' COMBO', W / 2, 46, 9, '#ffea00', 'center');
         T(c, S.sel.name, W / 2, H - 22, 11, '#ffffff99');
         if(t < LEAD - 0.2) T(c, 'GET READY…', W / 2, 200, 18, '#fff');
+        if(S.fever > 0) { c.save(); c.globalAlpha = 0.14 + 0.1 * Math.sin(S.f / 3); c.fillStyle = '#ffea00'; c.fillRect(0, 0, W, H); c.restore(); PX(c, 'FEVER x2', W / 2, 66, 9, '#ffea00', 'center', '#ff2bd6'); }
+        { c.fillStyle = '#00000066'; c.fillRect(0, 0, W, 7); const hp = clamp(S.hp, 0, 100) / 100; c.fillStyle = hp > 0.5 ? '#69f0ae' : hp > 0.25 ? '#ffca28' : '#ff5252'; c.fillRect(0, 0, W * hp, 7); if(hp < 0.25 && S.f % 20 < 10) { c.fillStyle = 'rgba(255,0,0,.18)'; c.fillRect(0, 0, W, H); } }
         c.fillStyle = '#ffffff22'; c.fillRect(0, H - 6, W, 4); c.fillStyle = '#ff2bd6'; c.fillRect(0, H - 6, W * clamp(t / S.dur, 0, 1), 4);
     }
     function drawMenu(c) {
@@ -6773,9 +6784,9 @@ ACH.push(
     defGame({
         dbg: () => S, id: 'rhythm', name: 'Rhythm Tap', icon: '🎶', color: '#ff4081', cat: 'action', isNew: true, w: W, h: H, noPause: true,
         desc: 'Notes rain down four lanes: tap them as they hit the line! Play three arcade tracks, or pick any song from your own radio library and the game finds the beat for you.',
-        tip: 'Tap the lanes in time · perfect hits build combos', help: ['Tap a lane when a note reaches the glowing line', 'Perfect timing scores double-ish and builds combo', 'Every 10 combo adds +50% to hits', 'Your radio songs work: the game finds the beat automatically'],
+        tip: 'Tap the lanes in time · perfect hits build combos', help: ['Tap a lane when a note reaches the glowing line', 'Perfect timing scores double-ish and builds combo', 'Every 10 combo adds +50% to hits', 'The top bar is the crowd: misses drain it, hits refill it. Empty = song failed', 'Hit every 25 combo for FEVER: double points for 9 seconds', 'Finish with 95%+ for an S grade', 'Your radio songs work: the game finds the beat automatically'],
         best: () => LS.int('rhy_hs') ? fmt(LS.int('rhy_hs')) : '',
-        init() { S = {f: 0, phase: 'menu', mode: 'arc', page: 0, notes: [], score: 0, combo: 0, maxCombo: 0, perfect: 0, good: 0, miss: 0, lanePress: [0, 0, 0, 0], msg: '', pulse: 0}; loadMine(); },
+        init() { S = {f: 0, phase: 'menu', mode: 'arc', page: 0, notes: [], score: 0, combo: 0, maxCombo: 0, perfect: 0, good: 0, miss: 0, lanePress: [0, 0, 0, 0], msg: '', pulse: 0, hp: 60, fever: 0, fevers: 0}; loadMine(); },
         stop() { try { if(S && S.src) S.src.stop(); } catch(e) {} },
         update, draw,
         pdown(x, y) {
@@ -6851,9 +6862,9 @@ ACH.push(
         S.queue = q; S.total = q.length; S.spawned = 0; S.killed = 0; S.hugeAt = q.findIndex(e => e.banner === 1);
     }
     function newLevel(lvl) {
-        const keep = S ? {score: S.score, fast: S.fast} : {score: 0, fast: false};
+        const keep = S ? {score: S.score, fast: S.fast, food: Math.min(S.food || 0, 1)} : {score: 0, fast: false, food: 0};
         S = {f: 0, lvl, sun: 50, plants: [], pests: [], shots: [], suns: [], fxs: [], mowers: [], cd: {}, pick: 'pea', shovel: false, fast: keep.fast, score: keep.score,
-            sunT: 180, banner: '', bannerT: 0, introT: 190, phase: 'play', hint: lvl === 0 ? 1 : 0, over: 0, shake: 0, clearT: 0, unl: unlockedAt(lvl)};
+            sunT: 180, food: keep.food || 0, feed: 0, foodMode: false, banner: '', bannerT: 0, introT: 190, phase: 'play', hint: lvl === 0 ? 1 : 0, over: 0, shake: 0, clearT: 0, unl: unlockedAt(lvl)};
         lanesOf(LV[lvl]).forEach(c => S.mowers.push({c, y: MY, run: 0, gone: 0}));
         SEEDS.forEach(s => S.cd[s.id] = Math.floor(s.cd * 0.25));
         buildLevel();
@@ -6865,7 +6876,7 @@ ACH.push(
         z.hp -= d; z.hit = 4;
         if(!(o && o.silent)) FX.burst(z.x, z.y - 4, z.frost ? ['#b3e5fc', '#fff'] : ['#9ccc65', '#e6ee9c'], 3, 1.2, {life: 16});
     }
-    function killPest(z) { z.dead = 1; S.killed++; S.score += 10 + S.lvl * 2; A.setScore(S.score); FX.burst(z.x, z.y, ['#8bc34a', '#fff59d', '#558b2f'], 12, 2, {life: 28}); if(Math.random() < 0.06) dropSun(z.x, z.y - 10, z.y + 8, 1); }
+    function killPest(z) { z.dead = 1; S.killed++; if(++S.feed >= 10 && S.food < 3) { S.feed = 0; S.food++; sfx('coin'); FX.text('+1 PLANT FOOD', W / 2, 440, '#b9f6ca', 11, {px: true}); } S.score += 10 + S.lvl * 2; A.setScore(S.score); FX.burst(z.x, z.y, ['#8bc34a', '#fff59d', '#558b2f'], 12, 2, {life: 28}); if(Math.random() < 0.06) dropSun(z.x, z.y - 10, z.y + 8, 1); }
     function explode(x, y, rad, dmg) {
         S.pests.forEach(z => { if(Math.hypot(z.x - x, z.y - y) < rad) { hurt(z, dmg, {silent: 1}); if(z.k === 'king') z.hp -= dmg * 0.5; } });
         S.fxs.push({t: 'boom', x, y, r: 6, max: rad, life: 26}); FX.shake(7); sfx('boom'); FX.burst(x, y, ['#ff7043', '#ffeb3b', '#ff1744'], 22, 4, {life: 34});
@@ -6892,7 +6903,7 @@ ACH.push(
         /* plants */
         S.plants.forEach(p => {
             p.t++; const X = cx(p.c), Y = cy(p.r), d = SD[p.id];
-            if(p.rec > 0) p.rec--;
+            if(p.rec > 0) p.rec--; if(p.boost > 0) p.boost--;
             if(p.id === 'sun') { if(p.t >= 260 && (p.t - 260) % 540 === 0) { dropSun(X, Y - 18, Y + 18, 1); sfx('tick'); p.rec = 12; } return; }
             if(p.id === 'nut') return;
             if(p.id === 'chili') { if(p.t >= 46) { explode(X, Y, 100, 190); p.dead = 1; } return; }
@@ -6906,9 +6917,9 @@ ACH.push(
             }
             if(p.cdp > 0) p.cdp--;
             if(!ahead.length) return;
-            const fire = () => { S.shots.push({x: X + (p.id === 'twin' ? (p.alt ? 7 : -7) : 0), y: Y - 40, c: p.c, dmg: 1, frost: p.id === 'frost'}); p.alt = !p.alt; p.rec = 8; sfx('shoot'); };
-            if(p.id === 'twin') { if(p.cdp <= 0) { fire(); p.cdp = 100; p.second = 10; } else if(p.second > 0 && --p.second === 0) fire(); }
-            else if(p.cdp <= 0) { fire(); p.cdp = 88; }
+            const fire = () => { S.shots.push({x: X + (p.id === 'twin' ? (p.alt ? 7 : -7) : 0), y: Y - 40, c: p.c, dmg: p.boost > 0 ? 2 : 1, frost: p.id === 'frost'}); p.alt = !p.alt; p.rec = 8; sfx('shoot'); };
+            if(p.id === 'twin') { if(p.cdp <= 0) { fire(); p.cdp = p.boost > 0 ? 30 : 100; p.second = 10; } else if(p.second > 0 && --p.second === 0) fire(); }
+            else if(p.cdp <= 0) { fire(); p.cdp = p.boost > 0 ? 22 : 88; }
         });
         S.plants = S.plants.filter(p => { if(p.dead) { FX.burst(cx(p.c), cy(p.r) - 8, ['#4caf50', '#8bc34a', '#795548'], 10, 2, {life: 26}); return false; } return true; });
         /* shots */
@@ -7126,6 +7137,7 @@ ACH.push(
         S.plants.forEach(p => list.push({y: cy(p.r) + 14, f: () => { if(p.hurt > 0) { p.hurt--; c.save(); c.translate(Math.sin(TT * 2) * 1, 0); } dPlant(c, p.id, cx(p.c), cy(p.r) + 16, 1, TT + p.t, p); if(p.hurt > 0) c.restore(); }}));
         S.pests.forEach(z => list.push({y: z.y + 14, f: () => dPest(c, z)}));
         list.sort((a, b) => a.y - b.y).forEach(o => o.f());
+        S.plants.forEach(p => { if(p.boost > 0) { c.save(); c.globalAlpha = Math.min(0.5, p.boost / 60) * (0.7 + 0.3 * Math.sin(TT * 0.3)); ell(c, cx(p.c), cy(p.r) + 6, 26, 26, '#b9f6ca'); c.restore(); } });
         S.shots.forEach(s => { c.save(); ell(c, s.x, s.y + 3, 5, 2, '#0003'); ell(c, s.x, s.y, 5.4, 5.4, rg(c, s.x, s.y, 5.4, s.frost ? '#e1f5fe' : '#d4f7a0', s.frost ? '#42a5f5' : '#3aa535'), OUT, 1.4); c.restore(); });
         S.fxs.forEach(f => { if(f.t === 'boom') { c.globalAlpha = clamp(f.life / 26, 0, 1); ell(c, f.x, f.y, f.r, f.r * 0.85, 'rgba(255,170,40,.55)', '#ff7043', 4); ell(c, f.x, f.y, f.r * 0.55, f.r * 0.45, 'rgba(255,240,150,.7)'); c.globalAlpha = 1; } });
         const pk = SD[S.pick];
@@ -7140,6 +7152,7 @@ ACH.push(
         T(c, 'LEVEL ' + (S.lvl + 1) + ' · ' + lv.n, px + pw / 2, 33, 8.5, '#ffe9b8', 'center', null, 800);
         fillRR(c, 264, 5, 40, 30, 9, S.fast ? '#ff9100' : '#2b1a0d'); T(c, S.fast ? '⏩' : '▶', 284, 21, 15);
         fillRR(c, 312, 5, 40, 30, 9, S.shovel ? '#ef5350' : '#2b1a0d'); dShovel(c, 332, 20);
+        { const on = S.foodMode, has = S.food > 0; fillRR(c, 228, 454, 124, 28, 10, on ? '#00e676' : has ? '#1b5e20' : '#2b1a0d'); c.strokeStyle = has ? '#b9f6ca' : '#555'; c.lineWidth = 1.5; rr(c, 228, 454, 124, 28, 10); c.stroke(); T(c, '🧪 Plant Food', 270, 468, 9.5, has ? '#fff' : '#888', 'center', null, 800); for(let i = 0; i < 3; i++) { c.fillStyle = i < S.food ? '#69f0ae' : '#ffffff22'; c.beginPath(); c.arc(318 + i * 11, 468, 4, 0, TAU); c.fill(); } if(!has) { c.fillStyle = '#69f0ae'; c.fillRect(232, 479, 116 * S.feed / 10, 2); } if(on) T(c, 'Tap a plant!', 290, 446, 10, '#b9f6ca', 'center', null, 800); }
         /* tray */
         c.fillStyle = vgrad(c, TRY - 8, H, ['#6b4425', '#3c2512']); c.fillRect(0, TRY - 8, W, H - TRY + 8); c.fillStyle = '#00000044'; c.fillRect(0, TRY - 8, W, 3);
         SEEDS.forEach((s, i) => dPacket(c, i, s));
@@ -7158,6 +7171,16 @@ ACH.push(
         }
     }
     function dShovel(c, x, y) { c.save(); c.translate(x, y); c.rotate(0.7); c.strokeStyle = '#d7b98a'; c.lineWidth = 3.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(0, -11); c.lineTo(0, 4); c.stroke(); c.fillStyle = '#b0bec5'; c.strokeStyle = OUT; c.lineWidth = 1.3; c.beginPath(); c.moveTo(-6, 3); c.lineTo(6, 3); c.lineTo(4, 12); c.lineTo(-4, 12); c.closePath(); c.fill(); c.stroke(); c.restore(); }
+    function feedPlant(p) {
+        const X = cx(p.c), Y = cy(p.r), id = p.id;
+        if(id === 'chili' || id === 'mine') { sfx('error'); return false; }
+        S.food--; S.foodMode = false; p.boost = 420; p.hp = Math.max(p.hp, SD[id].hp);
+        if(id === 'sun') { for(let i = 0; i < 3; i++) dropSun(X + (i - 1) * 16, Y - 18, Y + 18, 1); }
+        else if(id === 'nut') { p.hp = SD.nut.hp * 1.6; }
+        else if(id === 'trap') { p.chew = 0; }
+        sfx('whistle'); FX.burst(X, Y - 10, ['#b9f6ca', '#69f0ae', '#fff'], 18, 3, {life: 34}); FX.text('PLANT FOOD!', clamp(X, 50, W - 50), Y - 28, '#b9f6ca', 11, {px: true});
+        return true;
+    }
     function plant(k, r, id) {
         const d = SD[id]; S.sun -= d.cost; S.cd[id] = d.cd; S.plants.push({id, c: k, r, hp: d.hp, t: 0, cdp: 30, rec: 0});
         sfx('coin'); FX.burst(cx(k), cy(r) + 10, ['#8bc34a', '#6d4c2f', '#fff'], 9, 1.6, {life: 22});
@@ -7166,7 +7189,7 @@ ACH.push(
     defGame({
         dbg: () => S, id: 'garden', name: 'Garden Defense', icon: '🥕', color: '#7cb342', cat: 'action', isNew: true, w: W, h: H, noPause: false,
         desc: 'Pests are marching on the house! Collect sun, plant seeds in the lawn lanes, and stop every wave. 10 levels, new plants to unlock, mowers as a last line, and a Slug King at the end.',
-        tip: 'Tap sun to collect it · pick a seed · tap a lawn tile', help: ['Tap falling sun to collect it', 'Pick a seed at the bottom, then tap a lawn tile', 'Pests chew on plants in their lane. Walls buy time', 'A mower clears one lane if pests get through', 'Clear a level to unlock a new plant'],
+        tip: 'Tap sun to collect it · pick a seed · tap a lawn tile', help: ['Defeat 10 pests to earn Plant Food, then tap 🧪 and a plant to supercharge it: faster, stronger shots, a burst of sun, or a super wall', 'Tap falling sun to collect it', 'Pick a seed at the bottom, then tap a lawn tile', 'Pests chew on plants in their lane. Walls buy time', 'A mower clears one lane if pests get through', 'Clear a level to unlock a new plant'],
         best: () => LS.int('gd_hs') ? fmt(LS.int('gd_hs')) : '',
         init() { S = null; newLevel(clamp(LS.int('gd_lvl', 0), 0, LV.length - 1)); },
         update, draw,
@@ -7177,6 +7200,7 @@ ACH.push(
             const sun = S.suns.filter(s => !s.fly && Math.hypot(s.x - x, s.y - y) < 30).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
             if(sun) { sun.fly = 1; sfx('coin'); if(S.hint === 1 && S.plants.length === 0) S.hint = 1; return; }
             if(y < 40) { if(x > 264 && x < 306) { S.fast = !S.fast; sfx('click'); } else if(x > 312) { S.shovel = !S.shovel; sfx('select'); } return; }
+            if(x >= 228 && x <= 352 && y >= 452 && y <= 484) { if(S.food > 0) { S.foodMode = !S.foodMode; S.shovel = false; sfx('select'); } else { sfx('error'); FX.text('Defeat 10 pests', 290, 446, '#b9f6ca', 10, {px: true}); } return; }
             if(y >= TRY - 6) {
                 for(let i = 0; i < SEEDS.length; i++) { const col = i % 4, row = Math.floor(i / 4), px = 4 + col * (PKW + PKG), py = TRY + row * (PKH + PKG); if(x >= px && x <= px + PKW && y >= py && y <= py + PKH) { const s = SEEDS[i]; if(!S.unl.includes(s.id)) { sfx('error'); return; } S.pick = s.id; S.shovel = false; sfx('select'); } }
                 return;
@@ -7185,6 +7209,7 @@ ACH.push(
             if(k < 0 || k >= COLS || r < 0 || r >= ROWS) return;
             if(!lanesOf(LV[S.lvl]).includes(k)) { sfx('error'); return; }
             const ex = plantAt(k, r);
+            if(S.foodMode) { if(ex) feedPlant(ex); else { S.foodMode = false; sfx('click'); } return; }
             if(S.shovel) { if(ex) { ex.dead = 1; sfx('pop'); S.shovel = false; } return; }
             if(ex) { sfx('error'); return; }
             const d = SD[S.pick]; if(!d || !S.unl.includes(d.id)) return;

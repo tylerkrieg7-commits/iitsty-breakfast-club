@@ -405,6 +405,7 @@ body.tyc #app>.pbar,body.tyc #app>.banner,body.tyc #wbar{display:none}
 .jp .tv-cat{position:relative}.jp-v{margin-left:auto;font-weight:900;font-size:20px;color:#fde047;text-shadow:0 2px 0 #0007}
 .jp-dd{text-align:center;font-weight:900;font-size:34px;line-height:1;color:#fde047;margin:12px 0;letter-spacing:.06em;text-shadow:0 3px 0 #b45309,0 0 24px #fde047aa;animation:jpdd .9s cubic-bezier(.3,1.6,.5,1)}
 @keyframes jpdd{from{transform:scale(.2) rotate(-12deg);opacity:0}}
+.tv-ll{display:flex;gap:8px;justify-content:center;margin-top:8px}.tv-ll button{border-radius:12px;padding:8px 12px;font-weight:800;font-size:.8rem;background:#312e81;color:#fff;border:1.5px solid #6366f1}.tv-ll button:disabled{opacity:.35}.tv-ll button.on{background:#f59e0b;color:#2a1600;border-color:#fde68a}.tv .stk{display:block;font-size:.65rem;color:#fbbf24;font-weight:800}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"></head><body><div class="wrap" id="app"></div>
 <script>
 /* [category, question, RIGHT answer, wrong, wrong, wrong]  (answers are shuffled when asked) */
@@ -1469,7 +1470,7 @@ function beep(f,d){try{var A=window.__ac||(window.__ac=new (window.AudioContext|
 var buzz=function(p){try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
 
 /* ---------- room framework ---------- */
-var R=null; /* {code,slot,doc,sim:{}, mySim:null, ver} */
+window.__duoR=function(){return R};var R=null; /* {code,slot,doc,sim:{}, mySim:null, ver} */
 var timers={poll:0,sim:0};
 var GAMES={};
 function mkCode(){var a="ABCDEFGHJKMNPQRSTUVWXYZ",s="";for(var i=0;i<5;i++)s+=a[Math.floor(Math.random()*a.length)];return s}
@@ -1726,7 +1727,7 @@ reg("reaction",{title:"Reaction Duel",icon:"⚡",desc:"Tap on green. First to 3"
 
 /* ---- Trivia Showdown ---- */
 function triviaPick(d){var cat=(d.opts&&d.opts.cat)||"all",pool=window.DUO_TRIVIA.filter(function(q){return cat==="all"||q[0]===cat}),r=seedRng(d.seed+d.round*977),idx=pool.map(function(_,i){return i});for(var i=idx.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=idx[i];idx[i]=idx[j];idx[j]=t}var seen={};idx=idx.filter(function(i){var t=pool[i][1];if(seen[t])return false;seen[t]=1;return true});return idx.slice(0,Math.min(20,Math.max(5,(d.opts&&d.opts.n)||10))).map(function(i){var q=pool[i],o=[q[2],q[3],q[4],q[5]],rr=seedRng(d.seed+i);for(var a=3;a>0;a--){var b=Math.floor(rr()*(a+1)),t2=o[a];o[a]=o[b];o[b]=t2}return{q:q[1],o:o,a:o.indexOf(q[2]),c:q[0]}})}
-reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"29 categories, 900+ questions. Pick 10, 15 or 20 and outscore your partner",sim:true,
+reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"29 categories, 900+ questions. Streaks add bonus points, plus a 50/50 and a Double Down to use once each. Outscore your partner",sim:true,
  init:function(d){return{qs:triviaPick(d),i:0,sc:{a:0,b:0},pts:[]}},
  render:function(el,c){
   var st=c.st,q=st.qs[st.i],k="q"+st.i+"_"+c.doc.round,my=c.mySim&&c.mySim.k===k?c.mySim:null,op=c.sim&&c.sim.k===k?c.sim:null;
@@ -1734,26 +1735,31 @@ reg("trivia",{title:"Trivia Showdown",icon:"🧠",desc:"29 categories, 900+ ques
   var TK=R.code+k,T=window.TRV_T&&window.TRV_T.k===TK?window.TRV_T:(window.TRV_T={k:TK,s0:Date.now(),read:READ});T.t0=T.s0+T.read;el._T=T;
   var reveal=my&&op,reading=!my&&Date.now()<T.t0;
   var cc=(window.DUO_CATCOL||{})[q.c]||"#a78bfa",cl=(window.DUO_CATS[q.c]||q.c).split(" "),cem=cl.shift(),cname=cl.join(" ");
-  var pts=function(s){return s&&s.a===q.a?100+Math.max(0,Math.round((15000-s.ms)/150)):0};
-  var mePts=pts(my),opPts=pts(op),aPts=c.me==="a"?mePts:opPts,bPts=c.me==="a"?opPts:mePts;
+  var SK=st.sk||{a:0,b:0};var pts=function(s,p){if(!s)return 0;if(s.a===q.a){var base=100+Math.max(0,Math.round((15000-s.ms)/150))+Math.min(SK[p]||0,4)*15;return s.dd?base*2:base}return s.dd?-50:0};
+  var LL=(window.TRV_LL=window.TRV_LL&&window.TRV_LL.c===R.code+c.doc.round?window.TRV_LL:{c:R.code+c.doc.round,f:0,d:0,fq:-1,dq:-1});
+  var mePts=pts(my,c.me),opPts=pts(op,c.opp),aPts=c.me==="a"?mePts:opPts,bPts=c.me==="a"?opPts:mePts;
   var dots="";for(var i=0;i<st.qs.length;i++){var qc=(window.DUO_CATCOL||{})[st.qs[i].c]||"#a78bfa";dots+='<i class="'+(i<st.i||(i===st.i&&reveal)?"dn":i===st.i?"now":"")+'" style="--d:'+qc+'"></i>'}
-  var pl=function(s,p){return'<div class="tv-pl '+s+(c.me===s?" me":"")+'"><span class="av">'+esc(ini(c.names[s]))+'</span><span class="nm">'+esc(c.names[s])+'</span><b>'+st.sc[s]+'</b>'+(reveal&&p?'<em class="gain">+'+p+'</em>':"")+'</div>'};
+  var pl=function(s,p){return'<div class="tv-pl '+s+(c.me===s?" me":"")+'"><span class="av">'+esc(ini(c.names[s]))+'</span><span class="nm">'+esc(c.names[s])+'</span><b>'+st.sc[s]+'</b>'+(reveal&&p?'<em class="gain">'+(p>0?"+":"")+p+'</em>':"")+((SK[s]||0)>=2?'<small class="stk">🔥'+SK[s]+'</small>':"")+'</div>'};
   var picks=function(i){var o="";if(reveal){["a","b"].forEach(function(s){var a=(c.me===s?my:op).a;if(a===i)o+='<span class="pk '+s+'">'+esc(ini(c.names[s]))+'</span>'})}return o};
   var LET=["A","B","C","D"],COL=["#ef4444","#3b82f6","#eab308","#22c55e"];
   var opts;
   if(reading)opts=q.o.map(function(_,i){return'<div class="tv-o sk" style="--oc:'+COL[i]+'"><span class="lt">'+LET[i]+'</span><span class="dots"><i></i><i></i><i></i></span></div>'}).join("");
   else opts=q.o.map(function(o,i){var cls="";if(reveal){cls=i===q.a?"right":(my.a===i||op.a===i)?"wrong":"dim"}else if(my&&my.a===i)cls="pick";
-    return'<button data-i="'+i+'" class="tv-o '+cls+'" style="--oc:'+COL[i]+';animation-delay:'+(i*70)+'ms"'+(my?" disabled":"")+'><span class="lt">'+LET[i]+'</span><span class="tx">'+esc(o)+'</span>'+picks(i)+(cls==="right"?'<span class="tick">✓</span>':"")+'</button>'}).join("");
+    if(!reveal&&LL.fq===st.i&&LL.hide&&LL.hide.indexOf(i)>=0)cls="dim";
+    return'<button data-i="'+i+'" class="tv-o '+cls+'" style="--oc:'+COL[i]+';animation-delay:'+(i*70)+'ms"'+(my||cls==="dim"?" disabled":"")+'><span class="lt">'+LET[i]+'</span><span class="tx">'+esc(o)+'</span>'+picks(i)+(cls==="right"?'<span class="tick">✓</span>':"")+'</button>'}).join("");
   var status=reveal?(mePts?"🎉 Correct! +"+mePts:(my.a===-1?"⏰ Time's up":"😬 Not quite"))+(opPts&&!mePts?" · "+esc(c.names[c.opp])+" got it":""):my?"⏳ Waiting for "+esc(c.names[c.opp])+"…":reading?"📖 Read the question… answers appear soon":"⚡ Faster answers score more";
   el.innerHTML='<div class="tv" style="--cc:'+cc+'"><div class="tv-top">'+pl("a",aPts)+'<div class="tv-q">Q'+(st.i+1)+'<small>/'+st.qs.length+'</small></div>'+pl("b",bPts)+'</div><div class="tv-dots">'+dots+'</div>'+
    '<div class="tv-cat"><span class="em">'+cem+'</span><b>'+esc(cname)+'</b></div><div class="tv-card">'+esc(q.q)+'</div>'+
-   '<div class="tv-bar'+(reading?" rd":"")+'"><i id="tmb"></i></div><div class="tv-st">'+status+'</div><div class="tv-opts">'+opts+'</div></div>';
+   '<div class="tv-bar'+(reading?" rd":"")+'"><i id="tmb"></i></div><div class="tv-st">'+status+'</div><div class="tv-opts">'+opts+'</div>'+(!my&&!reading&&!reveal?'<div class="tv-ll"><button id="ll5" '+(LL.f?"disabled":"")+'>✂️ 50/50</button><button id="lld" class="'+(LL.dq===st.i?"on":"")+'" '+(LL.d&&LL.dq!==st.i?"disabled":"")+'>🎲 Double Down'+(LL.dq===st.i?" ✓":"")+'</button></div>':"")+'</div>';
   var tb=$("#tmb",el);clearInterval(T.iv);
   if(reading){var tick=function(){var b=$("#tmb");if(!b||!R||el._T!==T){clearInterval(T.iv);return}var f=(Date.now()-T.s0)/T.read;b.style.width=Math.min(100,f*100)+"%";if(f>=1){clearInterval(T.iv);render()}};tick();T.iv=setInterval(tick,80)}
   else if(!my&&!reveal){T.iv=setInterval(function(){var l=15000-(Date.now()-T.t0),b=$("#tmb");if(!b||!R||el._T!==T){clearInterval(T.iv);return}b.style.width=Math.max(0,l/150)+"%";if(l<=4000)b.classList.add("hot");if(l<=0){clearInterval(T.iv);c.sendSim({k:k,a:-1,ms:15000});render()}},100)}
   else if(tb)tb.style.width="0";
-  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){if(my||reading)return;clearInterval(T.iv);buzz(15);c.sendSim({k:k,a:+x.dataset.i,ms:Date.now()-T.t0});render()}});
-  if(reveal&&c.me==="a"&&!T.adv){T.adv=1;setTimeout(function(){if(R.doc.st.i!==st.i)return;var n=JSON.parse(JSON.stringify(st));n.sc.a+=pts(c.me==="a"?my:op);n.sc.b+=pts(c.me==="a"?op:my);n.i++;
+  var l5=$("#ll5",el),ld=$("#lld",el);
+  if(l5)l5.onclick=function(){if(LL.f)return;LL.f=1;LL.fq=st.i;LL.hide=[0,1,2,3].filter(function(i){return i!==q.a}).sort(function(){return Math.random()-.5}).slice(0,2);buzz(10);render()};
+  if(ld)ld.onclick=function(){if(LL.d&&LL.dq!==st.i)return;if(LL.dq===st.i){LL.d=0;LL.dq=-1}else{LL.d=1;LL.dq=st.i}buzz(10);render()};
+  el.querySelectorAll("[data-i]").forEach(function(x){x.onclick=function(){if(my||reading)return;clearInterval(T.iv);buzz(15);var m={k:k,a:+x.dataset.i,ms:Date.now()-T.t0};if(LL.dq===st.i)m.dd=1;c.sendSim(m);render()}});
+  if(reveal&&c.me==="a"&&!T.adv){T.adv=1;setTimeout(function(){if(R.doc.st.i!==st.i)return;var n=JSON.parse(JSON.stringify(st));var sa=c.me==="a"?my:op,sb=c.me==="a"?op:my;n.sc.a+=pts(sa,"a");n.sc.b+=pts(sb,"b");n.sk={a:sa&&sa.a===q.a?(SK.a||0)+1:0,b:sb&&sb.a===q.a?(SK.b||0)+1:0};n.i++;
     var done=n.i>=n.qs.length,win=done?(n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"):null;if(done)n.i=n.qs.length-1;var w=Object.assign({},c.doc.wins);if(win&&win!=="draw")w[win]++;put({st:n,winner:win,wins:w});render()},4200)}
  }});
 
@@ -1842,7 +1848,7 @@ function picDraw(cv,strokes){
     x.beginPath();x.moveTo(p[0]*W/1000,p[1]*W/1000);for(var i=2;i<p.length;i+=2)x.lineTo(p[i]*W/1000,p[i+1]*W/1000);x.stroke()});
 }
 function picNorm(s){return String(s||"").toLowerCase().replace(/[^a-z ]/g,"").replace(/\s+/g," ").trim()}
-reg("pictionary",{title:"Draw & Guess",icon:"🎨",desc:"One draws live, one guesses",sim:true,
+reg("pictionary",{title:"Draw & Guess",icon:"🎨",desc:"One draws live, one guesses. Letters get revealed over time (fewer points), quick guesses give the artist a bonus",sim:true,
  init:function(d){var r=seedRng(d.seed+d.round*131),w=[];while(w.length<6){var x=PIC_WORDS[Math.floor(r()*PIC_WORDS.length)];if(w.indexOf(x)<0)w.push(x)}return{words:w,i:0,sc:{a:0,b:0},t0:Date.now()}},
  keep:function(c){
   var st=c.st,k="p"+st.i+"_"+c.doc.round,cv=document.getElementById("pcan");if(!cv||PIC.k!==k||c.doc.winner)return false;
@@ -1854,17 +1860,21 @@ reg("pictionary",{title:"Draw & Guess",icon:"🎨",desc:"One draws live, one gue
   var st=c.st,k="p"+st.i+"_"+c.doc.round,drawer=st.i%2===0?"a":"b",isD=c.me===drawer,word=st.words[st.i];
   if(PIC.k!==k){PIC={k:k,strokes:[],cur:null,col:"#ffffff",wd:5,lastSend:0,dirty:false,guesses:[],clear:0}}
   var left=function(){return Math.max(0,75-Math.round((Date.now()-st.t0)/1000))};
+  var hintN=function(){var e=(Date.now()-st.t0)/1000;return e>=60?3:e>=45?2:e>=25?1:0};
+  var maskOf=function(){var w=word.toUpperCase(),n=hintN(),L=[];for(var i=0;i<w.length;i++)if(/[A-Z0-9]/.test(w[i]))L.push(i);var order=[0,L.length-1,Math.floor(L.length/2)].map(function(k){return L[Math.max(0,Math.min(L.length-1,k))]});var rev={};for(var j=0;j<n;j++)rev[order[j]]=1;return w.split("").map(function(ch,i){return /[A-Z0-9]/.test(ch)?(rev[i]?ch:"_"):(ch===" "?"\u00A0\u00A0":ch)}).join(" ")};
+  var lev=function(a,b){var m=[],i,j;for(i=0;i<=a.length;i++)m[i]=[i];for(j=0;j<=b.length;j++)m[0][j]=j;for(i=1;i<=a.length;i++)for(j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length]};
   var head='<div class="mut" style="text-align:center">Round '+(st.i+1)+'/'+st.words.length+' · '+esc(c.names.a)+' '+st.sc.a+' – '+st.sc.b+' '+esc(c.names.b)+'</div>';
   var cols=["#ffffff","#ff4d8d","#ef4444","#fb923c","#ffd60a","#4ade80","#2dd4bf","#35c8ff","#a78bfa","#f9a8d4","#b45309","#1c4a37"];
-  el.innerHTML=head+'<div class="banner" style="font-size:15px;padding:6px">'+(isD?'🎨 Draw: <b style="color:#ffd60a">'+esc(word.toUpperCase())+'</b>':'👀 '+esc(c.names[drawer])+' is drawing… guess the word!')+' · <span id="ptm">'+left()+'</span>s</div>'+
+  el.innerHTML=head+'<div class="banner" style="font-size:15px;padding:6px">'+(isD?'🎨 Draw: <b style="color:#ffd60a">'+esc(word.toUpperCase())+'</b>':'👀 '+esc(c.names[drawer])+' is drawing… guess the word!')+' · <span id="ptm">'+left()+'</span>s</div>'+(isD?"":'<div id="pmask" style="text-align:center;font-size:26px;letter-spacing:5px;font-weight:900;margin:6px 0;color:#ffd60a"></div>')+''+
    '<canvas id="pcan" width="600" height="600" style="width:100%;max-width:420px;aspect-ratio:1;border-radius:14px;touch-action:none;display:block;margin:0 auto;border:2px solid var(--line)"></canvas>'+
    (isD?'<div class="bar" style="margin-top:8px;flex-wrap:wrap;justify-content:center">'+cols.map(function(x){return'<button data-c="'+x+'" class="pic-sw'+(x===PIC.col?" on":"")+'" style="--sc:'+x+'">'+(x==="#1c4a37"?"🧽":"")+'</button>'}).join("")+'<button id="pw">'+(PIC.wd>6?"🖌️ thick":"✏️ thin")+'</button><button id="pu">↩ Undo</button><button id="pc">🗑 Clear</button></div><div class="mut" id="pg" style="text-align:center;margin-top:6px">No guesses yet…</div><div class="bar" style="margin-top:6px"><button id="ps" style="flex:1">⏭ Skip this word</button></div>':
    '<div class="bar" style="margin-top:8px"><input id="pgi" placeholder="Type your guess" style="flex:1" autocomplete="off"><button class="pri" id="pgb">Guess</button></div><div class="mut" id="pgm" style="text-align:center;margin-top:6px">'+(PIC.guesses.length?"Tried: "+esc(PIC.guesses.join(" · ")):"")+'</div>');
+  var pm=$("#pmask",el);if(pm)pm.textContent=maskOf();
   var cv=$("#pcan",el);picDraw(cv,isD?PIC.strokes:(c.sim&&c.sim.k===k?c.sim.s||[]:[]));
   var advance=function(pts,dPts){var n=JSON.parse(JSON.stringify(st)),gs=other(drawer);n.sc[gs]+=pts;n.sc[drawer]+=dPts;n.i++;n.t0=Date.now();var win=null;
     if(n.i>=n.words.length){n.i=n.words.length-1;win=n.sc.a===n.sc.b?"draw":n.sc.a>n.sc.b?"a":"b"}
     var w=Object.assign({},c.doc.wins);if(win&&win!=="draw")w[win]=(w[win]||0)+1;PIC.k="";put(win?{st:n,winner:win,wins:w}:{st:n});render()};
-  var tmr=setInterval(function(){var t=$("#ptm");if(!t||!R||R.doc.st.i!==st.i){clearInterval(tmr);return}var l=left();t.textContent=l;
+  var tmr=setInterval(function(){var t=$("#ptm");if(!t||!R||R.doc.st.i!==st.i){clearInterval(tmr);return}var l=left();t.textContent=l;var pm2=$("#pmask");if(pm2){var mk=maskOf();if(pm2.textContent!==mk){pm2.textContent=mk;buzz(15);beep(660,.08)}}
     if(l<=0){clearInterval(tmr);if(!isD){advance(0,0)}}
     if(isD&&PIC.dirty&&Date.now()-PIC.lastSend>900)send()},400);
   function send(){PIC.lastSend=Date.now();PIC.dirty=false;c.sendSim({k:k,s:PIC.strokes})}
@@ -1881,8 +1891,8 @@ reg("pictionary",{title:"Draw & Guess",icon:"🎨",desc:"One draws live, one gue
    if(c.sim&&c.sim.k===k&&c.sim.g&&c.sim.g.length)$("#pg",el).textContent="💬 "+c.sim.g.join(" · ");
   } else {
    var go=function(){var inp=$("#pgi");var g=picNorm(inp.value);if(!g)return;inp.value="";
-     if(g===picNorm(word)||(g.length>3&&picNorm(word).indexOf(g)===0&&g.length>=picNorm(word).length-1)){beep(880,.2);advance(100+left()*2,50)}
-     else{PIC.guesses.push(g);c.sendSim({k:k,g:PIC.guesses});$("#pgm").textContent="Tried: "+PIC.guesses.join(" · ");buzz([30]);beep(220,.1)}};
+     if(g===picNorm(word)||(g.length>3&&picNorm(word).indexOf(g)===0&&g.length>=picNorm(word).length-1)){beep(880,.2);advance(Math.max(30,100+left()*2-hintN()*15),50+(left()>45?25:0))}
+     else{PIC.guesses.push(g);c.sendSim({k:k,g:PIC.guesses});var near=g.length>=4&&lev(g,picNorm(word))<=2;$("#pgm").textContent=(near?"🔥 So close! ":"")+"Tried: "+PIC.guesses.join(" · ");buzz([30]);beep(near?440:220,.1)}};
    $("#pgb",el).onclick=go;$("#pgi",el).onkeydown=function(e){if(e.key==="Enter")go()};
   }
  }});
