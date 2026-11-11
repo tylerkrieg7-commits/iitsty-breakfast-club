@@ -15757,6 +15757,27 @@ function fxNutEstimate(lines) {
         add({ id: "h_early", i: "🐓", n: "Early Bird", d: "Finish a workout before 7 am", chk: () => !!flags().early, pts: 40 }, "silver", true);
         add({ id: "h_pets", i: "🤲", n: "Pet Whisperer", d: "Pet your companion 200 times", chk: () => ((pet().stats || {}).pets || 0) >= 200, pts: 50 }, "silver", true);
         add({ id: "h_fetch", i: "🎾", n: "Fetch Fanatic", d: "Play 50 rounds of fetch", chk: () => ((pet().stats || {}).fetches || 0) >= 50, pts: 60 }, "gold", true);
+        /* Build 127: badges for the claw machine, haunted nights, spirit board, movie night */
+        const FN = (k) => ((jget("bc_fun", {}) || {})[k] || 0), HZ = () => jget("bcx_haunt", {}) || {}, OUJ = () => jget("bcx_ouija", {}) || {};
+        add({ id: "claw_1", i: "🧸", n: "First Grab", d: "Win a prize from the Mini Claw", chk: () => FN("claw_win") >= 1, pts: 15 }, "bronze");
+        add({ id: "claw_25", i: "🦾", n: "Claw Pro", d: "Win 25 Mini Claw prizes", chk: () => FN("claw_win") >= 25, pts: 60 }, "silver");
+        add({ id: "claw_set", i: "🗃️", n: "Plush Collector", d: "Win all 14 regular Mini Claw prizes", chk: () => (jget("bc_claw_got", []) || []).filter((k) => k !== "golden").length >= 14, pts: 150 }, "gold");
+        add({ id: "claw_gold", i: "🌟", n: "Golden Grab", d: "Win the super rare Golden Buddy from the Mini Claw", chk: () => FN("claw_gold") >= 1, pts: 200 }, "platinum", true);
+        add({ id: "hz_1", i: "🎃", n: "Survived the Night", d: "Win a haunted night", chk: () => (HZ().wins || 0) >= 1, pts: 25 }, "bronze");
+        add({ id: "hz_5", i: "👻", n: "Ghostbuster", d: "Win 5 haunted nights", chk: () => (HZ().wins || 0) >= 5, pts: 100 }, "silver");
+        add({ id: "hz_coop", i: "🤝", n: "Better Together", d: "Win a haunted night co-op with your partner", chk: () => FN("hz_coop") >= 1, pts: 60 }, "silver");
+        add({ id: "hz_kills", i: "👾", n: "Monster Masher", d: "Defeat 250 haunted-night monsters", chk: () => FN("hz_kills") >= 250, pts: 150 }, "gold");
+        add({ id: "hz_combo", i: "🔥", n: "Combo Ghoul", d: "Hit a x30 combo in a haunted night", chk: () => FN("hz_combo") >= 30, pts: 80 }, "gold", true);
+        add({ id: "ou_1", i: "🕯️", n: "Séance Starter", d: "Ask the spirit board a question", chk: () => FN("ou_ask") >= 1, pts: 15 }, "bronze");
+        add({ id: "ou_25", i: "🔮", n: "The Medium", d: "Ask the spirit board 25 questions", chk: () => FN("ou_ask") >= 25, pts: 60 }, "silver");
+        add({ id: "ou_catch", i: "🪤", n: "Ghost Catcher", d: "Catch 10 ghosts at the spirit board", chk: () => (OUJ().caught || 0) >= 10, pts: 60 }, "silver");
+        add({ id: "ou_3am", i: "🕒", n: "Witching Hour", d: "Ask the spirit board something between 3 and 4 AM", chk: () => FN("ou_3am") >= 1, pts: 66 }, "gold", true);
+        add({ id: "mv_1", i: "🎬", n: "Lights, Camera…", d: "Start a movie night", chk: () => FN("mv_start") >= 1, pts: 15 }, "bronze");
+        add({ id: "mv_10", i: "🎞️", n: "Film Buff", d: "Movie night with 10 different titles", chk: () => (jget("bc_mv_titles", []) || []).length >= 10, pts: 80 }, "silver");
+        add({ id: "mv_tog", i: "💑", n: "Date Night", d: "Watch a movie night together with your partner", chk: () => FN("mv_tog") >= 1, pts: 40 }, "silver");
+        add({ id: "mv_tog10", i: "🛋️", n: "Couch Co-op", d: "Watch together 10 times", chk: () => FN("mv_tog") >= 10, pts: 150 }, "gold");
+        add({ id: "mv_pop", i: "🍿", n: "Popcorn Break", d: "Call a popcorn break during movie night", chk: () => FN("mv_pop") >= 1, pts: 20 }, "bronze", true);
+        add({ id: "mv_late", i: "🌙", n: "Midnight Movie", d: "Start a movie night after midnight", chk: () => FN("mv_late") >= 1, pts: 40 }, "silver", true);
         add({ id: "h_tricks", i: "🎪", n: "Trick Master", d: "Perform every trick", chk: () => (window.FX3_TRICKS || []).every((t) => flags()["trick_" + t.id]), pts: 80 }, "gold", true);
         add({ id: "h_eggs", i: "🐣", n: "Egg Collector", d: "Hatch 10 mystery eggs", chk: () => (parseInt(ls("fx3_eggs_hatched", "0"), 10) || 0) >= 10, pts: 70 }, "gold", true);
         add({ id: "h_jackpot", i: "🎰", n: "Lucky Duck", d: "Hit a jackpot on the daily wheel", chk: () => !!flags().jackpot, pts: 50 }, "gold", true);
@@ -21170,6 +21191,7 @@ function startRaid(practice) {
     function finish(win) {
         if (R.over) return; R.over = true; sync(false); rageUI();
         if (!win && !practice) leaveNote();
+        try { if (!practice && window.bcFun) { bcFun("hz_kills", R.kills || 0); bcFun("hz_combo", R.best || 0, "max"); if (win && coop()) bcFun("hz_coop", 1); } } catch (x) { }
         var e = document.createElement("div"); e.className = "end";
         if (win) {
             tone(523, .2, "triangle", .08); setTimeout(function () { tone(659, .2, "triangle", .08); }, 180); setTimeout(function () { tone(784, .4, "triangle", .08); }, 360); buzz([60, 40, 60, 40, 150]);
@@ -21500,6 +21522,8 @@ function onMovieStart(d) {
     var it = d.it; MV.armed = 0; MV.joining = false; MV.on = true; MV.id = it.Id; MV.name = it.Type === "Episode" ? (it.SeriesName || "") + " · " + it.Name : it.Name; tv.movie = true; MV.brk = false;
     document.body.classList.add("mv-on"); try { window.BCMusic && BCMusic.stop(); } catch (e) { }
     toast("🍿 Movie night! Lights down, " + petName() + " is heading to bed.");
+    try { if (window.bcFun) { bcFun("mv_start", 1); if (new Date().getHours() < 5) bcFun("mv_late", 1); var tl = JSON.parse(localStorage.getItem("bc_mv_titles") || "[]"); var tid = it.SeriesId || it.Id; if (tl.indexOf(tid) < 0) { tl.push(tid); localStorage.setItem("bc_mv_titles", JSON.stringify(tl.slice(-200))); bcFun("mv_t", 0); } } } catch (x) { }
+    MV.togged = false;
     var v = d.v; if (MV.seekTo != null) { var to = MV.seekTo; MV.seekTo = null; v.addEventListener("loadedmetadata", function f() { v.removeEventListener("loadedmetadata", f); MV.applying = Date.now(); try { v.currentTime = to; } catch (e) { } }); }
     bar(); applyScene(); seat();
     if (!MV.hostJoin) setTimeout(function () { writeDoc(); }, 2500);
@@ -21530,7 +21554,7 @@ function bar() {
     };
 }
 function popcorn(local) {
-    var v = vid(); if (!v) return; if (MV.brk) return; MV.brk = true; MV.applying = local ? 0 : Date.now(); try { v.pause(); } catch (e) { }
+    var v = vid(); if (!v) return; if (MV.brk) return; MV.brk = true; if (local) { try { window.bcFun && bcFun("mv_pop", 1); } catch (x) { } } MV.applying = local ? 0 : Date.now(); try { v.pause(); } catch (e) { }
     if (local) writeDoc();
     var o = document.createElement("div"); o.id = "mv-brk"; o.innerHTML = "<h2>🍿 Popcorn break!</h2><div>" + (local ? "The movie is paused for both phones." : esc(pname(other())) + " paused for popcorn.") + '</div><button id="mv-back">▶ Back to the movie</button>'; document.body.appendChild(o);
     for (var i = 0; i < 16; i++) { var p = document.createElement("i"); p.textContent = "🍿"; p.style.left = rnd(2, 94) + "%"; p.style.animationDuration = rnd(2.4, 4.6) + "s"; p.style.animationDelay = rnd(0, 1.8) + "s"; o.appendChild(p); }
@@ -21569,6 +21593,7 @@ function pollDoc() {
         if (!d || !MV.on) return; MV.partner = d;
         var who = $("#mv-who"); var fresh = d.on && d.by === other() && Date.now() - d.t < 25000;
         if (who) who.textContent = fresh ? "👥 Watching with " + pname(other()) : "🎬 Movie night";
+        if (fresh && !MV.togged) { MV.togged = true; try { window.bcFun && bcFun("mv_tog", 1); } catch (x) { } }
         if (!d.on) { if (d.by === other() && MV.on) { toast("🎬 " + pname(other()) + " ended movie night"); } return; }
         if (d.id !== MV.id || d.by === me() || (d.seq || 0) <= (MV.seq || 0)) return;
         MV.seq = d.seq; var v = vid(); if (!v) return; MV.applying = Date.now();
@@ -22058,6 +22083,7 @@ function ouijaGame() {
     var isYN = /^(is|are|will|do|does|can|should|did|has|have|am|was|would|could)\b/i;
     async function ask(q) {
         if (!OU || OU.busy) return; q = (q || "").trim(); if (!q) { psay(pe() + " *sniffs the board*"); return; }
+        try { window.bcFun && (bcFun("ou_ask", 1), new Date().getHours() === 3 && bcFun("ou_3am", 1)); } catch (x) { }
         OU.busy = true; msg.textContent = ""; psay("👀"); hop(); tone(90, 1, "sawtooth", .03, 60);
         var seed = 0; for (var i = 0; i < q.length; i++) seed = (seed * 31 + q.charCodeAt(i)) >>> 0; var r = (seed + Math.floor(Math.random() * 1000)) % 100;
         for (var k = 0; k < 3; k++) { go(pick(Object.keys(POS))); await wait(850); if (!OU) return; }
@@ -22344,32 +22370,37 @@ var ART={
  joy:['Joystick Keychain','Arcade',4,'<rect x="8" y="30" width="32" height="12" rx="4" fill="#1e293b" '+O+'/><circle cx="14" cy="36" r="2.4" fill="#22c55e"/><circle cx="34" cy="36" r="2.4" fill="#3b82f6"/><path d="M24 31V18" stroke="#94a3b8" stroke-width="3.4"/><circle cx="24" cy="14" r="8" fill="#ef4444" '+O+'/><ellipse cx="21" cy="11" rx="3" ry="2" fill="#fff" opacity=".6"/>'],
  star:['Lucky Star Plush','Arcade',8,'<path d="M24 4L29.5 17L43 18L32.5 27L36 41L24 33.5L12 41L15.5 27L5 18L18.5 17Z" fill="#fde047" '+O+'/><ellipse cx="18" cy="16" rx="3" ry="2" fill="#fff" opacity=".7"/>'+eyes(20,28,24)+blush(17,31,28)+'<path d="M21 29Q24 32 27 29" stroke="#1b1030" stroke-width="1.4" fill="none"/>']
 };
-var KEYS=Object.keys(ART),IMG={};
+ART.golden=['Golden Buddy','SUPER RARE',25,'<defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7c2"/><stop offset=".5" stop-color="#facc15"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs><ellipse cx="11" cy="20" rx="6" ry="10" fill="#d97706" '+O+' transform="rotate(20 11 20)"/><ellipse cx="37" cy="20" rx="6" ry="10" fill="#d97706" '+O+' transform="rotate(-20 37 20)"/><circle cx="24" cy="25" r="15" fill="url(#gg)" '+O+'/><path d="M14 9L18 3L22 8L24 2L26 8L30 3L34 9Z" fill="#fde047" stroke="#2b1a3a" stroke-width="1.6"/>'+eyes(18,30,23)+'<ellipse cx="24" cy="29" rx="3" ry="2.2" fill="#1b1030"/><path d="M21 34Q24 36 27 34" stroke="#1b1030" stroke-width="1.3" fill="none"/><path d="M40 30L41 33L44 34L41 35L40 38L39 35L36 34L39 33Z" fill="#fff"/><path d="M7 34L8 36L10 37L8 38L7 40L6 38L4 37L6 36Z" fill="#fff"/>'];
+var KEYS=Object.keys(ART).filter(function(k){return k!=="golden"}),IMG={};
+window.bcFun=function(k,n,mode){try{var f=JSON.parse(localStorage.getItem("bc_fun")||"{}")||{};f[k]=mode==="max"?Math.max(f[k]||0,n||0):(f[k]||0)+(n||0);localStorage.setItem("bc_fun",JSON.stringify(f));window.__fxCore&&window.__fxCore.evaluate&&setTimeout(window.__fxCore.evaluate,200)}catch(e){}};
+function dayKey(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
 function art(k){if(IMG[k])return IMG[k];var a=ART[k],im=new Image();im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">'+a[3]+'</svg>');IMG[k]=im;return im}
 window.BC_CLAW_ART=ART;
 function tn(f,d,t,v,s){try{var A=window.__clawAC=window.__clawAC||new(window.AudioContext||window.webkitAudioContext)();if(A.state==="suspended")A.resume();var o=A.createOscillator(),g=A.createGain(),n=A.currentTime;o.type=t||"square";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.05,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(A.destination);o.start();o.stop(n+d+.02)}catch(e){}}
 function addPts(n){if(!n)return;try{localStorage.setItem("clubPoints",String((parseInt(localStorage.getItem("clubPoints")||"0")||0)+n))}catch(e){}}
 window.bcClaw=function(where){
  if(document.getElementById("claw-ov"))return;
- KEYS.forEach(art);
+ KEYS.forEach(art);art("golden");
+ var LK=where?"bc_claw_day_v":"bc_claw_day",usedToday=localStorage.getItem(LK)===dayKey();
  var W=320,H=380,FL=H-34,CHX=74,PS=40,TOP=34;
  var ov=document.createElement("div");ov.id="claw-ov";
  ov.style.cssText="position:fixed;inset:0;z-index:2147483000;background:rgba(10,6,24,.88);display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;touch-action:manipulation";
  ov.innerHTML='<div style="width:min(94vw,360px);background:linear-gradient(160deg,#f472b6,#a855f7 45%,#6d28d9);border-radius:26px 26px 18px 18px;padding:12px;box-shadow:0 0 0 4px #fde68a,0 0 30px #f472b6aa,0 14px 40px #000c;position:relative"><div class="cw-marq" style="margin:-4px -4px 10px;padding:8px;border-radius:20px 20px 10px 10px;background:linear-gradient(#1e1b4b,#312e81);text-align:center;font:900 22px system-ui,sans-serif;letter-spacing:2px;color:#fde68a;text-shadow:0 0 8px #f472b6,0 0 16px #f472b6">★ MINI CLAW ★</div><div style="display:flex;justify-content:space-between;align-items:center;color:#fff;font-weight:800;margin-bottom:6px;gap:6px"><span style="font-size:13px">'+(where?"🏠 "+where:"🧸 Grab a plush!")+'</span><span id="cw-st" style="font-size:13px"></span><button id="cw-x" style="background:#0005;border:0;color:#fff;border-radius:10px;padding:4px 10px;font-size:16px">✕</button></div><canvas id="cw-c" width="'+W+'" height="'+H+'" style="width:100%;border-radius:12px;background:#140d2e;display:block"></canvas><div style="display:flex;gap:8px;margin-top:10px"><button id="cw-l" class="cwb">◀</button><button id="cw-d" class="cwb" style="flex:2;background:linear-gradient(#ffe27a,#f59e0b);color:#3b1d00">🦾 DROP</button><button id="cw-r" class="cwb">▶</button></div><div id="cw-m" style="text-align:center;color:#fde68a;font-weight:700;margin-top:8px;min-height:20px;font-size:14px">Line it up with ◀ ▶ — tap DROP, tap again to GRAB early!</div><div id="cw-bag" style="display:flex;gap:4px;justify-content:center;min-height:30px;margin-top:4px"></div></div><style>.cwb{flex:1;padding:14px 0;border:0;border-radius:14px;background:#312e81;color:#fff;font-size:20px;font-weight:800;box-shadow:0 4px 0 #1e1b4b;-webkit-user-select:none;user-select:none}.cwb:active{transform:translateY(3px);box-shadow:none}.cw-marq{animation:cwm 1.6s ease-in-out infinite alternate}@keyframes cwm{to{text-shadow:0 0 12px #67e8f9,0 0 24px #67e8f9}}#cw-c{box-shadow:inset 0 0 0 3px #1e1b4b,0 0 0 3px #fde68a55}#cw-bag img{width:30px;height:30px;animation:cwpop .4s ease}@keyframes cwpop{from{transform:scale(0)}}</style>';
  document.body.appendChild(ov);
  var cv=ov.querySelector("#cw-c"),cx=cv.getContext("2d"),st=ov.querySelector("#cw-st"),msg=ov.querySelector("#cw-m"),db=ov.querySelector("#cw-d");
- var tries=5,won=0,pts=0,raf,dead=false,paid=false,fr=0,spk=[],timer=0;
+ var tries=usedToday?0:5,won=0,pts=0,raf,dead=false,paid=false,fr=0,spk=[],timer=0;
  /* prizes: two loose rows in the pit, physics-lite */
- var pr=[];for(var i=0;i<14;i++){var k=KEYS[Math.floor(Math.random()*KEYS.length)],row=i<8?0:1;pr.push({k:k,v:ART[k][2],x:100+(row?16:0)+(i%8)*29+Math.random()*4,y:FL-18-row*22,vy:0,rot:(Math.random()-.5)*.5,got:false,held:false,w:.85+Math.random()*.3+(ART[k][2]>=6?.25:0)})}
+ var pr=[];for(var i=0;i<14;i++){var k=KEYS[Math.floor(Math.random()*KEYS.length)],row=i<8?0:1;if(i===5&&Math.random()<.06)k="golden";pr.push({k:k,v:ART[k][2],x:100+(row?16:0)+(i%8)*29+Math.random()*4,y:FL-18-row*22,vy:0,rot:(Math.random()-.5)*.5,got:false,held:false,w:.85+Math.random()*.3+(ART[k][2]>=6?.25:0)+(k==="golden"?.45:0)})}
  var cl={x:W/2,y:TOP,st:"idle",open:1,held:null,dir:0,t:0,sw:0,sv:0,grip:1};
  function upd(){st.textContent="Tries: "+tries+" · Won: "+won+(timer>0&&cl.st==="idle"?" · ⏱"+Math.ceil(timer/60):"")}
  function bag(k){var b=ov.querySelector("#cw-bag"),im=document.createElement("img");im.src=art(k).src;im.title=ART[k][0];b.appendChild(im)}
- function end(){paid=true;addPts(pts);db.innerHTML="🔁 PLAY AGAIN";msg.textContent=won?("Game over! +"+pts+" Club Points 🎉"):"Game over — better luck next time!"}
+ function nextMsg(){var m=new Date();m.setHours(24,0,0,0);var h=Math.ceil((m-Date.now())/36e5);return "🌙 1 play per day — the machine refills in ~"+h+"h"}
+ function end(){paid=true;addPts(pts);db.innerHTML="🌙 SEE YOU TOMORROW";msg.textContent=won?("Game over! +"+pts+" Club Points 🎉"):"Game over — better luck next time!"}
  function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
  function burst(x,y){for(var k=0;k<20;k++){var a=Math.random()*6.28,v=1+Math.random()*3;spk.push({x:x,y:y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,l:40,c:["#fde68a","#f472b6","#67e8f9","#a7f3d0"][k%4]})}}
  function press(){
-  if(cl.st==="idle"&&tries<=0){close();setTimeout(function(){window.bcClaw(where)},60);return}
-  if(cl.st==="idle"){tries--;timer=0;cl.st="down";cl.grip=.55+Math.random()*.5;db.innerHTML="✊ GRAB!";msg.textContent="Tap GRAB to close early — or let it hit bottom";tn(300,.5,"sawtooth",.04,180);upd();return}
+  if(cl.st==="idle"&&tries<=0){msg.textContent=nextMsg();tn(150,.15,"square",.04);return}
+  if(cl.st==="idle"){if(tries===5){try{localStorage.setItem(LK,dayKey())}catch(e){}}tries--;timer=0;cl.st="down";cl.grip=.55+Math.random()*.5;db.innerHTML="✊ GRAB!";msg.textContent="Tap GRAB to close early — or let it hit bottom";tn(300,.5,"sawtooth",.04,180);upd();return}
   if(cl.st==="down"){cl.st="grab";cl.t=0;tn(520,.1,"square",.05)}
  }
  function restY(p){var y=FL-18;pr.forEach(function(q){if(q!==p&&!q.got&&!q.held&&q.vy===0&&Math.abs(q.x-p.x)<22&&q.y-22<y)y=q.y-22});return y}
@@ -22396,12 +22427,12 @@ window.bcClaw=function(where){
     if(cl.held&&Math.random()<.003/cl.grip*cl.held.w){var p2=cl.held;fall(p2);msg.textContent="Noooo — dropped it on the way!";tn(200,.3,"triangle",.05,80)}
     if(cl.x<=40){cl.x=40;cl.st="release";cl.t=0}else if(!cl.held&&cl.t>30){cl.st="home2"}}
   else if(cl.st==="release"){cl.t++;cl.open=Math.min(1,cl.t/10);if(cl.held&&cl.t>4){fall(cl.held)}if(cl.t>40){cl.st="home2"}}
-  else if(cl.st==="home2"){cl.open=Math.min(1,cl.open+.08);if(cl.open>=1){cl.st="idle";db.innerHTML=tries>0?"🦾 DROP":"🔁 PLAY AGAIN";if(tries<=0)end();else if(!pr.some(function(q){return!q.got})){tries=0;msg.textContent="Machine emptied! 🏆";end()}else if(!/won|slipp|weak|dropp|miss|Nothing/i.test(msg.textContent))msg.textContent="Line it up and DROP!";timer=0;upd()}}
+  else if(cl.st==="home2"){cl.open=Math.min(1,cl.open+.08);if(cl.open>=1){cl.st="idle";db.innerHTML=tries>0?"🦾 DROP":"🌙 SEE YOU TOMORROW";if(tries<=0)end();else if(!pr.some(function(q){return!q.got})){tries=0;msg.textContent="Machine emptied! 🏆";end()}else if(!/won|slipp|weak|dropp|miss|Nothing/i.test(msg.textContent))msg.textContent="Line it up and DROP!";timer=0;upd()}}
   if(cl.held){var hx=cl.x+Math.sin(cl.sw)*(cl.y-24)*.35;cl.held.x=hx;cl.held.y=cl.y+30}
   /* falling prizes */
   if(fr%6===0)pr.forEach(function(q){if(!q.got&&!q.held&&!q.vy&&q.x>=CHX&&restY(q)>q.y+1)q.vy=.3});
   pr.forEach(function(q){if(!q.vy||q.got)return;q.vy+=.35;q.y+=q.vy;q.rot+=.05;
-   if(q.x<CHX&&q.y>FL-4){q.got=true;q.vy=0;won++;pts+=q.v;bag(q.k);burst(40,FL-4);msg.textContent="🎉 "+ART[q.k][0]+" ("+ART[q.k][1]+")! +"+q.v+" pts";tn(784,.12,"square",.06);setTimeout(function(){tn(1046,.2,"square",.06)},120);upd();return}
+   if(q.x<CHX&&q.y>FL-4){q.got=true;q.vy=0;won++;pts+=q.v;bag(q.k);try{bcFun("claw_win",1);if(q.k==="golden"){bcFun("claw_gold",1);burst(40,FL-30);burst(60,FL-10)}var gl=JSON.parse(localStorage.getItem("bc_claw_got")||"[]");if(gl.indexOf(q.k)<0){gl.push(q.k);localStorage.setItem("bc_claw_got",JSON.stringify(gl))}}catch(e){}burst(40,FL-4);msg.textContent=(q.k==="golden"?"🌟 SUPER RARE! ":"🎉 ")+ART[q.k][0]+" ("+ART[q.k][1]+")! +"+q.v+" pts";tn(784,.12,"square",.06);setTimeout(function(){tn(1046,.2,"square",.06)},120);upd();return}
    if(q.x<CHX)return;
    if(q.x<CHX+12&&q.y>FL-30){q.x+=1.2}
    var ry=restY(q);if(q.y>=ry){q.y=ry;q.vy=0}});
@@ -22421,6 +22452,7 @@ window.bcClaw=function(where){
   cx.fillStyle="#fde68a";cx.font="bold 11px system-ui,sans-serif";cx.textAlign="center";cx.fillText("▼ PRIZE ▼",40,FL+10);
   cx.fillStyle="#ffffff33";cx.fillRect(CHX,FL-34,3,52);
   pr.forEach(function(q,k){if(q.got||q.held)return;cx.fillStyle="rgba(0,0,0,.35)";cx.beginPath();cx.ellipse(q.x,q.y+17,13,3.5,0,0,6.28);cx.fill();
+   if(q.k==="golden"){cx.save();cx.globalAlpha=.35+Math.sin(fr/10)*.2;cx.fillStyle="#fde047";cx.beginPath();cx.arc(q.x,q.y,24,0,6.28);cx.fill();cx.restore()}
    cx.save();cx.translate(q.x,q.y+(q.vy?0:Math.sin(fr/25+k)*.6));cx.rotate(q.rot);cx.drawImage(art(q.k),-PS/2,-PS/2,PS,PS);cx.restore()});
   var rg=cx.createLinearGradient(0,14,0,28);rg.addColorStop(0,"#e2e8f0");rg.addColorStop(1,"#64748b");cx.fillStyle=rg;cx.fillRect(0,16,W,8);
   cx.fillStyle="#334155";for(var t=0;t<W;t+=16)cx.fillRect(t,22,8,2);
@@ -22449,6 +22481,8 @@ window.bcClaw=function(where){
  ov.querySelector("#cw-x").onclick=close;
  window.__claw={cl:cl,pr:pr,press:press,get tries(){return tries},get won(){return won},get pts(){return pts}};
  upd();loop();
+ if(usedToday){msg.textContent=nextMsg();db.innerHTML="🌙 SEE YOU TOMORROW"}
+ else if(pr.some(function(q){return q.k==="golden"})){msg.textContent="✨ A super rare Golden Buddy is in the machine today!"}
 };
 })();
 </script>
