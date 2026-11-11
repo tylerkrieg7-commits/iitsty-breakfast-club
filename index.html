@@ -18527,8 +18527,8 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         var c = document.createElement("div"); c.className = "card bcx-tg"; c.id = "bcx-tg";
         c.innerHTML = '<div class="card-header"><span class="card-title">💞 Together</span><small id="bcx-tgn">' + nextCdLine() + '</small></div><div class="cxt">' + TABS.map(function (t) { return '<button data-t="' + t[0] + '">' + t[1] + "</button>"; }).join("") + '</div><div id="bcx-tgp"></div>';
         var anchor = v.querySelector(":scope > #bcx-club") || v.querySelector(":scope > .card"); if (anchor) anchor.insertAdjacentElement("afterend", c); else v.appendChild(c);
-        var show = function (id) { lsSet("bcx_tg_tab", id); c.querySelectorAll(".tabs button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === id); }); TABS.filter(function (t) { return t[0] === id; })[0][2]($("bcx-tgp")); var n = $("bcx-tgn"); if (n) n.innerHTML = nextCdLine(); };
-        c.querySelector(".tabs").onclick = function (e) { var b = e.target.closest("[data-t]"); if (b) show(b.dataset.t); };
+        var show = function (id) { lsSet("bcx_tg_tab", id); c.querySelectorAll(".cxt button").forEach(function (b) { b.classList.toggle("on", b.dataset.t === id); }); TABS.filter(function (t) { return t[0] === id; })[0][2]($("bcx-tgp")); var n = $("bcx-tgn"); if (n) n.innerHTML = nextCdLine(); };
+        c.querySelector(".cxt").onclick = function (e) { var b = e.target.closest("[data-t]"); if (b) show(b.dataset.t); };
         show(cur); window.__bcxTgShow = function () { var t = $("bcx-tgp"); if (t && $("bcx-tg")) show(ls("bcx_tg_tab", "jar")); };
     }
 
@@ -18967,7 +18967,7 @@ header .gear-btn, #fx-mail-btn { position: absolute; }
         panel.innerHTML = '<div class="hd"><span>🏡 Pet home</span><button class="b g" id="bp-x">Close</button></div><div class="cxt"></div><div class="bd"></div>';
         document.body.appendChild(panel); panel.querySelector("#bp-x").onclick = function () { panel.remove(); panel = null; };
         var TABS = [["rooms", "🗺️ Rooms & doors"], ["skins", "🎨 Door skins"], ["gadgets", "🎛️ Gadgets"], ["friends", "👫 Friends"], ["radio", "📻 Radio"], ["visit", "👀 Visit"]], cur = tab, bd = panel.querySelector(".bd");
-        var paint = function () { panel.querySelector(".tabs").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".tabs button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, gadgets: function (b, r) { if (window.bcxGadgets) window.bcxGadgets.panel(b, r); else b.innerHTML = '<div class="card-desc">Gadgets are loading, try again in a moment.</div>'; }, skins: pSkins, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
+        var paint = function () { panel.querySelector(".cxt").innerHTML = TABS.map(function (t) { return '<button data-t="' + t[0] + '" class="' + (t[0] === cur ? "on" : "") + '">' + t[1] + "</button>"; }).join(""); panel.querySelectorAll(".cxt button").forEach(function (b) { b.onclick = function () { cur = b.dataset.t; paint(); }; }); ({ rooms: pRooms, gadgets: function (b, r) { if (window.bcxGadgets) window.bcxGadgets.panel(b, r); else b.innerHTML = '<div class="card-desc">Gadgets are loading, try again in a moment.</div>'; }, skins: pSkins, friends: pFriends, radio: pRadio, visit: pVisit })[cur](bd, paint, mode); };
         paint();
     }
     function close() { if (panel) { panel.remove(); panel = null; } }
