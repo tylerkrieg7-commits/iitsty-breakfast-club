@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0f1226">
+<title>Escape Room Duo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b0e1f;color:#eef1ff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;user-select:none}
+#app{max-width:480px;margin:0 auto;height:100%;display:flex;flex-direction:column;background:radial-gradient(circle at 50% 0,#1d2358,#0b0e1f 70%);position:relative}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.top{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;background:#141a3d;border-bottom:2px solid #4f63ff}
+body.arc .top{padding-left:50px}
+.top h1{margin:0;font-size:15px;flex:1;font-weight:900;color:#ffd86b;line-height:1.1}.top h1 small{display:block;font-size:10.5px;color:#9fb0ff;font-weight:700}
+.chip{background:#0b0e1f;border:1.5px solid #4f63ff;border-radius:12px;padding:4px 9px;font-weight:900;font-size:13px;white-space:nowrap}
+.main{flex:1;overflow:auto;padding:10px}
+.card{background:linear-gradient(160deg,#1f2760,#141a3d);border:1.5px solid #3e4fc9;border-radius:16px;padding:12px;margin-bottom:10px;box-shadow:0 6px 0 #0005}
+.pri{background:linear-gradient(#ffcf4a,#f59e0b);color:#2b1500;font-weight:900;border-radius:14px;padding:13px 16px;font-size:16px;box-shadow:0 5px 0 #92400e;width:100%;margin-top:6px}
+.pri:active{transform:translateY(3px);box-shadow:0 2px 0 #92400e}.pri.alt{background:linear-gradient(#6ee7b7,#10b981);box-shadow:0 5px 0 #065f46;color:#022c22}
+.sec{background:#26307a;border:1.5px solid #4f63ff;border-radius:12px;padding:9px 12px;font-weight:800}
+.room{border-radius:14px;overflow:hidden;border:2px solid #4f63ff;margin-bottom:8px;position:relative}.room svg{display:block;width:100%;height:auto}
+.bar{display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap}.bar .grow{flex:1}
+.pz{text-align:center}.pz h3{margin:2px 0 4px;color:#ffd86b;font-size:16px}.pz p{margin:4px 0 8px;font-size:13px;opacity:.9}
+.role{display:inline-block;font-size:11px;font-weight:900;padding:3px 10px;border-radius:10px;margin-bottom:6px}
+.role.clue{background:#0ea5e9;color:#032}.role.lock{background:#f97316;color:#2a1000}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.cdl{width:44px;height:66px;border-radius:10px 10px 6px 6px;position:relative;box-shadow:inset -6px 0 0 #0003,0 4px 0 #0006}
+.cdl:before{content:"";position:absolute;left:50%;top:-14px;width:12px;height:16px;margin-left:-6px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:#ffd54f;box-shadow:0 0 12px #ffb300;animation:fl 1s infinite alternate}@keyframes fl{to{transform:scale(1.15,.9)}}
+.cb{width:52px;height:52px;border-radius:50%;border:3px solid #fff5;box-shadow:0 4px 0 #0006}.cb:active{transform:translateY(3px)}
+.seq{display:flex;gap:6px;justify-content:center;min-height:30px;margin:6px 0}.seq i{width:26px;height:26px;border-radius:50%;border:2px solid #fff6;background:#0006}
+.tbl{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:300px;margin:6px auto}.tbl div{background:#0b0e1f;border:2px solid #4f63ff;border-radius:12px;padding:6px;font-size:26px}.tbl b{display:block;font-size:20px;color:#ffd86b}
+.code{display:flex;gap:8px;justify-content:center;font-size:34px;margin:8px 0}.code span{background:#0b0e1f;border:2px solid #f97316;border-radius:12px;width:52px;height:60px;display:flex;align-items:center;justify-content:center}
+.keys{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:300px;margin:6px auto}.keys button{background:#26307a;border:2px solid #4f63ff;border-radius:12px;padding:12px 0;font-weight:900;font-size:18px}.keys button:active{background:#4f63ff}
+.g3{display:grid;grid-template-columns:repeat(3,64px);gap:6px;justify-content:center;margin:8px auto}.g3 div{width:64px;height:64px;border-radius:12px;background:#0b0e1f;border:2px solid #4f63ff}.g3 div.on{background:radial-gradient(circle,#fff6a8,#fbbf24);box-shadow:0 0 14px #fbbf24}
+.clk{width:150px;height:150px;margin:6px auto;display:block}
+.dial{display:flex;gap:16px;justify-content:center;margin:8px 0}.dial div{text-align:center}.dial b{display:block;font-size:34px;background:#0b0e1f;border:2px solid #f97316;border-radius:12px;padding:4px 10px;min-width:74px}.dial button{background:#26307a;border:2px solid #4f63ff;border-radius:10px;width:44px;height:34px;font-size:16px;margin:3px}
+.scr{font-size:34px;letter-spacing:6px;background:#0b0e1f;border:2px dashed #ffd86b;border-radius:12px;padding:10px;margin:8px 0;font-weight:900;color:#ffd86b}
+input.w{width:100%;max-width:300px;font:inherit;font-size:22px;text-align:center;text-transform:uppercase;letter-spacing:4px;padding:10px;border-radius:12px;border:2px solid #f97316;background:#0b0e1f;color:#fff}
+.hint{background:#1b2150;border:1.5px dashed #ffd86b;border-radius:12px;padding:8px;font-size:12.5px;margin-top:8px;text-align:left}
+.shake{animation:sk .35s}@keyframes sk{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.ok{animation:okp .6s}@keyframes okp{50%{transform:scale(1.04);box-shadow:0 0 24px #34d399}}
+.big{font-size:54px;line-height:1.1}.mut{opacity:.75;font-size:12px}
+.pips{display:flex;gap:5px}.pips i{width:16px;height:16px;border-radius:50%;background:#0b0e1f;border:2px solid #4f63ff}.pips i.d{background:#34d399;border-color:#34d399}.pips i.c{border-color:#ffd86b}
+.partner{font-size:11px;font-weight:800;padding:3px 8px;border-radius:10px;background:#0b0e1f;border:1.5px solid #4f63ff}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000c;border:1.5px solid #ffd86b;padding:9px 14px;border-radius:14px;font-weight:800;font-size:13px;z-index:50;max-width:88%;text-align:center}
+</style></head><body>
+<div id="app"><div class="top"><h1>🔐 Escape Room Duo<small id="sub">Two seats. One way out.</small></h1><span class="chip" id="tm">⏱ --:--</span></div><div class="main" id="main"></div></div>
+<script>
+"use strict";
+(function(){
+var $=function(s,r){return(r||document).querySelector(s)};
+var esc=function(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var ls=function(k,d){try{var v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}};
+var lset=function(k,v){try{localStorage.setItem(k,v)}catch(e){}};
+var jget=function(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+var me=function(){return ls("fx_me","p1")==="p2"?"p2":"p1"};
+var myName=function(){return ls(me()==="p2"?"householdNameP2":"householdNameP1",me()==="p2"?"Player 2":"Player 1")};
+var cfg=function(){var c=jget("fx_sync_cfg",null);return c&&c.url&&c.key&&c.hh?c:null};
+function hdr(c){var h={apikey:c.key,"Content-Type":"application/json"};if(/^eyJ/.test(c.key))h.Authorization="Bearer "+c.key;return h}
+function rest(c){return c.url.replace(/\/+$/,"")+"/rest/v1/"}
+function kvGet(key){var c=cfg();if(!c)return Promise.resolve(null);return fetch(rest(c)+"club_kv?select=value&household=eq."+encodeURIComponent(c.hh)+"&key=eq."+encodeURIComponent(key),{headers:hdr(c),cache:"no-store"}).then(function(r){return r.ok?r.json():[]}).then(function(x){if(!x[0])return null;try{return JSON.parse(x[0].value)}catch(e){return null}}).catch(function(){return undefined})}
+function kvSet(key,obj){var c=cfg();if(!c)return Promise.resolve(false);return fetch(rest(c)+"club_kv?on_conflict=household,key",{method:"POST",headers:Object.assign(hdr(c),{Prefer:"resolution=merge-duplicates,return=minimal"}),body:JSON.stringify([{household:c.hh,key:key,value:JSON.stringify(obj),updated_at:Date.now(),updated_by:me()}])}).then(function(r){return r.ok}).catch(function(){return false})}
+if(/[?&]arc=1/.test(location.search))document.body.classList.add("arc");
+var AC=null;function tone(f,d,t,v,s){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume();var o=AC.createOscillator(),g=AC.createGain(),n=AC.currentTime;o.type=t||"triangle";o.frequency.setValueAtTime(f,n);if(s)o.frequency.exponentialRampToValueAtTime(s,n+d);g.gain.setValueAtTime(v||.06,n);g.gain.exponentialRampToValueAtTime(.001,n+d);o.connect(g);g.connect(AC.destination);o.start();o.stop(n+d+.02)}catch(e){}}
+function ok(){[523,659,784].forEach(function(f,i){setTimeout(function(){tone(f,.18,"triangle",.07)},i*110)})}
+function bad(){tone(160,.25,"sawtooth",.05,90)}
+function toast(m){var t=document.createElement("div");t.className="toast";t.textContent=m;document.body.appendChild(t);setTimeout(function(){t.remove()},2400)}
+function rng(s){s=(s>>>0)||1;return function(){s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
+function shuffle(a,r){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function bump(k,n){try{var f=JSON.parse(localStorage.getItem("bc_fun")||"{}")||{};f[k]=(f[k]||0)+n;localStorage.setItem("bc_fun",JSON.stringify(f))}catch(e){}}
+
+/* ---------------- ROOMS ---------------- */
+var ROOMS=[
+ {id:"lib",n:"Haunted Library",e:"📚",c1:"#2a1642",c2:"#0f0a1f",acc:"#a78bfa",obj:"book",words:[["GHOST","A spooky spirit"],["CANDLE","Gives light, melts"],["SPIDER","Eight legs, spins webs"],["WITCH","Rides a broom"],["RAVEN","Black bird"]],intro:"The doors slammed shut behind you. The librarian ghost won't let anyone leave until you crack three locks."},
+ {id:"lab",n:"Mad Lab",e:"🧪",c1:"#0d3b3a",c2:"#06141a",acc:"#34d399",obj:"flask",words:[["ROBOT","Beep boop machine"],["ATOM","Tiny building block"],["LASER","Focused beam of light"],["POTION","Bubbling drink"],["GEAR","Toothed wheel"]],intro:"A growing blob oozes from the vat. The lab's lockdown will lift only if you solve three security puzzles."},
+ {id:"pir",n:"Pirate Cabin",e:"🏴‍☠️",c1:"#4a2b12",c2:"#150b05",acc:"#fbbf24",obj:"chest",words:[["PARROT","Talking pirate pet"],["TREASURE","X marks the spot"],["ANCHOR","Keeps the ship still"],["COMPASS","Always points north"],["CANNON","Boom!"]],intro:"The ship is sinking and the captain locked the cabin! Open three locks before the water rises."}
+];
+var COLS=["#ef4444","#3b82f6","#22c55e","#eab308","#a855f7","#f97316"],CN=["Red","Blue","Green","Yellow","Purple","Orange"];
+var SYM=["🌙","⭐","☀️","🔥","💧","🍀","🗝️","💎","🕯️"];
+var TYPES=["colors","cipher","grid","word","clock"];
+function makePuzzles(room,seed){
+ var r=rng(seed*7919+room.id.charCodeAt(0)*31),ty=shuffle(TYPES,r).slice(0,3),out=[];
+ ty.forEach(function(t,i){var p={t:t,holder:i%2?"b":"a"};
+  if(t==="colors"){p.ans=[0,0,0,0].map(function(){return Math.floor(r()*6)})}
+  else if(t==="cipher"){var d=shuffle([1,2,3,4,5,6,7,8,9],r),sy=shuffle(SYM,r).slice(0,4);p.sy=sy;p.dg=d.slice(0,4);var idx=[0,1,2,3].map(function(){return Math.floor(r()*4)});p.show=idx.map(function(k){return sy[k]});p.ans=idx.map(function(k){return d[k]})}
+  else if(t==="grid"){var cells=shuffle([0,1,2,3,4,5,6,7,8],r).slice(0,4+Math.floor(r()*2));p.ans=cells.sort()}
+  else if(t==="word"){var w=room.words[Math.floor(r()*room.words.length)];p.word=w[0];p.cat=w[1];p.scr=shuffle(w[0].split(""),r).join("");if(p.scr===p.word)p.scr=p.word.split("").reverse().join("")}
+  else if(t==="clock"){p.h=1+Math.floor(r()*12);p.m=Math.floor(r()*12)*5}
+  out.push(p)});
+ return out}
+
+/* ---------------- STATE ---------------- */
+var G=null,seat="a",online=false,poll=null,tick=null,mainEl=$("#main");
+var KEY="esc_lobby";
+function today(){var d=new Date();return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()}
+function prog(){return jget("esc_prog",{})}
+function setProg(p){lset("esc_prog",JSON.stringify(p))}
+
+function home(){
+ clearInterval(poll);clearInterval(tick);G=null;$("#tm").textContent="⏱ --:--";$("#sub").textContent="Two seats. One way out.";
+ var P=prog(),h='<div class="card"><div class="big" style="text-align:center">🔐🗝️</div><div style="text-align:center;font-weight:800;margin:4px 0">One of you sees the clues. The other holds the locks.<br><span class="mut">Talk it out! Roles swap every puzzle.</span></div></div>';
+ h+='<div class="card"><b>Pick a room</b>'+ROOMS.map(function(r,i){var best=(P.best||{})[r.id];return '<button class="sec" data-r="'+i+'" style="width:100%;margin-top:8px;text-align:left;display:flex;gap:10px;align-items:center"><span style="font-size:28px">'+r.e+'</span><span style="flex:1">'+r.n+'<br><span class="mut">'+(best?"Best "+fmt(best)+" · ":"")+(P.done&&P.done[r.id]?"✅ escaped":"3 puzzles")+'</span></span></button>'}).join("")+'</div>';
+ h+='<div id="lob"></div><div class="card mut">🧑‍🤝‍🧑 <b>Play together</b>: start a room and your partner can join from the Escape Room on their phone (needs the shared sync). <b>Same phone?</b> Use "Swap seats" and pass it back and forth.</div>';
+ mainEl.innerHTML=h;
+ mainEl.querySelectorAll("[data-r]").forEach(function(b){b.onclick=function(){chooseMode(+b.dataset.r)}});
+ lobby();
+}
+function fmt(s){s=Math.max(0,Math.round(s));return Math.floor(s/60)+":"+("0"+s%60).slice(-2)}
+function lobby(){
+ if(!cfg())return;kvGet(KEY).then(function(d){var el=$("#lob");if(!el||!d||d.by===me()||Date.now()-d.ts>120000||d.closed)return;
+  el.innerHTML='<div class="card" style="border-color:#ffd86b"><b>👥 '+esc(d.name||"Your partner")+' is waiting in the '+esc(ROOMS[d.room].n)+'!</b><button class="pri alt" id="jn">Join the room</button></div>';
+  $("#jn").onclick=function(){join(d)}})}
+function chooseMode(i){
+ var r=ROOMS[i];mainEl.innerHTML='<div class="card pz"><div class="big">'+r.e+'</div><h3>'+r.n+'</h3><p>'+r.intro+'</p><button class="pri" id="m1">📱 Same phone (swap seats)</button><button class="pri alt" id="m2"'+(cfg()?"":" disabled style='opacity:.5'")+'>👥 Online co-op with partner</button><button class="sec" id="bk" style="width:100%;margin-top:8px">← Back</button></div>';
+ $("#m1").onclick=function(){start(i,false)};$("#m2").onclick=function(){start(i,true)};$("#bk").onclick=home}
+function newGame(i,code,seed){var room=ROOMS[i];return{room:i,seed:seed,code:code,pz:makePuzzles(room,seed),cur:0,hints:0,t0:Date.now(),done:0,wrong:0,ended:0}}
+function start(i,on){
+ online=on;var seed=Math.floor(Math.random()*99999)+1,code=Math.random().toString(36).slice(2,8);
+ G=newGame(i,code,seed);seat="a";
+ if(on){G.host=me();G.seatMine="a";kvSet(KEY,{by:me(),name:myName(),room:i,seed:seed,code:code,ts:Date.now()});kvSet("esc_"+code,sync())}
+ play();
+}
+function join(d){online=true;kvGet("esc_"+d.code).then(function(st){G=newGame(d.room,d.code,d.seed);G.t0=(st&&st.t0)||Date.now();G.host=d.by;G.seatMine="b";seat="b";if(st){G.cur=st.cur;G.done=st.done;G.hints=st.hints||0}play();bump("esc_co",0)})}
+function sync(){return{cur:G.cur,done:G.done,hints:G.hints,t0:G.t0,ended:G.ended,ts:Date.now(),by:me(),room:G.room,seed:G.seed}}
+function push(){if(online)kvSet("esc_"+G.code,sync())}
+
+/* ---------------- ROOM SCENE ---------------- */
+function sceneSVG(room,solved){
+ var a=room.acc,o='';
+ if(room.obj==="book")o='<g><rect x="30" y="50" width="70" height="110" fill="#3b2412" stroke="#000" stroke-width="2"/><g fill="#a855f7"><rect x="36" y="58" width="10" height="30"/><rect x="48" y="62" width="9" height="26" fill="#22c55e"/><rect x="59" y="56" width="11" height="32" fill="#ef4444"/><rect x="72" y="60" width="10" height="28" fill="#eab308"/></g><rect x="36" y="100" width="60" height="4" fill="#0006"/><g fill="#3b82f6"><rect x="36" y="108" width="12" height="30"/><rect x="50" y="112" width="10" height="26" fill="#f97316"/><rect x="62" y="106" width="11" height="32" fill="#a855f7"/></g></g><g transform="translate(300 130)"><path d="M-30 30Q-34-30 0-34Q34-30 30 30L20 24L10 30L0 24L-10 30L-20 24Z" fill="#e0f2fe" opacity=".9"/><circle cx="-10" cy="-8" r="4" fill="#1b1030"/><circle cx="10" cy="-8" r="4" fill="#1b1030"/><ellipse cx="0" cy="6" rx="4" ry="5" fill="#1b1030"/></g><g transform="translate(200 70)"><path d="M0 0V-18" stroke="#ddd" stroke-width="2"/><rect x="-6" y="0" width="12" height="26" fill="#fdf6e3"/><path d="M0 -4Q-6-12 0-20Q6-12 0-4Z" fill="#ffb74d"/></g>';
+ else if(room.obj==="flask")o='<g transform="translate(60 60)"><rect x="18" y="0" width="22" height="30" fill="#bae6fd" opacity=".6" stroke="#fff6"/><path d="M18 30L-6 90Q-6 100 6 100H52Q64 100 64 90L40 30Z" fill="#34d399" opacity=".8" stroke="#fff6"/><circle cx="20" cy="76" r="5" fill="#fff6"/><circle cx="38" cy="64" r="3" fill="#fff6"/></g><g transform="translate(300 100)"><rect x="-40" y="0" width="80" height="60" rx="8" fill="#0b2a30" stroke="#34d399" stroke-width="3"/><path d="M-30 40L-14 20L0 34L14 12L30 30" stroke="#34d399" stroke-width="2" fill="none"/></g><g transform="translate(210 66)"><circle r="14" fill="#a3e635" opacity=".85"/><circle cx="-4" cy="-3" r="2.5" fill="#1b1030"/><circle cx="4" cy="-3" r="2.5" fill="#1b1030"/><path d="M-4 4Q0 7 4 4" stroke="#1b1030" fill="none"/></g>';
+ else o='<g transform="translate(50 90)"><rect width="90" height="56" rx="6" fill="#8b5a2b" stroke="#000" stroke-width="2"/><path d="M0 14H90M45 0V56" stroke="#fbbf24" stroke-width="3"/><circle cx="45" cy="28" r="6" fill="#fbbf24"/></g><g transform="translate(300 80)"><circle r="40" fill="#1e293b" stroke="#fbbf24" stroke-width="4"/><circle r="30" fill="#0f172a"/><path d="M0 -26L5 0L0 26L-5 0Z" fill="#ef4444"/></g><path d="M0 170Q50 160 100 170T200 170T300 170T400 170V200H0Z" fill="#38bdf8" opacity="'+(.15+solved*.1)+'"/>';
+ return '<svg viewBox="0 0 400 190"><defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+room.c1+'"/><stop offset="1" stop-color="'+room.c2+'"/></linearGradient></defs><rect width="400" height="190" fill="url(#bg)"/><rect y="150" width="400" height="40" fill="#0006"/>'+o+'<g>'+[0,1,2].map(function(i){var d=i<solved;return '<g transform="translate('+(150+i*40)+' 150)"><rect x="-14" y="-18" width="28" height="30" rx="5" fill="'+(d?"#10b981":"#1f2937")+'" stroke="'+a+'" stroke-width="2.5"/><text x="0" y="4" text-anchor="middle" font-size="16">'+(d?"🔓":"🔒")+'</text></g>'}).join("")+'</g></svg>'}
+
+/* ---------------- PLAY ---------------- */
+function play(){
+ clearInterval(tick);clearInterval(poll);
+ tick=setInterval(function(){if(!G)return;var s=(Date.now()-G.t0)/1000;$("#tm").textContent="⏱ "+fmt(s)},500);
+ if(online)poll=setInterval(function(){kvGet("esc_"+G.code).then(function(st){if(!G||!st||st.by===me())return;if(st.ended&&!G.ended){G.ended=1;G.done=st.done;finish(true);return}if(st.cur>G.cur||st.done>G.done){G.cur=st.cur;G.done=st.done;G.hints=Math.max(G.hints,st.hints||0);ok();toast("🔓 "+(st.by===me()?"":"Your partner")+" opened a lock!");draw()}})},1800);
+ draw();
+}
+var input=[];
+function role(p){return(online?G.seatMine:seat)===p.holder?"clue":"lock"}
+function draw(){
+ var room=ROOMS[G.room];$("#sub").textContent=room.n+(online?" · co-op":" · seat "+seat.toUpperCase());
+ if(G.cur>=G.pz.length)return finish();
+ var p=G.pz[G.cur],r=role(p),h='<div class="room">'+sceneSVG(room,G.cur)+'</div>';
+ h+='<div class="bar"><div class="pips">'+G.pz.map(function(_,i){return '<i class="'+(i<G.cur?"d":i===G.cur?"c":"")+'"></i>'}).join("")+'</div><span class="grow"></span>'+(online?'<span class="partner">👥 co-op</span>':'<button class="sec" id="sw" style="padding:6px 10px;font-size:12px">🔁 Swap seats</button>')+'<button class="sec" id="ht" style="padding:6px 10px;font-size:12px">💡 Hint ('+G.hints+')</button></div>';
+ h+='<div class="card pz ok0" id="pz"><span class="role '+r+'">'+(r==="clue"?"👁️ YOU SEE THE CLUE":"🔒 YOU HOLD THE LOCK")+'</span>'+view(p,r,room)+'<div id="hn"></div></div>';
+ h+='<button class="sec" id="qt" style="width:100%">🚪 Leave room</button>';
+ mainEl.innerHTML=h;input=[];wire(p,r,room);
+ var sw=$("#sw");if(sw)sw.onclick=function(){seat=seat==="a"?"b":"a";draw()};
+ $("#ht").onclick=function(){hint(p)};$("#qt").onclick=function(){if(online&&G)kvSet(KEY,{by:me(),closed:1,ts:Date.now()});home()}}
+function clockSVG(h,m){var ah=((h%12)+m/60)*30,am=m*6;function hand(a,l,w){var x=75+Math.sin(a*Math.PI/180)*l,y=75-Math.cos(a*Math.PI/180)*l;return '<line x1="75" y1="75" x2="'+x+'" y2="'+y+'" stroke="#ffd86b" stroke-width="'+w+'" stroke-linecap="round"/>'}
+ var t='';for(var i=1;i<=12;i++){var a=i*30*Math.PI/180;t+='<text x="'+(75+Math.sin(a)*58)+'" y="'+(80-Math.cos(a)*58)+'" text-anchor="middle" font-size="12" fill="#fff" font-weight="800">'+i+'</text>'}
+ return '<svg class="clk" viewBox="0 0 150 150"><circle cx="75" cy="75" r="70" fill="#0b0e1f" stroke="#4f63ff" stroke-width="4"/>'+t+hand(ah,36,5)+hand(am,54,3)+'<circle cx="75" cy="75" r="4" fill="#ffd86b"/></svg>'}
+function view(p,r,room){
+ if(p.t==="colors"){
+  if(r==="clue")return '<h3>🕯️ The Candle Order</h3><p>Read the candles left to right to your partner.</p><div class="row" style="gap:14px;margin-top:18px">'+p.ans.map(function(c){return '<div class="cdl" style="background:'+COLS[c]+'"></div>'}).join("")+'</div><p class="mut">Tell them the colors in order!</p>';
+  return '<h3>🔘 Color Lock</h3><p>Press the colors in the order your partner describes.</p><div class="seq" id="sq">'+[0,1,2,3].map(function(){return '<i></i>'}).join("")+'</div><div class="row">'+COLS.map(function(c,i){return '<button class="cb" data-c="'+i+'" style="background:'+c+'" aria-label="'+CN[i]+'"></button>'}).join("")+'</div><button class="sec" id="clr">Clear</button>'}
+ if(p.t==="cipher"){
+  if(r==="clue")return '<h3>🗝️ Cipher Table</h3><p>Each symbol is a number. Tell your partner what each one means.</p><div class="tbl">'+p.sy.map(function(s,i){return '<div>'+s+'<b>'+p.dg[i]+'</b></div>'}).join("")+'</div>';
+  return '<h3>🔢 Symbol Safe</h3><p>The safe shows these symbols. Ask for their numbers, then enter the code.</p><div class="code">'+p.show.map(function(s){return '<span>'+s+'</span>'}).join("")+'</div><div class="scr" id="scr">----</div><div class="keys">'+[1,2,3,4,5,6,7,8,9,0].map(function(n){return '<button data-n="'+n+'">'+n+'</button>'}).join("")+'<button id="clr" style="grid-column:span 5">Clear</button></div>'}
+ if(p.t==="grid"){
+  if(r==="clue")return '<h3>💡 Light Pattern</h3><p>These lights are on. Describe the pattern!</p><div class="g3">'+[0,1,2,3,4,5,6,7,8].map(function(i){return '<div class="'+(p.ans.indexOf(i)>=0?"on":"")+'"></div>'}).join("")+'</div>';
+  return '<h3>🔲 Light Panel</h3><p>Switch on the same lights as your partner sees, then press Open.</p><div class="g3" id="g3">'+[0,1,2,3,4,5,6,7,8].map(function(i){return '<div data-i="'+i+'"></div>'}).join("")+'</div><button class="pri" id="go">Open</button>'}
+ if(p.t==="word"){
+  if(r==="clue")return '<h3>🔤 Scrambled Word</h3><p>Unscramble it and shout the answer — or give a hint!</p><div class="scr">'+p.scr.split("").join(" ")+'</div>';
+  return '<h3>🔐 Word Lock</h3><p>Hint on the lock: <b>'+esc(p.cat)+'</b>. Your partner has the scrambled letters.</p><div class="row"><input class="w" id="wi" maxlength="'+p.word.length+'" autocomplete="off"></div><button class="pri" id="go">Unlock</button>'}
+ if(p.t==="clock"){
+  if(r==="clue")return '<h3>🕰️ The Stopped Clock</h3><p>Read the time to your partner.</p>'+clockSVG(p.h,p.m);
+  return '<h3>⏰ Time Lock</h3><p>Set the dials to the time on the clock your partner sees.</p><div class="dial"><div>Hour<br><button data-d="h" data-v="1">▲</button><b id="dh">12</b><button data-d="h" data-v="-1">▼</button></div><div>Min<br><button data-d="m" data-v="5">▲</button><b id="dm">00</b><button data-d="m" data-v="-5">▼</button></div></div><button class="pri" id="go">Open</button>'}
+ return ""}
+function wire(p,r,room){
+ if(r==="clue")return;
+ var ansOK=function(){solved()};
+ if(p.t==="colors"){var sq=$("#sq");mainEl.querySelectorAll("[data-c]").forEach(function(b){b.onclick=function(){tone(300+input.length*80,.1,"square",.05);input.push(+b.dataset.c);sq.children[input.length-1].style.background=COLS[+b.dataset.c];if(input.length===4){if(input.join()===p.ans.join())ansOK();else fail()}}});$("#clr").onclick=function(){input=[];[].forEach.call(sq.children,function(i){i.style.background=""})}}
+ if(p.t==="cipher"){var scr=$("#scr");function show(){scr.textContent=(input.join("")+"----").slice(0,4)}mainEl.querySelectorAll("[data-n]").forEach(function(b){b.onclick=function(){if(input.length<4){tone(400+input.length*60,.08,"square",.05);input.push(+b.dataset.n);show();if(input.length===4){if(input.join()===p.ans.join())ansOK();else fail()}}}});$("#clr").onclick=function(){input=[];show()}}
+ if(p.t==="grid"){var sel={};mainEl.querySelectorAll("#g3 div").forEach(function(d){d.onclick=function(){var i=+d.dataset.i;sel[i]=!sel[i];d.classList.toggle("on",!!sel[i]);tone(500,.06,"square",.04)}});$("#go").onclick=function(){var s=Object.keys(sel).filter(function(k){return sel[k]}).map(Number).sort(function(a,b){return a-b});if(s.join()===p.ans.join())ansOK();else fail()}}
+ if(p.t==="word"){$("#go").onclick=function(){if($("#wi").value.trim().toUpperCase()===p.word)ansOK();else fail()};$("#wi").onkeydown=function(e){if(e.key==="Enter")$("#go").click()}}
+ if(p.t==="clock"){var h=12,m=0;mainEl.querySelectorAll("[data-d]").forEach(function(b){b.onclick=function(){tone(450,.05,"square",.04);if(b.dataset.d==="h"){h=((h-1+ +b.dataset.v+12)%12)+1}else{m=(m+ +b.dataset.v+60)%60}$("#dh").textContent=h;$("#dm").textContent=("0"+m).slice(-2)}});$("#go").onclick=function(){if(h===p.h&&m===p.m)ansOK();else fail()}}
+}
+function fail(){bad();G.wrong++;var pz=$("#pz");pz.classList.remove("shake");void pz.offsetWidth;pz.classList.add("shake");input=[];setTimeout(function(){draw()},450);if(navigator.vibrate)try{navigator.vibrate(120)}catch(e){}}
+function solved(){ok();G.cur++;G.done=G.cur;push();var pz=$("#pz");if(pz)pz.classList.add("ok");setTimeout(function(){G.cur>=G.pz.length?finish():draw()},700)}
+function hint(p){
+ G.hints++;G.t0-=30000;tone(660,.12,"sine",.05);var hn=$("#hn");var m;
+ if(p.t==="colors")m="Four candles, left to right. Say each color out loud.";
+ else if(p.t==="cipher")m="Match each symbol on the safe to its number in the cipher table.";
+ else if(p.t==="grid")m="Use the 3x3 grid like a phone keypad: top row 1-2-3, middle 4-5-6, bottom 7-8-9.";
+ else if(p.t==="word")m="The first letter is "+p.word[0]+". It has "+p.word.length+" letters.";
+ else m="Hour first, then minutes in 5-minute steps.";
+ hn.innerHTML='<div class="hint">💡 '+m+' <span class="mut">(+30s on the clock)</span></div>';$("#ht").textContent="💡 Hint ("+G.hints+")";push()}
+function finish(remote){
+ clearInterval(tick);clearInterval(poll);G.ended=1;if(!remote)push();
+ var secs=(Date.now()-G.t0)/1000,room=ROOMS[G.room],P=prog();P.best=P.best||{};P.done=P.done||{};
+ var best=!P.best[room.id]||secs<P.best[room.id];if(best)P.best[room.id]=Math.round(secs);P.done[room.id]=1;
+ var dk="d_"+room.id,first=P[dk]!==today(),pts=0;
+ if(first){var bonus=Math.max(0,Math.round(30-secs/20));pts=40+bonus+(online?20:0);P[dk]=today();try{lset("clubPoints",String((parseInt(ls("clubPoints","0"))||0)+pts))}catch(e){}}
+ setProg(P);
+ bump("esc_win",1);if(online)bump("esc_co",1);if(secs<240&&G.hints===0)bump("esc_fast",1);
+ var all=ROOMS.every(function(r){return P.done[r.id]});if(all)bump("esc_all",1);
+ mainEl.innerHTML='<div class="card pz"><div class="big">🎉🔓</div><h3>You escaped the '+room.n+'!</h3><div class="scr">'+fmt(secs)+'</div><p>'+G.hints+' hint'+(G.hints===1?"":"s")+' · '+G.wrong+' wrong tr'+(G.wrong===1?"y":"ies")+(best?"<br>⭐ New best time!":"")+'</p><p>'+(first?"<b>+"+pts+" Club Points</b>"+(online?" (co-op bonus!)":""):"<span class=mut>Points once per room per day — come back tomorrow!</span>")+'</p><button class="pri" id="again">Another room</button></div>';
+ ok();setTimeout(function(){tone(1046,.3,"triangle",.07)},400);$("#again").onclick=function(){if(online)kvSet(KEY,{by:me(),closed:1,ts:Date.now()});home()}}
+window.__esc={home:home,start:start,get G(){return G},solved:solved,ROOMS:ROOMS};
+home();
+})();
+</script></body></html>

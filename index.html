@@ -15778,6 +15778,10 @@ function fxNutEstimate(lines) {
         add({ id: "mv_tog10", i: "🛋️", n: "Couch Co-op", d: "Watch together 10 times", chk: () => FN("mv_tog") >= 10, pts: 150 }, "gold");
         add({ id: "mv_pop", i: "🍿", n: "Popcorn Break", d: "Call a popcorn break during movie night", chk: () => FN("mv_pop") >= 1, pts: 20 }, "bronze", true);
         add({ id: "mv_late", i: "🌙", n: "Midnight Movie", d: "Start a movie night after midnight", chk: () => FN("mv_late") >= 1, pts: 40 }, "silver", true);
+        add({ id: "esc_1", i: "🔓", n: "Out of Here", d: "Escape your first Escape Room Duo room", chk: () => FN("esc_win") >= 1, pts: 25 }, "bronze");
+        add({ id: "esc_all", i: "🗝️", n: "Master Escapist", d: "Escape all 3 rooms", chk: () => FN("esc_all") >= 1, pts: 120 }, "gold");
+        add({ id: "esc_co", i: "🧑‍🤝‍🧑", n: "Two Minds", d: "Escape a room online together", chk: () => FN("esc_co") >= 1, pts: 60 }, "silver");
+        add({ id: "esc_fast", i: "⚡", n: "Speed Escapist", d: "Escape a room in under 4 minutes with no hints", chk: () => FN("esc_fast") >= 1, pts: 80 }, "gold", true);
         add({ id: "h_tricks", i: "🎪", n: "Trick Master", d: "Perform every trick", chk: () => (window.FX3_TRICKS || []).every((t) => flags()["trick_" + t.id]), pts: 80 }, "gold", true);
         add({ id: "h_eggs", i: "🐣", n: "Egg Collector", d: "Hatch 10 mystery eggs", chk: () => (parseInt(ls("fx3_eggs_hatched", "0"), 10) || 0) >= 10, pts: 70 }, "gold", true);
         add({ id: "h_jackpot", i: "🎰", n: "Lucky Duck", d: "Hit a jackpot on the daily wheel", chk: () => !!flags().jackpot, pts: 50 }, "gold", true);
@@ -22216,7 +22220,7 @@ body.ui2 .settings-nav-btn.active{background-image:linear-gradient(180deg,rgba(2
     var S=function(i,l,p,g){return{i:i,l:l,k:p+":"+g,f:function(){goSet(p,g)}}},G=function(i,l,u){return{i:i,l:l,k:"url:"+u,f:function(){location.href=u}}};
     return[["Every day",daily],
       ["Rewards, pet & shop",[S("⭐","Points & Rewards","settings-pets","points"),S("🐾","My Pet","settings-pets","pet"),S("🛍️","Shop","settings-pets","shops"),S("🧪","Toy Physics","settings-pets","physics"),{i:"💌",l:"Love Notes",k:"mail",f:function(){var b=document.querySelector("#fx-mail-badge");b=b&&b.parentElement;if(b)b.click()}}]],
-      ["Games",[G("🕹️","Arcade","arcade.html"),G("💞","Together Arcade","duo.html"),G("🎣","Reel Legends","reel-legends.html"),G("👻","Reel Spooky","reel-spooky.html"),G("⚔️","Dungeon Dwellers","dungeon-dwellers.html"),G("🌱","Pocket Farm","PocketFarm.html"),G("💰","Loot & Ledger","loot-ledger.html"),G("👻","Mystery Club","mystery.html"),G("🎨","Color Art","color-art.html")]],
+      ["Games",[G("🕹️","Arcade","arcade.html"),G("💞","Together Arcade","duo.html"),G("🎣","Reel Legends","reel-legends.html"),G("👻","Reel Spooky","reel-spooky.html"),G("⚔️","Dungeon Dwellers","dungeon-dwellers.html"),G("🌱","Pocket Farm","PocketFarm.html"),G("💰","Loot & Ledger","loot-ledger.html"),G("👻","Mystery Club","mystery.html"),G("🔐","Escape Room Duo","escape.html"),G("🎨","Color Art","color-art.html")]],
       ["Settings",[S("🎨","Theme & Colors","settings-look","theme"),S("✨","Effects & Sound","settings-look","effects"),S("🧩","Tabs & Units","settings-look","layout"),S("🏠","Household","settings-look","home"),S("🔄","Sync","settings-data","sync"),S("💾","Backup & Reset","settings-data","backup"),S("🕹️","App Library","settings-data","apps"),{i:"🧭",l:"Navigation style",k:"navstyle",f:function(){goSet("settings-look","theme");setTimeout(function(){var e=document.getElementById("setting-bcnav");if(e){e.scrollIntoView({block:"center"});e.focus()}},700)}}]]];
   }
   function openMenu(){var w=where(),cur=w.tab==="settings"?w.page+":"+w.group:"tab:"+w.tab,I=items(),h='<div class="bcm-top"><h2>☰ Everything</h2><button class="bcm-x">✕ Close</button></div><input id="bcm-q" type="search" placeholder="🔎 Find a page…" autocomplete="off">';
