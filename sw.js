@@ -1,13 +1,14 @@
 /* Iitstys Breakfast Club: offline support.
    Bump CACHE_VERSION whenever you upload new files so phones refresh their saved copy.
    (Synced photos and videos are not kept here; they live in the app's own photo storage.) */
-const CACHE_VERSION = "v129";
+const CACHE_VERSION = "v130";
 const CACHE = "breakfast-club-" + CACHE_VERSION;
 const CORE = [
   "./",
   "./index.html",
   "./bc-assets.js",
   "./bc-extras.js",
+  "./bc-hh.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./art-reel-legends.png",
