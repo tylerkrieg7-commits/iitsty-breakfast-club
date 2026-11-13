@@ -6759,25 +6759,26 @@ ACH.push(
         { c.fillStyle = '#00000066'; c.fillRect(0, 0, W, 7); const hp = clamp(S.hp, 0, 100) / 100; c.fillStyle = hp > 0.5 ? '#69f0ae' : hp > 0.25 ? '#ffca28' : '#ff5252'; c.fillRect(0, 0, W * hp, 7); if(hp < 0.25 && S.f % 20 < 10) { c.fillStyle = 'rgba(255,0,0,.18)'; c.fillRect(0, 0, W, H); } }
         c.fillStyle = '#ffffff22'; c.fillRect(0, H - 6, W, 4); c.fillStyle = '#ff2bd6'; c.fillRect(0, H - 6, W * clamp(t / S.dur, 0, 1), 4);
     }
-    const PER = 7;
+    const TOP = 66, RH = 46;
     function drawMenu(c) {
         PX(c, 'RHYTHM TAP', W / 2, 30, 14, '#ffea00', 'center', '#ff2bd6');
         T(c, S.msg || 'Pick a song · tap the lanes in time', W / 2, 54, 11, '#ffffffcc');
         const rows = rowsList(); S.rows = rows;
+        const max = Math.max(0, rows.length * RH - (H - TOP - 8)); S.scroll = clamp(S.scroll || 0, 0, max);
+        c.save(); c.beginPath(); c.rect(0, TOP, W, H - TOP); c.clip();
         rows.forEach((r, i) => {
-            const y = 68 + i * 46;
-            fillRR(c, 14, y, W - 28, 40, 10, r.kind === 'song' ? '#1d0a3a' : r.kind === 'info' ? '#00000000' : '#5b2bd0');
+            const y = TOP + 2 + i * RH - S.scroll; if(y < TOP - RH || y > H) return;
+            fillRR(c, 14, y, W - 28, 40, 10, r.kind === 'song' ? '#1d0a3aee' : '#00000000');
             T(c, r.title, 26, y + 15, 13, '#fff', 'left'); T(c, r.sub, 26, y + 31, 10, '#ffffffaa', 'left');
-            if(r.kind === 'song') EMO(c, r.mine ? '📻' : '🎵', W - 34, y + 20, 20);
+            if(r.kind === 'song') EMO(c, r.mine ? '📻' : '🎵', W - 38, y + 20, 20);
         });
+        c.restore();
+        if(max > 0) { const vh = H - TOP - 8, bh = Math.max(30, vh * vh / (rows.length * RH)); fillRR(c, W - 8, TOP + 2 + (vh - bh) * (S.scroll / max), 4, bh, 2, '#ffffff66'); }
     }
     function rowsList() {
         loadMine(); const m = mine || [];
-        const all = SYNTH.map(s => ({kind: 'song', title: s.name, sub: s.sub, sg: s})).concat(m.map(x => ({kind: 'song', mine: 1, title: x.name.slice(0, 26), sub: 'Your song · beats found automatically', sg: x})));
-        const pages = Math.max(1, Math.ceil(all.length / PER)); S.page = clamp(S.page, 0, pages - 1);
-        const rows = all.slice(S.page * PER, S.page * PER + PER);
-        if(pages > 1) rows.push({kind: 'more', title: S.page + 1 < pages ? 'More songs ➡' : '⬅ Back to the first page', sub: 'Page ' + (S.page + 1) + ' of ' + pages + ' · ' + all.length + ' songs'});
-        else if(!m.length) rows.push({kind: 'info', title: 'Your own songs list here too', sub: 'Add music in the Workout tab or Photo Manager'});
+        const rows = SYNTH.map(s => ({kind: 'song', title: s.name, sub: s.sub, sg: s})).concat(m.map(x => ({kind: 'song', mine: 1, title: x.name.slice(0, 26), sub: 'Your song · beats found automatically', sg: x})));
+        if(!m.length) rows.push({kind: 'info', title: 'Your own songs list here too', sub: 'Add music in the Workout tab or Photo Manager'});
         return rows;
     }
     defGame({
@@ -6792,9 +6793,13 @@ ACH.push(
             audio();
             if(S.phase === 'play') { judge(clamp(Math.floor(x / LW), 0, LANES - 1)); return; }
             if(S.phase !== 'menu') return;
-            const i = Math.floor((y - 68) / 46); const r = (S.rows || [])[i]; if(!r || y < 68 || r.kind === 'info') return; sfx('select');
-            if(r.kind === 'more') { const n = SYNTH.length + (mine || []).length; S.page = (S.page + 1) * PER >= n ? 0 : S.page + 1; }
-            else if(r.sg.bpm) startSynth(r.sg); else startMine(r.sg);
+            S.drag = {y, s: S.scroll || 0, mv: 0};
+        },
+        pmove(x, y) { if(S.phase === 'menu' && S.drag) { S.drag.mv = Math.max(S.drag.mv, Math.abs(y - S.drag.y)); S.scroll = S.drag.s - (y - S.drag.y); } },
+        pup(x, y) {
+            const d = S.drag; S.drag = null; if(S.phase !== 'menu' || !d || d.mv > 8 || y < TOP) return;
+            const r = (S.rows || [])[Math.floor((y - TOP - 2 + (S.scroll || 0)) / RH)]; if(!r || r.kind !== 'song') return; sfx('select');
+            if(r.sg.bpm) startSynth(r.sg); else startMine(r.sg);
         }
     });
 })();
