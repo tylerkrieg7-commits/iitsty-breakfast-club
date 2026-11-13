@@ -3000,6 +3000,11 @@ body.ui2 .gear-btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
 
                     <div id="settings-look" class="settings-page" style="display: none">
                         <div class="card" style="border-color: var(--accent-color)">
+                            <div class="card-title">🏋️ Exercise Photos</div>
+                            <div class="card-desc">Photos stay folded away until you tap an exercise name. Turn this on to keep every photo open.</div>
+                            <label style="display:flex;align-items:center;gap:10px;margin-top:8px;font-weight:700"><input type="checkbox" id="setting-ex-photos-open" onchange="localStorage.setItem('ex_photos_open', this.checked ? '1' : '0'); try { loadWorkout(); } catch (e) {}"> Keep exercise photos open by default</label>
+                        </div>
+                        <div class="card" style="border-color: var(--accent-color)">
                             <div class="card-title">📋 List Customization & Themes</div>
 
                             <div class="card-desc">
@@ -7640,6 +7645,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                 p.days.forEach((d, idx) => {
                     daySelect.innerHTML += `<option value="${idx}">${__eh(d.title)}</option>`;
                 });
+                try { const cb = document.getElementById("setting-ex-photos-open"); if (cb) cb.checked = localStorage.getItem("ex_photos_open") === "1"; } catch (e) {}
                 const savedDay = localStorage.getItem(`day_${progKey}`) || "0";
                 daySelect.value = savedDay < p.days.length ? savedDay : "0";
             }
@@ -7664,7 +7670,7 @@ window.BXEMO={has:function(e){return !!body(e);},svg:function(e,size){var b=body
                         setsHTML += `<button class="btn-set ${progress[k] ? "completed" : ""}" onclick="toggleSet(${__ja(progKey)}, ${dayIdx}, ${exIdx}, ${s}, this)">${s}</button>`;
                     }
                     let imgHtml = generateImageHtml("exercise", ex.name);
-                    container.innerHTML += `<div class="card"><div class="card-header"><strong class="card-title clickable" onclick="document.getElementById('ex-det-${exIdx}').style.display = document.getElementById('ex-det-${exIdx}').style.display === 'block' ? 'none' : 'block'">${__eh(ex.name)}</strong><div><button class="exercise-gear" onclick="openEditExerciseModal(${exIdx})" title="Edit">✏️</button><button class="exercise-gear" onclick="openImageModal('exercise', ${__ja(ex.name)})" title="Set Image">⚙️</button><button class="exercise-gear" style="color:var(--danger-color);" onclick="deleteExercise(${exIdx})" title="Delete">✕</button></div></div><div class="card-desc">${__eh(ex.note)} (${__eh(ex.target)})</div><div class="details-pane" id="ex-det-${exIdx}">${imgHtml}</div><div class="tracker-row"><span>Sets:</span><div class="set-check">${setsHTML}</div></div></div>`;
+                    container.innerHTML += `<div class="card"><div class="card-header"><strong class="card-title clickable" onclick="document.getElementById('ex-det-${exIdx}').style.display = document.getElementById('ex-det-${exIdx}').style.display === 'block' ? 'none' : 'block'">${__eh(ex.name)}</strong><div><button class="exercise-gear" onclick="openEditExerciseModal(${exIdx})" title="Edit">✏️</button><button class="exercise-gear" onclick="openImageModal('exercise', ${__ja(ex.name)})" title="Set Image">⚙️</button><button class="exercise-gear" style="color:var(--danger-color);" onclick="deleteExercise(${exIdx})" title="Delete">✕</button></div></div><div class="card-desc">${__eh(ex.note)} (${__eh(ex.target)})</div><div class="details-pane" id="ex-det-${exIdx}" style="display:${localStorage.getItem('ex_photos_open') === '1' ? 'block' : 'none'}">${imgHtml}</div><div class="tracker-row"><span>Sets:</span><div class="set-check">${setsHTML}</div></div></div>`;
                 });
             }
             function toggleSet(progKey, dayIdx, exIdx, setIdx, btn) {
